@@ -1,0 +1,93 @@
+appId: com.daterabbit.app
+name: Auth Flow - Login and Registration
+tags:
+  - auth
+  - critical
+
+---
+
+# Welcome Screen
+- assertVisible:
+    id: "welcome-create-account-btn"
+- assertVisible:
+    id: "welcome-login-btn"
+
+# Test Login Flow
+- tapOn:
+    id: "welcome-login-btn"
+
+- assertVisible:
+    id: "login-email-input"
+- assertVisible:
+    id: "login-continue-btn"
+
+- tapOn:
+    id: "login-email-input"
+- inputText: "test@example.com"
+
+- tapOn:
+    id: "login-continue-btn"
+
+# OTP Screen
+- assertVisible:
+    id: "otp-code-input"
+- assertVisible:
+    id: "otp-verify-btn"
+- assertVisible:
+    id: "otp-resend-btn"
+
+# Go back
+- tapOn:
+    id: "otp-back-btn"
+
+# Back to welcome
+- tapOn:
+    id: "login-back-btn"
+
+# Test Registration Flow (Male/Seeker)
+- tapOn:
+    id: "welcome-create-account-btn"
+
+- assertVisible:
+    id: "role-select-companion-btn"
+- assertVisible:
+    id: "role-select-seeker-btn"
+
+# Select Seeker role
+- tapOn:
+    id: "role-select-seeker-btn"
+
+# Register Screen
+- assertVisible:
+    id: "register-name-input"
+- assertVisible:
+    id: "register-email-input"
+- assertVisible:
+    id: "register-submit-btn"
+
+- tapOn:
+    id: "register-name-input"
+- inputText: "John Doe"
+
+- tapOn:
+    id: "register-email-input"
+- inputText: "john@example.com"
+
+# Go back
+- tapOn:
+    id: "register-back-btn"
+
+# Test Registration Flow (Female/Companion)
+- tapOn:
+    id: "role-select-companion-btn"
+
+# Should see hourly rate field for female
+- assertVisible:
+    id: "register-name-input"
+- assertVisible:
+    id: "register-email-input"
+
+- tapOn:
+    id: "register-back-btn"
+- tapOn:
+    id: "role-select-back-btn"

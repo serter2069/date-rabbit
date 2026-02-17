@@ -1,0 +1,33 @@
+appId: com.daterabbit.app
+name: Profile Edit Flow
+tags:
+  - profile
+---
+
+# Navigate to profile
+- tapOn: "Profile"
+- assertVisible: "Profile"
+
+# Tap edit button
+- tapOn:
+    id: "profile-edit-btn"
+- assertVisible: "Edit Profile"
+
+# Edit name
+- tapOn: "Name"
+- clearText
+- inputText: "Updated Name"
+- hideKeyboard
+
+# Edit bio
+- tapOn: "Bio"
+- clearText
+- inputText: "This is my updated bio. I love going out and having great conversations!"
+- hideKeyboard
+
+# Save changes
+- tapOn: "Save Changes"
+
+# Verify return to profile
+- assertVisible: "Profile"
+- assertVisible: "Updated Name"

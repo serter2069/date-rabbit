@@ -1,0 +1,27 @@
+appId: com.daterabbit.app
+name: Onboarding Flow - Seeker Registration
+---
+
+# Welcome Screen
+- assertVisible: "Find Your"
+- assertVisible: "Perfect Date"
+- tapOn:
+    id: "welcome-start-btn"
+
+# Role Selection
+- assertVisible: "Join as..."
+- tapOn:
+    id: "role-select-seeker-btn"
+
+# Registration Form
+- assertVisible: "Create Account"
+- tapOn:
+    id: "register-name-input"
+- inputText: "Test User"
+- tapOn:
+    id: "register-email-input"
+- inputText: "test@example.com"
+- hideKeyboard
+- tapOn:
+    id: "register-submit-btn"
+- assertVisible: "Home"

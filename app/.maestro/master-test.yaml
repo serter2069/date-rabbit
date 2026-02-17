@@ -1,0 +1,36 @@
+appId: com.daterabbit.app
+name: Master Test - Full App Flow
+tags:
+  - master
+  - full
+
+---
+
+# Master test that runs all critical flows in sequence
+
+# 1. Auth Flow
+- runFlow: auth-flow.yaml
+
+# 2. Profile Setup (simulated - user would complete this after registration)
+# - runFlow: profile-setup-flow.yaml
+
+# Note: The following flows require the user to be logged in
+# They are listed here for reference but would need proper setup
+
+# 3. Browse Flow (male user)
+# - runFlow: browse-flow.yaml
+
+# 4. Booking Flow (male user)
+# - runFlow: booking-flow.yaml
+
+# 5. Chat Flow (male user)
+# - runFlow: chat-flow.yaml
+
+# 6. Bookings Tab Flow (male user)
+# - runFlow: bookings-tab-flow.yaml
+
+# 7. Profile Flow
+# - runFlow: profile-flow.yaml
+
+# 8. Female Requests Flow (female user)
+# - runFlow: female-requests-flow.yaml

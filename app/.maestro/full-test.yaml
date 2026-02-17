@@ -1,0 +1,28 @@
+appId: com.daterabbit.app
+name: DateRabbit Full E2E Test
+---
+
+# Test 1: Onboarding as Seeker
+- runFlow: onboarding-flow.yaml
+
+# Navigate through main tabs
+- tapOn: "Browse"
+- assertVisible: "Browse"
+
+- tapOn: "Bookings"
+- assertVisible: "Bookings"
+
+- tapOn: "Messages"
+- assertVisible: "Messages"
+
+- tapOn: "Profile"
+- assertVisible: "Profile"
+
+# Test Sign Out
+- tapOn:
+    id: "profile-signout-btn"
+- assertVisible: "Sign Out"
+- tapOn: "Sign Out"
+
+# Should be back at welcome
+- assertVisible: "Find Your"

@@ -1,0 +1,27 @@
+name: Browse Companions
+description: User browses available companions
+
+precondition:
+  logged_in: true
+  role: seeker
+
+steps:
+  - goto: /male/browse
+    screenshot: true
+
+  - assert:
+      selector: "[data-testid='companion-card']"
+      min_count: 1
+      message: "Should show at least 1 companion"
+
+  - click:
+      selector: "[data-testid='companion-card']"
+      index: 0
+    wait: 500
+    screenshot: true
+
+  - expect:
+      url_contains: "/profile/"
+
+  - assert:
+      visible: "Book Now"

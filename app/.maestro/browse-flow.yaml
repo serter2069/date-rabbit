@@ -1,0 +1,82 @@
+appId: com.daterabbit.app
+name: Browse Flow - Search and Filter Companions
+tags:
+  - browse
+  - male
+
+---
+
+# Assumes user is logged in as male/seeker
+
+# Browse Screen - Search
+- assertVisible:
+    id: "browse-search-input"
+- assertVisible:
+    id: "browse-filter-btn"
+
+# Test search functionality
+- tapOn:
+    id: "browse-search-input"
+- inputText: "Sarah"
+- hideKeyboard
+
+# Should show search results
+- assertVisible:
+    text: "Sarah"
+
+# Clear search
+- tapOn:
+    id: "browse-search-input"
+- clearText
+- hideKeyboard
+
+# Test filter modal
+- tapOn:
+    id: "browse-filter-btn"
+
+- assertVisible:
+    id: "filter-modal-title"
+- assertVisible:
+    id: "filter-apply-btn"
+- assertVisible:
+    id: "filter-reset-btn"
+
+# Close filter without applying
+- tapOn:
+    id: "filter-close-btn"
+
+# View first companion profile
+- tapOn:
+    id: "browse-view-profile-1"
+
+# Profile View Screen
+- assertVisible:
+    id: "profile-view-back-btn"
+- assertVisible:
+    id: "profile-view-favorite-btn"
+- assertVisible:
+    id: "profile-view-message-btn"
+- assertVisible:
+    id: "profile-view-book-btn"
+
+# Go back to browse
+- tapOn:
+    id: "profile-view-back-btn"
+
+# Book a date directly from browse
+- tapOn:
+    id: "browse-book-date-2"
+
+# Booking Screen
+- assertVisible:
+    id: "booking-back-btn"
+- assertVisible:
+    id: "booking-location-input"
+- assertVisible:
+    id: "booking-message-input"
+- assertVisible:
+    id: "booking-submit-btn"
+
+# Go back
+- tapOn:
+    id: "booking-back-btn"

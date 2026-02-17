@@ -1,0 +1,28 @@
+appId: com.daterabbit.app
+name: Browse Companions
+tags:
+  - seeker
+---
+
+# Assumes user is logged in as seeker
+- assertVisible: "Browse"
+
+# Scroll through companions
+- swipe:
+    direction: UP
+    duration: 500
+
+# Open filters
+- tapOn:
+    id: "browse-filters-btn"
+- assertVisible: "Filters"
+
+# Set price range
+- tapOn: "Apply"
+- assertVisible: "Browse"
+
+# Tap on a companion profile
+- tapOn:
+    index: 0
+    id: "companion-card-*"
+- assertVisible: "Book"

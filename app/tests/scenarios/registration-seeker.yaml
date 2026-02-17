@@ -1,0 +1,46 @@
+name: Registration - Seeker Flow
+description: Full registration flow for date seeker user
+
+steps:
+  - goto: /welcome
+    screenshot: true
+
+  - click:
+      text: "Create Account"
+    wait: 1000
+    screenshot: true
+
+  # Role selection screen
+  - click:
+      text: "Book dates"
+    wait: 1000
+    screenshot: true
+
+  # Now should be on registration form
+  - fill:
+      selector: "input[placeholder='Your name']"
+      value: "Test User"
+
+  - fill:
+      selector: "input[placeholder='email@example.com']"
+      value: "${TEST_EMAIL}"
+
+  - fill:
+      selector: "input[placeholder='1995']"
+      value: "1990"
+
+  - fill:
+      selector: "input[placeholder='City']"
+      value: "New York"
+    screenshot: true
+
+  - click:
+      text: "Create Account"
+    wait: 2000
+    screenshot: true
+
+  - expect:
+      url_contains: "/otp"
+
+variables:
+  TEST_EMAIL: "test-${TIMESTAMP}@tempmail.com"

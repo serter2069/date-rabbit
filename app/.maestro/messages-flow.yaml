@@ -1,0 +1,27 @@
+appId: com.daterabbit.app
+name: Messages Flow
+tags:
+  - messages
+---
+
+# Navigate to messages tab
+- tapOn: "Messages"
+- assertVisible: "Messages"
+
+# Open a conversation (if exists)
+- tapOn:
+    id: "messages-conversation-*"
+    optional: true
+
+# If conversation opened, send a message
+- runFlow:
+    when:
+      visible: "Type a message..."
+    commands:
+      - tapOn:
+          id: "chat-message-input"
+      - inputText: "Hello! How are you?"
+      - hideKeyboard
+      - tapOn:
+          id: "chat-send-btn"
+      - assertVisible: "Hello! How are you?"

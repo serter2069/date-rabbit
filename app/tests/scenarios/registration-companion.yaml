@@ -1,0 +1,36 @@
+name: Registration - Companion Flow
+description: Full registration flow for companion (female) user
+
+steps:
+  - goto: /welcome
+    screenshot: true
+
+  - click:
+      text: "Get Started"
+    wait: 500
+
+  - goto: /register
+    screenshot: true
+
+  - fill:
+      selector: "[data-testid='email-input']"
+      value: "${TEST_EMAIL}"
+
+  - fill:
+      selector: "[data-testid='password-input']"
+      value: "Test123456!"
+
+  - click:
+      text: "I want to be a companion"
+    wait: 300
+
+  - click:
+      text: "Register"
+    wait: 1000
+    screenshot: true
+
+  - expect:
+      url_contains: "/otp"
+
+variables:
+  TEST_EMAIL: "companion-${TIMESTAMP}@tempmail.com"

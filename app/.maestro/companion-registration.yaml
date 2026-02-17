@@ -1,0 +1,27 @@
+appId: com.daterabbit.app
+name: Onboarding Flow - Companion Registration
+---
+
+# Welcome Screen
+- assertVisible: "Find Your"
+- tapOn:
+    id: "welcome-start-btn"
+
+# Role Selection
+- assertVisible: "Join as..."
+- tapOn:
+    id: "role-select-companion-btn"
+
+# Registration Form
+- assertVisible: "Create Account"
+- assertVisible: "Hourly Rate"
+- tapOn:
+    id: "register-name-input"
+- inputText: "Sarah Companion"
+- tapOn:
+    id: "register-email-input"
+- inputText: "companion@example.com"
+- hideKeyboard
+- tapOn:
+    id: "register-submit-btn"
+- assertVisible: "Dashboard"

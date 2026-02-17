@@ -1,0 +1,41 @@
+appId: com.daterabbit.app
+name: Profile Flow - View and Edit Profile
+tags:
+  - profile
+  - settings
+
+---
+
+# Navigate to profile tab
+- tapOn:
+    text: "Profile"
+    optional: true
+
+# Profile Screen
+- assertVisible:
+    id: "profile-edit-btn"
+- assertVisible:
+    id: "profile-signout-btn"
+
+# Edit Profile
+- tapOn:
+    id: "profile-edit-btn"
+
+# Should navigate to edit profile screen
+# (assuming edit profile exists)
+- tapOn:
+    text: "Back"
+    optional: true
+
+# Navigate to favorites
+- tapOn:
+    text: "Favorites"
+    optional: true
+- tapOn:
+    text: "Back"
+    optional: true
+
+# Test sign out flow (don't actually sign out)
+# Just verify button is visible
+- assertVisible:
+    id: "profile-signout-btn"

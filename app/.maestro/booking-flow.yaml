@@ -1,0 +1,49 @@
+appId: com.daterabbit.app
+name: Create Booking Flow
+tags:
+  - seeker
+  - booking
+---
+
+# Start from companion profile
+- tapOn:
+    id: "profile-book-btn"
+
+# Booking Screen
+- assertVisible: "Book a Date"
+
+# Select activity
+- tapOn: "Dinner"
+
+# Select duration (2 hours is default)
+- assertVisible: "2 hours"
+
+# Select date (tap first available)
+- scroll:
+    direction: RIGHT
+
+# Select time
+- tapOn: "7:00 PM"
+
+# Enter location
+- tapOn:
+    id: "booking-location-input"
+- inputText: "Downtown Restaurant"
+- hideKeyboard
+
+# Enter optional message
+- tapOn:
+    id: "booking-message-input"
+- inputText: "Looking forward to meeting you!"
+- hideKeyboard
+
+# Review total
+- assertVisible: "Total"
+- assertVisible: "Service fee"
+
+# Submit booking
+- tapOn:
+    id: "booking-submit-btn"
+
+# Confirm success
+- assertVisible: "Request Sent"

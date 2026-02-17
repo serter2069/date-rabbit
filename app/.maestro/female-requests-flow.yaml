@@ -1,0 +1,38 @@
+appId: com.daterabbit.app
+name: Female Requests Flow - View and Manage Date Requests
+tags:
+  - requests
+  - female
+
+---
+
+# Assumes user is logged in as female/companion
+
+# Navigate to requests tab
+- tapOn:
+    text: "Requests"
+    optional: true
+
+# Requests Screen - Tabs
+- assertVisible:
+    id: "requests-tab-pending"
+- assertVisible:
+    id: "requests-tab-accepted"
+- assertVisible:
+    id: "requests-tab-completed"
+
+# Test Pending tab (default) - should show count
+- tapOn:
+    id: "requests-tab-pending"
+
+# Test Accepted tab
+- tapOn:
+    id: "requests-tab-accepted"
+
+# Test Completed tab
+- tapOn:
+    id: "requests-tab-completed"
+
+# Switch back to pending
+- tapOn:
+    id: "requests-tab-pending"

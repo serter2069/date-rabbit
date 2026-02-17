@@ -1,0 +1,296 @@
+{
+  "version": "1.1.0",
+  "updated": "2026-02-16T23:20:00Z",
+  "baseUrl": "https://daterabbit.smartlaunchhub.com",
+  "pages": {
+    "welcome": {
+      "route": "/welcome",
+      "selectors": {
+        "button_get_started": "[data-testid='get-started-button'], button:has-text('Get Started'), button:has-text('Начать')",
+        "button_login": "[data-testid='login-button'], button:has-text('Login'), button:has-text('Войти')",
+        "title": "[data-testid='welcome-title'], h1"
+      }
+    },
+    "login": {
+      "route": "/login",
+      "selectors": {
+        "input_email": "[data-testid='email-input'], input[type='email'], input[placeholder*='email' i]",
+        "button_send_code": "[data-testid='send-code-button'], button:has-text('Send'), button:has-text('Отправить')",
+        "link_register": "[data-testid='register-link'], a:has-text('Register'), a:has-text('Регистрация')"
+      }
+    },
+    "register": {
+      "route": "/register",
+      "selectors": {
+        "input_email": "[data-testid='email-input'], input[type='email']",
+        "button_continue": "[data-testid='continue-button'], button:has-text('Continue'), button:has-text('Продолжить')"
+      }
+    },
+    "otp": {
+      "route": "/otp",
+      "selectors": {
+        "input_otp": "[data-testid='otp-input'], input[type='text'], input[inputmode='numeric']",
+        "button_verify": "[data-testid='verify-button'], button:has-text('Verify'), button:has-text('Подтвердить')",
+        "button_resend": "[data-testid='resend-button'], button:has-text('Resend'), button:has-text('Отправить')",
+        "error_invalid_otp": "[data-testid='otp-error'], .error, [role='alert']"
+      }
+    },
+    "role_select": {
+      "route": "/role-select",
+      "selectors": {
+        "role_companion": "[data-testid='role-companion'], button:has-text('Companion'), button:has-text('Компаньон')",
+        "role_seeker": "[data-testid='role-seeker'], button:has-text('Seeker'), button:has-text('Искатель')",
+        "button_continue": "[data-testid='continue-button'], button:has-text('Continue')"
+      }
+    },
+    "profile_setup": {
+      "route": "/profile-setup",
+      "selectors": {
+        "input_name": "[data-testid='name-input'], input[placeholder*='name' i]",
+        "input_age": "[data-testid='age-input'], input[type='number'], input[placeholder*='age' i]",
+        "input_bio": "[data-testid='bio-input'], textarea, input[placeholder*='bio' i]",
+        "input_location": "[data-testid='location-input'], input[placeholder*='location' i]",
+        "input_hourly_rate": "[data-testid='hourly-rate-input'], input[type='number']",
+        "button_complete": "[data-testid='complete-button'], button:has-text('Complete'), button:has-text('Готово')"
+      }
+    },
+    "male_browse": {
+      "route": "/male/browse",
+      "selectors": {
+        "companions_list": "[data-testid='companions-list'], .companion-list, [role='list']",
+        "companion_card": "[data-testid='companion-card'], .companion-card",
+        "companion_card_first": "[data-testid='companion-card']:first-child, .companion-card:first-child",
+        "button_filter": "[data-testid='filter-button'], button:has-text('Filter'), button:has-text('Фильтр')",
+        "filter_nearby": "[data-testid='filter-nearby'], button:has-text('Nearby'), button:has-text('Рядом')",
+        "input_price_min": "[data-testid='price-min'], input[name*='min']",
+        "input_price_max": "[data-testid='price-max'], input[name*='max']",
+        "button_apply_filter": "[data-testid='apply-filter'], button:has-text('Apply'), button:has-text('Применить')",
+        "input_search": "[data-testid='search-input'], input[type='search'], input[placeholder*='search' i]"
+      }
+    },
+    "male_bookings": {
+      "route": "/male/bookings",
+      "selectors": {
+        "bookings_list": "[data-testid='bookings-list'], .booking-list, [role='list']",
+        "booking_card": "[data-testid='booking-card'], .booking-card",
+        "button_cancel_booking": "[data-testid='cancel-booking'], button:has-text('Cancel'), button:has-text('Отменить')",
+        "tab_upcoming": "[data-testid='tab-upcoming'], button:has-text('Upcoming')",
+        "tab_pending": "[data-testid='tab-pending'], button:has-text('Pending')",
+        "tab_past": "[data-testid='tab-past'], button:has-text('Past')"
+      }
+    },
+    "male_messages": {
+      "route": "/male/messages",
+      "selectors": {
+        "chats_list": "[data-testid='chats-list'], .chat-list, [role='list']",
+        "chat_item": "[data-testid='chat-item'], .chat-item",
+        "unread_badge": "[data-testid='unread-badge'], .badge"
+      }
+    },
+    "male_profile": {
+      "route": "/male/profile",
+      "selectors": {
+        "profile_photo": "[data-testid='profile-photo'], img[alt*='profile' i]",
+        "button_edit": "[data-testid='edit-profile'], button:has-text('Edit'), a:has-text('Edit')",
+        "button_settings": "[data-testid='settings-button'], button:has-text('Settings')"
+      }
+    },
+    "female_dashboard": {
+      "route": "/female",
+      "selectors": {
+        "dashboard_stats": "[data-testid='dashboard-stats'], .stats",
+        "requests_count": "[data-testid='requests-count'], .requests-count"
+      }
+    },
+    "female_requests": {
+      "route": "/female/requests",
+      "selectors": {
+        "requests_list": "[data-testid='requests-list'], .request-list, [role='list']",
+        "request_card": "[data-testid='request-card'], .request-card",
+        "button_accept_request": "[data-testid='accept-request'], button:has-text('Accept'), button:has-text('Принять')",
+        "button_decline_request": "[data-testid='decline-request'], button:has-text('Decline'), button:has-text('Отклонить')",
+        "tab_pending": "[data-testid='tab-pending'], button:has-text('Pending')",
+        "tab_accepted": "[data-testid='tab-accepted'], button:has-text('Accepted')",
+        "tab_completed": "[data-testid='tab-completed'], button:has-text('Completed')"
+      }
+    },
+    "female_calendar": {
+      "route": "/female/calendar",
+      "selectors": {
+        "calendar_visible": "[data-testid='calendar'], .calendar, [role='grid']",
+        "calendar_day": "[data-testid^='calendar-day'], .calendar-day",
+        "button_block_date": "[data-testid='block-date'], button:has-text('Block'), button:has-text('Заблокировать')",
+        "button_unblock_date": "[data-testid='unblock-date'], button:has-text('Unblock')",
+        "legend": "[data-testid='calendar-legend'], .legend"
+      }
+    },
+    "female_earnings": {
+      "route": "/female/earnings",
+      "selectors": {
+        "earnings_total": "[data-testid='total-earnings'], .total-earnings",
+        "earnings_pending": "[data-testid='pending-earnings'], .pending-earnings",
+        "button_withdraw": "[data-testid='withdraw-button'], button:has-text('Withdraw'), button:has-text('Вывести')",
+        "button_connect_stripe": "[data-testid='connect-stripe'], button:has-text('Connect'), button:has-text('Stripe')",
+        "button_see_history": "[data-testid='see-history'], a:has-text('History'), button:has-text('History')"
+      }
+    },
+    "female_earnings_history": {
+      "route": "/female/earnings/history",
+      "selectors": {
+        "transactions_list": "[data-testid='transactions-list'], .transaction-list, [role='list']",
+        "transaction_item": "[data-testid='transaction-item'], .transaction-item"
+      }
+    },
+    "female_earnings_withdraw": {
+      "route": "/female/earnings/withdraw",
+      "selectors": {
+        "balance_visible": "[data-testid='available-balance'], .balance",
+        "input_amount": "[data-testid='withdraw-amount'], input[type='number']",
+        "button_withdraw": "[data-testid='confirm-withdraw'], button:has-text('Withdraw')",
+        "payout_history": "[data-testid='payout-history'], .payout-history"
+      }
+    },
+    "female_profile": {
+      "route": "/female/profile",
+      "selectors": {
+        "profile_photo": "[data-testid='profile-photo'], img[alt*='profile' i]",
+        "verified_badge": "[data-testid='verified-badge'], .verified",
+        "button_edit": "[data-testid='edit-profile'], button:has-text('Edit')"
+      }
+    },
+    "profile_view": {
+      "route": "/profile/:id",
+      "selectors": {
+        "profile_photos": "[data-testid='profile-photos'], .photos, img",
+        "profile_bio": "[data-testid='profile-bio'], .bio, p",
+        "profile_hourly_rate": "[data-testid='hourly-rate'], .rate, .price",
+        "profile_rating": "[data-testid='rating'], .rating, .stars",
+        "tab_about": "[data-testid='tab-about'], button:has-text('About')",
+        "tab_reviews": "[data-testid='tab-reviews'], button:has-text('Reviews'), button:has-text('Отзывы')",
+        "reviews_list": "[data-testid='reviews-list'], .reviews-list",
+        "button_book": "[data-testid='book-button'], button:has-text('Book'), button:has-text('Забронировать')",
+        "button_favorite": "[data-testid='favorite-button'], button[aria-label*='favorite'], button:has-text('Favorite')",
+        "button_unfavorite": "[data-testid='unfavorite-button'], button[aria-label*='unfavorite']",
+        "button_more": "[data-testid='more-button'], button[aria-label*='more'], .menu-trigger",
+        "menu_block": "[data-testid='menu-block'], :text('Block')",
+        "menu_report": "[data-testid='menu-report'], :text('Report')"
+      }
+    },
+    "booking": {
+      "route": "/booking/:id",
+      "selectors": {
+        "input_activity": "[data-testid='activity-input'], select, input[name*='activity']",
+        "input_date": "[data-testid='date-input'], input[type='date']",
+        "input_time": "[data-testid='time-input'], input[type='time']",
+        "input_duration": "[data-testid='duration-input'], select, input[name*='duration']",
+        "input_location": "[data-testid='location-input'], input[placeholder*='location' i]",
+        "input_message": "[data-testid='message-input'], textarea",
+        "button_submit_booking": "[data-testid='submit-booking'], button:has-text('Book'), button:has-text('Забронировать')",
+        "price_summary": "[data-testid='price-summary'], .price-summary",
+        "button_pay": "[data-testid='pay-button'], button:has-text('Pay'), button:has-text('Оплатить')",
+        "card_number": "[data-testid='card-number'], input[name*='card'], iframe + input",
+        "card_expiry": "[data-testid='card-expiry'], input[name*='exp']",
+        "card_cvc": "[data-testid='card-cvc'], input[name*='cvc'], input[name*='cVV']",
+        "button_confirm_payment": "[data-testid='confirm-payment'], button:has-text('Confirm'), button:has-text('Pay')"
+      }
+    },
+    "chat": {
+      "route": "/chat/:id",
+      "selectors": {
+        "messages_list": "[data-testid='messages-list'], .messages, [role='log']",
+        "input_message": "[data-testid='message-input'], input[type='text'], textarea",
+        "button_send": "[data-testid='send-button'], button[type='submit'], button:has-text('Send')",
+        "typing_indicator": "[data-testid='typing-indicator'], .typing"
+      }
+    },
+    "favorites": {
+      "route": "/favorites",
+      "selectors": {
+        "favorites_list": "[data-testid='favorites-list'], [role='list']",
+        "empty_favorites": "[data-testid='empty-favorites'], .empty-state",
+        "companion_in_favorites": "[data-testid='favorite-item'], .favorite-item"
+      }
+    },
+    "reviews": {
+      "route": "/reviews/:id",
+      "selectors": {
+        "star_rating_1": "[data-testid='star-1'], button[aria-label*='1 star']",
+        "star_rating_2": "[data-testid='star-2'], button[aria-label*='2 star']",
+        "star_rating_3": "[data-testid='star-3'], button[aria-label*='3 star']",
+        "star_rating_4": "[data-testid='star-4'], button[aria-label*='4 star']",
+        "star_rating_5": "[data-testid='star-5'], button[aria-label*='5 star']",
+        "input_review": "[data-testid='review-input'], textarea",
+        "button_submit_review": "[data-testid='submit-review'], button:has-text('Submit'), button:has-text('Отправить')"
+      }
+    },
+    "settings_edit_profile": {
+      "route": "/settings/edit-profile",
+      "selectors": {
+        "input_name": "[data-testid='name-input'], input[name*='name']",
+        "input_bio": "[data-testid='bio-input'], textarea[name*='bio']",
+        "input_location": "[data-testid='location-input'], input[name*='location']",
+        "input_hourly_rate": "[data-testid='hourly-rate-input'], input[name*='rate'], input[name*='price']",
+        "input_photo": "[data-testid='photo-input'], input[type='file'], button:has-text('Upload')",
+        "button_save": "[data-testid='save-button'], button:has-text('Save'), button:has-text('Сохранить')"
+      }
+    },
+    "settings_notifications": {
+      "route": "/settings/notifications",
+      "selectors": {
+        "toggle_bookings": "[data-testid='toggle-bookings'], input[name*='booking']",
+        "toggle_messages": "[data-testid='toggle-messages'], input[name*='message']",
+        "toggle_reminders": "[data-testid='toggle-reminders'], input[name*='reminder']",
+        "toggle_payments": "[data-testid='toggle-payments'], input[name*='payment']",
+        "button_save": "[data-testid='save-button'], button:has-text('Save')"
+      }
+    },
+    "settings_verification": {
+      "route": "/settings/verification",
+      "selectors": {
+        "requirements_list": "[data-testid='requirements-list'], .requirements",
+        "requirement_item": "[data-testid='requirement'], .requirement",
+        "button_request_verification": "[data-testid='request-verification'], button:has-text('Request'), button:has-text('Запросить')"
+      }
+    },
+    "settings_delete_account": {
+      "route": "/settings/delete-account",
+      "selectors": {
+        "button_delete": "[data-testid='delete-account'], button:has-text('Delete'), button:has-text('Удалить')",
+        "warning_text": "[data-testid='warning'], .warning",
+        "input_confirm": "[data-testid='confirm-input'], input[placeholder*='DELETE']"
+      }
+    },
+    "common": {
+      "selectors": {
+        "loading_spinner": "[data-testid='loading'], .loading, .spinner",
+        "error_message": "[data-testid='error'], .error, [role='alert']",
+        "success_toast": "[data-testid='success'], .toast.success, .notification.success",
+        "back_button": "[data-testid='back-button'], button[aria-label*='back'], a[aria-label*='back']",
+        "tab_bar": "[data-testid='tab-bar'], nav, .tab-bar",
+        "tab_bar_visible": "nav, [role='tablist']",
+        "tab_icons_not_broken": "nav svg, nav img, [role='tablist'] svg",
+        "modal_overlay": "[data-testid='modal-overlay'], .modal-overlay, [role='dialog']",
+        "confirm_dialog": "[data-testid='confirm-dialog'], [role='alertdialog']",
+        "validation_errors": "[data-testid='validation-error'], .error, .invalid",
+        "companions_loaded": "[data-testid='companions-list'], .companion-card",
+        "companion_cards_visible": "[data-testid='companion-card'], .companion-card",
+        "not_empty_state": ":not(.empty-state)",
+        "filter_button_visible": "[data-testid='filter-button'], button:has(svg)",
+        "filter_modal_visible": "[role='dialog'], .modal",
+        "bookings_page_loaded": "[data-testid='bookings-list'], .booking-card, .empty-state",
+        "no_page_crash": "body",
+        "tab_browse": "[role='tab']:has-text('Browse')"
+      }
+    }
+  },
+  "testUsers": {
+    "seeker": {
+      "email": "test-seeker@example.com",
+      "role": "seeker"
+    },
+    "companion": {
+      "email": "test-companion@example.com",
+      "role": "companion"
+    }
+  }
+}

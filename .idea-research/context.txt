@@ -1,0 +1,30 @@
+# Structured Summary: DateRabbit
+
+**PROJECT_NAME:** DateRabbit
+
+**PROJECT_TYPE:** Mobile app (Marketplace/Platform)
+
+**PROBLEM:** Modern dating apps waste users' time without compensation and lack barriers for serious intentions. Users spend effort on dates with no guarantee of commitment or seriousness from the other party.
+
+**TARGET_AUDIENCE:** Primary - Women 25-40 years old (pragmatic daters, professionals); Secondary - Men 30-50 years old (serious seekers, efficiency-focused)
+
+**KNOWN_COMPETITORS:** TaskRabbit (business model reference for paid services marketplace)
+
+**MONETIZATION:** 
+- 20% commission on all transactions
+- Subscription plans for men
+- Premium features
+- Target ARR: $1.08M after 12 months
+- Unit economics: $18.94 net revenue per date
+
+**KEY_FEATURES:**
+- Phase 1 (Core Marketplace): Profile creation, paid date listings, booking system, payment processing, basic chat
+- Phase 2 (Trust & Growth): Reviews/ratings, verification system, calendar integration, advanced search/filters
+- Phase 3 (Retention): Subscription tiers, repeat date discounts, featured profiles, AI matching suggestions
+
+**TECH_STACK:**
+- Frontend: React Native + Expo
+- Backend: NestJS + PostgreSQL
+- Payments: Stripe Connect
+
+**USP:** TaskRabbit-style model applied to dating - women get compensated for their time, men pay for guaranteed serious connections. Creates economic barrier ensuring serious intentions while empowering women through monetization of dating effort.

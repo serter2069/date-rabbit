@@ -1,0 +1,72 @@
+appId: com.daterabbit.app
+name: Profile Setup Flow - Complete Registration
+tags:
+  - auth
+  - setup
+
+---
+
+# After registration, user goes through profile setup
+
+# Step 1: Role Selection (already tested in auth-flow)
+
+# Step 2: Basic Info
+- assertVisible:
+    id: "setup-name-input"
+    optional: true
+- assertVisible:
+    id: "setup-age-input"
+    optional: true
+- assertVisible:
+    id: "setup-location-input"
+    optional: true
+
+- tapOn:
+    id: "setup-name-input"
+    optional: true
+- inputText: "Test User"
+- hideKeyboard
+
+- tapOn:
+    id: "setup-age-input"
+    optional: true
+- inputText: "28"
+- hideKeyboard
+
+- tapOn:
+    id: "setup-location-input"
+    optional: true
+- inputText: "New York"
+- hideKeyboard
+
+- tapOn:
+    id: "setup-basic-continue-btn"
+    optional: true
+
+# Step 3: Bio (for companion)
+- assertVisible:
+    id: "setup-bio-input"
+    optional: true
+
+- tapOn:
+    id: "setup-bio-input"
+    optional: true
+- inputText: "I love meeting new people and exploring the city!"
+- hideKeyboard
+
+# Hourly rate for companion
+- assertVisible:
+    id: "setup-rate-input"
+    optional: true
+
+- tapOn:
+    id: "setup-rate-input"
+    optional: true
+- inputText: "100"
+- hideKeyboard
+
+- tapOn:
+    id: "setup-complete-btn"
+    optional: true
+
+# Should be redirected to main app

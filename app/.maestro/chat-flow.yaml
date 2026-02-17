@@ -1,0 +1,68 @@
+appId: com.daterabbit.app
+name: Chat Flow - Messaging
+tags:
+  - chat
+  - messaging
+
+---
+
+# Assumes user is logged in and has conversations
+
+# Navigate to messages tab (male)
+- tapOn:
+    text: "Messages"
+    optional: true
+
+# If there are conversations, tap on one
+- tapOn:
+    id: "messages-conversation-conv-comp-1"
+    optional: true
+
+# Chat Screen
+- assertVisible:
+    id: "chat-back-btn"
+    optional: true
+- assertVisible:
+    id: "chat-message-input"
+    optional: true
+- assertVisible:
+    id: "chat-send-btn"
+    optional: true
+- assertVisible:
+    id: "chat-book-btn"
+    optional: true
+
+# Type a message
+- tapOn:
+    id: "chat-message-input"
+    optional: true
+- inputText: "Hello! How are you?"
+- hideKeyboard
+
+# Send message
+- tapOn:
+    id: "chat-send-btn"
+    optional: true
+
+# Message should appear in chat
+- assertVisible:
+    text: "Hello! How are you?"
+    optional: true
+
+# Navigate to booking from chat
+- tapOn:
+    id: "chat-book-btn"
+    optional: true
+
+# Should see booking screen
+- assertVisible:
+    id: "booking-back-btn"
+    optional: true
+
+# Go back
+- tapOn:
+    id: "booking-back-btn"
+    optional: true
+- tapOn:
+    id: "chat-back-btn"
+    optional: true

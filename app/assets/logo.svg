@@ -1,0 +1,42 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="240" fill="#E75A7C"/>
+
+  <!-- Rabbit body -->
+  <ellipse cx="256" cy="300" rx="100" ry="120" fill="white"/>
+
+  <!-- Rabbit head -->
+  <circle cx="256" cy="200" r="80" fill="white"/>
+
+  <!-- Left ear -->
+  <ellipse cx="200" cy="100" rx="25" ry="70" fill="white"/>
+  <ellipse cx="200" cy="100" rx="15" ry="50" fill="#FFB6C1"/>
+
+  <!-- Right ear -->
+  <ellipse cx="312" cy="100" rx="25" ry="70" fill="white"/>
+  <ellipse cx="312" cy="100" rx="15" ry="50" fill="#FFB6C1"/>
+
+  <!-- Eyes -->
+  <circle cx="225" cy="190" r="15" fill="#333"/>
+  <circle cx="287" cy="190" r="15" fill="#333"/>
+  <circle cx="230" cy="185" r="5" fill="white"/>
+  <circle cx="292" cy="185" r="5" fill="white"/>
+
+  <!-- Nose -->
+  <ellipse cx="256" cy="220" rx="10" ry="8" fill="#FFB6C1"/>
+
+  <!-- Mouth -->
+  <path d="M246 235 Q256 250 266 235" stroke="#333" stroke-width="3" fill="none"/>
+
+  <!-- Cheeks -->
+  <circle cx="200" cy="215" r="15" fill="#FFB6C1" opacity="0.6"/>
+  <circle cx="312" cy="215" r="15" fill="#FFB6C1" opacity="0.6"/>
+
+  <!-- Heart -->
+  <path d="M256 350
+    C256 350 210 310 210 280
+    C210 255 230 250 256 275
+    C282 250 302 255 302 280
+    C302 310 256 350 256 350Z"
+    fill="#E75A7C" stroke="white" stroke-width="4"/>
+</svg>

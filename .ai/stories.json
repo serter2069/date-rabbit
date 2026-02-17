@@ -1,0 +1,283 @@
+[
+  {
+    "id": "story-001",
+    "status": "done",
+    "title": "Регистрация нового пользователя",
+    "as": "новый пользователь",
+    "want": "зарегистрироваться в приложении",
+    "so_that": "получить доступ к функционалу",
+    "screens": ["/welcome", "/register", "/otp", "/role-select", "/profile-setup"],
+    "plan": null
+  },
+  {
+    "id": "story-002",
+    "status": "done",
+    "title": "Вход по номеру телефона",
+    "as": "существующий пользователь",
+    "want": "войти по номеру телефона и OTP",
+    "so_that": "попасть в свой аккаунт",
+    "screens": ["/login", "/otp"],
+    "plan": null
+  },
+  {
+    "id": "story-003",
+    "status": "done",
+    "title": "Просмотр каталога компаньонок (male)",
+    "as": "мужчина",
+    "want": "просматривать каталог доступных компаньонок",
+    "so_that": "выбрать подходящую для встречи",
+    "screens": ["/male/browse"],
+    "plan": null
+  },
+  {
+    "id": "story-004",
+    "status": "done",
+    "title": "Просмотр профиля компаньонки",
+    "as": "мужчина",
+    "want": "открыть профиль компаньонки",
+    "so_that": "увидеть фото, описание, отзывы и цены",
+    "screens": ["/profile/:id", "/reviews/:id"],
+    "plan": null
+  },
+  {
+    "id": "story-005",
+    "status": "done",
+    "title": "Добавление в избранное",
+    "as": "мужчина",
+    "want": "добавить компаньонку в избранное",
+    "so_that": "быстро найти её позже",
+    "screens": ["/favorites"],
+    "plan": null
+  },
+  {
+    "id": "story-006",
+    "status": "done",
+    "title": "Создание бронирования",
+    "as": "мужчина",
+    "want": "забронировать встречу с компаньонкой",
+    "so_that": "договориться о дате и времени",
+    "screens": ["/booking/:id"],
+    "plan": null
+  },
+  {
+    "id": "story-007",
+    "status": "done",
+    "title": "Просмотр моих бронирований (male)",
+    "as": "мужчина",
+    "want": "видеть список своих бронирований",
+    "so_that": "отслеживать статус встреч",
+    "screens": ["/male/bookings"],
+    "plan": null
+  },
+  {
+    "id": "story-008",
+    "status": "done",
+    "title": "Чат с компаньонкой",
+    "as": "мужчина",
+    "want": "переписываться с компаньонкой",
+    "so_that": "обсудить детали встречи",
+    "screens": ["/chat/:id", "/male/messages"],
+    "plan": null
+  },
+  {
+    "id": "story-009",
+    "status": "done",
+    "title": "Оплата бронирования",
+    "as": "мужчина",
+    "want": "оплатить бронирование картой",
+    "so_that": "подтвердить встречу",
+    "screens": ["/booking/:id"],
+    "api": ["bookings/:id/pay"],
+    "plan": null
+  },
+  {
+    "id": "story-010",
+    "status": "done",
+    "title": "Оставить отзыв",
+    "as": "мужчина",
+    "want": "оставить отзыв после встречи",
+    "so_that": "поделиться опытом с другими",
+    "screens": ["/reviews/:id"],
+    "api": [":id/review"],
+    "plan": null
+  },
+  {
+    "id": "story-011",
+    "status": "done",
+    "title": "Просмотр входящих запросов (female)",
+    "as": "компаньонка",
+    "want": "видеть входящие запросы на бронирование",
+    "so_that": "принять или отклонить их",
+    "screens": ["/female/requests"],
+    "plan": null
+  },
+  {
+    "id": "story-012",
+    "status": "done",
+    "title": "Управление календарём (female)",
+    "as": "компаньонка",
+    "want": "управлять своим расписанием",
+    "so_that": "показывать доступные даты",
+    "screens": ["/female/calendar"],
+    "plan": null
+  },
+  {
+    "id": "story-013",
+    "status": "done",
+    "title": "Просмотр заработка (female)",
+    "as": "компаньонка",
+    "want": "видеть свой заработок",
+    "so_that": "отслеживать доходы",
+    "screens": ["/female/earnings"],
+    "api": ["earnings"],
+    "plan": null
+  },
+  {
+    "id": "story-014",
+    "status": "done",
+    "title": "Редактирование профиля",
+    "as": "пользователь",
+    "want": "редактировать свой профиль",
+    "so_that": "обновить информацию о себе",
+    "screens": ["/settings/edit-profile"],
+    "plan": null
+  },
+  {
+    "id": "story-015",
+    "status": "done",
+    "title": "Загрузка фото",
+    "as": "пользователь",
+    "want": "загрузить свои фотографии",
+    "so_that": "показать себя другим",
+    "api": ["photos", "photos/:id", "photos/:photoId/primary", "photos/reorder"],
+    "plan": null
+  },
+  {
+    "id": "story-016",
+    "status": "done",
+    "title": "Подключение Stripe (female)",
+    "as": "компаньонка",
+    "want": "подключить Stripe для выплат",
+    "so_that": "получать деньги за встречи",
+    "api": ["connect/onboard", "connect/status"],
+    "plan": null
+  },
+  {
+    "id": "story-017",
+    "status": "done",
+    "title": "Отмена бронирования",
+    "as": "мужчина",
+    "want": "отменить бронирование",
+    "so_that": "изменить планы без потери денег",
+    "screens": ["/male/bookings", "/booking/:id"],
+    "api": ["bookings/:id/cancel"],
+    "plan": ["Backend: уже реализован (BookingStatus.CANCELLED, updateStatus)", "Store: cancelBooking() уже есть", "Frontend: подключить bookings.tsx к реальному store", "Добавить Alert подтверждения отмены", "Добавить кнопку Cancel на upcoming и pending бронированиях"]
+  },
+  {
+    "id": "story-018",
+    "status": "done",
+    "title": "Блокировка пользователя",
+    "as": "пользователь",
+    "want": "заблокировать другого пользователя",
+    "so_that": "не получать от него сообщения",
+    "screens": ["/profile/:id", "/chat/:id"],
+    "api": ["users/:id/block"],
+    "plan": ["Backend: UserBlock entity, blockUser/unblockUser/getBlockedUsers/isBlocked в UsersService", "API: POST/DELETE users/:id/block, GET users/blocked", "Frontend: usersApi.blockUser/unblockUser/getBlockedUsers", "UI: меню с кнопкой Block в profile/[id].tsx"]
+  },
+  {
+    "id": "story-019",
+    "status": "done",
+    "title": "Настройка push-уведомлений",
+    "as": "пользователь",
+    "want": "настроить какие уведомления получать",
+    "so_that": "не отвлекаться на ненужные",
+    "screens": ["/settings/notifications"],
+    "plan": ["Backend: NotificationsService уже готов", "Frontend: экран settings/notifications.tsx", "expo-notifications для запроса разрешений", "Настройки по типам: bookings, messages, reminders, payments"]
+  },
+  {
+    "id": "story-020",
+    "status": "done",
+    "title": "Поиск по геолокации",
+    "as": "мужчина",
+    "want": "видеть компаньонок рядом со мной",
+    "so_that": "выбрать ближайших",
+    "screens": ["/male/browse"],
+    "plan": ["Backend: уже реализован (Haversine formula, maxDistance, sortBy: distance)", "Frontend: expo-location для запроса разрешений", "browse.tsx: подключение к companionsApi вместо mock data", "Передача latitude/longitude в API", "Отображение distance на карточках компаньонов", "Quick filter 'Nearby' сортирует по расстоянию"]
+  },
+  {
+    "id": "story-021",
+    "status": "done",
+    "title": "Верификация профиля",
+    "as": "компаньонка",
+    "want": "пройти верификацию",
+    "so_that": "получить значок verified",
+    "screens": ["/settings/verification"],
+    "api": ["users/verification/status", "users/verification/request"],
+    "plan": ["Backend: getVerificationStatus() проверяет требования (3 фото, bio 50+ символов)", "Backend: requestVerification() устанавливает isVerified=true", "API: GET users/verification/status, POST users/verification/request", "Frontend: usersApi.getVerificationStatus/requestVerification", "UI: settings/verification.tsx с чеклистом требований"]
+  },
+  {
+    "id": "story-022",
+    "status": "done",
+    "title": "Удаление аккаунта",
+    "as": "пользователь",
+    "want": "удалить свой аккаунт",
+    "so_that": "удалить все данные (GDPR)",
+    "screens": ["/settings/delete-account"],
+    "api": ["users/me (DELETE)"],
+    "plan": ["Backend: deleteAccount() soft delete - status=DELETED, anonymize data", "API: DELETE users/me", "Frontend: usersApi.deleteAccount", "UI: settings/delete-account.tsx с подтверждением DELETE", "После удаления: logout + redirect to welcome"]
+  },
+  {
+    "id": "story-023",
+    "status": "done",
+    "title": "Жалоба на пользователя",
+    "as": "пользователь",
+    "want": "пожаловаться на нарушителя",
+    "so_that": "модераторы приняли меры",
+    "screens": ["/profile/:id"],
+    "api": ["users/:id/report"],
+    "plan": ["Backend: UserReport entity с ReportReason enum", "Backend: reportUser() с проверкой дублей (24ч)", "API: POST users/:id/report", "Frontend: usersApi.reportUser", "UI: Report modal в profile/[id].tsx с выбором причины"]
+  },
+  {
+    "id": "story-024",
+    "status": "done",
+    "title": "История транзакций",
+    "as": "компаньонка",
+    "want": "видеть детальную историю платежей",
+    "so_that": "отслеживать каждую транзакцию",
+    "screens": ["/female/earnings/history"],
+    "api": ["earnings/history"],
+    "plan": ["Backend: getEarningsHistory() в payments.service.ts с пагинацией", "API: GET /payments/earnings/history", "Frontend: paymentsApi.getEarningsHistory в api.ts", "UI: earnings/history.tsx с FlatList и пагинацией", "UI: earnings.tsx подключен к API, кнопка See All ведёт на history"]
+  },
+  {
+    "id": "story-025",
+    "status": "done",
+    "title": "Вывод средств",
+    "as": "компаньонка",
+    "want": "вывести заработанные деньги",
+    "so_that": "получить их на карту",
+    "screens": ["/female/earnings/withdraw"],
+    "api": ["payouts/create"],
+    "plan": ["Backend: getPayoutBalance(), createPayout(), getPayoutHistory() в payments.service.ts", "API: GET /payments/payouts/balance, POST /payments/payouts/create, GET /payments/payouts/history", "Frontend: paymentsApi.getPayoutBalance/createPayout/getPayoutHistory", "UI: earnings/withdraw.tsx с балансом, выбором суммы и историей выплат", "UI: кнопка Withdraw в earnings.tsx ведёт на withdraw экран"]
+  },
+  {
+    "id": "story-026",
+    "status": "done",
+    "title": "Изменение тарифа",
+    "as": "компаньонка",
+    "want": "изменить свою почасовую ставку",
+    "so_that": "регулировать цены",
+    "screens": ["/settings/edit-profile"],
+    "plan": ["Backend: UpdateProfileDto уже поддерживает hourlyRate", "API: PATCH /users/me принимает hourlyRate", "Frontend: edit-profile.tsx уже имеет поле Hourly Rate", "UI: подсказка показывает чистый доход после комиссии 15%"]
+  },
+  {
+    "id": "story-027",
+    "status": "done",
+    "title": "Блокировка дат в календаре",
+    "as": "компаньонка",
+    "want": "заблокировать определённые дни",
+    "so_that": "не получать запросы на эти даты",
+    "screens": ["/female/calendar"],
+    "api": ["calendar/block"],
+    "plan": ["Backend: BlockedDate entity, CalendarService, CalendarController", "API: POST/DELETE /calendar/block, GET /calendar/blocked", "Frontend: calendarApi.blockDates/unblockDates/getBlockedDates", "UI: calendar.tsx с режимом блокировки, навигацией по месяцам, легендой", "UI: показ бронирований и заблокированных дат на календаре"]
+  }
+]

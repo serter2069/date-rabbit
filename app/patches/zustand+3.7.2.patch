@@ -1,0 +1,18 @@
+diff --git a/node_modules/zustand/middleware.js b/node_modules/zustand/middleware.js
+index 1234567..abcdefg 100644
+--- a/node_modules/zustand/middleware.js
++++ b/node_modules/zustand/middleware.js
+@@ -1,5 +1,5 @@
+ 
+-import { devtools as e, persist as t } from './middleware';
++import { devtools as e, persist as t } from './middleware.cjs';
+ export { e as devtools, t as persist };
+diff --git a/node_modules/zustand/middleware.cjs b/node_modules/zustand/middleware.cjs
+--- a/node_modules/zustand/middleware.cjs
++++ b/node_modules/zustand/middleware.cjs
+@@ -XXX,XX +XXX,XX @@
+-"production"!==(import.meta.env&&import.meta.env.MODE)
++false
+@@ -XXX,XX +XXX,XX @@
+-"production"===(import.meta.env&&import.meta.env.MODE)
++true

@@ -1,0 +1,36 @@
+appId: com.daterabbit.app
+name: Bookings Tab Flow - View and Manage Bookings
+tags:
+  - bookings
+  - male
+
+---
+
+# Navigate to bookings tab
+- tapOn:
+    text: "Bookings"
+    optional: true
+
+# Bookings Screen - Tabs
+- assertVisible:
+    id: "bookings-tab-upcoming"
+- assertVisible:
+    id: "bookings-tab-pending"
+- assertVisible:
+    id: "bookings-tab-past"
+
+# Test Upcoming tab (default)
+- tapOn:
+    id: "bookings-tab-upcoming"
+
+# Test Pending tab
+- tapOn:
+    id: "bookings-tab-pending"
+
+# Test Past tab
+- tapOn:
+    id: "bookings-tab-past"
+
+# Switch back to upcoming
+- tapOn:
+    id: "bookings-tab-upcoming"

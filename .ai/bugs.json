@@ -1,0 +1,32 @@
+[
+  {
+    "id": "BUG-API-001",
+    "type": "bug",
+    "severity": "high",
+    "status": "open",
+    "title": "Companions API: 500 error (UUID conversion)",
+    "description": "GET /api/companions/search returns 500 - PostgreSQL string_to_uuid error in TypeORM SelectQueryBuilder",
+    "platform": "api",
+    "created": "2026-02-17T03:00:00Z"
+  },
+  {
+    "id": "BUG-BROWSE-001",
+    "type": "bug",
+    "severity": "high",
+    "status": "open",
+    "title": "Browse screen crash: rating.toFixed is not a function",
+    "description": "Browse screen crashes with 'e.rating.toFixed is not a function'. Rating comes as string from API, needs parseFloat.",
+    "platform": "web",
+    "created": "2026-02-17T03:17:00Z"
+  },
+  {
+    "id": "BUG-BOOKINGS-001",
+    "type": "bug",
+    "severity": "high",
+    "status": "open",
+    "title": "Bookings screen crash: Cannot read properties of undefined",
+    "description": "Bookings screen crashes with 'Cannot read properties of undefined' after a few seconds",
+    "platform": "web",
+    "created": "2026-02-17T03:21:00Z"
+  }
+]

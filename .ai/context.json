@@ -1,0 +1,37 @@
+{
+  "project": "DateRabbit",
+  "type": "react-native-expo",
+  "prod_url": "https://daterabbit.smartlaunchhub.com",
+  "api_url": "https://daterabbit-api.smartlaunchhub.com/api",
+  "routes": [
+    "/welcome",
+    "/login",
+    "/register",
+    "/otp",
+    "/role-select",
+    "/profile-setup",
+    "/male",
+    "/male/browse",
+    "/male/bookings",
+    "/male/messages",
+    "/male/profile",
+    "/female",
+    "/female/requests",
+    "/female/earnings",
+    "/female/earnings/history",
+    "/female/earnings/withdraw",
+    "/female/calendar",
+    "/female/profile",
+    "/favorites",
+    "/settings/edit-profile",
+    "/settings/notifications",
+    "/settings/verification",
+    "/settings/delete-account"
+  ],
+  "routes_with_params": [
+    "/profile/:id",
+    "/booking/:id",
+    "/chat/:id",
+    "/reviews/:id"
+  ]
+}
