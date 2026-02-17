@@ -293,13 +293,13 @@ export default function BrowseScreen() {
                     <Icon name="map-pin" size={14} color={colors.textSecondary} />
                     <Text style={[styles.cardLocation, { color: colors.textSecondary, marginLeft: 4 }]}>
                       {companion.distance !== undefined
-                        ? `${companion.distance.toFixed(1)} mi away`
+                        ? `${Number(companion.distance).toFixed(1)} mi away`
                         : companion.location || 'Location hidden'}
                     </Text>
                   </View>
                   <View style={styles.ratingRow}>
                     <Icon name="star" size={14} color={colors.accent} />
-                    <Text style={[styles.rating, { color: colors.text, marginLeft: 4 }]}>{companion.rating.toFixed(1)}</Text>
+                    <Text style={[styles.rating, { color: colors.text, marginLeft: 4 }]}>{Number(companion.rating).toFixed(1)}</Text>
                     <Text style={[styles.reviews, { color: colors.textSecondary }]}>({companion.reviewCount} reviews)</Text>
                   </View>
                 </View>
@@ -313,9 +313,9 @@ export default function BrowseScreen() {
                 <View style={[styles.distanceBadge, { backgroundColor: colors.success + '15' }]}>
                   <Icon name="navigation" size={12} color={colors.success} />
                   <Text style={[styles.distanceText, { color: colors.success }]}>
-                    {companion.distance < 1
-                      ? `${(companion.distance * 5280).toFixed(0)} ft`
-                      : `${companion.distance.toFixed(1)} mi`}
+                    {Number(companion.distance) < 1
+                      ? `${(Number(companion.distance) * 5280).toFixed(0)} ft`
+                      : `${Number(companion.distance).toFixed(1)} mi`}
                   </Text>
                 </View>
               )}

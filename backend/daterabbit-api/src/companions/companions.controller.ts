@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Param } from '@nestjs/common';
+import { Controller, Get, Query, Param, NotFoundException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 
 @Controller('companions')
@@ -39,10 +39,10 @@ export class CompanionsController {
         location: c.location,
         bio: c.bio,
         primaryPhoto: c.photos?.[0]?.url || null,
-        hourlyRate: c.hourlyRate,
-        rating: c.rating,
-        reviewCount: c.reviewCount,
-        isVerified: c.isVerified,
+        hourlyRate: c.hourlyRate ? Number(c.hourlyRate) : null,
+        rating: c.rating ? Number(c.rating) : 5.0,
+        reviewCount: c.reviewCount || 0,
+        isVerified: c.isVerified || false,
       })),
       total,
     };
@@ -50,9 +50,15 @@ export class CompanionsController {
 
   @Get(':id')
   async getCompanion(@Param('id') id: string) {
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(id)) {
+      throw new NotFoundException('Companion not found');
+    }
+
     const user = await this.usersService.findById(id);
     if (!user || user.role !== 'companion') {
-      return { error: 'Companion not found' };
+      throw new NotFoundException('Companion not found');
     }
 
     return {
@@ -61,11 +67,11 @@ export class CompanionsController {
       age: user.age,
       location: user.location,
       bio: user.bio,
-      photos: user.photos,
-      hourlyRate: user.hourlyRate,
-      rating: user.rating,
-      reviewCount: user.reviewCount,
-      isVerified: user.isVerified,
+      photos: user.photos || [],
+      hourlyRate: user.hourlyRate ? Number(user.hourlyRate) : null,
+      rating: user.rating ? Number(user.rating) : 5.0,
+      reviewCount: user.reviewCount || 0,
+      isVerified: user.isVerified || false,
     };
   }
 }

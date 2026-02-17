@@ -3,30 +3,36 @@
     "id": "BUG-API-001",
     "type": "bug",
     "severity": "high",
-    "status": "open",
-    "title": "Companions API: 500 error (UUID conversion)",
-    "description": "GET /api/companions/search returns 500 - PostgreSQL string_to_uuid error in TypeORM SelectQueryBuilder",
+    "status": "fixed",
+    "title": "Companions API: UUID validation + number conversion",
+    "description": "/api/companions/search returned 500 due to :id route catching 'search' as UUID. Also fixed rating/hourlyRate string to number conversion.",
     "platform": "api",
-    "created": "2026-02-17T03:00:00Z"
+    "created": "2026-02-17T03:00:00Z",
+    "fixed": "2026-02-17T03:40:00Z",
+    "fix": "Added UUID regex validation in :id route, Number() for rating/hourlyRate"
   },
   {
     "id": "BUG-BROWSE-001",
     "type": "bug",
     "severity": "high",
-    "status": "open",
+    "status": "fixed",
     "title": "Browse screen crash: rating.toFixed is not a function",
-    "description": "Browse screen crashes with 'e.rating.toFixed is not a function'. Rating comes as string from API, needs parseFloat.",
+    "description": "Browse screen crashed with 'e.rating.toFixed is not a function'. Rating comes as string from API.",
     "platform": "web",
-    "created": "2026-02-17T03:17:00Z"
+    "created": "2026-02-17T03:17:00Z",
+    "fixed": "2026-02-17T03:35:00Z",
+    "fix": "Added Number() wrapper: Number(companion.rating).toFixed(1)"
   },
   {
     "id": "BUG-BOOKINGS-001",
     "type": "bug",
     "severity": "high",
-    "status": "open",
+    "status": "fixed",
     "title": "Bookings screen crash: Cannot read properties of undefined",
-    "description": "Bookings screen crashes with 'Cannot read properties of undefined' after a few seconds",
+    "description": "Bookings screen crashed - booking.companion could be undefined",
     "platform": "web",
-    "created": "2026-02-17T03:21:00Z"
+    "created": "2026-02-17T03:21:00Z",
+    "fixed": "2026-02-17T03:36:00Z",
+    "fix": "Added fallback: const companion = booking.companion || { name: 'Unknown', ... }"
   }
 ]

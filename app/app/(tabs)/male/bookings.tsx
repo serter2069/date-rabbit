@@ -164,6 +164,8 @@ interface BookingCardProps {
 }
 
 function BookingCard({ booking, type, colors, onCancel, formatDate }: BookingCardProps) {
+  const companion = booking.companion || { name: 'Unknown', photo: null, rating: 0 };
+  
   const getStatusStyle = (status: string) => {
     switch (status) {
       case 'confirmed': return { bg: colors.success + '20', text: colors.success };
@@ -181,11 +183,11 @@ function BookingCard({ booking, type, colors, onCancel, formatDate }: BookingCar
   return (
     <Card style={styles.card}>
       <View style={styles.cardHeader}>
-        <UserImage name={booking.companion.name} uri={booking.companion.photo} size={56} showVerified />
+        <UserImage name={companion.name} uri={companion.photo} size={56} showVerified />
         <View style={styles.cardInfo}>
-          <Text style={[styles.cardName, { color: colors.text }]}>{booking.companion.name}</Text>
-          <Text style={[styles.cardActivity, { color: colors.text }]}>{booking.activity}</Text>
-          <Text style={[styles.cardDate, { color: colors.textSecondary }]}>{formatDate(booking.date)} • {booking.duration}h</Text>
+          <Text style={[styles.cardName, { color: colors.text }]}>{companion.name}</Text>
+          <Text style={[styles.cardActivity, { color: colors.text }]}>{booking.activity || 'Date'}</Text>
+          <Text style={[styles.cardDate, { color: colors.textSecondary }]}>{formatDate(booking.date)} • {booking.duration || 1}h</Text>
         </View>
         <View style={styles.cardAmount}>
           <Text style={[styles.amountValue, { color: colors.primary }]}>${booking.total}</Text>
@@ -226,7 +228,7 @@ function BookingCard({ booking, type, colors, onCancel, formatDate }: BookingCar
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing.sm }}>
             <Icon name="clock" size={16} color={colors.warning} />
             <Text style={[styles.pendingText, { color: colors.textSecondary, marginLeft: spacing.xs }]}>
-              Waiting for {booking.companion.name} to accept...
+              Waiting for {companion.name} to accept...
             </Text>
           </View>
           <TouchableOpacity onPress={onCancel} testID={`cancel-booking-${booking.id}`}>
@@ -240,7 +242,7 @@ function BookingCard({ booking, type, colors, onCancel, formatDate }: BookingCar
           <Text style={[styles.ratingLabel, { color: colors.textSecondary }]}>Rating</Text>
           <View style={{ flexDirection: 'row', gap: 4 }}>
             {Array.from({ length: 5 }).map((_, i) => (
-              <Icon key={i} name="star" size={24} color={i < (booking.companion.rating || 0) ? colors.accent : colors.border} />
+              <Icon key={i} name="star" size={24} color={i < Number(companion.rating || 0) ? colors.accent : colors.border} />
             ))}
           </View>
           <Button
