@@ -31,7 +31,7 @@ export default function BookingsScreen() {
   const [activeTab, setActiveTab] = useState<TabType>('upcoming');
   const [refreshing, setRefreshing] = useState(false);
 
-  const { bookings, isLoading, fetchMyBookings, cancelBooking } = useBookingsStore();
+  const { bookings = [], isLoading, fetchMyBookings, cancelBooking } = useBookingsStore();
 
   useEffect(() => {
     fetchMyBookings(filterMap[activeTab]);
