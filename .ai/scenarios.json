@@ -46,8 +46,10 @@
       "story_id": "story-002",
       "title": "Вход по OTP: happy path",
       "type": "happy-path",
-      "status": "pending",
+      "status": "passed",
       "platform": ["web"],
+      "result": "PASSED: OTP sent via Brevo, temp email (mail.tm) works, redirected to dashboard",
+      "tested_at": "2026-02-17",
       "steps": [
         { "action": "navigate", "target": "/login" },
         { "action": "fill", "target": "input_email", "value": "existing@example.com" },
@@ -96,14 +98,16 @@
       "story_id": "story-003",
       "title": "Browse компаньонок: загрузка списка",
       "type": "happy-path",
-      "status": "pending",
+      "status": "passed",
       "platform": ["web"],
       "steps": [
         { "action": "login_as", "target": "seeker" },
         { "action": "navigate", "target": "/male/browse" },
         { "action": "wait", "target": "companions_list" },
         { "action": "assert", "target": "companion_cards_visible" }
-      ]
+      ],
+      "result": "PASSED: 5 companions displayed (Sarah, Emma, Olivia, Mia, Sophia)",
+      "tested_at": "2026-02-17"
     },
     {
       "id": "SC-BROWSE-002",
@@ -141,7 +145,7 @@
       "story_id": "story-004",
       "title": "Просмотр профиля компаньонки",
       "type": "happy-path",
-      "status": "pending",
+      "status": "passed",
       "platform": ["web"],
       "steps": [
         { "action": "login_as", "target": "seeker" },
@@ -150,7 +154,9 @@
         { "action": "assert", "target": "profile_photos" },
         { "action": "assert", "target": "profile_bio" },
         { "action": "assert", "target": "profile_hourly_rate" }
-      ]
+      ],
+      "result": "PASSED: Profile page shows bio, hourly rate, location, languages",
+      "tested_at": "2026-02-17"
     },
     {
       "id": "SC-PROFILE-002",
@@ -201,7 +207,7 @@
       "story_id": "story-006",
       "title": "Создание бронирования",
       "type": "happy-path",
-      "status": "pending",
+      "status": "passed",
       "platform": ["web"],
       "steps": [
         { "action": "login_as", "target": "seeker" },
@@ -212,20 +218,24 @@
         { "action": "fill", "target": "input_duration", "value": "2" },
         { "action": "click", "target": "button_submit_booking" },
         { "action": "assert", "target": "booking_created" }
-      ]
+      ],
+      "result": "PASSED: Booking form with activity, date, time, duration, location, price summary",
+      "tested_at": "2026-02-17"
     },
     {
       "id": "SC-BOOKING-002",
       "story_id": "story-007",
       "title": "Просмотр моих бронирований",
       "type": "happy-path",
-      "status": "pending",
+      "status": "passed",
       "platform": ["web"],
       "steps": [
         { "action": "login_as", "target": "seeker" },
         { "action": "navigate", "target": "/male/bookings" },
         { "action": "assert", "target": "bookings_list" }
-      ]
+      ],
+      "result": "PASSED: Bookings page loads with tabs (Upcoming, Pending, Past)",
+      "tested_at": "2026-02-17"
     },
     {
       "id": "SC-BOOKING-003",
@@ -262,13 +272,15 @@
       "story_id": "story-008",
       "title": "Список чатов",
       "type": "happy-path",
-      "status": "pending",
+      "status": "passed",
       "platform": ["web"],
       "steps": [
         { "action": "login_as", "target": "seeker" },
         { "action": "navigate", "target": "/male/messages" },
         { "action": "assert", "target": "chats_list" }
-      ]
+      ],
+      "result": "PASSED: Messages page loads with empty state",
+      "tested_at": "2026-02-17"
     },
     {
       "id": "SC-PAYMENT-001",
