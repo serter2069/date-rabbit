@@ -1,0 +1,75 @@
+{
+  "version": "1.0",
+  "updated": "2026-02-18",
+  "bugs": [
+    {
+      "id": "DR-001",
+      "title": "Bio field accepts more than 500 character limit",
+      "severity": "medium",
+      "type": "bug",
+      "description": "The Bio field in user profile edit page allows inputting more than 500 characters. The character counter shows values exceeding the limit (e.g., '757/500') without enforcing validation or preventing form submission with oversized content.",
+      "steps_to_reproduce": [
+        "Register as Date Seeker user",
+        "Go to Profile > Edit Profile",
+        "Click on Bio field",
+        "Paste or type 1000+ characters of text",
+        "Observe character counter showing '1000+/500'",
+        "Click Save Changes",
+        "Data gets submitted without error"
+      ],
+      "status": "pending_review",
+      "found_by": "edge",
+      "fix": "Added maxLength={500} to Bio TextInput and validation check in handleSave function in edit-profile.tsx"
+    },
+    {
+      "id": "DR-002",
+      "title": "Long names accepted in registration without visual truncation notice",
+      "severity": "low",
+      "type": "bug",
+      "description": "Registration form accepts names longer than reasonable limits (tested with 1000 character 'a' string). While the UI truncates display to 100 characters, the backend appears to store the full string without clear user feedback about limits.",
+      "steps_to_reproduce": [
+        "Go to registration page",
+        "Select 'Become a Companion' role",
+        "Enter 1000+ character name in Full Name field",
+        "Fill other required fields",
+        "Submit registration",
+        "Registration succeeds with truncated display"
+      ],
+      "status": "pending_review",
+      "found_by": "edge",
+      "fix": "Already fixed - register.tsx has maxLength={100} on Input and validation for name.length > 100"
+    },
+    {
+      "id": "DR-003",
+      "title": "Edit Profile button doesn't open modal on companion dashboard",
+      "severity": "low",
+      "type": "ux",
+      "description": "On the Date Companion dashboard, clicking 'Edit Profile' button doesn't open an edit form/modal. The button becomes active/highlighted but no UI changes occur.",
+      "steps_to_reproduce": [
+        "Register as Date Companion",
+        "Go to Dashboard",
+        "Click 'Edit Profile' button in profile section",
+        "Observe: Button activates but no modal/form opens"
+      ],
+      "status": "pending_review",
+      "found_by": "edge",
+      "fix": "Added router.push('/settings/edit-profile') to Edit Profile button onPress in female/profile.tsx"
+    },
+    {
+      "id": "DR-004",
+      "title": "Update Rates button doesn't open settings modal",
+      "severity": "low",
+      "type": "ux",
+      "description": "On the Date Companion dashboard, clicking 'Update Rates' button doesn't open a rate editing modal. Similar to Edit Profile issue.",
+      "steps_to_reproduce": [
+        "Register as Date Companion",
+        "Go to Dashboard",
+        "Click 'Update Rates' button in Quick Actions",
+        "Observe: Button activates but no modal/form opens"
+      ],
+      "status": "pending_review",
+      "found_by": "edge",
+      "fix": "Added onPress prop to ActionCard component and connected Update Rates button to /settings/edit-profile in female/index.tsx"
+    }
+  ]
+}

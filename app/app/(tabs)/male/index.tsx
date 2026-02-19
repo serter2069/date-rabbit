@@ -1,10 +1,14 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAuthStore } from '../../../src/store/authStore';
 import { Card } from '../../../src/components/Card';
 import { Avatar } from '../../../src/components/Avatar';
-import { colors, spacing, typography, borderRadius } from '../../../src/constants/theme';
+import { Badge } from '../../../src/components/Badge';
+import { Icon } from '../../../src/components/Icon';
+import { colors, spacing, typography, borderRadius, shadows } from '../../../src/constants/theme';
 
 const featuredCompanions = [
   { id: '1', name: 'Sarah', age: 28, rating: 4.9, rate: 100, verified: true },
@@ -17,123 +21,148 @@ const upcomingBookings = [
 ];
 
 export default function MaleDashboard() {
+  const insets = useSafeAreaInsets();
   const { user } = useAuthStore();
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={[
+        styles.content,
+        { paddingTop: insets.top + spacing.md },
+      ]}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Header */}
       <View style={styles.header}>
         <View>
           <Text style={styles.greeting}>Welcome back,</Text>
-          <Text style={styles.name}>{user?.name} 👋</Text>
+          <Text style={styles.name}>{user?.name}</Text>
         </View>
         <Avatar
           uri={user?.photos?.[0]?.url}
           name={user?.name}
-          size={56}
+          size={52}
           verified={user?.isVerified}
         />
       </View>
 
-      <TouchableOpacity style={styles.searchBox}>
-        <Text style={styles.searchIcon}>🔍</Text>
+      {/* Search */}
+      <TouchableOpacity style={styles.searchBox} activeOpacity={0.8}>
+        <Icon name="search" size={20} color={colors.textLight} />
         <Text style={styles.searchText}>Find your perfect date...</Text>
       </TouchableOpacity>
 
+      {/* Upcoming Date */}
       {upcomingBookings.length > 0 && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Upcoming Date</Text>
           {upcomingBookings.map((booking) => (
-            <Card key={booking.id} style={styles.bookingCard}>
+            <Card key={booking.id} variant="elevated" shadow="sm">
               <View style={styles.bookingRow}>
                 <Avatar name={booking.name} size={48} verified />
                 <View style={styles.bookingInfo}>
                   <Text style={styles.bookingName}>{booking.name}</Text>
                   <Text style={styles.bookingActivity}>{booking.activity}</Text>
-                  <Text style={styles.bookingDate}>{booking.date}</Text>
+                  <View style={styles.bookingMeta}>
+                    <Icon name="calendar" size={12} color={colors.textMuted} />
+                    <Text style={styles.bookingDate}>{booking.date}</Text>
+                  </View>
                 </View>
-                <View style={styles.statusBadge}>
-                  <Text style={styles.statusText}>Confirmed</Text>
-                </View>
+                <Badge text="Confirmed" variant="success" size="sm" />
               </View>
             </Card>
           ))}
         </View>
       )}
 
+      {/* Featured Companions */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Featured Companions</Text>
-          <TouchableOpacity>
+          <TouchableOpacity style={styles.seeAllBtn}>
             <Text style={styles.seeAll}>See All</Text>
+            <Icon name="chevron-right" size={16} color={colors.secondary} />
           </TouchableOpacity>
         </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.companionsRow}>
             {featuredCompanions.map((companion) => (
-              <Card key={companion.id} style={styles.companionCard}>
+              <Card key={companion.id} variant="elevated" shadow="sm" style={styles.companionCard}>
                 <Avatar
                   name={companion.name}
-                  size={80}
+                  size={72}
                   verified={companion.verified}
                 />
                 <Text style={styles.companionName}>
                   {companion.name}, {companion.age}
                 </Text>
-                <Text style={styles.companionRating}>
-                  ⭐ {companion.rating}
-                </Text>
-                <Text style={styles.companionRate}>
-                  ${companion.rate}/hr
-                </Text>
+                <View style={styles.ratingRow}>
+                  <Icon name="star" size={14} color={colors.warning} />
+                  <Text style={styles.companionRating}>{companion.rating}</Text>
+                </View>
+                <LinearGradient
+                  colors={colors.gradient.softPink as readonly [string, string, ...string[]]}
+                  style={styles.rateTag}
+                >
+                  <Text style={styles.companionRate}>${companion.rate}/hr</Text>
+                </LinearGradient>
               </Card>
             ))}
           </View>
         </ScrollView>
       </View>
 
+      {/* Browse by Activity */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Browse by Activity</Text>
         <View style={styles.activitiesGrid}>
-          <ActivityCard emoji="🍽️" label="Dinner" count={45} />
-          <ActivityCard emoji="☕" label="Coffee" count={38} />
-          <ActivityCard emoji="🎭" label="Events" count={22} />
-          <ActivityCard emoji="🎨" label="Museums" count={18} />
-          <ActivityCard emoji="🍸" label="Drinks" count={32} />
-          <ActivityCard emoji="🚶" label="Walk" count={28} />
+          <ActivityCard icon="utensils" label="Dinner" count={45} />
+          <ActivityCard icon="coffee" label="Coffee" count={38} />
+          <ActivityCard icon="theater" label="Events" count={22} />
+          <ActivityCard icon="palette" label="Museums" count={18} />
+          <ActivityCard icon="wine" label="Drinks" count={32} />
+          <ActivityCard icon="footprints" label="Walk" count={28} />
         </View>
       </View>
 
+      {/* How it Works */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>How it Works</Text>
-        <Card>
-          <StepItem number="1" title="Browse" description="Find verified companions" />
+        <Card variant="default" shadow="sm">
+          <StepItem number={1} title="Browse" description="Find verified companions" />
           <View style={styles.divider} />
-          <StepItem number="2" title="Book" description="Send a date request" />
+          <StepItem number={2} title="Book" description="Send a date request" />
           <View style={styles.divider} />
-          <StepItem number="3" title="Meet" description="Enjoy your premium experience" />
+          <StepItem number={3} title="Meet" description="Enjoy your premium experience" />
         </Card>
       </View>
     </ScrollView>
   );
 }
 
-function ActivityCard({ emoji, label, count }: { emoji: string; label: string; count: number }) {
+function ActivityCard({ icon, label, count }: { icon: string; label: string; count: number }) {
   return (
-    <TouchableOpacity style={styles.activityCard}>
-      <Text style={styles.activityEmoji}>{emoji}</Text>
+    <TouchableOpacity style={styles.activityCard} activeOpacity={0.7}>
+      <View style={styles.activityIconWrap}>
+        <Icon name={icon as any} size={22} color={colors.secondary} />
+      </View>
       <Text style={styles.activityLabel}>{label}</Text>
-      <Text style={styles.activityCount}>{count} available</Text>
+      <Text style={styles.activityCount}>{count}</Text>
     </TouchableOpacity>
   );
 }
 
-function StepItem({ number, title, description }: { number: string; title: string; description: string }) {
+function StepItem({ number, title, description }: { number: number; title: string; description: string }) {
   return (
     <View style={styles.stepItem}>
-      <View style={styles.stepNumber}>
+      <LinearGradient
+        colors={colors.gradient.primary as readonly [string, string, ...string[]]}
+        style={styles.stepNumber}
+      >
         <Text style={styles.stepNumberText}>{number}</Text>
-      </View>
+      </LinearGradient>
       <View style={styles.stepInfo}>
         <Text style={styles.stepTitle}>{title}</Text>
         <Text style={styles.stepDescription}>{description}</Text>
@@ -148,8 +177,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   content: {
-    padding: spacing.lg,
-    paddingTop: 60,
+    paddingHorizontal: spacing.lg + 4,
+    paddingBottom: spacing.xxl,
   },
   header: {
     flexDirection: 'row',
@@ -158,35 +187,33 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   greeting: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.md,
-    color: colors.textSecondary,
+    color: colors.textMuted,
+    marginBottom: 2,
   },
   name: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.xl,
-    fontWeight: '700',
     color: colors.text,
   },
   searchBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.white,
+    gap: spacing.sm,
+    backgroundColor: colors.surface,
     borderRadius: borderRadius.xl,
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.md + 2,
     marginBottom: spacing.xl,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  searchIcon: {
-    fontSize: 18,
-    marginRight: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
   },
   searchText: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.md,
-    color: colors.textSecondary,
+    color: colors.textLight,
+    flex: 1,
   },
   section: {
     marginBottom: spacing.xl,
@@ -198,18 +225,21 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   sectionTitle: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.lg,
-    fontWeight: '600',
     color: colors.text,
     marginBottom: spacing.md,
   },
-  seeAll: {
-    fontSize: typography.sizes.sm,
-    color: colors.primary,
-    fontWeight: '500',
-  },
-  bookingCard: {
+  seeAllBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
     marginBottom: spacing.md,
+  },
+  seeAll: {
+    fontFamily: typography.fonts.bodyMedium,
+    fontSize: typography.sizes.sm,
+    color: colors.secondary,
   },
   bookingRow: {
     flexDirection: 'row',
@@ -220,85 +250,100 @@ const styles = StyleSheet.create({
     marginLeft: spacing.md,
   },
   bookingName: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.md,
-    fontWeight: '600',
     color: colors.text,
   },
   bookingActivity: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
-    color: colors.textSecondary,
-  },
-  bookingDate: {
-    fontSize: typography.sizes.xs,
     color: colors.textSecondary,
     marginTop: 2,
   },
-  statusBadge: {
-    backgroundColor: colors.success + '20',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: borderRadius.full,
+  bookingMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 4,
   },
-  statusText: {
+  bookingDate: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.xs,
-    color: colors.success,
-    fontWeight: '500',
+    color: colors.textMuted,
   },
   companionsRow: {
     flexDirection: 'row',
     gap: spacing.md,
+    paddingRight: spacing.lg,
   },
   companionCard: {
-    width: 140,
+    width: 130,
     alignItems: 'center',
     paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.md,
   },
   companionName: {
-    fontSize: typography.sizes.md,
-    fontWeight: '600',
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.sm,
     color: colors.text,
     marginTop: spacing.sm,
+    textAlign: 'center',
+  },
+  ratingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 4,
   },
   companionRating: {
+    fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.sm,
     color: colors.textSecondary,
-    marginTop: 2,
+  },
+  rateTag: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
+    marginTop: spacing.sm,
   },
   companionRate: {
-    fontSize: typography.sizes.md,
-    fontWeight: '600',
-    color: colors.primary,
-    marginTop: spacing.xs,
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.sm,
+    color: colors.secondary,
   },
   activitiesGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.md,
+    gap: spacing.sm,
   },
   activityCard: {
-    width: '30%',
-    backgroundColor: colors.white,
+    width: '31%',
+    backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     alignItems: 'center',
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
   },
-  activityEmoji: {
-    fontSize: 28,
-    marginBottom: spacing.xs,
+  activityIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.sm,
   },
   activityLabel: {
+    fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.sm,
-    fontWeight: '500',
     color: colors.text,
+    marginBottom: 2,
   },
   activityCount: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.xs,
-    color: colors.textSecondary,
+    color: colors.textMuted,
   },
   stepItem: {
     flexDirection: 'row',
@@ -309,13 +354,12 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   stepNumberText: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.md,
-    fontWeight: '600',
     color: colors.white,
   },
   stepInfo: {
@@ -323,17 +367,19 @@ const styles = StyleSheet.create({
     marginLeft: spacing.md,
   },
   stepTitle: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.md,
-    fontWeight: '600',
     color: colors.text,
   },
   stepDescription: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
-    color: colors.textSecondary,
+    color: colors.textMuted,
+    marginTop: 2,
   },
   divider: {
     height: 1,
-    backgroundColor: colors.border,
-    marginVertical: spacing.xs,
+    backgroundColor: colors.divider,
+    marginVertical: spacing.sm,
   },
 });

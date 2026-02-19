@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DateRabbit - Welcome</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Fraunces:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: linear-gradient(135deg, #E8F4F8 0%, #F5E6E8 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .phone-frame {
+      width: 390px;
+      height: 844px;
+      background: #FFFFFF;
+      border-radius: 44px;
+      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .notch {
+      width: 160px;
+      height: 34px;
+      background: #1a1a1a;
+      border-radius: 0 0 20px 20px;
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+    }
+
+    .screen {
+      height: 100%;
+      padding: 70px 28px 36px;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(180deg, #FFFFFF 0%, #FDF9FA 100%);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Decorative elements */
+    .deco-blob {
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      background: linear-gradient(135deg, rgba(248, 180, 196, 0.12) 0%, rgba(184, 169, 232, 0.08) 100%);
+      border-radius: 60% 40% 70% 30% / 50% 60% 40% 50%;
+      top: -100px;
+      right: -120px;
+      filter: blur(40px);
+      pointer-events: none;
+    }
+
+    .deco-blob-2 {
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      background: linear-gradient(135deg, rgba(184, 169, 232, 0.1) 0%, rgba(248, 180, 196, 0.06) 100%);
+      border-radius: 40% 60% 50% 50% / 60% 40% 60% 40%;
+      bottom: 150px;
+      left: -80px;
+      filter: blur(30px);
+      pointer-events: none;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 48px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #F8B4C4 0%, #E89AAE 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .logo-icon::before,
+    .logo-icon::after {
+      content: '';
+      position: absolute;
+      width: 6px;
+      height: 14px;
+      background: #FFFFFF;
+      border-radius: 3px;
+      top: 6px;
+    }
+
+    .logo-icon::before {
+      left: 10px;
+      transform: rotate(-10deg);
+    }
+
+    .logo-icon::after {
+      right: 10px;
+      transform: rotate(10deg);
+    }
+
+    .logo-text {
+      font-family: 'Fraunces', serif;
+      font-size: 18px;
+      font-weight: 500;
+      color: #2D2A32;
+    }
+
+    .lang-btn {
+      font-size: 12px;
+      color: #8B8490;
+      background: #F5F0F2;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+
+    .hero {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #FFF0F3 0%, #FFE4EC 100%);
+      padding: 10px 16px;
+      border-radius: 24px;
+      font-size: 12px;
+      color: #C4748A;
+      font-weight: 500;
+      width: fit-content;
+      margin-bottom: 24px;
+      border: 1px solid rgba(248, 180, 196, 0.3);
+    }
+
+    .headline {
+      font-family: 'Fraunces', serif;
+      font-size: 40px;
+      font-weight: 400;
+      line-height: 1.12;
+      color: #2D2A32;
+      margin-bottom: 16px;
+    }
+
+    .headline .highlight {
+      background: linear-gradient(135deg, #F8B4C4 0%, #B8A9E8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-style: italic;
+    }
+
+    .subtitle {
+      font-size: 15px;
+      font-weight: 400;
+      color: #6B6570;
+      line-height: 1.7;
+      max-width: 300px;
+      margin-bottom: 32px;
+    }
+
+    /* Value props - different for each audience */
+    .value-props {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 32px;
+    }
+
+    .value-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .value-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #F8B4C4 0%, #E89AAE 100%);
+      flex-shrink: 0;
+    }
+
+    .value-text {
+      font-size: 14px;
+      color: #4A4550;
+      font-weight: 500;
+    }
+
+    /* Stats row */
+    .stats-row {
+      display: flex;
+      gap: 28px;
+      padding-top: 24px;
+      border-top: 1px solid #F0EBF0;
+    }
+
+    .stat {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .stat-number {
+      font-family: 'Fraunces', serif;
+      font-size: 24px;
+      font-weight: 500;
+      color: #2D2A32;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: #9B959F;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Two CTA buttons for different roles */
+    .actions {
+      margin-top: auto;
+      position: relative;
+      z-index: 2;
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 18px;
+      background: linear-gradient(135deg, #2D2A32 0%, #3D3A42 100%);
+      color: #FFFFFF;
+      border: none;
+      border-radius: 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 24px rgba(45, 42, 50, 0.2);
+      margin-bottom: 12px;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(45, 42, 50, 0.25);
+    }
+
+    .btn-secondary {
+      width: 100%;
+      padding: 16px;
+      background: #FFFFFF;
+      color: #2D2A32;
+      border: 1.5px solid #E8E4EC;
+      border-radius: 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+      border-color: #F8B4C4;
+      background: #FDF9FA;
+    }
+
+    .btn-label {
+      font-size: 11px;
+      color: #9B959F;
+      display: block;
+      margin-bottom: 4px;
+      font-weight: 400;
+    }
+
+    .signin-link {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 14px;
+      color: #8B8490;
+    }
+
+    .signin-link a {
+      color: #2D2A32;
+      font-weight: 500;
+      text-decoration: none;
+    }
+
+    .signin-link a:hover {
+      color: #C4748A;
+    }
+
+    .footer {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-top: 20px;
+    }
+
+    .footer a {
+      font-size: 12px;
+      color: #B5B0B8;
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      color: #6B6570;
+    }
+  </style>
+</head>
+<body>
+  <div class="phone-frame">
+    <div class="notch"></div>
+    <div class="screen">
+      <div class="deco-blob"></div>
+      <div class="deco-blob-2"></div>
+
+      <div class="header">
+        <div class="logo">
+          <div class="logo-icon"></div>
+          <span class="logo-text">DateRabbit</span>
+        </div>
+        <div class="lang-btn">EN</div>
+      </div>
+
+      <div class="hero">
+        <div class="badge">
+          Premium dating marketplace
+        </div>
+
+        <h1 class="headline">
+          Real dates.<br>
+          <span class="highlight">Your terms.</span>
+        </h1>
+
+        <p class="subtitle">
+          Book verified companions for dates, events, or simply great company. Safe, transparent, and on your schedule.
+        </p>
+
+        <div class="value-props">
+          <div class="value-item">
+            <span class="value-dot"></span>
+            <span class="value-text">All profiles verified with ID</span>
+          </div>
+          <div class="value-item">
+            <span class="value-dot"></span>
+            <span class="value-text">Secure payments via Stripe</span>
+          </div>
+          <div class="value-item">
+            <span class="value-dot"></span>
+            <span class="value-text">24/7 safety & support team</span>
+          </div>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat">
+            <span class="stat-number">2K+</span>
+            <span class="stat-label">Companions</span>
+          </div>
+          <div class="stat">
+            <span class="stat-number">15K+</span>
+            <span class="stat-label">Bookings</span>
+          </div>
+          <div class="stat">
+            <span class="stat-number">4.9</span>
+            <span class="stat-label">Rating</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn-primary">
+          <span class="btn-label">Looking for a date?</span>
+          Find Companions
+        </button>
+        <button class="btn-secondary">
+          <span class="btn-label">Want to earn?</span>
+          Become a Companion
+        </button>
+        <p class="signin-link">Already have an account? <a href="#">Sign in</a></p>
+      </div>
+
+      <div class="footer">
+        <a href="#">Terms</a>
+        <a href="#">Privacy</a>
+        <a href="#">Safety</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

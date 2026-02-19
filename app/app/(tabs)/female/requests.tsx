@@ -1,34 +1,91 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 import { Card } from '../../../src/components/Card';
 import { UserImage } from '../../../src/components/UserImage';
 import { Button } from '../../../src/components/Button';
 import { Icon } from '../../../src/components/Icon';
 import { EmptyState } from '../../../src/components/EmptyState';
 import { useTheme, spacing, typography, borderRadius } from '../../../src/constants/theme';
+import { useBookingsStore } from '../../../src/store/bookingsStore';
+import { Booking } from '../../../src/services/api';
 
 type TabType = 'pending' | 'accepted' | 'completed';
-
-const mockRequests = {
-  pending: [
-    { id: '1', name: 'Michael', age: 32, activity: 'Dinner at Le Bernardin', date: 'Tomorrow, 7 PM', duration: 3, amount: 300, message: 'Would love to take you to my favorite restaurant!' },
-    { id: '2', name: 'James', age: 28, activity: 'Art Gallery Tour', date: 'Friday, 3 PM', duration: 2, amount: 200, message: 'There is a great exhibition at MoMA.' },
-    { id: '3', name: 'Robert', age: 35, activity: 'Coffee & Walk', date: 'Saturday, 11 AM', duration: 1, amount: 100, message: 'Keep it casual, Central Park?' },
-  ],
-  accepted: [
-    { id: '4', name: 'David', age: 30, activity: 'Rooftop Bar', date: 'Tonight, 8 PM', duration: 2, amount: 200, message: 'Looking forward to it!' },
-  ],
-  completed: [
-    { id: '5', name: 'William', age: 34, activity: 'Dinner & Jazz', date: 'Last week', duration: 4, amount: 400, rating: 5 },
-    { id: '6', name: 'Thomas', age: 29, activity: 'Brunch', date: '2 weeks ago', duration: 2, amount: 200, rating: 5 },
-  ],
-};
 
 export default function RequestsScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const [activeTab, setActiveTab] = useState<TabType>('pending');
+  const [refreshing, setRefreshing] = useState(false);
+
+  const { requests = [], isLoading, fetchRequests, acceptRequest, declineRequest } = useBookingsStore();
+
+  useEffect(() => {
+    fetchRequests(activeTab);
+  }, [activeTab]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchRequests(activeTab);
+    setRefreshing(false);
+  }, [activeTab]);
+
+  const handleAccept = useCallback((booking: Booking) => {
+    Alert.alert(
+      'Accept Request',
+      `Accept date with ${booking.seeker.name}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Accept',
+          onPress: async () => {
+            const result = await acceptRequest(booking.id);
+            if (result.success) {
+              Alert.alert('Accepted', 'Date request accepted!');
+              fetchRequests(activeTab);
+            } else {
+              Alert.alert('Error', result.error || 'Failed to accept');
+            }
+          },
+        },
+      ]
+    );
+  }, [activeTab]);
+
+  const handleDecline = useCallback((booking: Booking) => {
+    Alert.alert(
+      'Decline Request',
+      `Decline date with ${booking.seeker.name}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Decline',
+          style: 'destructive',
+          onPress: async () => {
+            const result = await declineRequest(booking.id);
+            if (result.success) {
+              Alert.alert('Declined', 'Date request declined.');
+              fetchRequests(activeTab);
+            } else {
+              Alert.alert('Error', result.error || 'Failed to decline');
+            }
+          },
+        },
+      ]
+    );
+  }, [activeTab]);
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit'
+    });
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -54,26 +111,36 @@ export default function RequestsScreen() {
               activeTab === tab && { color: colors.white },
             ]}>
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              {tab === 'pending' && ` (${mockRequests.pending.length})`}
+              {tab === 'pending' && requests.filter(r => r.status === 'pending').length > 0 && 
+                ` (${requests.filter(r => r.status === 'pending').length})`}
             </Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
-        {mockRequests[activeTab].length === 0 ? (
+      <ScrollView 
+        style={styles.scrollView} 
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
+        {requests.length === 0 && !isLoading ? (
           <EmptyState
             icon="inbox"
             title={`No ${activeTab} requests`}
             description={activeTab === 'pending' ? 'New date requests will appear here' : 'Your history will appear here'}
           />
         ) : (
-          mockRequests[activeTab].map((request) => (
+          requests.map((request) => (
             <RequestCard
               key={request.id}
               request={request}
               type={activeTab}
               colors={colors}
+              onAccept={() => handleAccept(request)}
+              onDecline={() => handleDecline(request)}
+              formatDate={formatDate}
             />
           ))
         )}
@@ -82,18 +149,29 @@ export default function RequestsScreen() {
   );
 }
 
-function RequestCard({ request, type, colors }: { request: any; type: TabType; colors: any }) {
+interface RequestCardProps {
+  request: Booking;
+  type: TabType;
+  colors: any;
+  onAccept: () => void;
+  onDecline: () => void;
+  formatDate: (date: string) => string;
+}
+
+function RequestCard({ request, type, colors, onAccept, onDecline, formatDate }: RequestCardProps) {
+  const seeker = request.seeker || { name: 'Unknown', photo: null };
+  
   return (
     <Card style={styles.card}>
       <View style={styles.cardHeader}>
-        <UserImage name={request.name} size={56} />
+        <UserImage name={seeker.name} uri={seeker.photo} size={56} />
         <View style={styles.cardInfo}>
-          <Text style={[styles.cardName, { color: colors.text }]}>{request.name}, {request.age}</Text>
-          <Text style={[styles.cardActivity, { color: colors.text }]}>{request.activity}</Text>
-          <Text style={[styles.cardDate, { color: colors.textSecondary }]}>{request.date} • {request.duration}h</Text>
+          <Text style={[styles.cardName, { color: colors.text }]}>{seeker.name}</Text>
+          <Text style={[styles.cardActivity, { color: colors.text }]}>{request.activity || 'Date'}</Text>
+          <Text style={[styles.cardDate, { color: colors.textSecondary }]}>{formatDate(request.date)} • {request.duration}h</Text>
         </View>
         <View style={styles.cardAmount}>
-          <Text style={[styles.amountValue, { color: colors.success }]}>${request.amount}</Text>
+          <Text style={[styles.amountValue, { color: colors.success }]}>${request.total}</Text>
           <Text style={[styles.amountLabel, { color: colors.textSecondary }]}>Total</Text>
         </View>
       </View>
@@ -108,7 +186,7 @@ function RequestCard({ request, type, colors }: { request: any; type: TabType; c
         <View style={styles.actions}>
           <Button
             title="Decline"
-            onPress={() => {}}
+            onPress={onDecline}
             variant="outline"
             size="sm"
             style={{ flex: 1, borderColor: colors.error }}
@@ -116,7 +194,7 @@ function RequestCard({ request, type, colors }: { request: any; type: TabType; c
           />
           <Button
             title="Accept"
-            onPress={() => {}}
+            onPress={onAccept}
             size="sm"
             style={{ flex: 1, backgroundColor: colors.success }}
           />
@@ -127,28 +205,25 @@ function RequestCard({ request, type, colors }: { request: any; type: TabType; c
         <View style={styles.actions}>
           <Button
             title="Message"
-            onPress={() => {}}
+            onPress={() => router.push(`/chat/${request.id}`)}
             variant="outline"
             size="sm"
             style={{ flex: 1 }}
           />
           <Button
             title="View Details"
-            onPress={() => {}}
+            onPress={() => router.push(`/booking/${request.id}`)}
             size="sm"
             style={{ flex: 1 }}
           />
         </View>
       )}
 
-      {type === 'completed' && request.rating && (
+      {type === 'completed' && (
         <View style={[styles.rating, { borderTopColor: colors.border }]}>
-          <View style={{ flexDirection: 'row', gap: 4, marginBottom: spacing.xs }}>
-            {Array.from({ length: request.rating }).map((_, i) => (
-              <Icon key={i} name="star" size={20} color={colors.accent} />
-            ))}
-          </View>
-          <Text style={[styles.ratingText, { color: colors.textSecondary }]}>You received 5 stars!</Text>
+          <Text style={[styles.ratingText, { color: colors.textSecondary }]}>
+            {request.isPaid ? 'Payment received' : 'Awaiting payment'}
+          </Text>
         </View>
       )}
     </Card>
@@ -164,8 +239,8 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
   },
   title: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.xl,
-    fontWeight: '700',
   },
   tabs: {
     flexDirection: 'row',
@@ -182,8 +257,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   tabText: {
+    fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.sm,
-    fontWeight: '500',
   },
   scrollView: {
     flex: 1,
@@ -204,14 +279,16 @@ const styles = StyleSheet.create({
     marginLeft: spacing.md,
   },
   cardName: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.md,
-    fontWeight: '600',
   },
   cardActivity: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     marginTop: 2,
   },
   cardDate: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     marginTop: 2,
   },
@@ -219,10 +296,11 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   amountValue: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.lg,
-    fontWeight: '700',
   },
   amountLabel: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.xs,
   },
   messageBox: {
@@ -231,6 +309,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
   },
   messageText: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     fontStyle: 'italic',
   },
@@ -246,6 +325,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
   },
   ratingText: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
   },
 });

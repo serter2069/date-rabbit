@@ -1,11 +1,17 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAuthStore } from '../../../src/store/authStore';
 import { Card } from '../../../src/components/Card';
 import { Avatar } from '../../../src/components/Avatar';
-import { colors, spacing, typography } from '../../../src/constants/theme';
+import { Badge } from '../../../src/components/Badge';
+import { Icon } from '../../../src/components/Icon';
+import { colors, spacing, typography, borderRadius, shadows } from '../../../src/constants/theme';
 
 export default function FemaleDashboard() {
+  const insets = useSafeAreaInsets();
   const { user } = useAuthStore();
 
   const stats = {
@@ -16,42 +22,66 @@ export default function FemaleDashboard() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={[
+        styles.content,
+        { paddingTop: insets.top + spacing.md },
+      ]}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Header */}
       <View style={styles.header}>
         <View>
           <Text style={styles.greeting}>Welcome back,</Text>
-          <Text style={styles.name}>{user?.name} 👋</Text>
+          <Text style={styles.name}>{user?.name}</Text>
         </View>
         <Avatar
           uri={user?.photos?.[0]?.url}
           name={user?.name}
-          size={56}
+          size={52}
           verified={user?.isVerified}
         />
       </View>
 
+      {/* Stats Grid */}
       <View style={styles.statsGrid}>
-        <Card style={styles.statCard}>
-          <Text style={styles.statValue}>{stats.pendingRequests}</Text>
-          <Text style={styles.statLabel}>Pending Requests</Text>
-        </Card>
-        <Card style={styles.statCard}>
-          <Text style={styles.statValue}>{stats.upcomingDates}</Text>
-          <Text style={styles.statLabel}>Upcoming Dates</Text>
-        </Card>
-        <Card style={styles.statCard}>
-          <Text style={[styles.statValue, styles.earnings]}>${stats.thisWeekEarnings}</Text>
-          <Text style={styles.statLabel}>This Week</Text>
-        </Card>
-        <Card style={styles.statCard}>
-          <Text style={styles.statValue}>⭐ {stats.rating}</Text>
-          <Text style={styles.statLabel}>Rating</Text>
-        </Card>
+        <StatCard
+          value={stats.pendingRequests}
+          label="Pending"
+          icon="mail"
+          color={colors.warning}
+        />
+        <StatCard
+          value={stats.upcomingDates}
+          label="Upcoming"
+          icon="calendar"
+          color={colors.accent}
+        />
+        <StatCard
+          value={`$${stats.thisWeekEarnings}`}
+          label="This Week"
+          icon="receipt"
+          color={colors.success}
+        />
+        <StatCard
+          value={stats.rating}
+          label="Rating"
+          icon="star"
+          color={colors.primary}
+        />
       </View>
 
+      {/* Recent Requests */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Recent Requests</Text>
-        <Card>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Recent Requests</Text>
+          <TouchableOpacity style={styles.seeAllBtn}>
+            <Text style={styles.seeAll}>View All</Text>
+            <Icon name="chevron-right" size={16} color={colors.secondary} />
+          </TouchableOpacity>
+        </View>
+        <Card variant="default" shadow="sm">
           <RequestItem
             name="Michael"
             activity="Dinner at Le Bernardin"
@@ -78,33 +108,61 @@ export default function FemaleDashboard() {
         </Card>
       </View>
 
+      {/* Quick Actions */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Quick Actions</Text>
         <View style={styles.actionsRow}>
-          <Card style={styles.actionCard}>
-            <Text style={styles.actionIcon}>📅</Text>
-            <Text style={styles.actionLabel}>Set Availability</Text>
-          </Card>
-          <Card style={styles.actionCard}>
-            <Text style={styles.actionIcon}>💵</Text>
-            <Text style={styles.actionLabel}>Update Rates</Text>
-          </Card>
-          <Card style={styles.actionCard}>
-            <Text style={styles.actionIcon}>📸</Text>
-            <Text style={styles.actionLabel}>Add Photos</Text>
-          </Card>
+          <ActionCard icon="calendar" label="Set Availability" color={colors.accent} onPress={() => router.push('/female/calendar')} />
+          <ActionCard icon="receipt" label="Update Rates" color={colors.success} onPress={() => router.push('/settings/edit-profile')} />
+          <ActionCard icon="camera" label="Add Photos" color={colors.primary} onPress={() => router.push('/settings/edit-profile')} />
         </View>
       </View>
     </ScrollView>
   );
 }
 
-const statusStyles: Record<string, { bg: string; text: string }> = {
-  pending: { bg: colors.warning + '20', text: colors.warning },
-  confirmed: { bg: colors.success + '20', text: colors.success },
-  cancelled: { bg: colors.error + '20', text: colors.error },
-  completed: { bg: colors.primary + '20', text: colors.primary },
-};
+function StatCard({
+  value,
+  label,
+  icon,
+  color,
+}: {
+  value: number | string;
+  label: string;
+  icon: string;
+  color: string;
+}) {
+  return (
+    <Card variant="default" shadow="sm" style={styles.statCard}>
+      <View style={[styles.statIconWrap, { backgroundColor: color + '15' }]}>
+        <Icon name={icon as any} size={18} color={color} />
+      </View>
+      <Text style={styles.statValue}>{value}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </Card>
+  );
+}
+
+function ActionCard({
+  icon,
+  label,
+  color,
+  onPress,
+}: {
+  icon: string;
+  label: string;
+  color: string;
+  onPress?: () => void;
+}) {
+  return (
+    <TouchableOpacity style={styles.actionCard} activeOpacity={0.7} onPress={onPress}>
+      <View style={[styles.actionIconWrap, { backgroundColor: color + '15' }]}>
+        <Icon name={icon as any} size={22} color={color} />
+      </View>
+      <Text style={styles.actionLabel}>{label}</Text>
+    </TouchableOpacity>
+  );
+}
 
 function RequestItem({
   name,
@@ -119,21 +177,33 @@ function RequestItem({
   amount: number;
   status: string;
 }) {
-  const statusStyle = statusStyles[status] || statusStyles.pending;
+  const getStatusVariant = (s: string) => {
+    switch (s) {
+      case 'pending': return 'warning';
+      case 'confirmed': return 'success';
+      case 'cancelled': return 'gray';
+      default: return 'pink';
+    }
+  };
 
   return (
     <View style={styles.requestItem}>
-      <Avatar name={name} size={48} />
+      <Avatar name={name} size={44} />
       <View style={styles.requestInfo}>
         <Text style={styles.requestName}>{name}</Text>
         <Text style={styles.requestActivity}>{activity}</Text>
-        <Text style={styles.requestDate}>{date}</Text>
+        <View style={styles.requestMeta}>
+          <Icon name="calendar" size={12} color={colors.textMuted} />
+          <Text style={styles.requestDate}>{date}</Text>
+        </View>
       </View>
       <View style={styles.requestRight}>
         <Text style={styles.requestAmount}>${amount}</Text>
-        <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
-          <Text style={[styles.statusText, { color: statusStyle.text }]}>{status}</Text>
-        </View>
+        <Badge
+          text={status.charAt(0).toUpperCase() + status.slice(1)}
+          variant={getStatusVariant(status) as any}
+          size="sm"
+        />
       </View>
     </View>
   );
@@ -145,56 +215,84 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   content: {
-    padding: spacing.lg,
-    paddingTop: 60,
+    paddingHorizontal: spacing.lg + 4,
+    paddingBottom: spacing.xxl,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.xl,
+    marginBottom: spacing.lg,
   },
   greeting: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.md,
-    color: colors.textSecondary,
+    color: colors.textMuted,
+    marginBottom: 2,
   },
   name: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.xl,
-    fontWeight: '700',
     color: colors.text,
   },
   statsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.md,
+    gap: spacing.sm,
     marginBottom: spacing.xl,
   },
   statCard: {
-    width: '47%',
+    width: '48%',
     alignItems: 'center',
-    paddingVertical: spacing.lg,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.sm,
+  },
+  statIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: borderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.sm,
   },
   statValue: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.xl,
-    fontWeight: '700',
     color: colors.text,
-    marginBottom: spacing.xs,
-  },
-  earnings: {
-    color: colors.success,
+    marginBottom: 2,
   },
   statLabel: {
-    fontSize: typography.sizes.sm,
-    color: colors.textSecondary,
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.xs,
+    color: colors.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   section: {
     marginBottom: spacing.xl,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
   sectionTitle: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.lg,
-    fontWeight: '600',
     color: colors.text,
     marginBottom: spacing.md,
+  },
+  seeAllBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    marginBottom: spacing.md,
+  },
+  seeAll: {
+    fontFamily: typography.fonts.bodyMedium,
+    fontSize: typography.sizes.sm,
+    color: colors.secondary,
   },
   requestItem: {
     flexDirection: 'row',
@@ -206,59 +304,66 @@ const styles = StyleSheet.create({
     marginLeft: spacing.md,
   },
   requestName: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.md,
-    fontWeight: '600',
     color: colors.text,
   },
   requestActivity: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
-    color: colors.textSecondary,
-  },
-  requestDate: {
-    fontSize: typography.sizes.xs,
     color: colors.textSecondary,
     marginTop: 2,
   },
+  requestMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 4,
+  },
+  requestDate: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.xs,
+    color: colors.textMuted,
+  },
   requestRight: {
     alignItems: 'flex-end',
+    gap: spacing.xs,
   },
   requestAmount: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.md,
-    fontWeight: '600',
     color: colors.success,
-    marginBottom: spacing.xs,
-  },
-  statusBadge: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    borderRadius: 12,
-  },
-  statusText: {
-    fontSize: typography.sizes.xs,
-    color: colors.warning,
-    fontWeight: '500',
-    textTransform: 'capitalize',
   },
   divider: {
     height: 1,
-    backgroundColor: colors.border,
+    backgroundColor: colors.divider,
     marginVertical: spacing.sm,
   },
   actionsRow: {
     flexDirection: 'row',
-    gap: spacing.md,
+    gap: spacing.sm,
   },
   actionCard: {
     flex: 1,
     alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
     paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
   },
-  actionIcon: {
-    fontSize: 28,
+  actionIconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: borderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: spacing.sm,
   },
   actionLabel: {
-    fontSize: typography.sizes.sm,
+    fontFamily: typography.fonts.bodyMedium,
+    fontSize: typography.sizes.xs,
     color: colors.text,
     textAlign: 'center',
   },

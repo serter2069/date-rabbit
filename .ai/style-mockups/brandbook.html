@@ -1,0 +1,1646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DateRabbit — Brand Guidelines</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Fraunces:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #FAFAFA;
+      color: #2D2A32;
+      line-height: 1.6;
+    }
+
+    /* Main Content */
+    .main {
+      padding: 48px 64px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    /* Page Header */
+    .page-header {
+      text-align: center;
+      margin-bottom: 80px;
+      padding-bottom: 48px;
+      border-bottom: 1px solid #F0EBF0;
+    }
+
+    .page-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    .page-logo-icon {
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, #F8B4C4 0%, #E89AAE 100%);
+      border-radius: 16px;
+      position: relative;
+    }
+
+    .page-logo-icon::before,
+    .page-logo-icon::after {
+      content: '';
+      position: absolute;
+      width: 8px;
+      height: 20px;
+      background: #FFFFFF;
+      border-radius: 4px;
+      top: 10px;
+    }
+
+    .page-logo-icon::before {
+      left: 16px;
+      transform: rotate(-10deg);
+    }
+
+    .page-logo-icon::after {
+      right: 16px;
+      transform: rotate(10deg);
+    }
+
+    .page-logo-text {
+      font-family: 'Fraunces', serif;
+      font-size: 32px;
+      font-weight: 500;
+      color: #2D2A32;
+    }
+
+    .page-title {
+      font-family: 'Fraunces', serif;
+      font-size: 24px;
+      font-weight: 400;
+      color: #6B6570;
+    }
+
+    .section {
+      margin-bottom: 80px;
+    }
+
+    .section-header {
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #F0EBF0;
+    }
+
+    .section-title {
+      font-family: 'Fraunces', serif;
+      font-size: 32px;
+      font-weight: 500;
+      color: #2D2A32;
+      margin-bottom: 8px;
+    }
+
+    .section-subtitle {
+      font-size: 15px;
+      color: #6B6570;
+    }
+
+    .subsection {
+      margin-bottom: 48px;
+    }
+
+    .subsection-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #2D2A32;
+      margin-bottom: 20px;
+    }
+
+    /* Logo Section */
+    .logo-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .logo-card {
+      background: #FFFFFF;
+      border-radius: 16px;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 200px;
+      border: 1px solid #F0EBF0;
+    }
+
+    .logo-card.dark {
+      background: #2D2A32;
+    }
+
+    .logo-card.gradient {
+      background: linear-gradient(135deg, #F8B4C4 0%, #B8A9E8 100%);
+    }
+
+    .logo-display {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .logo-icon-lg {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, #F8B4C4 0%, #E89AAE 100%);
+      border-radius: 14px;
+      position: relative;
+    }
+
+    .logo-card.dark .logo-icon-lg {
+      background: linear-gradient(135deg, #F8B4C4 0%, #E89AAE 100%);
+    }
+
+    .logo-card.gradient .logo-icon-lg {
+      background: #FFFFFF;
+    }
+
+    .logo-icon-lg::before,
+    .logo-icon-lg::after {
+      content: '';
+      position: absolute;
+      width: 7px;
+      height: 18px;
+      background: #FFFFFF;
+      border-radius: 3.5px;
+      top: 8px;
+    }
+
+    .logo-card.gradient .logo-icon-lg::before,
+    .logo-card.gradient .logo-icon-lg::after {
+      background: #E89AAE;
+    }
+
+    .logo-icon-lg::before {
+      left: 13px;
+      transform: rotate(-10deg);
+    }
+
+    .logo-icon-lg::after {
+      right: 13px;
+      transform: rotate(10deg);
+    }
+
+    .logo-text-lg {
+      font-family: 'Fraunces', serif;
+      font-size: 24px;
+      font-weight: 500;
+      color: #2D2A32;
+    }
+
+    .logo-card.dark .logo-text-lg {
+      color: #FFFFFF;
+    }
+
+    .logo-card.gradient .logo-text-lg {
+      color: #FFFFFF;
+    }
+
+    .logo-label {
+      font-size: 12px;
+      color: #9B959F;
+      font-weight: 500;
+    }
+
+    .logo-card.dark .logo-label {
+      color: rgba(255,255,255,0.6);
+    }
+
+    .logo-card.gradient .logo-label {
+      color: rgba(255,255,255,0.8);
+    }
+
+    /* Color Palette */
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+
+    .color-card {
+      background: #FFFFFF;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid #F0EBF0;
+    }
+
+    .color-swatch {
+      height: 120px;
+      position: relative;
+    }
+
+    .color-info {
+      padding: 16px;
+    }
+
+    .color-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #2D2A32;
+      margin-bottom: 8px;
+    }
+
+    .color-values {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .color-value {
+      font-size: 12px;
+      color: #6B6570;
+      font-family: 'DM Sans', monospace;
+    }
+
+    /* Gradients */
+    .gradient-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .gradient-card {
+      background: #FFFFFF;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid #F0EBF0;
+    }
+
+    .gradient-swatch {
+      height: 100px;
+    }
+
+    .gradient-info {
+      padding: 16px;
+    }
+
+    .gradient-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #2D2A32;
+      margin-bottom: 4px;
+    }
+
+    .gradient-code {
+      font-size: 11px;
+      color: #6B6570;
+      font-family: 'DM Sans', monospace;
+    }
+
+    /* Typography */
+    .type-specimen {
+      background: #FFFFFF;
+      border-radius: 16px;
+      padding: 32px;
+      border: 1px solid #F0EBF0;
+      margin-bottom: 20px;
+    }
+
+    .type-preview {
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #F0EBF0;
+    }
+
+    .type-label {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #9B959F;
+      background: #F5F0F2;
+      padding: 6px 12px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+
+    .type-sample-fraunces {
+      font-family: 'Fraunces', serif;
+    }
+
+    .type-sample-dm {
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .type-details {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+
+    .type-detail {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .type-detail-label {
+      font-size: 11px;
+      color: #9B959F;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .type-detail-value {
+      font-size: 13px;
+      color: #2D2A32;
+      font-weight: 500;
+    }
+
+    /* Type Scale */
+    .type-scale {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .type-scale-item {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      align-items: baseline;
+      gap: 24px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid #F5F0F2;
+    }
+
+    .type-scale-label {
+      font-size: 12px;
+      color: #9B959F;
+      font-weight: 500;
+    }
+
+    /* Spacing */
+    .spacing-grid {
+      display: flex;
+      align-items: flex-end;
+      gap: 24px;
+      padding: 32px;
+      background: #FFFFFF;
+      border-radius: 16px;
+      border: 1px solid #F0EBF0;
+    }
+
+    .spacing-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .spacing-box {
+      background: linear-gradient(135deg, #F8B4C4 0%, #E89AAE 100%);
+      border-radius: 4px;
+    }
+
+    .spacing-label {
+      font-size: 12px;
+      color: #6B6570;
+      font-weight: 500;
+    }
+
+    .spacing-value {
+      font-size: 11px;
+      color: #9B959F;
+    }
+
+    /* Border Radius */
+    .radius-grid {
+      display: flex;
+      gap: 24px;
+      padding: 32px;
+      background: #FFFFFF;
+      border-radius: 16px;
+      border: 1px solid #F0EBF0;
+    }
+
+    .radius-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .radius-box {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #F8B4C4 0%, #E89AAE 100%);
+    }
+
+    .radius-label {
+      font-size: 12px;
+      color: #6B6570;
+      font-weight: 500;
+    }
+
+    .radius-value {
+      font-size: 11px;
+      color: #9B959F;
+    }
+
+    /* Shadows */
+    .shadow-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+    }
+
+    .shadow-card {
+      background: #FFFFFF;
+      border-radius: 16px;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .shadow-box {
+      width: 80px;
+      height: 80px;
+      background: #FFFFFF;
+      border-radius: 12px;
+    }
+
+    .shadow-sm { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); }
+    .shadow-md { box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08); }
+    .shadow-lg { box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12); }
+    .shadow-xl { box-shadow: 0 25px 80px rgba(0, 0, 0, 0.16); }
+
+    .shadow-label {
+      font-size: 12px;
+      color: #6B6570;
+      font-weight: 500;
+    }
+
+    .shadow-code {
+      font-size: 10px;
+      color: #9B959F;
+      text-align: center;
+    }
+
+    /* Buttons */
+    .button-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .button-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .button-row-label {
+      width: 100px;
+      font-size: 12px;
+      color: #9B959F;
+      font-weight: 500;
+    }
+
+    .btn {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: none;
+    }
+
+    .btn-primary {
+      padding: 16px 32px;
+      background: linear-gradient(135deg, #2D2A32 0%, #3D3A42 100%);
+      color: #FFFFFF;
+      border-radius: 14px;
+      font-size: 15px;
+      box-shadow: 0 8px 24px rgba(45, 42, 50, 0.2);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(45, 42, 50, 0.25);
+    }
+
+    .btn-secondary {
+      padding: 14px 28px;
+      background: #FFFFFF;
+      color: #2D2A32;
+      border: 1.5px solid #E8E4EC;
+      border-radius: 14px;
+      font-size: 15px;
+    }
+
+    .btn-secondary:hover {
+      border-color: #F8B4C4;
+      background: #FDF9FA;
+    }
+
+    .btn-pink {
+      padding: 16px 32px;
+      background: linear-gradient(135deg, #F8B4C4 0%, #E89AAE 100%);
+      color: #FFFFFF;
+      border-radius: 14px;
+      font-size: 15px;
+      box-shadow: 0 8px 24px rgba(248, 180, 196, 0.3);
+    }
+
+    .btn-pink:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(248, 180, 196, 0.4);
+    }
+
+    .btn-ghost {
+      padding: 14px 28px;
+      background: transparent;
+      color: #6B6570;
+      border-radius: 14px;
+      font-size: 15px;
+    }
+
+    .btn-ghost:hover {
+      background: #F5F0F2;
+      color: #2D2A32;
+    }
+
+    .btn-sm {
+      padding: 10px 20px;
+      font-size: 13px;
+      border-radius: 10px;
+    }
+
+    .btn-lg {
+      padding: 20px 40px;
+      font-size: 16px;
+      border-radius: 16px;
+    }
+
+    /* Inputs */
+    .input-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      max-width: 400px;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .input-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: #4A4550;
+    }
+
+    .input {
+      padding: 14px 18px;
+      background: #FFFFFF;
+      border: 1.5px solid #E8E4EC;
+      border-radius: 12px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      color: #2D2A32;
+      transition: all 0.2s ease;
+    }
+
+    .input:focus {
+      outline: none;
+      border-color: #F8B4C4;
+      box-shadow: 0 0 0 4px rgba(248, 180, 196, 0.15);
+    }
+
+    .input::placeholder {
+      color: #B5B0B8;
+    }
+
+    .input-error {
+      border-color: #E57373;
+    }
+
+    .input-error:focus {
+      box-shadow: 0 0 0 4px rgba(229, 115, 115, 0.15);
+    }
+
+    .input-hint {
+      font-size: 12px;
+      color: #9B959F;
+    }
+
+    .input-error-text {
+      font-size: 12px;
+      color: #E57373;
+    }
+
+    /* Cards */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+
+    .example-card {
+      background: #FFFFFF;
+      border-radius: 20px;
+      padding: 24px;
+      border: 1px solid #F0EBF0;
+    }
+
+    .example-card-elevated {
+      background: #FFFFFF;
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    }
+
+    .card-avatar {
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, #F8B4C4 0%, #B8A9E8 100%);
+      border-radius: 16px;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-family: 'Fraunces', serif;
+      font-size: 18px;
+      font-weight: 500;
+      color: #2D2A32;
+      margin-bottom: 8px;
+    }
+
+    .card-text {
+      font-size: 14px;
+      color: #6B6570;
+      line-height: 1.6;
+    }
+
+    /* Badges & Tags */
+    .badge-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .badge-pink {
+      background: linear-gradient(135deg, #FFF0F3 0%, #FFE4EC 100%);
+      color: #C4748A;
+      border: 1px solid rgba(248, 180, 196, 0.3);
+    }
+
+    .badge-purple {
+      background: linear-gradient(135deg, #F0EEFF 0%, #E8E4F8 100%);
+      color: #8B7CC4;
+      border: 1px solid rgba(184, 169, 232, 0.3);
+    }
+
+    .badge-gray {
+      background: #F5F0F2;
+      color: #6B6570;
+    }
+
+    .badge-success {
+      background: #E8F5E9;
+      color: #4CAF50;
+    }
+
+    .badge-warning {
+      background: #FFF8E1;
+      color: #F9A825;
+    }
+
+    /* Icons */
+    .icon-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 16px;
+    }
+
+    .icon-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 16px;
+      background: #FFFFFF;
+      border-radius: 12px;
+      border: 1px solid #F0EBF0;
+    }
+
+    .icon-box {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .icon-box svg {
+      width: 24px;
+      height: 24px;
+      stroke: #2D2A32;
+      stroke-width: 1.5;
+      fill: none;
+    }
+
+    .icon-name {
+      font-size: 10px;
+      color: #9B959F;
+      text-align: center;
+    }
+
+    /* Decorative Elements */
+    .deco-preview {
+      position: relative;
+      height: 300px;
+      background: linear-gradient(180deg, #FFFFFF 0%, #FDF9FA 100%);
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid #F0EBF0;
+    }
+
+    .deco-blob-demo {
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      background: linear-gradient(135deg, rgba(248, 180, 196, 0.15) 0%, rgba(184, 169, 232, 0.1) 100%);
+      border-radius: 60% 40% 70% 30% / 50% 60% 40% 50%;
+      top: -50px;
+      right: -50px;
+      filter: blur(30px);
+    }
+
+    .deco-blob-demo-2 {
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      background: linear-gradient(135deg, rgba(184, 169, 232, 0.12) 0%, rgba(248, 180, 196, 0.08) 100%);
+      border-radius: 40% 60% 50% 50% / 60% 40% 60% 40%;
+      bottom: -30px;
+      left: -30px;
+      filter: blur(25px);
+    }
+
+    .deco-label {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      font-size: 12px;
+      color: #9B959F;
+      background: #FFFFFF;
+      padding: 8px 14px;
+      border-radius: 8px;
+    }
+
+    /* Code Block */
+    .code-block {
+      background: #2D2A32;
+      border-radius: 12px;
+      padding: 20px;
+      overflow-x: auto;
+    }
+
+    .code-block code {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      color: #E8E4EC;
+      line-height: 1.6;
+    }
+
+    .code-block .comment {
+      color: #6B6570;
+    }
+
+    .code-block .string {
+      color: #F8B4C4;
+    }
+
+    .code-block .number {
+      color: #B8A9E8;
+    }
+
+    .code-block .keyword {
+      color: #E89AAE;
+    }
+
+    /* Do's and Don'ts */
+    .dos-donts {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .dos-card, .donts-card {
+      background: #FFFFFF;
+      border-radius: 16px;
+      padding: 24px;
+      border: 1px solid #F0EBF0;
+    }
+
+    .dos-card {
+      border-top: 4px solid #4CAF50;
+    }
+
+    .donts-card {
+      border-top: 4px solid #E57373;
+    }
+
+    .dos-title, .donts-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dos-title { color: #4CAF50; }
+    .donts-title { color: #E57373; }
+
+    .dos-list, .donts-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .dos-item, .donts-item {
+      font-size: 13px;
+      color: #6B6570;
+      padding-left: 20px;
+      position: relative;
+    }
+
+    .dos-item::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: #4CAF50;
+      font-weight: 600;
+    }
+
+    .donts-item::before {
+      content: '✗';
+      position: absolute;
+      left: 0;
+      color: #E57373;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <!-- Main Content -->
+  <main class="main">
+    <!-- Page Header -->
+    <header class="page-header">
+      <div class="page-logo">
+        <div class="page-logo-icon"></div>
+        <span class="page-logo-text">DateRabbit</span>
+      </div>
+      <h1 class="page-title">Brand Guidelines</h1>
+    </header>
+    <!-- Logo Section -->
+    <section id="logo" class="section">
+      <div class="section-header">
+        <h1 class="section-title">Logo</h1>
+        <p class="section-subtitle">The DateRabbit logo combines a stylized rabbit ears icon with elegant serif typography.</p>
+      </div>
+
+      <div class="subsection">
+        <h3 class="subsection-title">Logo Variations</h3>
+        <div class="logo-grid">
+          <div class="logo-card">
+            <div class="logo-display">
+              <div class="logo-icon-lg"></div>
+              <span class="logo-text-lg">DateRabbit</span>
+            </div>
+            <span class="logo-label">Light Background</span>
+          </div>
+          <div class="logo-card dark">
+            <div class="logo-display">
+              <div class="logo-icon-lg"></div>
+              <span class="logo-text-lg">DateRabbit</span>
+            </div>
+            <span class="logo-label">Dark Background</span>
+          </div>
+          <div class="logo-card gradient">
+            <div class="logo-display">
+              <div class="logo-icon-lg"></div>
+              <span class="logo-text-lg">DateRabbit</span>
+            </div>
+            <span class="logo-label">Gradient Background</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3 class="subsection-title">Logo Construction</h3>
+        <div class="dos-donts">
+          <div class="dos-card">
+            <div class="dos-title">✓ Do</div>
+            <div class="dos-list">
+              <div class="dos-item">Use consistent spacing between icon and text</div>
+              <div class="dos-item">Maintain aspect ratio when scaling</div>
+              <div class="dos-item">Use on clean, uncluttered backgrounds</div>
+              <div class="dos-item">Keep minimum clear space around logo</div>
+            </div>
+          </div>
+          <div class="donts-card">
+            <div class="donts-title">✗ Don't</div>
+            <div class="donts-list">
+              <div class="donts-item">Stretch or distort the logo</div>
+              <div class="donts-item">Change the gradient colors</div>
+              <div class="donts-item">Add effects like shadows or outlines</div>
+              <div class="donts-item">Place on busy backgrounds</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Colors Section -->
+    <section id="colors" class="section">
+      <div class="section-header">
+        <h1 class="section-title">Colors</h1>
+        <p class="section-subtitle">A soft, feminine palette built around blush pink and lavender accents.</p>
+      </div>
+
+      <div class="subsection">
+        <h3 class="subsection-title">Primary Colors</h3>
+        <div class="color-grid">
+          <div class="color-card">
+            <div class="color-swatch" style="background: #F8B4C4;"></div>
+            <div class="color-info">
+              <div class="color-name">Blush Pink</div>
+              <div class="color-values">
+                <span class="color-value">#F8B4C4</span>
+                <span class="color-value">rgb(248, 180, 196)</span>
+              </div>
+            </div>
+          </div>
+          <div class="color-card">
+            <div class="color-swatch" style="background: #E89AAE;"></div>
+            <div class="color-info">
+              <div class="color-name">Rose</div>
+              <div class="color-values">
+                <span class="color-value">#E89AAE</span>
+                <span class="color-value">rgb(232, 154, 174)</span>
+              </div>
+            </div>
+          </div>
+          <div class="color-card">
+            <div class="color-swatch" style="background: #B8A9E8;"></div>
+            <div class="color-info">
+              <div class="color-name">Lavender</div>
+              <div class="color-values">
+                <span class="color-value">#B8A9E8</span>
+                <span class="color-value">rgb(184, 169, 232)</span>
+              </div>
+            </div>
+          </div>
+          <div class="color-card">
+            <div class="color-swatch" style="background: #C4748A;"></div>
+            <div class="color-info">
+              <div class="color-name">Dusty Rose</div>
+              <div class="color-values">
+                <span class="color-value">#C4748A</span>
+                <span class="color-value">rgb(196, 116, 138)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3 class="subsection-title">Neutral Colors</h3>
+        <div class="color-grid">
+          <div class="color-card">
+            <div class="color-swatch" style="background: #2D2A32;"></div>
+            <div class="color-info">
+              <div class="color-name">Charcoal</div>
+              <div class="color-values">
+                <span class="color-value">#2D2A32</span>
+                <span class="color-value">rgb(45, 42, 50)</span>
+              </div>
+            </div>
+          </div>
+          <div class="color-card">
+            <div class="color-swatch" style="background: #4A4550;"></div>
+            <div class="color-info">
+              <div class="color-name">Dark Gray</div>
+              <div class="color-values">
+                <span class="color-value">#4A4550</span>
+                <span class="color-value">rgb(74, 69, 80)</span>
+              </div>
+            </div>
+          </div>
+          <div class="color-card">
+            <div class="color-swatch" style="background: #6B6570;"></div>
+            <div class="color-info">
+              <div class="color-name">Gray</div>
+              <div class="color-values">
+                <span class="color-value">#6B6570</span>
+                <span class="color-value">rgb(107, 101, 112)</span>
+              </div>
+            </div>
+          </div>
+          <div class="color-card">
+            <div class="color-swatch" style="background: #9B959F;"></div>
+            <div class="color-info">
+              <div class="color-name">Light Gray</div>
+              <div class="color-values">
+                <span class="color-value">#9B959F</span>
+                <span class="color-value">rgb(155, 149, 159)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3 class="subsection-title">Background Colors</h3>
+        <div class="color-grid">
+          <div class="color-card">
+            <div class="color-swatch" style="background: #FFFFFF;"></div>
+            <div class="color-info">
+              <div class="color-name">White</div>
+              <div class="color-values">
+                <span class="color-value">#FFFFFF</span>
+              </div>
+            </div>
+          </div>
+          <div class="color-card">
+            <div class="color-swatch" style="background: #FDF9FA;"></div>
+            <div class="color-info">
+              <div class="color-name">Warm White</div>
+              <div class="color-values">
+                <span class="color-value">#FDF9FA</span>
+              </div>
+            </div>
+          </div>
+          <div class="color-card">
+            <div class="color-swatch" style="background: #F5F0F2;"></div>
+            <div class="color-info">
+              <div class="color-name">Light Blush</div>
+              <div class="color-values">
+                <span class="color-value">#F5F0F2</span>
+              </div>
+            </div>
+          </div>
+          <div class="color-card">
+            <div class="color-swatch" style="background: #F0EBF0;"></div>
+            <div class="color-info">
+              <div class="color-name">Border</div>
+              <div class="color-values">
+                <span class="color-value">#F0EBF0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3 class="subsection-title">Gradients</h3>
+        <div class="gradient-grid">
+          <div class="gradient-card">
+            <div class="gradient-swatch" style="background: linear-gradient(135deg, #F8B4C4 0%, #E89AAE 100%);"></div>
+            <div class="gradient-info">
+              <div class="gradient-name">Primary Gradient</div>
+              <div class="gradient-code">linear-gradient(135deg, #F8B4C4 0%, #E89AAE 100%)</div>
+            </div>
+          </div>
+          <div class="gradient-card">
+            <div class="gradient-swatch" style="background: linear-gradient(135deg, #F8B4C4 0%, #B8A9E8 100%);"></div>
+            <div class="gradient-info">
+              <div class="gradient-name">Accent Gradient</div>
+              <div class="gradient-code">linear-gradient(135deg, #F8B4C4 0%, #B8A9E8 100%)</div>
+            </div>
+          </div>
+          <div class="gradient-card">
+            <div class="gradient-swatch" style="background: linear-gradient(135deg, #2D2A32 0%, #3D3A42 100%);"></div>
+            <div class="gradient-info">
+              <div class="gradient-name">Dark Gradient</div>
+              <div class="gradient-code">linear-gradient(135deg, #2D2A32 0%, #3D3A42 100%)</div>
+            </div>
+          </div>
+          <div class="gradient-card">
+            <div class="gradient-swatch" style="background: linear-gradient(135deg, #FFF0F3 0%, #FFE4EC 100%);"></div>
+            <div class="gradient-info">
+              <div class="gradient-name">Soft Pink</div>
+              <div class="gradient-code">linear-gradient(135deg, #FFF0F3 0%, #FFE4EC 100%)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Typography Section -->
+    <section id="typography" class="section">
+      <div class="section-header">
+        <h1 class="section-title">Typography</h1>
+        <p class="section-subtitle">A pairing of elegant serif for headlines and clean sans-serif for body text.</p>
+      </div>
+
+      <div class="subsection">
+        <h3 class="subsection-title">Typefaces</h3>
+
+        <div class="type-specimen">
+          <div class="type-preview">
+            <span class="type-label">Display / Headlines</span>
+            <p class="type-sample-fraunces" style="font-size: 48px; font-weight: 500; color: #2D2A32;">
+              Fraunces
+            </p>
+            <p class="type-sample-fraunces" style="font-size: 24px; font-style: italic; color: #6B6570; margin-top: 8px;">
+              The quick brown fox jumps over the lazy dog
+            </p>
+          </div>
+          <div class="type-details">
+            <div class="type-detail">
+              <span class="type-detail-label">Family</span>
+              <span class="type-detail-value">Fraunces</span>
+            </div>
+            <div class="type-detail">
+              <span class="type-detail-label">Weights</span>
+              <span class="type-detail-value">400, 500, 600</span>
+            </div>
+            <div class="type-detail">
+              <span class="type-detail-label">Style</span>
+              <span class="type-detail-value">Normal, Italic</span>
+            </div>
+            <div class="type-detail">
+              <span class="type-detail-label">Usage</span>
+              <span class="type-detail-value">Headlines, Logo</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="type-specimen">
+          <div class="type-preview">
+            <span class="type-label">Body / UI</span>
+            <p class="type-sample-dm" style="font-size: 36px; font-weight: 600; color: #2D2A32;">
+              DM Sans
+            </p>
+            <p class="type-sample-dm" style="font-size: 18px; color: #6B6570; margin-top: 8px;">
+              The quick brown fox jumps over the lazy dog
+            </p>
+          </div>
+          <div class="type-details">
+            <div class="type-detail">
+              <span class="type-detail-label">Family</span>
+              <span class="type-detail-value">DM Sans</span>
+            </div>
+            <div class="type-detail">
+              <span class="type-detail-label">Weights</span>
+              <span class="type-detail-value">400, 500, 600, 700</span>
+            </div>
+            <div class="type-detail">
+              <span class="type-detail-label">Style</span>
+              <span class="type-detail-value">Normal, Italic</span>
+            </div>
+            <div class="type-detail">
+              <span class="type-detail-label">Usage</span>
+              <span class="type-detail-value">Body, Buttons, UI</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3 class="subsection-title">Type Scale</h3>
+        <div class="type-scale">
+          <div class="type-scale-item">
+            <span class="type-scale-label">Display / 40px</span>
+            <span class="type-sample-fraunces" style="font-size: 40px; font-weight: 400; line-height: 1.12;">Real dates. Your terms.</span>
+          </div>
+          <div class="type-scale-item">
+            <span class="type-scale-label">H1 / 32px</span>
+            <span class="type-sample-fraunces" style="font-size: 32px; font-weight: 500;">Section Headline</span>
+          </div>
+          <div class="type-scale-item">
+            <span class="type-scale-label">H2 / 24px</span>
+            <span class="type-sample-fraunces" style="font-size: 24px; font-weight: 500;">Card Title</span>
+          </div>
+          <div class="type-scale-item">
+            <span class="type-scale-label">H3 / 18px</span>
+            <span class="type-sample-dm" style="font-size: 18px; font-weight: 600;">Subsection Title</span>
+          </div>
+          <div class="type-scale-item">
+            <span class="type-scale-label">Body / 15px</span>
+            <span class="type-sample-dm" style="font-size: 15px; font-weight: 400; color: #6B6570;">Book verified companions for dates, events, or simply great company. Safe, transparent, and on your schedule.</span>
+          </div>
+          <div class="type-scale-item">
+            <span class="type-scale-label">Small / 13px</span>
+            <span class="type-sample-dm" style="font-size: 13px; font-weight: 500; color: #9B959F;">Supporting text and labels</span>
+          </div>
+          <div class="type-scale-item">
+            <span class="type-scale-label">Caption / 11px</span>
+            <span class="type-sample-dm" style="font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; color: #9B959F;">UPPERCASE LABELS</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Spacing Section -->
+    <section id="spacing" class="section">
+      <div class="section-header">
+        <h1 class="section-title">Spacing</h1>
+        <p class="section-subtitle">Consistent spacing scale based on 4px grid.</p>
+      </div>
+
+      <div class="subsection">
+        <h3 class="subsection-title">Spacing Scale</h3>
+        <div class="spacing-grid">
+          <div class="spacing-item">
+            <div class="spacing-box" style="width: 4px; height: 4px;"></div>
+            <span class="spacing-label">4px</span>
+            <span class="spacing-value">xs</span>
+          </div>
+          <div class="spacing-item">
+            <div class="spacing-box" style="width: 8px; height: 8px;"></div>
+            <span class="spacing-label">8px</span>
+            <span class="spacing-value">sm</span>
+          </div>
+          <div class="spacing-item">
+            <div class="spacing-box" style="width: 12px; height: 12px;"></div>
+            <span class="spacing-label">12px</span>
+            <span class="spacing-value">md</span>
+          </div>
+          <div class="spacing-item">
+            <div class="spacing-box" style="width: 16px; height: 16px;"></div>
+            <span class="spacing-label">16px</span>
+            <span class="spacing-value">lg</span>
+          </div>
+          <div class="spacing-item">
+            <div class="spacing-box" style="width: 24px; height: 24px;"></div>
+            <span class="spacing-label">24px</span>
+            <span class="spacing-value">xl</span>
+          </div>
+          <div class="spacing-item">
+            <div class="spacing-box" style="width: 32px; height: 32px;"></div>
+            <span class="spacing-label">32px</span>
+            <span class="spacing-value">2xl</span>
+          </div>
+          <div class="spacing-item">
+            <div class="spacing-box" style="width: 48px; height: 48px;"></div>
+            <span class="spacing-label">48px</span>
+            <span class="spacing-value">3xl</span>
+          </div>
+          <div class="spacing-item">
+            <div class="spacing-box" style="width: 64px; height: 64px;"></div>
+            <span class="spacing-label">64px</span>
+            <span class="spacing-value">4xl</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3 class="subsection-title">Border Radius</h3>
+        <div class="radius-grid">
+          <div class="radius-item">
+            <div class="radius-box" style="border-radius: 4px;"></div>
+            <span class="radius-label">4px</span>
+            <span class="radius-value">sm</span>
+          </div>
+          <div class="radius-item">
+            <div class="radius-box" style="border-radius: 8px;"></div>
+            <span class="radius-label">8px</span>
+            <span class="radius-value">md</span>
+          </div>
+          <div class="radius-item">
+            <div class="radius-box" style="border-radius: 12px;"></div>
+            <span class="radius-label">12px</span>
+            <span class="radius-value">lg</span>
+          </div>
+          <div class="radius-item">
+            <div class="radius-box" style="border-radius: 16px;"></div>
+            <span class="radius-label">16px</span>
+            <span class="radius-value">xl</span>
+          </div>
+          <div class="radius-item">
+            <div class="radius-box" style="border-radius: 20px;"></div>
+            <span class="radius-label">20px</span>
+            <span class="radius-value">2xl</span>
+          </div>
+          <div class="radius-item">
+            <div class="radius-box" style="border-radius: 50%;"></div>
+            <span class="radius-label">50%</span>
+            <span class="radius-value">full</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Shadows Section -->
+    <section id="shadows" class="section">
+      <div class="section-header">
+        <h1 class="section-title">Shadows</h1>
+        <p class="section-subtitle">Soft, subtle shadows for depth and elevation.</p>
+      </div>
+
+      <div class="shadow-grid">
+        <div class="shadow-card">
+          <div class="shadow-box shadow-sm"></div>
+          <span class="shadow-label">Small</span>
+          <span class="shadow-code">0 2px 8px rgba(0,0,0,0.04)</span>
+        </div>
+        <div class="shadow-card">
+          <div class="shadow-box shadow-md"></div>
+          <span class="shadow-label">Medium</span>
+          <span class="shadow-code">0 8px 24px rgba(0,0,0,0.08)</span>
+        </div>
+        <div class="shadow-card">
+          <div class="shadow-box shadow-lg"></div>
+          <span class="shadow-label">Large</span>
+          <span class="shadow-code">0 16px 48px rgba(0,0,0,0.12)</span>
+        </div>
+        <div class="shadow-card">
+          <div class="shadow-box shadow-xl"></div>
+          <span class="shadow-label">XLarge</span>
+          <span class="shadow-code">0 25px 80px rgba(0,0,0,0.16)</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Buttons Section -->
+    <section id="buttons" class="section">
+      <div class="section-header">
+        <h1 class="section-title">Buttons</h1>
+        <p class="section-subtitle">Button styles for different actions and contexts.</p>
+      </div>
+
+      <div class="button-grid">
+        <div class="button-row">
+          <span class="button-row-label">Primary</span>
+          <button class="btn btn-primary">Get Started</button>
+          <button class="btn btn-primary btn-sm">Small</button>
+          <button class="btn btn-primary btn-lg">Large Button</button>
+        </div>
+        <div class="button-row">
+          <span class="button-row-label">Secondary</span>
+          <button class="btn btn-secondary">Learn More</button>
+          <button class="btn btn-secondary btn-sm">Small</button>
+          <button class="btn btn-secondary btn-lg">Large Button</button>
+        </div>
+        <div class="button-row">
+          <span class="button-row-label">Pink</span>
+          <button class="btn btn-pink">Book Now</button>
+          <button class="btn btn-pink btn-sm">Small</button>
+          <button class="btn btn-pink btn-lg">Large Button</button>
+        </div>
+        <div class="button-row">
+          <span class="button-row-label">Ghost</span>
+          <button class="btn btn-ghost">Cancel</button>
+          <button class="btn btn-ghost btn-sm">Small</button>
+          <button class="btn btn-ghost btn-lg">Large Button</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Inputs Section -->
+    <section id="inputs" class="section">
+      <div class="section-header">
+        <h1 class="section-title">Inputs</h1>
+        <p class="section-subtitle">Form inputs and text fields.</p>
+      </div>
+
+      <div class="input-grid">
+        <div class="input-group">
+          <label class="input-label">Default Input</label>
+          <input type="text" class="input" placeholder="Enter your email...">
+        </div>
+        <div class="input-group">
+          <label class="input-label">With Hint</label>
+          <input type="text" class="input" placeholder="Create a password">
+          <span class="input-hint">Must be at least 8 characters</span>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Error State</label>
+          <input type="text" class="input input-error" value="invalid@email">
+          <span class="input-error-text">Please enter a valid email address</span>
+        </div>
+        <div class="input-group">
+          <label class="input-label">Disabled</label>
+          <input type="text" class="input" placeholder="Disabled input" disabled style="opacity: 0.5; cursor: not-allowed;">
+        </div>
+      </div>
+    </section>
+
+    <!-- Cards Section -->
+    <section id="cards" class="section">
+      <div class="section-header">
+        <h1 class="section-title">Cards</h1>
+        <p class="section-subtitle">Card components for displaying content.</p>
+      </div>
+
+      <div class="cards-grid">
+        <div class="example-card">
+          <div class="card-avatar"></div>
+          <h3 class="card-title">Bordered Card</h3>
+          <p class="card-text">A subtle bordered card style for lists and grids. Uses a light border and minimal shadow.</p>
+        </div>
+        <div class="example-card-elevated">
+          <div class="card-avatar"></div>
+          <h3 class="card-title">Elevated Card</h3>
+          <p class="card-text">An elevated card with shadow for featured content. No border, relies on shadow for definition.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Badges Section -->
+    <section id="badges" class="section">
+      <div class="section-header">
+        <h1 class="section-title">Badges & Tags</h1>
+        <p class="section-subtitle">Small indicators and labels.</p>
+      </div>
+
+      <div class="badge-grid">
+        <span class="badge badge-pink">Premium</span>
+        <span class="badge badge-pink">Verified</span>
+        <span class="badge badge-purple">New</span>
+        <span class="badge badge-purple">Featured</span>
+        <span class="badge badge-gray">Pending</span>
+        <span class="badge badge-success">Online</span>
+        <span class="badge badge-warning">Busy</span>
+      </div>
+    </section>
+
+    <!-- Icons Section -->
+    <section id="icons" class="section">
+      <div class="section-header">
+        <h1 class="section-title">Icons</h1>
+        <p class="section-subtitle">Recommended icons from SF Symbols or Phosphor Icons.</p>
+      </div>
+
+      <div class="icon-grid">
+        <div class="icon-item">
+          <div class="icon-box">
+            <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+          </div>
+          <span class="icon-name">heart</span>
+        </div>
+        <div class="icon-item">
+          <div class="icon-box">
+            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <span class="icon-name">lock</span>
+        </div>
+        <div class="icon-item">
+          <div class="icon-box">
+            <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <span class="icon-name">check</span>
+        </div>
+        <div class="icon-item">
+          <div class="icon-box">
+            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <span class="icon-name">star</span>
+        </div>
+        <div class="icon-item">
+          <div class="icon-box">
+            <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          </div>
+          <span class="icon-name">location</span>
+        </div>
+        <div class="icon-item">
+          <div class="icon-box">
+            <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <span class="icon-name">chat</span>
+        </div>
+        <div class="icon-item">
+          <div class="icon-box">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <span class="icon-name">calendar</span>
+        </div>
+        <div class="icon-item">
+          <div class="icon-box">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </div>
+          <span class="icon-name">settings</span>
+        </div>
+      </div>
+
+      <div style="margin-top: 24px; padding: 20px; background: #FFF0F3; border-radius: 12px;">
+        <p style="font-size: 13px; color: #C4748A;">
+          <strong>Note:</strong> In the actual app, use vector icons from <a href="https://phosphoricons.com" style="color: #C4748A;">Phosphor Icons</a> (regular weight) or SF Symbols for iOS. Keep icons at 20-24px for UI and 16px for inline use.
+        </p>
+      </div>
+    </section>
+
+    <!-- Decorative Elements Section -->
+    <section id="decorative" class="section">
+      <div class="section-header">
+        <h1 class="section-title">Decorative Elements</h1>
+        <p class="section-subtitle">Subtle background elements for visual interest.</p>
+      </div>
+
+      <div class="deco-preview">
+        <div class="deco-blob-demo"></div>
+        <div class="deco-blob-demo-2"></div>
+        <span class="deco-label">Gradient Blobs with blur</span>
+      </div>
+
+      <div style="margin-top: 24px;">
+        <div class="code-block">
+          <code>
+<span class="comment">/* Decorative blob element */</span>
+.deco-blob {
+  <span class="keyword">position</span>: absolute;
+  <span class="keyword">width</span>: <span class="number">200px</span>;
+  <span class="keyword">height</span>: <span class="number">200px</span>;
+  <span class="keyword">background</span>: linear-gradient(<span class="number">135deg</span>,
+    rgba(<span class="number">248, 180, 196, 0.15</span>) <span class="number">0%</span>,
+    rgba(<span class="number">184, 169, 232, 0.1</span>) <span class="number">100%</span>);
+  <span class="keyword">border-radius</span>: <span class="number">60% 40% 70% 30%</span> / <span class="number">50% 60% 40% 50%</span>;
+  <span class="keyword">filter</span>: blur(<span class="number">30px</span>);
+  <span class="keyword">pointer-events</span>: none;
+}
+          </code>
+        </div>
+      </div>
+    </section>
+
+    <!-- Guidelines Section -->
+    <section id="guidelines" class="section">
+      <div class="section-header">
+        <h1 class="section-title">Guidelines</h1>
+        <p class="section-subtitle">Design principles and best practices.</p>
+      </div>
+
+      <div class="subsection">
+        <h3 class="subsection-title">Design Principles</h3>
+        <div class="dos-donts">
+          <div class="dos-card">
+            <div class="dos-title">✓ Do</div>
+            <div class="dos-list">
+              <div class="dos-item">Use soft gradients sparingly for accents</div>
+              <div class="dos-item">Keep plenty of white space</div>
+              <div class="dos-item">Use Fraunces for headlines, DM Sans for body</div>
+              <div class="dos-item">Maintain consistent border-radius (12-20px)</div>
+              <div class="dos-item">Use subtle shadows for elevation</div>
+              <div class="dos-item">Keep UI elements clean and minimal</div>
+            </div>
+          </div>
+          <div class="donts-card">
+            <div class="donts-title">✗ Don't</div>
+            <div class="donts-list">
+              <div class="donts-item">Overuse pink gradients everywhere</div>
+              <div class="donts-item">Use harsh borders or shadows</div>
+              <div class="donts-item">Mix too many font weights</div>
+              <div class="donts-item">Crowd content with tight spacing</div>
+              <div class="donts-item">Use pure black (#000000)</div>
+              <div class="donts-item">Add unnecessary decorative elements</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3 class="subsection-title">Brand Voice</h3>
+        <div style="background: #FFFFFF; border-radius: 16px; padding: 32px; border: 1px solid #F0EBF0;">
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px;">
+            <div>
+              <h4 style="font-size: 14px; font-weight: 600; color: #2D2A32; margin-bottom: 12px;">Warm & Welcoming</h4>
+              <p style="font-size: 13px; color: #6B6570; line-height: 1.6;">Friendly but professional. We're here to help you find meaningful connections.</p>
+            </div>
+            <div>
+              <h4 style="font-size: 14px; font-weight: 600; color: #2D2A32; margin-bottom: 12px;">Clear & Direct</h4>
+              <p style="font-size: 13px; color: #6B6570; line-height: 1.6;">Simple language, no jargon. Users should always know what to expect.</p>
+            </div>
+            <div>
+              <h4 style="font-size: 14px; font-weight: 600; color: #2D2A32; margin-bottom: 12px;">Safe & Trustworthy</h4>
+              <p style="font-size: 13px; color: #6B6570; line-height: 1.6;">Security and privacy are priorities. We communicate this through every interaction.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

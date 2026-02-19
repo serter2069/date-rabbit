@@ -51,7 +51,7 @@ export default function FemaleProfileScreen() {
 
         <Button
           title="Edit Profile"
-          onPress={() => {}}
+          onPress={() => router.push('/settings/edit-profile')}
           variant="outline"
           fullWidth
           testID="profile-edit-btn"
@@ -131,8 +131,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   title: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.xl,
-    fontWeight: '700',
   },
   profileCard: {
     marginBottom: spacing.xl,
@@ -147,10 +147,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   profileName: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.lg,
-    fontWeight: '600',
   },
   profileLocation: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     marginTop: 2,
   },
@@ -160,10 +161,11 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   ratingValue: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.sm,
-    fontWeight: '600',
   },
   reviewCount: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     marginLeft: spacing.xs,
   },
@@ -176,18 +178,19 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   rateLabel: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
   },
   rateValue: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.lg,
-    fontWeight: '700',
   },
   section: {
     marginBottom: spacing.xl,
   },
   sectionTitle: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.lg,
-    fontWeight: '600',
     marginBottom: spacing.md,
   },
   photosRow: {
@@ -218,6 +221,7 @@ const styles = StyleSheet.create({
     marginRight: spacing.md,
   },
   menuLabel: {
+    fontFamily: typography.fonts.body,
     flex: 1,
     fontSize: typography.sizes.md,
   },
@@ -225,6 +229,7 @@ const styles = StyleSheet.create({
     height: 1,
   },
   version: {
+    fontFamily: typography.fonts.body,
     textAlign: 'center',
     fontSize: typography.sizes.sm,
     marginTop: spacing.lg,

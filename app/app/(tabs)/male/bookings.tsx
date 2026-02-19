@@ -19,12 +19,6 @@ const filterMap: Record<TabType, 'upcoming' | 'pending' | 'past'> = {
   past: 'past',
 };
 
-const mockBookings = {
-  upcoming: [],
-  pending: [],
-  past: [],
-};
-
 export default function BookingsScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
@@ -119,7 +113,7 @@ export default function BookingsScreen() {
               activeTab === tab && { color: colors.white },
             ]}>
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              {tab === 'pending' && mockBookings.pending.length > 0 && ` (${mockBookings.pending.length})`}
+              {tab === 'pending' && bookings.filter(b => b.status === 'pending').length > 0 && ` (${bookings.filter(b => b.status === 'pending').length})`}
             </Text>
           </TouchableOpacity>
         ))}
@@ -266,8 +260,8 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
   },
   title: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.xl,
-    fontWeight: '700',
   },
   tabs: {
     flexDirection: 'row',
@@ -284,8 +278,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   tabText: {
+    fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.sm,
-    fontWeight: '500',
   },
   scrollView: {
     flex: 1,
@@ -305,14 +299,16 @@ const styles = StyleSheet.create({
     marginLeft: spacing.md,
   },
   cardName: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.md,
-    fontWeight: '600',
   },
   cardActivity: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     marginTop: 2,
   },
   cardDate: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     marginTop: 2,
   },
@@ -320,8 +316,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   amountValue: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.lg,
-    fontWeight: '700',
   },
   statusBadge: {
     paddingHorizontal: spacing.sm,
@@ -330,8 +326,8 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   statusText: {
+    fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.xs,
-    fontWeight: '500',
     textTransform: 'capitalize',
   },
   actions: {
@@ -344,11 +340,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   pendingText: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
   },
   cancelText: {
+    fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.sm,
-    fontWeight: '500',
   },
   ratingSection: {
     marginTop: spacing.md,
@@ -357,6 +354,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
   },
   ratingLabel: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     marginBottom: spacing.xs,
   },

@@ -54,6 +54,11 @@ export default function EditProfileScreen() {
       return;
     }
 
+    if (formData.bio.length > 500) {
+      Alert.alert('Error', 'Bio must be 500 characters or less');
+      return;
+    }
+
     setLoading(true);
     try {
       // TODO: Photo upload will be handled separately via the API
@@ -131,6 +136,7 @@ export default function EditProfileScreen() {
               multiline
               numberOfLines={4}
               textAlignVertical="top"
+              maxLength={500}
             />
             <Text style={[styles.charCount, { color: colors.textSecondary }]}>{formData.bio.length}/500</Text>
           </View>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,73 +9,40 @@ import {
   Modal,
   Alert,
   TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Location from 'expo-location';
 import { Button } from '../../src/components/Button';
 import { Card } from '../../src/components/Card';
 import { Icon } from '../../src/components/Icon';
 import { UserImage } from '../../src/components/UserImage';
 import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
 import { useFavoritesStore } from '../../src/store/favoritesStore';
-import { usersApi } from '../../src/services/api';
+import { usersApi, companionsApi, CompanionDetail } from '../../src/services/api';
 
 const { width } = Dimensions.get('window');
 
-// Mock data - in production would fetch from API
-const profilesData: Record<string, any> = {
-  '1': {
-    id: '1',
-    name: 'Sarah',
-    age: 28,
-    location: 'Manhattan, NYC',
-    rating: 4.9,
-    reviewCount: 24,
-    hourlyRate: 100,
-    bio: 'Marketing professional who loves fine dining and art galleries. I enjoy meaningful conversations and discovering new places in the city.',
-    verified: true,
-    photos: [
-      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400',
-      'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400',
-      'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400',
-    ],
-    interests: ['Fine Dining', 'Art', 'Wine', 'Travel', 'Theater'],
-    languages: ['English', 'French'],
-    availability: 'Evenings & Weekends',
-    responseTime: 'Within 1 hour',
-    reviews: [
-      { id: 'r1', name: 'Michael', rating: 5, text: 'Amazing evening! Sarah is a wonderful companion.', date: '2 weeks ago' },
-      { id: 'r2', name: 'James', rating: 5, text: 'Great conversation and very professional.', date: '1 month ago' },
-      { id: 'r3', name: 'David', rating: 5, text: 'Highly recommend! Made the dinner so enjoyable.', date: '1 month ago' },
-    ],
-  },
-  '2': {
-    id: '2',
-    name: 'Emma',
-    age: 25,
-    location: 'Brooklyn, NYC',
-    rating: 4.8,
-    reviewCount: 18,
-    hourlyRate: 85,
-    bio: 'Yoga instructor and wellness enthusiast. Great listener who loves deep conversations about life, philosophy, and personal growth.',
-    verified: true,
-    photos: [
-      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400',
-      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400',
-    ],
-    interests: ['Yoga', 'Meditation', 'Hiking', 'Healthy Food', 'Books'],
-    languages: ['English', 'Spanish'],
-    availability: 'Flexible',
-    responseTime: 'Within 2 hours',
-    reviews: [
-      { id: 'r1', name: 'Thomas', rating: 5, text: 'Emma is so easy to talk to. Highly recommended!', date: '1 week ago' },
-      { id: 'r2', name: 'Robert', rating: 4, text: 'Pleasant company, very thoughtful.', date: '3 weeks ago' },
-    ],
-  },
-};
+interface ProfileData {
+  id: string;
+  name: string;
+  age?: number;
+  location?: string;
+  rating: number;
+  reviewCount: number;
+  hourlyRate: number;
+  bio?: string;
+  verified: boolean;
+  photos: { id: string; url: string; order: number }[];
+  interests?: string[];
+  languages?: string[];
+  availability?: string;
+  responseTime?: string;
+  reviews: { id: string; name: string; rating: number; text: string; date: string }[];
+}
 
-// Default profile for unknown IDs
-const defaultProfile = {
+const defaultProfile: ProfileData = {
   id: '0',
   name: 'Profile',
   age: 25,
@@ -97,7 +64,10 @@ export default function ProfileViewScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const profile = profilesData[id || ''] || defaultProfile;
+  
+  const [profile, setProfile] = useState<ProfileData>(defaultProfile);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [photoModalVisible, setPhotoModalVisible] = useState(false);
 
@@ -108,6 +78,56 @@ export default function ProfileViewScreen() {
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
   const [reportDescription, setReportDescription] = useState('');
   const [isReporting, setIsReporting] = useState(false);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!id) return;
+      
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        let latitude: number | undefined;
+        let longitude: number | undefined;
+        
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status === 'granted') {
+          try {
+            const location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+            latitude = location.coords.latitude;
+            longitude = location.coords.longitude;
+          } catch {}
+        }
+        
+        const data = await companionsApi.getById(id, latitude, longitude);
+        
+        setProfile({
+          id: data.id,
+          name: data.name,
+          age: data.age,
+          location: data.location,
+          rating: data.rating,
+          reviewCount: data.reviewCount,
+          hourlyRate: data.hourlyRate,
+          bio: data.bio,
+          verified: data.isVerified,
+          photos: data.photos || [],
+          interests: data.interests || [],
+          languages: data.languages || ['English'],
+          availability: 'Contact for availability',
+          responseTime: 'Varies',
+          reviews: [],
+        });
+      } catch (err: any) {
+        console.error('Failed to fetch profile:', err);
+        setError(err.message || 'Failed to load profile');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchProfile();
+  }, [id]);
 
   const reportReasons = [
     { id: 'inappropriate_content', label: 'Inappropriate Content' },
@@ -191,6 +211,26 @@ export default function ProfileViewScreen() {
       setCurrentPhotoIndex(currentPhotoIndex - 1);
     }
   };
+
+  if (isLoading) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.textSecondary, marginTop: spacing.md }]}>Loading profile...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center', padding: spacing.lg }]}>
+        <Icon name="alert-circle" size={48} color={colors.error} />
+        <Text style={[styles.errorText, { color: colors.error, marginTop: spacing.md, fontSize: typography.sizes.lg }]}>Failed to load profile</Text>
+        <Text style={[styles.errorSubtext, { color: colors.textSecondary, marginTop: spacing.sm }]}>{error}</Text>
+        <Button title="Go Back" onPress={() => router.back()} style={{ marginTop: spacing.lg }} />
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -932,5 +972,16 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
+  },
+  loadingText: {
+    fontSize: typography.sizes.md,
+  },
+  errorText: {
+    fontSize: typography.sizes.lg,
+    fontWeight: '600',
+  },
+  errorSubtext: {
+    fontSize: typography.sizes.sm,
+    textAlign: 'center',
   },
 });

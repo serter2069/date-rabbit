@@ -189,19 +189,20 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   title: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.xl,
-    fontWeight: '700',
   },
   balanceCard: {
     marginBottom: spacing.lg,
   },
   balanceLabel: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     opacity: 0.8,
   },
   balanceAmount: {
+    fontFamily: typography.fonts.heading,
     fontSize: 42,
-    fontWeight: '700',
     marginVertical: spacing.sm,
   },
   balanceActions: {
@@ -215,12 +216,13 @@ const styles = StyleSheet.create({
     borderTopColor: 'rgba(255,255,255,0.2)',
   },
   pendingLabel: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     opacity: 0.8,
   },
   pendingAmount: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.md,
-    fontWeight: '600',
   },
   statsRow: {
     flexDirection: 'row',
@@ -233,12 +235,13 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.lg,
   },
   statLabel: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     marginBottom: spacing.xs,
   },
   statValue: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.xl,
-    fontWeight: '700',
   },
   section: {
     marginBottom: spacing.xl,
@@ -250,12 +253,12 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   sectionTitle: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.lg,
-    fontWeight: '600',
   },
   seeAll: {
+    fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.sm,
-    fontWeight: '500',
   },
   transactionCard: {
     flexDirection: 'row',
@@ -274,23 +277,26 @@ const styles = StyleSheet.create({
     marginLeft: spacing.md,
   },
   txName: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.md,
-    fontWeight: '600',
   },
   txActivity: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
   },
   txDate: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.xs,
   },
   txRight: {
     alignItems: 'flex-end',
   },
   txAmount: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.md,
-    fontWeight: '600',
   },
   txStatus: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.xs,
     textTransform: 'capitalize',
   },
@@ -310,23 +316,24 @@ const styles = StyleSheet.create({
     marginLeft: spacing.md,
   },
   paymentName: {
+    fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.md,
-    fontWeight: '500',
   },
   paymentDetails: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
   },
   paymentDefault: {
+    fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.xs,
-    fontWeight: '500',
   },
   addPayment: {
     marginTop: spacing.md,
     alignItems: 'center',
   },
   addPaymentText: {
+    fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.sm,
-    fontWeight: '500',
   },
   loadingContainer: {
     justifyContent: 'center',
@@ -337,6 +344,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xl,
   },
   emptyText: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.md,
   },
 });

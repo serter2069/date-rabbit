@@ -12,57 +12,6 @@ import { FilterModal, FilterOptions } from '../../../src/components/FilterModal'
 import { useTheme, spacing, typography, borderRadius } from '../../../src/constants/theme';
 import { companionsApi, CompanionListItem } from '../../../src/services/api';
 
-const mockCompanions: CompanionListItem[] = [
-  {
-    id: 'comp-1',
-    name: 'Sarah',
-    age: 28,
-    location: 'New York, NY',
-    hourlyRate: 100,
-    rating: 4.9,
-    reviewCount: 47,
-    isVerified: true,
-    primaryPhoto: undefined,
-    distance: 2.3,
-  },
-  {
-    id: 'comp-2',
-    name: 'Emma',
-    age: 25,
-    location: 'Brooklyn, NY',
-    hourlyRate: 85,
-    rating: 4.8,
-    reviewCount: 32,
-    isVerified: true,
-    primaryPhoto: undefined,
-    distance: 4.1,
-  },
-  {
-    id: 'comp-3',
-    name: 'Olivia',
-    age: 30,
-    location: 'Manhattan, NY',
-    hourlyRate: 120,
-    rating: 5.0,
-    reviewCount: 89,
-    isVerified: true,
-    primaryPhoto: undefined,
-    distance: 1.8,
-  },
-  {
-    id: 'comp-4',
-    name: 'Mia',
-    age: 26,
-    location: 'Queens, NY',
-    hourlyRate: 75,
-    rating: 4.7,
-    reviewCount: 23,
-    isVerified: false,
-    primaryPhoto: undefined,
-    distance: 5.5,
-  },
-];
-
 const quickFilters = ['All', 'Nearby', 'Top Rated', 'New'];
 
 const defaultFilterOptions: FilterOptions = {
@@ -147,11 +96,9 @@ export default function BrowseScreen() {
       });
 
       setCompanions(response.companions);
-      if (response.companions.length === 0) {
-        setCompanions(mockCompanions);
-      }
-    } catch {
-      setCompanions(mockCompanions);
+    } catch (err) {
+      console.error('Failed to fetch companions:', err);
+      setCompanions([]);
     }
   }, [appliedFilters, activeFilter, userLocation, searchQuery]);
 
@@ -361,10 +308,11 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
   },
   title: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.xl,
-    fontWeight: '700',
   },
   subtitle: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     marginTop: spacing.xs,
   },
@@ -375,6 +323,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xl * 2,
   },
   loadingText: {
+    fontFamily: typography.fonts.body,
     marginTop: spacing.md,
     fontSize: typography.sizes.md,
   },
@@ -389,8 +338,8 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   distanceText: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.xs,
-    fontWeight: '600',
   },
   searchContainer: {
     flexDirection: 'row',
@@ -432,6 +381,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   searchInput: {
+    fontFamily: typography.fonts.body,
     flex: 1,
     fontSize: typography.sizes.md,
     padding: 0,
@@ -449,8 +399,8 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.full,
   },
   filterText: {
+    fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.sm,
-    fontWeight: '500',
   },
   scrollView: {
     flex: 1,
@@ -472,10 +422,11 @@ const styles = StyleSheet.create({
     marginLeft: spacing.md,
   },
   cardName: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.lg,
-    fontWeight: '600',
   },
   cardLocation: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
   },
   ratingRow: {
@@ -484,10 +435,11 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   rating: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.sm,
-    fontWeight: '600',
   },
   reviews: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     marginLeft: spacing.xs,
   },
@@ -498,10 +450,11 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
   },
   rateValue: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.lg,
-    fontWeight: '700',
   },
   rateLabel: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.xs,
   },
   bio: {

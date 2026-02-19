@@ -19,6 +19,8 @@
     "test:all": "npm test && npm run test:web"
   },
   "dependencies": {
+    "@expo-google-fonts/dm-sans": "^0.4.2",
+    "@expo-google-fonts/fraunces": "^0.4.1",
     "@expo-google-fonts/inter": "^0.4.2",
     "@expo/metro-runtime": "~4.0.1",
     "@expo/vector-icons": "^15.0.3",
@@ -33,6 +35,7 @@
     "expo-haptics": "~14.0.1",
     "expo-image": "~2.0.7",
     "expo-image-picker": "~16.0.6",
+    "expo-linear-gradient": "^15.0.8",
     "expo-linking": "~7.0.5",
     "expo-location": "^19.0.8",
     "expo-notifications": "^0.32.16",

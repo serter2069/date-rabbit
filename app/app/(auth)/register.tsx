@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  TextInput,
   TouchableOpacity,
   ScrollView,
   KeyboardAvoidingView,
@@ -13,13 +12,13 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../src/store/authStore';
 import { Button } from '../../src/components/Button';
+import { Input } from '../../src/components/Input';
 import { Icon } from '../../src/components/Icon';
-import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
+import { colors, spacing, typography, borderRadius } from '../../src/constants/theme';
 import type { UserRole } from '../../src/types';
 
 export default function RegisterScreen() {
   const insets = useSafeAreaInsets();
-  const { colors } = useTheme();
   const { role } = useLocalSearchParams<{ role: UserRole }>();
   const { completeOnboarding } = useAuthStore();
 
@@ -40,23 +39,37 @@ export default function RegisterScreen() {
 
     if (!formData.name.trim()) {
       newErrors.name = 'Name is required';
+    } else if (formData.name.length > 100) {
+      newErrors.name = 'Name must be less than 100 characters';
     }
+
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Invalid email format';
     }
+
     if (!formData.birthYear.trim()) {
       newErrors.birthYear = 'Birth year is required';
     } else {
       const year = parseInt(formData.birthYear);
       const currentYear = new Date().getFullYear();
-      if (year < 1940 || year > currentYear - 18) {
+      if (isNaN(year) || year < 1900 || year > currentYear - 18) {
         newErrors.birthYear = 'You must be at least 18 years old';
       }
     }
-    if (isFemale && !formData.hourlyRate.trim()) {
-      newErrors.hourlyRate = 'Hourly rate is required';
+
+    if (isFemale) {
+      if (!formData.hourlyRate.trim()) {
+        newErrors.hourlyRate = 'Hourly rate is required';
+      } else {
+        const rate = parseInt(formData.hourlyRate);
+        if (isNaN(rate) || rate <= 0) {
+          newErrors.hourlyRate = 'Rate must be greater than $0';
+        } else if (rate > 10000) {
+          newErrors.hourlyRate = 'Rate must be less than $10,000';
+        }
+      }
     }
 
     setErrors(newErrors);
@@ -78,12 +91,9 @@ export default function RegisterScreen() {
       hourlyRate: isFemale ? parseInt(formData.hourlyRate) || 100 : undefined,
     };
 
-    // Try to complete onboarding via API
     const result = await completeOnboarding(onboardingData);
 
     if (!result.success) {
-      // API failed (no backend) - use demo mode
-      // Directly set user in store for demo/testing
       const { setUser, setOnboardingSeen } = useAuthStore.getState();
       setUser({
         id: 'demo-' + Date.now(),
@@ -105,8 +115,6 @@ export default function RegisterScreen() {
 
     setLoading(false);
 
-    // Navigate to correct tabs based on role
-    // In Expo Router, /male is equivalent to /male/index when index.tsx exists
     if (isFemale) {
       router.replace('/female');
     } else {
@@ -116,125 +124,125 @@ export default function RegisterScreen() {
 
   const updateField = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    setErrors(prev => ({ ...prev, [field]: '' }));
   };
 
   return (
     <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: colors.background }]}
+      style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
         style={styles.scrollView}
-        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + spacing.lg, paddingBottom: insets.bottom + spacing.lg }]}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingTop: insets.top + spacing.md, paddingBottom: insets.bottom + spacing.lg },
+        ]}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
+        {/* Back button */}
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => router.back()}
           testID="register-back-btn"
         >
-          <Icon name="arrow-left" size={20} color={colors.primary} />
-          <Text style={[styles.backText, { color: colors.primary }]}> Back</Text>
+          <Icon name="arrow-left" size={20} color={colors.text} />
         </TouchableOpacity>
 
-        <Text style={[styles.title, { color: colors.text }]}>Create Account</Text>
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          {isFemale
-            ? "Let's set up your companion profile"
-            : "Join and start booking dates"
-          }
-        </Text>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.title}>Create Account</Text>
+          <Text style={styles.subtitle}>
+            {isFemale
+              ? "Let's set up your companion profile"
+              : 'Join and start booking dates'
+            }
+          </Text>
+        </View>
 
+        {/* Form */}
         <View style={styles.form}>
-          <View style={styles.inputGroup}>
-            <Text style={[styles.label, { color: colors.text }]}>Full Name</Text>
-            <TextInput
-              style={[styles.input, { backgroundColor: colors.white, borderColor: errors.name ? colors.primary : colors.border, color: colors.text }]}
-              placeholder="Your name"
-              placeholderTextColor={colors.textSecondary}
-              value={formData.name}
-              onChangeText={(v) => { updateField('name', v); setErrors(e => ({...e, name: ''})); }}
-              autoCapitalize="words"
-              testID="register-name-input"
-            />
-            {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
-          </View>
+          <Input
+            label="Full Name"
+            placeholder="Your name"
+            value={formData.name}
+            onChangeText={(v) => updateField('name', v)}
+            error={errors.name}
+            autoCapitalize="words"
+            maxLength={100}
+            leftIcon={<Icon name="user" size={20} color={colors.textLight} />}
+            testID="register-name-input"
+          />
 
-          <View style={styles.inputGroup}>
-            <Text style={[styles.label, { color: colors.text }]}>Email</Text>
-            <TextInput
-              style={[styles.input, { backgroundColor: colors.white, borderColor: errors.email ? colors.primary : colors.border, color: colors.text }]}
-              placeholder="email@example.com"
-              placeholderTextColor={colors.textSecondary}
-              value={formData.email}
-              onChangeText={(v) => { updateField('email', v); setErrors(e => ({...e, email: ''})); }}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              testID="register-email-input"
-            />
-            {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
-          </View>
+          <Input
+            label="Email"
+            placeholder="email@example.com"
+            value={formData.email}
+            onChangeText={(v) => updateField('email', v)}
+            error={errors.email}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            leftIcon={<Icon name="mail" size={20} color={colors.textLight} />}
+            testID="register-email-input"
+          />
 
           <View style={styles.row}>
-            <View style={[styles.inputGroup, styles.halfWidth]}>
-              <Text style={[styles.label, { color: colors.text }]}>Birth Year</Text>
-              <TextInput
-                style={[styles.input, { backgroundColor: colors.white, borderColor: errors.birthYear ? colors.primary : colors.border, color: colors.text }]}
+            <View style={styles.halfWidth}>
+              <Input
+                label="Birth Year"
                 placeholder="1995"
-                placeholderTextColor={colors.textSecondary}
                 value={formData.birthYear}
-                onChangeText={(v) => { updateField('birthYear', v); setErrors(e => ({...e, birthYear: ''})); }}
+                onChangeText={(v) => updateField('birthYear', v)}
+                error={errors.birthYear}
                 keyboardType="number-pad"
                 maxLength={4}
+                leftIcon={<Icon name="calendar" size={20} color={colors.textLight} />}
               />
-              {errors.birthYear && <Text style={styles.errorText}>{errors.birthYear}</Text>}
             </View>
 
-            <View style={[styles.inputGroup, styles.halfWidth]}>
-              <Text style={[styles.label, { color: colors.text }]}>Location</Text>
-              <TextInput
-                style={[styles.input, { backgroundColor: colors.white, borderColor: colors.border, color: colors.text }]}
+            <View style={styles.halfWidth}>
+              <Input
+                label="Location"
                 placeholder="City"
-                placeholderTextColor={colors.textSecondary}
                 value={formData.location}
                 onChangeText={(v) => updateField('location', v)}
+                leftIcon={<Icon name="map-pin" size={20} color={colors.textLight} />}
               />
             </View>
           </View>
 
           {isFemale && (
-            <View style={styles.inputGroup}>
-              <Text style={[styles.label, { color: colors.text }]}>Hourly Rate ($)</Text>
-              <TextInput
-                style={[styles.input, { backgroundColor: colors.white, borderColor: colors.border, color: colors.text }]}
+            <View>
+              <Input
+                label="Hourly Rate ($)"
                 placeholder="100"
-                placeholderTextColor={colors.textSecondary}
                 value={formData.hourlyRate}
                 onChangeText={(v) => updateField('hourlyRate', v)}
+                error={errors.hourlyRate}
                 keyboardType="number-pad"
+                hint="You can change this later. Platform fee is 15%."
+                leftIcon={<Icon name="dollar" size={20} color={colors.textLight} />}
               />
-              <Text style={[styles.hint, { color: colors.textSecondary }]}>
-                You can change this later. Platform fee is 15%.
-              </Text>
             </View>
           )}
         </View>
 
-        <View style={styles.buttonContainer}>
-          <Button
-            title="Create Account"
-            onPress={handleRegister}
-            loading={loading}
-            fullWidth
-            size="lg"
-            testID="register-submit-btn"
-          />
-        </View>
+        {/* Submit */}
+        <Button
+          title="Create Account"
+          onPress={handleRegister}
+          loading={loading}
+          variant="pink"
+          fullWidth
+          size="lg"
+          testID="register-submit-btn"
+        />
 
-        <Text style={[styles.terms, { color: colors.textSecondary }]}>
+        <Text style={styles.terms}>
           By creating an account, you agree to our{' '}
-          <Text style={[styles.link, { color: colors.primary }]}>Terms of Service</Text> and{' '}
-          <Text style={[styles.link, { color: colors.primary }]}>Privacy Policy</Text>
+          <Text style={styles.termsLink}>Terms of Service</Text> and{' '}
+          <Text style={styles.termsLink}>Privacy Policy</Text>
         </Text>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -244,53 +252,40 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.background,
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.lg + 4,
   },
   backButton: {
-    flexDirection: 'row',
+    width: 44,
+    height: 44,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.surface,
     alignItems: 'center',
-    marginBottom: spacing.lg,
-    minHeight: 44,
+    justifyContent: 'center',
+    marginBottom: spacing.xl,
   },
-  backText: {
-    fontSize: typography.sizes.md,
+  header: {
+    marginBottom: spacing.xl,
   },
   title: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.xxl,
-    fontWeight: '700',
-    marginBottom: spacing.xs,
+    color: colors.text,
+    marginBottom: spacing.sm,
   },
   subtitle: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.md,
-    marginBottom: spacing.xl,
+    color: colors.textMuted,
+    lineHeight: 24,
   },
   form: {
-    marginBottom: spacing.xl,
-  },
-  inputGroup: {
-    marginBottom: spacing.md,
-  },
-  label: {
-    fontSize: typography.sizes.sm,
-    fontWeight: '600',
-    marginBottom: spacing.xs,
-  },
-  input: {
-    borderWidth: 2,
-    borderRadius: borderRadius.lg,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    fontSize: typography.sizes.md,
-    minHeight: 48,
-  },
-  hint: {
-    fontSize: typography.sizes.xs,
-    marginTop: spacing.xs,
+    marginBottom: spacing.lg,
   },
   row: {
     flexDirection: 'row',
@@ -299,20 +294,17 @@ const styles = StyleSheet.create({
   halfWidth: {
     flex: 1,
   },
-  buttonContainer: {
-    marginBottom: spacing.lg,
-  },
   terms: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.xs,
+    color: colors.textMuted,
     textAlign: 'center',
     lineHeight: 18,
+    marginTop: spacing.lg,
+    paddingHorizontal: spacing.md,
   },
-  link: {
-    fontWeight: '600',
-  },
-  errorText: {
-    color: '#E57373',
-    fontSize: 12,
-    marginTop: 4,
+  termsLink: {
+    fontFamily: typography.fonts.bodyMedium,
+    color: colors.secondary,
   },
 });

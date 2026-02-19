@@ -331,8 +331,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.xl,
-    fontWeight: '700',
   },
   blockModeButton: {
     padding: spacing.sm,
@@ -348,8 +348,8 @@ const styles = StyleSheet.create({
     padding: spacing.xs,
   },
   monthYear: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.md,
-    fontWeight: '600',
   },
   blockModeBar: {
     flexDirection: 'row',
@@ -362,6 +362,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
   },
   blockModeText: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     flex: 1,
   },
@@ -371,8 +372,8 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.sm,
   },
   applyButtonText: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.sm,
-    fontWeight: '600',
   },
   calendarCard: {
     marginHorizontal: spacing.lg,
@@ -383,10 +384,10 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   dayHeader: {
+    fontFamily: typography.fonts.bodySemiBold,
     flex: 1,
     textAlign: 'center',
     fontSize: typography.sizes.sm,
-    fontWeight: '600',
   },
   daysGrid: {
     flexDirection: 'row',
@@ -417,13 +418,14 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   dayText: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.md,
   },
   todayText: {
-    fontWeight: '600',
+    fontFamily: typography.fonts.bodySemiBold,
   },
   selectedText: {
-    fontWeight: '600',
+    fontFamily: typography.fonts.bodySemiBold,
   },
   eventDot: {
     position: 'absolute',
@@ -456,6 +458,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   legendText: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.xs,
   },
   eventsContainer: {
@@ -463,8 +466,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
   },
   eventsTitle: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.lg,
-    fontWeight: '600',
     marginBottom: spacing.md,
   },
   eventCard: {
@@ -479,18 +482,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   eventTimeText: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.sm,
-    fontWeight: '600',
   },
   eventDetails: {
     flex: 1,
     justifyContent: 'center',
   },
   eventName: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.md,
-    fontWeight: '600',
   },
   eventActivity: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
   },
 });

@@ -10,8 +10,8 @@ export default function Index() {
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!isAuthenticated) {
-        // Not logged in - go to welcome
-        router.replace('/(auth)/welcome');
+        // Not logged in - go to welcome with redirect message
+        router.replace('/(auth)/welcome?redirect=1');
       } else if (!hasSeenOnboarding) {
         // Logged in but hasn't seen onboarding - show it after registration
         router.replace('/onboarding');

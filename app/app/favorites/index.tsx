@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from '../../src/components/Card';
@@ -9,34 +9,50 @@ import { Icon } from '../../src/components/Icon';
 import { EmptyState } from '../../src/components/EmptyState';
 import { useFavoritesStore } from '../../src/store/favoritesStore';
 import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
-
-// Mock data - in production this would come from API
-const allCompanions: Record<string, {
-  id: string;
-  name: string;
-  age: number;
-  location: string;
-  rating: number;
-  reviews: number;
-  rate: number;
-  bio: string;
-  verified: boolean;
-}> = {
-  '1': { id: '1', name: 'Sarah', age: 28, location: 'Manhattan', rating: 4.9, reviews: 24, rate: 100, bio: 'Marketing professional who loves fine dining and art galleries.', verified: true },
-  '2': { id: '2', name: 'Emma', age: 25, location: 'Brooklyn', rating: 4.8, reviews: 18, rate: 85, bio: 'Yoga instructor. Great listener, love deep conversations.', verified: true },
-  '3': { id: '3', name: 'Olivia', age: 30, location: 'Upper East Side', rating: 5.0, reviews: 32, rate: 120, bio: 'Investment banker with a passion for wine and theater.', verified: true },
-  '4': { id: '4', name: 'Ava', age: 26, location: 'Soho', rating: 4.7, reviews: 15, rate: 90, bio: 'Fashion designer, always up for gallery hopping or rooftop drinks.', verified: true },
-  '5': { id: '5', name: 'Mia', age: 27, location: 'Chelsea', rating: 4.9, reviews: 28, rate: 95, bio: 'Travel blogger who knows all the hidden gems in NYC.', verified: true },
-};
+import { companionsApi, CompanionDetail } from '../../src/services/api';
 
 export default function FavoritesScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const { favorites, toggleFavorite } = useFavoritesStore();
+  
+  const [favoriteCompanions, setFavoriteCompanions] = useState<CompanionDetail[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const favoriteCompanions = favorites
-    .map(id => allCompanions[id])
-    .filter(Boolean);
+  const fetchFavorites = useCallback(async () => {
+    if (favorites.length === 0) {
+      setFavoriteCompanions([]);
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const companionPromises = favorites.map(id => companionsApi.getById(id));
+      const companions = await Promise.all(companionPromises);
+      setFavoriteCompanions(companions);
+    } catch (err) {
+      console.error('Failed to fetch favorites:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [favorites]);
+
+  useEffect(() => {
+    fetchFavorites();
+  }, [fetchFavorites]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchFavorites();
+    setRefreshing(false);
+  }, [fetchFavorites]);
+
+  const handleToggleFavorite = (id: string) => {
+    toggleFavorite(id);
+    setFavoriteCompanions(prev => prev.filter(c => c.id !== id));
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -48,8 +64,19 @@ export default function FavoritesScreen() {
         <View style={{ width: 44 }} />
       </View>
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
-        {favoriteCompanions.length === 0 ? (
+      <ScrollView 
+        style={styles.scrollView} 
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={[styles.loadingText, { color: colors.textSecondary, marginTop: spacing.md }]}>Loading favorites...</Text>
+          </View>
+        ) : favoriteCompanions.length === 0 ? (
           <View style={styles.emptyContainer}>
             <EmptyState
               icon="heart"
@@ -68,33 +95,35 @@ export default function FavoritesScreen() {
             {favoriteCompanions.map((companion) => (
               <Card key={companion.id} style={styles.companionCard}>
                 <View style={styles.cardHeader}>
-                  <UserImage name={companion.name} size={72} showVerified={companion.verified} />
+                  <UserImage name={companion.name} uri={companion.primaryPhoto} size={72} showVerified={companion.isVerified} />
                   <View style={styles.cardInfo}>
-                    <Text style={[styles.cardName, { color: colors.text }]}>{companion.name}, {companion.age}</Text>
+                    <Text style={[styles.cardName, { color: colors.text }]}>{companion.name}{companion.age ? `, ${companion.age}` : ''}</Text>
                     <View style={styles.locationRow}>
                       <Icon name="map-pin" size={14} color={colors.textSecondary} />
-                      <Text style={[styles.cardLocation, { color: colors.textSecondary }]}> {companion.location}</Text>
+                      <Text style={[styles.cardLocation, { color: colors.textSecondary }]}> {companion.location || 'Location hidden'}</Text>
                     </View>
                     <View style={styles.ratingRow}>
                       <Icon name="star" size={14} color={colors.accent} />
-                      <Text style={[styles.rating, { color: colors.text }]}> {companion.rating}</Text>
-                      <Text style={[styles.reviews, { color: colors.textSecondary }]}>({companion.reviews} reviews)</Text>
+                      <Text style={[styles.rating, { color: colors.text }]}> {companion.rating.toFixed(1)}</Text>
+                      <Text style={[styles.reviews, { color: colors.textSecondary }]}>({companion.reviewCount} reviews)</Text>
                     </View>
                   </View>
                   <TouchableOpacity
                     style={styles.heartButton}
-                    onPress={() => toggleFavorite(companion.id)}
+                    onPress={() => handleToggleFavorite(companion.id)}
                   >
                     <Icon name="heart" size={24} color={colors.error} />
                   </TouchableOpacity>
                 </View>
 
                 <View style={styles.rateRow}>
-                  <Text style={[styles.rateValue, { color: colors.primary }]}>${companion.rate}</Text>
+                  <Text style={[styles.rateValue, { color: colors.primary }]}>${companion.hourlyRate}</Text>
                   <Text style={[styles.rateLabel, { color: colors.textSecondary }]}>/hour</Text>
                 </View>
 
-                <Text style={[styles.bio, { color: colors.textSecondary }]} numberOfLines={2}>{companion.bio}</Text>
+                {companion.bio && (
+                  <Text style={[styles.bio, { color: colors.textSecondary }]} numberOfLines={2}>{companion.bio}</Text>
+                )}
 
                 <View style={styles.actions}>
                   <Button
@@ -147,6 +176,13 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: spacing.lg,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    paddingTop: 60,
+  },
+  loadingText: {
+    fontSize: typography.sizes.md,
   },
   emptyContainer: {
     alignItems: 'center',

@@ -1,12 +1,14 @@
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { usePathname, useRouter } from 'expo-router';
-import { colors, spacing, typography } from '../constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { colors, spacing, typography, borderRadius, shadows } from '../constants/theme';
 import { Home, Search, Calendar, MessageCircle, User, Grid, Mail, Wallet } from 'lucide-react-native';
 
 interface TabItem {
   name: string;
   path: string;
-  icon: React.ComponentType<{ size: number; color: string }>;
+  icon: React.ComponentType<{ size: number; color: string; strokeWidth?: number }>;
   label: string;
 }
 
@@ -31,6 +33,7 @@ interface CustomTabBarProps {
 }
 
 export function CustomTabBar({ role }: CustomTabBarProps) {
+  const insets = useSafeAreaInsets();
   const pathname = usePathname();
   const router = useRouter();
   const tabs = role === 'companion' ? companionTabs : seekerTabs;
@@ -43,11 +46,15 @@ export function CustomTabBar({ role }: CustomTabBarProps) {
   };
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        { paddingBottom: Platform.OS === 'web' ? 8 : Math.max(insets.bottom, 8) },
+      ]}
+    >
       {tabs.map((tab) => {
         const Icon = tab.icon;
         const active = isActive(tab.path);
-        const color = active ? colors.primary : colors.textSecondary;
 
         return (
           <TouchableOpacity
@@ -56,9 +63,32 @@ export function CustomTabBar({ role }: CustomTabBarProps) {
             onPress={() => router.push(tab.path as any)}
             accessibilityRole="button"
             accessibilityState={{ selected: active }}
+            activeOpacity={0.7}
           >
-            <Icon size={22} color={color} strokeWidth={2} />
-            <Text style={[styles.label, { color }]}>{tab.label}</Text>
+            {active ? (
+              <View style={styles.activeIconWrap}>
+                <LinearGradient
+                  colors={colors.gradient.primary as readonly [string, string, ...string[]]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.activeIconBg}
+                >
+                  <Icon size={20} color={colors.white} strokeWidth={2.5} />
+                </LinearGradient>
+              </View>
+            ) : (
+              <View style={styles.iconWrap}>
+                <Icon size={20} color={colors.textMuted} strokeWidth={1.8} />
+              </View>
+            )}
+            <Text
+              style={[
+                styles.label,
+                active ? styles.labelActive : styles.labelInactive,
+              ]}
+            >
+              {tab.label}
+            </Text>
           </TouchableOpacity>
         );
       })}
@@ -71,19 +101,44 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: colors.white,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
-    height: Platform.OS === 'web' ? 56 : 70,
-    paddingBottom: Platform.OS === 'web' ? 6 : 16,
-    paddingTop: 6,
+    borderTopColor: colors.borderLight,
+    paddingTop: spacing.sm,
+    ...shadows.sm,
   },
   tab: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 2,
+    gap: 4,
+  },
+  iconWrap: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activeIconWrap: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activeIconBg: {
+    width: 36,
+    height: 36,
+    borderRadius: borderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   label: {
+    fontFamily: typography.fonts.bodyMedium,
     fontSize: 10,
-    fontWeight: '500',
+    letterSpacing: 0.2,
+  },
+  labelActive: {
+    color: colors.secondary,
+  },
+  labelInactive: {
+    color: colors.textMuted,
   },
 });

@@ -3,24 +3,24 @@ import {
   View,
   Text,
   StyleSheet,
-  TextInput,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Alert,
+  ScrollView,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../src/store/authStore';
 import { Button } from '../../src/components/Button';
+import { Input } from '../../src/components/Input';
 import { Icon } from '../../src/components/Icon';
-import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
+import { colors, spacing, typography, borderRadius } from '../../src/constants/theme';
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
-  const { colors } = useTheme();
   const { startAuth, isLoading, error, clearError, authStep } = useAuthStore();
   const [email, setEmail] = useState('');
+  const [emailError, setEmailError] = useState('');
 
   useEffect(() => {
     if (authStep === 'otp') {
@@ -33,12 +33,14 @@ export default function LoginScreen() {
   };
 
   const handleSendCode = async () => {
+    setEmailError('');
+
     if (!email.trim()) {
-      Alert.alert('Required', 'Please enter your email address');
+      setEmailError('Email is required');
       return;
     }
     if (!validateEmail(email.trim())) {
-      Alert.alert('Invalid Email', 'Please enter a valid email address');
+      setEmailError('Please enter a valid email address');
       return;
     }
 
@@ -46,14 +48,12 @@ export default function LoginScreen() {
     const result = await startAuth(email.trim().toLowerCase());
 
     if (!result.success) {
-      // API failed (no backend) - use demo mode login
       const { setUser, setOnboardingSeen } = useAuthStore.getState();
 
-      // Create demo user based on email
       const demoUser = {
         id: 'demo-' + Date.now(),
         email: email.trim().toLowerCase(),
-        name: email.split('@')[0], // Use email prefix as name
+        name: email.split('@')[0],
         role: 'seeker' as 'seeker' | 'companion',
         age: 28,
         location: 'New York',
@@ -67,8 +67,6 @@ export default function LoginScreen() {
 
       setUser(demoUser);
       setOnboardingSeen();
-
-      // Navigate to home
       router.replace('/male');
       return;
     }
@@ -76,47 +74,58 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: colors.background }]}
+      style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <View style={[styles.content, { paddingTop: insets.top + spacing.lg }]}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={[
+          styles.content,
+          { paddingTop: insets.top + spacing.md, paddingBottom: insets.bottom + spacing.lg },
+        ]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Back button */}
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => router.back()}
           testID="login-back-btn"
         >
-          <Icon name="arrow-left" size={20} color={colors.primary} />
-          <Text style={[styles.backText, { color: colors.primary }]}> Back</Text>
+          <Icon name="arrow-left" size={20} color={colors.text} />
         </TouchableOpacity>
 
-        <Text style={[styles.title, { color: colors.text }]}>Welcome</Text>
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          Enter your email to sign in or create an account
-        </Text>
-
-        <View style={styles.form}>
-          <View style={styles.inputGroup}>
-            <Text style={[styles.label, { color: colors.text }]}>Email</Text>
-            <TextInput
-              style={[styles.input, { backgroundColor: colors.white, borderColor: colors.border, color: colors.text }]}
-              placeholder="email@example.com"
-              placeholderTextColor={colors.textSecondary}
-              value={email}
-              onChangeText={(text) => {
-                setEmail(text);
-                clearError();
-              }}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoComplete="email"
-              autoCorrect={false}
-              testID="login-email-input"
-            />
-          </View>
-
-          {error && <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>}
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.title}>Welcome back</Text>
+          <Text style={styles.subtitle}>
+            Enter your email to sign in or create an account
+          </Text>
         </View>
 
+        {/* Form */}
+        <View style={styles.form}>
+          <Input
+            label="Email"
+            placeholder="email@example.com"
+            value={email}
+            onChangeText={(text) => {
+              setEmail(text);
+              setEmailError('');
+              clearError();
+            }}
+            error={emailError || error || undefined}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoComplete="email"
+            autoCorrect={false}
+            size="lg"
+            leftIcon={<Icon name="mail" size={20} color={colors.textLight} />}
+            testID="login-email-input"
+          />
+        </View>
+
+        {/* Button */}
         <Button
           title="Continue"
           onPress={handleSendCode}
@@ -125,7 +134,24 @@ export default function LoginScreen() {
           size="lg"
           testID="login-continue-btn"
         />
-      </View>
+
+        {/* Divider */}
+        <View style={styles.divider}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>or</Text>
+          <View style={styles.dividerLine} />
+        </View>
+
+        {/* Social login */}
+        <Button
+          title="Continue with Google"
+          onPress={() => {}}
+          variant="secondary"
+          fullWidth
+          size="lg"
+          icon={<Icon name="google" size={20} color={colors.text} />}
+        />
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
@@ -133,56 +159,56 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.background,
+  },
+  scrollView: {
+    flex: 1,
   },
   content: {
-    flex: 1,
-    paddingHorizontal: spacing.lg,
+    flexGrow: 1,
+    paddingHorizontal: spacing.lg + 4,
   },
   backButton: {
-    flexDirection: 'row',
+    width: 44,
+    height: 44,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.surface,
     alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: spacing.xl,
-    minHeight: 44,
   },
-  backText: {
-    fontSize: typography.sizes.md,
+  header: {
+    marginBottom: spacing.xl + spacing.md,
   },
   title: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.xxl,
-    fontWeight: '700',
-    marginBottom: spacing.xs,
+    color: colors.text,
+    marginBottom: spacing.sm,
   },
   subtitle: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.md,
-    marginBottom: spacing.xl,
+    color: colors.textMuted,
     lineHeight: 24,
   },
   form: {
     marginBottom: spacing.lg,
   },
-  inputGroup: {
-    marginBottom: spacing.md,
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: spacing.xl,
   },
-  label: {
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: colors.divider,
+  },
+  dividerText: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
-    fontWeight: '600',
-    marginBottom: spacing.xs,
-  },
-  input: {
-    borderWidth: 2,
-    borderRadius: borderRadius.lg,
+    color: colors.textLight,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    fontSize: typography.sizes.md,
-    minHeight: 48,
-  },
-  errorText: {
-    fontSize: typography.sizes.sm,
-    marginTop: spacing.xs,
-  },
-  infoText: {
-    fontSize: typography.sizes.sm,
-    textAlign: 'center',
-    marginTop: spacing.md,
   },
 });

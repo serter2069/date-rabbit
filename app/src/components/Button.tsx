@@ -1,19 +1,20 @@
 import React from 'react';
-import { Text, StyleSheet, ActivityIndicator, ViewStyle, TextStyle, Pressable, Platform } from 'react-native';
+import { Text, StyleSheet, ActivityIndicator, ViewStyle, TextStyle, Pressable, Platform, TouchableOpacity, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
-import { colors, borderRadius, spacing, typography, touchTargets } from '../constants/theme';
+import { colors, borderRadius, spacing, typography, touchTargets, shadows } from '../constants/theme';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 interface ButtonProps {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'pink' | 'outline' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
   disabled?: boolean;
   loading?: boolean;
@@ -21,6 +22,7 @@ interface ButtonProps {
   style?: ViewStyle;
   textStyle?: TextStyle;
   icon?: React.ReactNode;
+  label?: string; // Small label above title
   testID?: string;
   haptic?: boolean;
 }
@@ -36,6 +38,7 @@ export function Button({
   style,
   textStyle,
   icon,
+  label,
   testID,
   haptic = true,
 }: ButtonProps) {
@@ -46,7 +49,7 @@ export function Button({
   }));
 
   const handlePressIn = () => {
-    scale.value = withSpring(0.96, { damping: 15, stiffness: 300 });
+    scale.value = withSpring(0.97, { damping: 15, stiffness: 300 });
   };
 
   const handlePressOut = () => {
@@ -60,14 +63,31 @@ export function Button({
     onPress();
   };
 
-  const buttonStyles = [
-    styles.base,
-    styles[variant],
-    styles[`size_${size}` as keyof typeof styles],
-    fullWidth && styles.fullWidth,
-    disabled && styles.disabled,
-    style,
-  ];
+  const getButtonStyles = (): ViewStyle[] => {
+    const baseStyles: ViewStyle[] = [
+      styles.base,
+      styles[`size_${size}` as keyof typeof styles] as ViewStyle,
+      fullWidth && styles.fullWidth,
+      disabled && styles.disabled,
+    ].filter(Boolean) as ViewStyle[];
+
+    // Variant-specific styles (except for gradient variants)
+    if (variant === 'secondary') {
+      baseStyles.push(styles.secondary);
+    } else if (variant === 'outline') {
+      baseStyles.push(styles.outline);
+    } else if (variant === 'ghost') {
+      baseStyles.push(styles.ghost);
+    }
+
+    // Add shadow for primary/pink buttons
+    if ((variant === 'primary' || variant === 'pink') && !disabled) {
+      baseStyles.push(variant === 'pink' ? shadows.buttonPink : shadows.button);
+    }
+
+    if (style) baseStyles.push(style);
+    return baseStyles;
+  };
 
   const textStyles = [
     styles.text,
@@ -77,23 +97,115 @@ export function Button({
     textStyle,
   ];
 
+  const labelStyles = [
+    styles.label,
+    variant === 'primary' && styles.labelLight,
+    variant === 'pink' && styles.labelLight,
+    variant === 'secondary' && styles.labelDark,
+  ];
+
+  const renderContent = () => (
+    <>
+      {loading ? (
+        <ActivityIndicator
+          color={
+            variant === 'outline' || variant === 'ghost' || variant === 'secondary'
+              ? colors.text
+              : colors.white
+          }
+        />
+      ) : (
+        <View style={styles.contentContainer}>
+          {label && <Text style={labelStyles}>{label}</Text>}
+          <View style={styles.titleRow}>
+            {icon}
+            <Text style={textStyles}>{title}</Text>
+          </View>
+        </View>
+      )}
+    </>
+  );
+
+  // Gradient button wrapper for primary and pink variants
+  const renderGradientButton = (gradientColors: readonly [string, string, ...string[]]) => {
+    if (Platform.OS === 'web') {
+      return (
+        <TouchableOpacity
+          testID={testID}
+          onPress={handlePress}
+          disabled={disabled || loading}
+          activeOpacity={0.85}
+          style={[styles.gradientWrapper, fullWidth && styles.fullWidth]}
+        >
+          <LinearGradient
+            colors={gradientColors}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[getButtonStyles(), styles.gradient]}
+          >
+            {renderContent()}
+          </LinearGradient>
+        </TouchableOpacity>
+      );
+    }
+
+    return (
+      <AnimatedPressable
+        testID={testID}
+        onPress={handlePress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        disabled={disabled || loading}
+        style={[styles.gradientWrapper, fullWidth && styles.fullWidth, animatedStyle]}
+      >
+        <LinearGradient
+          colors={gradientColors}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[getButtonStyles(), styles.gradient]}
+        >
+          {renderContent()}
+        </LinearGradient>
+      </AnimatedPressable>
+    );
+  };
+
+  // Primary button with dark gradient
+  if (variant === 'primary') {
+    return renderGradientButton(colors.gradient.dark as readonly [string, string, ...string[]]);
+  }
+
+  // Pink button with pink gradient
+  if (variant === 'pink') {
+    return renderGradientButton(colors.gradient.primary as readonly [string, string, ...string[]]);
+  }
+
+  // On web, use plain TouchableOpacity
+  if (Platform.OS === 'web') {
+    return (
+      <TouchableOpacity
+        testID={testID}
+        style={getButtonStyles()}
+        onPress={handlePress}
+        disabled={disabled || loading}
+        activeOpacity={0.8}
+      >
+        {renderContent()}
+      </TouchableOpacity>
+    );
+  }
+
+  // On native, use animated pressable with haptics
   return (
     <AnimatedPressable
       testID={testID}
-      style={[buttonStyles, animatedStyle]}
+      style={[getButtonStyles(), animatedStyle]}
       onPress={handlePress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       disabled={disabled || loading}
     >
-      {loading ? (
-        <ActivityIndicator color={variant === 'outline' ? colors.primary : colors.white} />
-      ) : (
-        <>
-          {icon}
-          <Text style={textStyles}>{title}</Text>
-        </>
-      )}
+      {renderContent()}
     </AnimatedPressable>
   );
 }
@@ -105,38 +217,62 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: borderRadius.lg,
     gap: spacing.sm,
-    minHeight: touchTargets.minimum, // Minimum 44pt touch target
+    minHeight: touchTargets.minimum,
   },
 
-  primary: {
-    backgroundColor: colors.primary,
+  gradientWrapper: {
+    borderRadius: borderRadius.lg,
+    overflow: 'hidden',
   },
+
+  gradient: {
+    overflow: 'hidden',
+  },
+
+  contentContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+
+  // Variant styles
   secondary: {
-    backgroundColor: colors.secondary,
+    backgroundColor: colors.white,
+    borderWidth: 1.5,
+    borderColor: colors.border,
   },
   outline: {
     backgroundColor: 'transparent',
-    borderWidth: 2,
+    borderWidth: 1.5,
     borderColor: colors.primary,
   },
   ghost: {
     backgroundColor: 'transparent',
   },
 
+  // Size styles
   size_sm: {
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm + 2,
+    paddingHorizontal: spacing.md + 4,
     minHeight: touchTargets.minimum,
+    borderRadius: borderRadius.md,
   },
   size_md: {
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.md + 2,
     paddingHorizontal: spacing.lg,
     minHeight: touchTargets.comfortable,
+    borderRadius: borderRadius.lg,
   },
   size_lg: {
-    paddingVertical: spacing.lg,
-    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.lg - 4,
+    paddingHorizontal: spacing.xl + 8,
     minHeight: touchTargets.large,
+    borderRadius: borderRadius.lg,
   },
 
   fullWidth: {
@@ -147,33 +283,53 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
 
+  // Text styles
   text: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontWeight: '600',
+    fontSize: typography.sizes.md,
   },
   text_primary: {
     color: colors.white,
   },
-  text_secondary: {
+  text_pink: {
     color: colors.white,
+  },
+  text_secondary: {
+    color: colors.text,
   },
   text_outline: {
     color: colors.primary,
   },
   text_ghost: {
-    color: colors.primary,
+    color: colors.textMuted,
   },
 
   textSize_sm: {
-    fontSize: 14,
+    fontSize: typography.sizes.sm,
   },
   textSize_md: {
-    fontSize: 16,
+    fontSize: typography.sizes.md,
   },
   textSize_lg: {
-    fontSize: 18,
+    fontSize: typography.sizes.lg,
   },
 
   textDisabled: {
-    color: colors.textSecondary,
+    color: colors.textLight,
+  },
+
+  // Label styles (small text above title)
+  label: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.xs,
+    fontWeight: '400',
+    marginBottom: 2,
+  },
+  labelLight: {
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
+  labelDark: {
+    color: colors.textLight,
   },
 });

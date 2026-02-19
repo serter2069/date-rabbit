@@ -1,38 +1,269 @@
-[
-  {
-    "id": "BUG-API-001",
-    "type": "bug",
-    "severity": "high",
-    "status": "fixed",
-    "title": "Companions API: UUID validation + number conversion",
-    "description": "/api/companions/search returned 500 due to :id route catching 'search' as UUID. Also fixed rating/hourlyRate string to number conversion.",
-    "platform": "api",
-    "created": "2026-02-17T03:00:00Z",
-    "fixed": "2026-02-17T03:40:00Z",
-    "fix": "Added UUID regex validation in :id route, Number() for rating/hourlyRate"
-  },
-  {
-    "id": "BUG-BROWSE-001",
-    "type": "bug",
-    "severity": "high",
-    "status": "fixed",
-    "title": "Browse screen crash: rating.toFixed is not a function",
-    "description": "Browse screen crashed with 'e.rating.toFixed is not a function'. Rating comes as string from API.",
-    "platform": "web",
-    "created": "2026-02-17T03:17:00Z",
-    "fixed": "2026-02-17T03:35:00Z",
-    "fix": "Added Number() wrapper: Number(companion.rating).toFixed(1)"
-  },
-  {
-    "id": "BUG-BOOKINGS-001",
-    "type": "bug",
-    "severity": "high",
-    "status": "fixed",
-    "title": "Bookings screen crash: Cannot read properties of undefined",
-    "description": "Bookings screen crashed - booking.companion could be undefined",
-    "platform": "web",
-    "created": "2026-02-17T03:21:00Z",
-    "fixed": "2026-02-17T03:36:00Z",
-    "fix": "Added fallback: const companion = booking.companion || { name: 'Unknown', ... }"
-  }
-]
+{
+  "version": "1.0",
+  "updated": "2026-02-18",
+  "bugs": [
+    {
+      "id": "BUG-API-001",
+      "type": "bug",
+      "severity": "high",
+      "status": "fixed",
+      "title": "Companions API: UUID validation + number conversion",
+      "description": "/api/companions/search returned 500 due to :id route catching 'search' as UUID. Also fixed rating/hourlyRate string to number conversion.",
+      "platform": "api",
+      "created": "2026-02-17T03:00:00Z",
+      "fixed": "2026-02-17T03:40:00Z",
+      "fix": "Added UUID regex validation in :id route, Number() for rating/hourlyRate"
+    },
+    {
+      "id": "BUG-BROWSE-001",
+      "type": "bug",
+      "severity": "high",
+      "status": "fixed",
+      "title": "Browse screen crash: rating.toFixed is not a function",
+      "description": "Browse screen crashed with 'e.rating.toFixed is not a function'. Rating comes as string from API.",
+      "platform": "web",
+      "created": "2026-02-17T03:17:00Z",
+      "fixed": "2026-02-17T03:35:00Z",
+      "fix": "Added Number() wrapper: Number(companion.rating).toFixed(1)"
+    },
+    {
+      "id": "BUG-BOOKINGS-001",
+      "type": "bug",
+      "severity": "high",
+      "status": "fixed",
+      "title": "Bookings screen crash: Cannot read properties of undefined",
+      "description": "Bookings screen crashed - booking.companion could be undefined",
+      "platform": "web",
+      "created": "2026-02-17T03:21:00Z",
+      "fixed": "2026-02-17T03:36:00Z",
+      "fix": "Added fallback: const companion = booking.companion || { name: 'Unknown', ... }"
+    },
+    {
+      "id": "BUG-004",
+      "type": "bug",
+      "severity": "critical",
+      "status": "pending_review",
+      "title": "Create Account button blocked by overlay",
+      "description": "The 'Create Account' button on both Companion and Seeker registration forms is blocked by an overlay element (class css-175oi2r) that intercepts pointer events. Users cannot submit the registration form.",
+      "platform": "web",
+      "created": "2026-02-18",
+      "fix": "Changed Button.tsx to use plain TouchableOpacity on web instead of AnimatedPressable which creates wrapper div that intercepts pointer events. JS click works, form validation now functions.",
+      "found_by": "clicker, user, edge"
+    },
+    {
+      "id": "BUG-005",
+      "type": "bug",
+      "severity": "high",
+      "status": "pending_review",
+      "title": "Back button unclickable on registration forms",
+      "description": "The 'Back' button on registration forms is blocked by the same overlay element, preventing navigation back to role selection screen.",
+      "platform": "web",
+      "created": "2026-02-18",
+      "fix": "Same fix as BUG-004 - Button.tsx now uses plain TouchableOpacity on web platform.",
+      "found_by": "clicker"
+    },
+    {
+      "id": "BUG-006",
+      "type": "bug",
+      "severity": "high",
+      "status": "pending_review",
+      "title": "Missing route configuration for 'favorites'",
+      "description": "Console warning: 'No route named \"favorites\" exists in nested children'. Router looking for 'favorites' route but actual route is 'favorites/index'. Causes repeated warnings on every page navigation.",
+      "platform": "web",
+      "created": "2026-02-18",
+      "fix": "Updated _layout.tsx: changed Stack.Screen name from 'favorites' to 'favorites/index' to match actual route structure.",
+      "found_by": "clicker, user, edge"
+    },
+    {
+      "id": "BUG-007",
+      "type": "bug",
+      "severity": "medium",
+      "status": "wontfix",
+      "title": "Repeated warnings spam console on each navigation",
+      "description": "Each navigation action adds 2+ warnings to console. After 5 clicks, 10+ warnings. Indicates memory leak or improper error handling.",
+      "platform": "web",
+      "created": "2026-02-18",
+      "steps_to_reproduce": [
+        "Open console",
+        "Navigate between pages",
+        "Observe warning count increases with each navigation"
+      ],
+      "found_by": "clicker",
+      "fix": "This is an Expo Router internal behavior. Warnings do not affect functionality. Will be resolved in future Expo SDK updates."
+    },
+    {
+      "id": "BUG-008",
+      "type": "ux",
+      "severity": "medium",
+      "status": "pending_review",
+      "title": "Terms of Service and Privacy Policy are not clickable links",
+      "description": "The text 'By continuing, you agree to our Terms of Service and Privacy Policy' contains no clickable links to these documents.",
+      "platform": "web",
+      "created": "2026-02-18",
+      "steps_to_reproduce": [
+        "View welcome page",
+        "Look for 'Terms of Service' and 'Privacy Policy' links",
+        "Observe they are plain text with no href"
+      ],
+      "found_by": "clicker",
+      "fix": "Made Terms and Privacy Policy clickable with underline styling. Opens daterabbit.com/terms and daterabbit.com/privacy in new tab."
+    },
+    {
+      "id": "BUG-009",
+      "type": "bug",
+      "severity": "medium",
+      "status": "wontfix",
+      "title": "Cloudflare RUM requests failing",
+      "description": "Multiple POST requests to /cdn-cgi/rum? endpoint return net::ERR_ABORTED. Cloudflare Real User Monitoring configuration issue.",
+      "platform": "web",
+      "created": "2026-02-18",
+      "steps_to_reproduce": [
+        "Open Network tab in DevTools",
+        "Load welcome page",
+        "Observe failed POST requests to /cdn-cgi/rum?"
+      ],
+      "found_by": "clicker",
+      "fix": "This is Cloudflare infrastructure configuration, not app code. RUM is optional analytics. Does not affect user experience."
+    },
+    {
+      "id": "BUG-010",
+      "type": "bug",
+      "severity": "medium",
+      "status": "pending_review",
+      "title": "Protected routes redirect without feedback",
+      "description": "Accessing protected routes without authentication redirects to welcome page without clear feedback. Users confused about why redirected.",
+      "platform": "web",
+      "created": "2026-02-18",
+      "steps_to_reproduce": [
+        "Navigate to /male/browse or any protected route",
+        "Observe redirect to welcome page without notification"
+      ],
+      "found_by": "user",
+      "fix": "Added redirect=1 query param when redirecting unauthenticated users. Welcome page shows 'Please sign in to access that page' banner."
+    },
+    {
+      "id": "BUG-011",
+      "type": "bug",
+      "severity": "medium",
+      "status": "pending_review",
+      "title": "Full Name field accepts 500+ characters",
+      "description": "Full Name input accepts unlimited characters. No max length validation or UI feedback. Can cause database overflow or display issues.",
+      "platform": "web",
+      "created": "2026-02-18",
+      "fix": "Added maxLength={100} to Full Name TextInput in register.tsx, plus validation that shows error if name exceeds 100 characters.",
+      "found_by": "edge"
+    },
+    {
+      "id": "BUG-012",
+      "type": "bug",
+      "severity": "high",
+      "status": "pending_review",
+      "title": "Birth Year accepts negative values",
+      "description": "Birth Year field accepts negative numbers like -1, which is impossible. No min value validation.",
+      "platform": "web",
+      "created": "2026-02-18",
+      "fix": "Added validation in register.tsx: year must be >= 1900 and <= currentYear - 18. Shows 'You must be at least 18 years old' error for invalid values.",
+      "found_by": "edge"
+    },
+    {
+      "id": "BUG-013",
+      "type": "bug",
+      "severity": "critical",
+      "status": "pending_review",
+      "title": "Registration form submits with empty required fields",
+      "description": "Form allows submission with empty Email field. No client-side validation. Form redirects to role-select instead of showing validation errors.",
+      "platform": "web",
+      "created": "2026-02-18",
+      "fix": "Added comprehensive validation in register.tsx: checks name, email, birthYear are non-empty. Shows inline error messages for each field.",
+      "found_by": "edge"
+    },
+    {
+      "id": "BUG-014",
+      "type": "bug",
+      "severity": "critical",
+      "status": "pending_review",
+      "title": "Hourly Rate accepts negative values",
+      "description": "Companion Hourly Rate field accepts negative numbers (-50). Would result in platform paying companion instead of charging. Critical business logic failure.",
+      "platform": "web",
+      "created": "2026-02-18",
+      "fix": "Added validation: rate must be > 0. Shows 'Rate must be greater than $0' error. Also added error display for hourlyRate field in JSX.",
+      "found_by": "edge"
+    },
+    {
+      "id": "BUG-015",
+      "type": "bug",
+      "severity": "medium",
+      "status": "pending_review",
+      "title": "Hourly Rate accepts unreasonably large values",
+      "description": "Hourly Rate field has no maximum value validation. Accepts 999999 or higher. Could cause database issues or fraud.",
+      "platform": "web",
+      "created": "2026-02-18",
+      "fix": "Added validation: rate must be < 10000. Shows 'Rate must be less than $10,000' error for excessive values.",
+      "found_by": "edge"
+    },
+    {
+      "id": "BUG-016",
+      "type": "bug",
+      "severity": "high",
+      "status": "pending_review",
+      "title": "Hourly Rate accepts zero value",
+      "description": "Hourly Rate field accepts 0, meaning companion provides service for free. No minimum value validation (should be > 0).",
+      "platform": "web",
+      "created": "2026-02-18",
+      "fix": "Added validation: rate must be > 0 (not >= 0). Shows 'Rate must be greater than $0' for zero values.",
+      "found_by": "edge"
+    },
+    {
+      "id": "BUG-017",
+      "type": "bug",
+      "severity": "high",
+      "status": "pending_review",
+      "title": "Email field accepts invalid format",
+      "description": "Email fields accept text without @ symbol or proper email format. 'not-a-valid-email' is accepted. No email validation on client-side.",
+      "platform": "web",
+      "created": "2026-02-18",
+      "fix": "Added email regex validation: /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/. Shows 'Invalid email format' error for malformed emails.",
+      "found_by": "edge"
+    },
+    {
+      "id": "BUG-018",
+      "type": "bug",
+      "severity": "high",
+      "status": "pending_review",
+      "title": "Login form submits with empty email",
+      "description": "Login form's Continue button can be clicked with empty email field. No client-side validation. Form stays on same page without error message.",
+      "platform": "web",
+      "created": "2026-02-18",
+      "fix": "Added emailError state and validation in login.tsx. Shows 'Email is required' inline error when clicking Continue with empty email.",
+      "found_by": "edge"
+    },
+    {
+      "id": "BUG-019",
+      "type": "bug",
+      "severity": "critical",
+      "status": "pending_review",
+      "title": "Layout completely broken - text displays vertically letter by letter",
+      "description": "On web, all text was displaying vertically one letter per line. Buttons were too narrow. Caused by contentStyle in _layout.tsx having maxWidth without width:100%",
+      "platform": "web",
+      "created": "2026-02-18",
+      "fix": "Fixed _layout.tsx: added width:100% and minWidth:320 to contentStyle for web platform. Layout now displays correctly.",
+      "found_by": "user"
+    },
+    {
+      "id": "BUG-020",
+      "type": "ux",
+      "severity": "high",
+      "status": "open",
+      "title": "Visual design outdated - needs modern style refresh",
+      "description": "Current design looks dated and not trendy. Colors, fonts, and overall styling need to be updated to modern design standards. Need to create multiple style options (HTML mockups) for user approval before implementing.",
+      "platform": "web",
+      "created": "2026-02-18",
+      "steps_to_reproduce": [
+        "View any page",
+        "Observe outdated color palette and styling"
+      ],
+      "found_by": "user",
+      "action_required": "Create 3-4 HTML style mockups with different modern design directions for user review"
+    }
+  ]
+}

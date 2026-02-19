@@ -121,8 +121,8 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
   },
   title: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.xl,
-    fontWeight: '700',
   },
   scrollView: {
     flex: 1,
@@ -148,10 +148,11 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   conversationName: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.md,
-    fontWeight: '600',
   },
   conversationTime: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.xs,
   },
   conversationFooter: {
@@ -160,6 +161,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   lastMessage: {
+    fontFamily: typography.fonts.body,
     flex: 1,
     fontSize: typography.sizes.sm,
     marginRight: spacing.sm,
@@ -173,7 +175,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
   },
   unreadCount: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.xs,
-    fontWeight: '600',
   },
 });
