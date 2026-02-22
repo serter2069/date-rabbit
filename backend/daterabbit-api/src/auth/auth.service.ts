@@ -19,6 +19,10 @@ export class AuthService {
   }
 
   generateOtp(): string {
+    // DEV режим: фиксированный код для быстрого тестирования
+    if (this.configService.get('DEV_AUTH') === 'true') {
+      return '00000000';
+    }
     return Math.floor(10000000 + Math.random() * 90000000).toString();
   }
 
@@ -38,6 +42,12 @@ export class AuthService {
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     await this.usersService.setOtp(user.id, otp, expiresAt);
+
+    // DEV режим: пропускаем отправку email
+    if (this.configService.get('DEV_AUTH') === 'true') {
+      console.log(`🔧 DEV MODE: OTP для ${email} → 00000000 (email не отправляется)`);
+      return { success: true, isNewUser };
+    }
 
     // Send email via Brevo API
     try {

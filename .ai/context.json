@@ -2,7 +2,14 @@
   "project": "DateRabbit",
   "type": "react-native-expo",
   "prod_url": "https://daterabbit.smartlaunchhub.com",
+  "local_url": "http://localhost:8081",
   "api_url": "https://daterabbit-api.smartlaunchhub.com/api",
+  "local_api_url": "http://localhost:3001/api",
+  "test_auth": {
+    "email": "test@daterabbit.com",
+    "otp_code": "00000000",
+    "note": "8-digit code. Работает с DEV_AUTH=true в backend/.env"
+  },
   "routes": [
     "/welcome",
     "/login",
