@@ -40,5 +40,9 @@
     "/booking/:id",
     "/chat/:id",
     "/reviews/:id"
-  ]
+  ],
+  "database": {
+    "local": "postgresql://localhost:5432/daterabbit_dev",
+    "staging": "postgresql://91.98.205.156:5432/daterabbit"
+  }
 }

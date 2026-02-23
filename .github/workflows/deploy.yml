@@ -1,0 +1,31 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main, development]
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate version.json
+        run: |
+          mkdir -p public
+          cat > public/version.json << VEOF
+          {
+            "version": "$(git rev-parse --short HEAD)",
+            "commit": "$(git rev-parse HEAD)",
+            "branch": "${{ github.ref_name }}",
+            "deployed": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          VEOF
+
+      - name: Deploy
+        run: |
+          rsync -av --delete --exclude 'node_modules' --exclude '.env' --exclude '.git' \
+            ./ /var/www/daterabbit/
+          cd /var/www/daterabbit && npm ci && npm run build
+          sudo pm2 restart daterabbit || sudo pm2 start npm --name daterabbit -- start
+          sudo chown -R www-data:www-data /var/www/daterabbit/
