@@ -10,22 +10,51 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Generate version.json
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build frontend (Expo web)
         run: |
-          mkdir -p public
-          cat > public/version.json << VEOF
+          cd app
+          npm ci
+          npx expo export --platform web
+          mkdir -p dist/version
+          cat > dist/version.json << VEOF
           {
             "version": "$(git rev-parse --short HEAD)",
             "commit": "$(git rev-parse HEAD)",
             "branch": "${{ github.ref_name }}",
-            "deployed": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            "deployed": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "message": "$(git log -1 --pretty=%s | head -c 100)"
           }
           VEOF
 
-      - name: Deploy
+      - name: Build backend (NestJS)
         run: |
-          rsync -av --delete --exclude 'node_modules' --exclude '.env' --exclude '.git' \
-            ./ /var/www/daterabbit/
-          cd /var/www/daterabbit && npm ci && npm run build
-          sudo pm2 restart daterabbit || sudo pm2 start npm --name daterabbit -- start
+          cd backend/daterabbit-api
+          npm ci
+          npm run build
+
+      - name: Deploy frontend
+        run: |
+          rsync -av --delete \
+            app/dist/ /var/www/daterabbit/web/
+
+      - name: Deploy backend
+        run: |
+          rsync -av --delete \
+            --exclude 'node_modules' \
+            --exclude '.env' \
+            --exclude 'dist' \
+            backend/daterabbit-api/ /var/www/daterabbit/api/
+          rsync -av backend/daterabbit-api/dist/ /var/www/daterabbit/api/dist/
+          cd /var/www/daterabbit/api
+          npm ci --production
+
+      - name: Restart backend
+        run: |
+          cd /var/www/daterabbit/api
+          sudo pm2 restart daterabbit || sudo pm2 start dist/main.js --name daterabbit
           sudo chown -R www-data:www-data /var/www/daterabbit/
