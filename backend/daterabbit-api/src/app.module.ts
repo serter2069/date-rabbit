@@ -6,6 +6,7 @@ import { UsersModule } from './users/users.module';
 import { CompanionsModule } from './companions/companions.module';
 import { BookingsModule } from './bookings/bookings.module';
 import { MessagesModule } from './messages/messages.module';
+import { VerificationModule } from './verification/verification.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { MessagesModule } from './messages/messages.module';
     CompanionsModule,
     BookingsModule,
     MessagesModule,
+    VerificationModule,
   ],
 })
 export class AppModule {}

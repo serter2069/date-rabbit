@@ -19,7 +19,9 @@ import {
 import { colors } from '../src/constants/theme';
 
 export default function RootLayout() {
-  const { isAuthenticated, hasSeenOnboarding } = useAuthStore();
+  const { isAuthenticated, hasSeenOnboarding, user } = useAuthStore();
+  const needsVerification = isAuthenticated && user?.verificationStatus !== 'approved';
+  const isSeeker = user?.role === 'seeker';
 
   // Load custom fonts
   const [fontsLoaded] = useFonts({
@@ -65,10 +67,18 @@ export default function RootLayout() {
           <Stack.Screen name="onboarding" />
         ) : !isAuthenticated ? (
           <Stack.Screen name="(auth)" />
+        ) : needsVerification ? (
+          isSeeker ? (
+            <Stack.Screen name="(seeker-verify)" />
+          ) : (
+            <Stack.Screen name="(comp-onboard)" />
+          )
         ) : (
           <Stack.Screen name="(tabs)" />
         )}
         <Stack.Screen name="index" />
+        <Stack.Screen name="(seeker-verify)" />
+        <Stack.Screen name="(comp-onboard)" />
         <Stack.Screen name="booking/[id]" />
         <Stack.Screen name="chat/[id]" />
         <Stack.Screen name="profile/[id]" />

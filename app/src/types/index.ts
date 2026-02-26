@@ -1,5 +1,31 @@
 export type UserRole = 'seeker' | 'companion';
 
+export type VerificationStatus = 'not_started' | 'in_progress' | 'pending_review' | 'approved' | 'rejected';
+export type VerificationType = 'seeker' | 'companion';
+
+export interface VerificationReference {
+  name: string;
+  phone: string;
+  relationship: string;
+}
+
+export interface Verification {
+  id: string;
+  userId: string;
+  type: VerificationType;
+  status: VerificationStatus;
+  ssnLast4?: string;
+  idPhotoUrl?: string;
+  selfieUrl?: string;
+  videoUrl?: string;
+  consentGiven: boolean;
+  consentDate?: string;
+  rejectionReason?: string;
+  references?: VerificationReference[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -13,6 +39,7 @@ export interface User {
   rating?: number;
   reviewCount?: number;
   isVerified?: boolean;
+  verificationStatus?: VerificationStatus;
   stripeOnboardingComplete?: boolean;
   expoPushToken?: string;
   notificationsEnabled?: boolean;
