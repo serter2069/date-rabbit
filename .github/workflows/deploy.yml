@@ -100,5 +100,6 @@ jobs:
       - name: Run seed script
         if: github.event.inputs.seed == 'yes'
         run: |
+          cp /var/www/daterabbit/api/.env backend/daterabbit-api/.env
           cd backend/daterabbit-api
           npx ts-node src/seed/seed.ts 2>&1
