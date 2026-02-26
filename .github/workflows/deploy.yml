@@ -39,17 +39,17 @@ jobs:
 
       - name: Deploy frontend
         run: |
-          rsync -av --delete \
+          rsync -av --delete --no-group --no-owner \
             app/dist/ /var/www/daterabbit/web/
 
       - name: Deploy backend
         run: |
-          rsync -av --delete \
+          rsync -av --delete --no-group --no-owner \
             --exclude 'node_modules' \
             --exclude '.env' \
             --exclude 'dist' \
             backend/daterabbit-api/ /var/www/daterabbit/api/
-          rsync -av backend/daterabbit-api/dist/ /var/www/daterabbit/api/dist/
+          rsync -av --no-group --no-owner backend/daterabbit-api/dist/ /var/www/daterabbit/api/dist/
           cd /var/www/daterabbit/api
           npm ci --production
 
