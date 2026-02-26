@@ -58,3 +58,21 @@ jobs:
           cd /var/www/daterabbit/api
           sudo pm2 restart daterabbit || sudo pm2 start dist/main.js --name daterabbit
           sudo chown -R www-data:www-data /var/www/daterabbit/
+
+      - name: Diagnostics
+        if: always()
+        run: |
+          echo "=== Frontend files ==="
+          ls -la /var/www/daterabbit/web/ 2>&1 || echo "web dir not found"
+          ls -la /var/www/daterabbit/web/index.html 2>&1 || echo "no index.html"
+          echo "=== version.json ==="
+          cat /var/www/daterabbit/web/version.json 2>&1 || echo "no version.json"
+          echo "=== Backend files ==="
+          ls -la /var/www/daterabbit/api/dist/ 2>&1 | head -10
+          echo "=== Backend .env exists? ==="
+          test -f /var/www/daterabbit/api/.env && echo ".env EXISTS" || echo ".env MISSING"
+          echo "=== PM2 logs (last 30 lines) ==="
+          sudo pm2 logs daterabbit --nostream --lines 30 2>&1 || echo "no pm2 logs"
+          echo "=== Nginx config ==="
+          cat /etc/nginx/sites-enabled/daterabbit* 2>&1 || echo "no daterabbit nginx config"
+          ls /etc/nginx/sites-enabled/ 2>&1
