@@ -26,17 +26,17 @@ export default function ChatScreen() {
   const [messageText, setMessageText] = useState('');
 
   const { user } = useAuthStore();
-  const { messages, sendMessage, markAsRead, getMessages, fetchMessages, chats } = useMessagesStore();
+  const { messages, sendMessage, getMessages, fetchMessages, chats } = useMessagesStore();
 
-  // Use booking ID as conversation/chat ID
-  const bookingId = id || '';
-  const chatMessages = getMessages(bookingId);
-  const chat = chats.find(c => c.bookingId === bookingId);
+  // id param is the otherUser's id
+  const otherUserId = id || '';
+  const chatMessages = getMessages(otherUserId);
+  const chat = chats.find(c => c.otherUser.id === otherUserId);
 
   useEffect(() => {
-    // Mark messages as read when opening chat
-    markAsRead(bookingId);
-  }, [bookingId]);
+    // Fetch messages — backend auto-marks as read on GET
+    fetchMessages(otherUserId);
+  }, [otherUserId]);
 
   useEffect(() => {
     // Scroll to bottom when messages change
@@ -50,7 +50,7 @@ export default function ChatScreen() {
 
     const text = messageText.trim();
     setMessageText('');
-    await sendMessage(bookingId, text);
+    await sendMessage(otherUserId, text);
   };
 
   const formatTime = (date: Date) => {
