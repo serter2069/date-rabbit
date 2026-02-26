@@ -222,6 +222,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.lg,
     fontWeight: '600',
   },
@@ -238,6 +239,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   label: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.sm,
     fontWeight: '600',
     marginBottom: spacing.sm,
@@ -269,6 +271,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
   },
   sectionTitle: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.md,
     fontWeight: '600',
     marginBottom: spacing.md,
@@ -285,6 +288,7 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
   },
   infoValue: {
+    fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.sm,
     fontWeight: '500',
   },

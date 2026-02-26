@@ -1,174 +1,93 @@
-import { useColorScheme } from 'react-native';
-
 // ============================================
-// DateRabbit Theme — Clean Airy Style
-// Based on brandbook: soft feminine palette
+// DateRabbit Theme — Neo-Brutalism
+// Based on SchemeCloud prototype (Space Grotesk)
+// Bold borders, offset shadows, vivid colors
 // ============================================
 
-// Light theme colors
-export const lightColors = {
-  // Primary brand colors — Blush Pink gradient
-  primary: '#F8B4C4',
-  primaryDark: '#E89AAE',
-  primaryLight: '#FFC8D4',
+// Neo-Brutalism color palette
+export const colors = {
+  // Primary — Bold Red-Pink
+  primary: '#FF2A5F',
+  primaryDark: '#E0224F',
+  primaryLight: '#FF5A85',
 
-  // Accent — Lavender for trust
-  accent: '#B8A9E8',
-  accentDark: '#9B8AD6',
-  accentLight: '#D4CCF4',
+  // Accent — Cyan
+  accent: '#4DF0FF',
+  accentDark: '#00D4E8',
+  accentLight: '#80F4FF',
 
-  // Secondary — Dusty Rose for highlights
-  secondary: '#C4748A',
-  secondaryDark: '#A85A70',
-  secondaryLight: '#D99AAC',
+  // Secondary — Yellow highlight
+  secondary: '#FFE600',
+  secondaryDark: '#E6CF00',
+  secondaryLight: '#FFF04D',
 
-  // Neutrals
-  background: '#FFFFFF',
-  backgroundWarm: '#FDF9FA',
-  surface: '#F5F0F2',
+  // Neutrals — Warm beige base
+  background: '#F4F0EA',
+  backgroundWarm: '#EDE8E0',
+  surface: '#FFFFFF',
   surfaceElevated: '#FFFFFF',
 
-  // Text hierarchy
-  text: '#2D2A32',           // Charcoal — primary text
-  textSecondary: '#4A4550',  // Dark Gray — secondary
-  textMuted: '#6B6570',      // Gray — muted
-  textLight: '#9B959F',      // Light Gray — placeholders
+  // Text hierarchy — Black-based
+  text: '#000000',
+  textSecondary: '#333333',
+  textMuted: '#666666',
+  textLight: '#999999',
   textInverse: '#FFFFFF',
 
-  // UI elements
-  border: '#E8E4EC',
-  borderLight: '#F0EBF0',
-  divider: '#F0EBF0',
+  // UI elements — Bold black borders
+  border: '#000000',
+  borderLight: '#E5E5E5',
+  divider: '#E5E5E5',
 
   // Semantic
   success: '#4CAF50',
-  successLight: '#E8F5E9',
+  successLight: '#D1FAE5',
   warning: '#F9A825',
-  warningLight: '#FFF8E1',
-  error: '#E57373',
-  errorLight: '#FFEBEE',
-  info: '#64B5F6',
+  warningLight: '#FEF3C7',
+  error: '#FF3B30',
+  errorLight: '#FFE4E4',
+  info: '#007AFF',
   infoLight: '#E3F2FD',
 
   // Common
   white: '#FFFFFF',
   black: '#000000',
 
-  // Shadows
-  shadow: 'rgba(45, 42, 50, 0.08)',
-  shadowStrong: 'rgba(45, 42, 50, 0.12)',
+  // Shadows — brutalist style uses solid black
+  shadow: '#000000',
+  shadowStrong: '#000000',
 
   // Gradients (for LinearGradient)
   gradient: {
-    primary: ['#F8B4C4', '#E89AAE'],          // Blush Pink
-    accent: ['#F8B4C4', '#B8A9E8'],            // Pink to Lavender
-    dark: ['#2D2A32', '#3D3A42'],              // Charcoal
-    softPink: ['#FFF0F3', '#FFE4EC'],          // Very soft pink
-    softPurple: ['#F0EEFF', '#E8E4F8'],        // Very soft purple
+    primary: ['#FF2A5F', '#E0224F'] as readonly [string, string],
+    accent: ['#4DF0FF', '#00D4E8'] as readonly [string, string],
+    dark: ['#1A1A1A', '#333333'] as readonly [string, string],
+    softPink: ['#FFF0F3', '#FFE4EC'] as readonly [string, string],
+    softPurple: ['#F0F0FF', '#E8E4F8'] as readonly [string, string],
   },
 
   // Booking status colors
   booking: {
-    pending: '#F9A825',
+    pending: '#FFE600',
     confirmed: '#4CAF50',
-    active: '#64B5F6',
-    completed: '#9B959F',
-    cancelled: '#E57373',
+    active: '#4DF0FF',
+    completed: '#999999',
+    cancelled: '#FF3B30',
   },
 
-  // Badge colors
+  // Badge colors — Neo-Brutalism bold badges
   badge: {
-    pink: { bg: '#FFF0F3', border: 'rgba(248, 180, 196, 0.3)', text: '#C4748A' },
-    purple: { bg: '#F0EEFF', border: 'rgba(184, 169, 232, 0.3)', text: '#8B7CC4' },
-    gray: { bg: '#F5F0F2', border: '#E8E4EC', text: '#6B6570' },
-    success: { bg: '#E8F5E9', border: '#C8E6C9', text: '#4CAF50' },
-    warning: { bg: '#FFF8E1', border: '#FFE082', text: '#F9A825' },
+    pink: { bg: '#FFF0F3', border: '#000000', text: '#FF2A5F' },
+    purple: { bg: '#F0F0FF', border: '#000000', text: '#635BFF' },
+    gray: { bg: '#F0F0F0', border: '#000000', text: '#666666' },
+    success: { bg: '#D1FAE5', border: '#000000', text: '#4CAF50' },
+    warning: { bg: '#FEF3C7', border: '#000000', text: '#F9A825' },
   },
 };
 
-// Dark theme colors
-export const darkColors = {
-  // Primary brand colors
-  primary: '#F8B4C4',
-  primaryDark: '#E89AAE',
-  primaryLight: '#FFC8D4',
-
-  // Accent
-  accent: '#C4B8F0',
-  accentDark: '#B8A9E8',
-  accentLight: '#DCD6F8',
-
-  // Secondary
-  secondary: '#D99AAC',
-  secondaryDark: '#C4748A',
-  secondaryLight: '#E8B8C6',
-
-  // Neutrals
-  background: '#1A1820',
-  backgroundWarm: '#1E1C24',
-  surface: '#252330',
-  surfaceElevated: '#302D3A',
-
-  // Text hierarchy
-  text: '#F5F2F8',
-  textSecondary: '#C8C4CE',
-  textMuted: '#9B959F',
-  textLight: '#6B6570',
-  textInverse: '#2D2A32',
-
-  // UI elements
-  border: '#3D3A45',
-  borderLight: '#302D38',
-  divider: '#3D3A45',
-
-  // Semantic
-  success: '#66BB6A',
-  successLight: '#1B3D1E',
-  warning: '#FFB74D',
-  warningLight: '#3D2E14',
-  error: '#EF9A9A',
-  errorLight: '#3D1A1A',
-  info: '#90CAF9',
-  infoLight: '#1A2A3D',
-
-  // Common
-  white: '#FFFFFF',
-  black: '#000000',
-
-  // Shadows
-  shadow: 'rgba(0, 0, 0, 0.3)',
-  shadowStrong: 'rgba(0, 0, 0, 0.5)',
-
-  // Gradients
-  gradient: {
-    primary: ['#F8B4C4', '#E89AAE'],
-    accent: ['#F8B4C4', '#C4B8F0'],
-    dark: ['#252330', '#302D3A'],
-    softPink: ['#2D2530', '#302830'],
-    softPurple: ['#282635', '#2D2A38'],
-  },
-
-  // Booking status colors
-  booking: {
-    pending: '#FFB74D',
-    confirmed: '#66BB6A',
-    active: '#90CAF9',
-    completed: '#9B959F',
-    cancelled: '#EF9A9A',
-  },
-
-  // Badge colors
-  badge: {
-    pink: { bg: '#302530', border: 'rgba(248, 180, 196, 0.2)', text: '#F8B4C4' },
-    purple: { bg: '#282638', border: 'rgba(184, 169, 232, 0.2)', text: '#C4B8F0' },
-    gray: { bg: '#302D38', border: '#3D3A45', text: '#9B959F' },
-    success: { bg: '#1B3D1E', border: '#2E5030', text: '#66BB6A' },
-    warning: { bg: '#3D2E14', border: '#5C4520', text: '#FFB74D' },
-  },
-};
-
-// Default to light colors for backward compatibility
-export const colors = lightColors;
+// Backward compatibility aliases
+export const lightColors = colors;
+export const darkColors = colors;
 
 // Spacing scale (4px base)
 export const spacing = {
@@ -181,28 +100,48 @@ export const spacing = {
   xxxl: 64,
 };
 
-// Border radius scale
+// Standard page padding
+export const PAGE_PADDING = 20;
+
+// Border radius scale — Neo-Brutalism (smaller, chunkier)
 export const borderRadius = {
   xs: 4,
   sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 20,
-  xxl: 24,
+  md: 8,
+  lg: 12,
+  xl: 16,
+  xxl: 16,
   full: 9999,
 };
 
+// Border widths — Neo-Brutalism uses thick borders
+export const borderWidth = {
+  thin: 2,
+  normal: 3,
+  thick: 4,
+};
+
+// Neo-Brutalism accent backgrounds
+export const brutalist = {
+  cyan: '#4DF0FF',
+  yellow: '#FFE600',
+  pink: '#FF2A5F',
+  black: '#000000',
+  beige: '#F4F0EA',
+};
+
 // Typography scale
-// Fonts: DM Sans (body/UI), Fraunces (headlines)
+// Font: Space Grotesk (everything — headings, body, buttons)
 export const typography = {
   // Font families
   fonts: {
-    heading: 'Fraunces_500Medium',
-    headingItalic: 'Fraunces_500Medium_Italic',
-    body: 'DMSans_400Regular',
-    bodyMedium: 'DMSans_500Medium',
-    bodySemiBold: 'DMSans_600SemiBold',
-    bodyBold: 'DMSans_700Bold',
+    heading: 'SpaceGrotesk_700Bold',
+    headingMedium: 'SpaceGrotesk_600SemiBold',
+    headingItalic: 'SpaceGrotesk_700Bold',
+    body: 'SpaceGrotesk_400Regular',
+    bodyMedium: 'SpaceGrotesk_500Medium',
+    bodySemiBold: 'SpaceGrotesk_600SemiBold',
+    bodyBold: 'SpaceGrotesk_700Bold',
   },
 
   // Size scale
@@ -213,72 +152,74 @@ export const typography = {
     lg: 18,
     xl: 24,
     xxl: 32,
-    display: 40,
+    display: 42,
   },
 
   // Pre-defined styles
   display: {
-    fontFamily: 'Fraunces_500Medium',
-    fontSize: 40,
-    fontWeight: '500' as const,
-    lineHeight: 45,
-    letterSpacing: -0.5,
+    fontFamily: 'SpaceGrotesk_700Bold',
+    fontSize: 42,
+    fontWeight: '700' as const,
+    lineHeight: 46,
+    letterSpacing: -1,
   },
   h1: {
-    fontFamily: 'Fraunces_500Medium',
+    fontFamily: 'SpaceGrotesk_700Bold',
     fontSize: 32,
-    fontWeight: '500' as const,
+    fontWeight: '700' as const,
     lineHeight: 38,
+    letterSpacing: -0.5,
   },
   h2: {
-    fontFamily: 'Fraunces_500Medium',
+    fontFamily: 'SpaceGrotesk_700Bold',
     fontSize: 24,
-    fontWeight: '500' as const,
+    fontWeight: '700' as const,
     lineHeight: 30,
   },
   h3: {
-    fontFamily: 'DMSans_600SemiBold',
+    fontFamily: 'SpaceGrotesk_600SemiBold',
     fontSize: 18,
     fontWeight: '600' as const,
     lineHeight: 24,
   },
   body: {
-    fontFamily: 'DMSans_400Regular',
+    fontFamily: 'SpaceGrotesk_400Regular',
     fontSize: 15,
     fontWeight: '400' as const,
     lineHeight: 24,
   },
   bodyMedium: {
-    fontFamily: 'DMSans_500Medium',
+    fontFamily: 'SpaceGrotesk_500Medium',
     fontSize: 15,
     fontWeight: '500' as const,
     lineHeight: 24,
   },
   bodySmall: {
-    fontFamily: 'DMSans_400Regular',
+    fontFamily: 'SpaceGrotesk_400Regular',
     fontSize: 14,
     fontWeight: '400' as const,
     lineHeight: 20,
   },
   caption: {
-    fontFamily: 'DMSans_500Medium',
+    fontFamily: 'SpaceGrotesk_500Medium',
     fontSize: 12,
     fontWeight: '500' as const,
     lineHeight: 16,
   },
   label: {
-    fontFamily: 'DMSans_600SemiBold',
-    fontSize: 11,
-    fontWeight: '600' as const,
+    fontFamily: 'SpaceGrotesk_700Bold',
+    fontSize: 12,
+    fontWeight: '700' as const,
     lineHeight: 14,
-    letterSpacing: 0.5,
+    letterSpacing: 1,
     textTransform: 'uppercase' as const,
   },
   button: {
-    fontFamily: 'DMSans_600SemiBold',
-    fontSize: 15,
-    fontWeight: '600' as const,
+    fontFamily: 'SpaceGrotesk_700Bold',
+    fontSize: 16,
+    fontWeight: '700' as const,
     lineHeight: 20,
+    textTransform: 'uppercase' as const,
   },
 };
 
@@ -289,49 +230,49 @@ export const touchTargets = {
   large: 56,
 };
 
-// Shadow presets
+// Shadow presets — Neo-Brutalism offset solid shadows
 export const shadows = {
   sm: {
-    shadowColor: '#2D2A32',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
     elevation: 2,
   },
   md: {
-    shadowColor: '#2D2A32',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 24,
+    shadowColor: '#000000',
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
     elevation: 4,
   },
   lg: {
-    shadowColor: '#2D2A32',
-    shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.12,
-    shadowRadius: 48,
+    shadowColor: '#000000',
+    shadowOffset: { width: 6, height: 6 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
     elevation: 8,
   },
   xl: {
-    shadowColor: '#2D2A32',
-    shadowOffset: { width: 0, height: 25 },
-    shadowOpacity: 0.16,
-    shadowRadius: 80,
+    shadowColor: '#000000',
+    shadowOffset: { width: 8, height: 8 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
     elevation: 16,
   },
-  // Button shadows
+  // Button shadows — bold offset
   button: {
-    shadowColor: '#2D2A32',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
-    shadowRadius: 24,
+    shadowColor: '#000000',
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
     elevation: 4,
   },
   buttonPink: {
-    shadowColor: '#F8B4C4',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 24,
+    shadowColor: '#000000',
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
     elevation: 4,
   },
 };
@@ -343,14 +284,11 @@ export const animation = {
   slow: 400,
 };
 
-// Theme hook for dark mode support
+// Theme hook — single Neo-Brutalism theme
 export function useTheme() {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-
   return {
-    colors: isDark ? darkColors : lightColors,
-    isDark,
+    colors,
+    isDark: false,
     spacing,
     borderRadius,
     typography,
@@ -361,5 +299,5 @@ export function useTheme() {
 }
 
 // Type exports
-export type ColorKey = keyof typeof lightColors;
-export type ThemeColors = typeof lightColors;
+export type ColorKey = keyof typeof colors;
+export type ThemeColors = typeof colors;

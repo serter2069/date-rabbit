@@ -11,7 +11,7 @@ import { Button } from '../../src/components/Button';
 import { Icon } from '../../src/components/Icon';
 import { ProgressBar } from '../../src/components/verification/ProgressBar';
 import { useVerificationStore } from '../../src/store/verificationStore';
-import { colors, spacing, typography, borderRadius } from '../../src/constants/theme';
+import { colors, spacing, typography, borderRadius, PAGE_PADDING } from '../../src/constants/theme';
 
 const STEPS = ['Intro', 'SSN', 'Photo ID', 'Selfie', 'Consent'];
 
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: spacing.lg + 4,
+    paddingHorizontal: PAGE_PADDING,
   },
   heroContainer: {
     alignItems: 'center',
@@ -130,7 +130,9 @@ const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: borderRadius.full,
-    backgroundColor: 'rgba(248, 180, 196, 0.15)',
+    backgroundColor: colors.secondary,
+    borderWidth: 3,
+    borderColor: colors.black,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -168,7 +170,9 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: borderRadius.md,
-    backgroundColor: 'rgba(248, 180, 196, 0.15)',
+    backgroundColor: colors.secondary,
+    borderWidth: 2,
+    borderColor: colors.black,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
@@ -193,7 +197,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.xs,
-    backgroundColor: 'rgba(184, 169, 232, 0.12)',
+    backgroundColor: colors.accent,
+    borderWidth: 2,
+    borderColor: colors.black,
     borderRadius: borderRadius.full,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
@@ -203,7 +209,7 @@ const styles = StyleSheet.create({
   timeBadgeText: {
     fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.sm,
-    color: colors.accent,
+    color: colors.black,
   },
   privacyNote: {
     fontFamily: typography.fonts.body,

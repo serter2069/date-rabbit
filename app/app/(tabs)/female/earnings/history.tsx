@@ -201,6 +201,7 @@ const styles = StyleSheet.create({
     padding: spacing.xs,
   },
   title: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.lg,
     fontWeight: '600',
   },
@@ -233,6 +234,7 @@ const styles = StyleSheet.create({
     marginLeft: spacing.md,
   },
   txName: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.md,
     fontWeight: '600',
   },
@@ -246,6 +248,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   txAmount: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.md,
     fontWeight: '600',
   },
@@ -262,6 +265,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xl * 2,
   },
   emptyTitle: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.lg,
     fontWeight: '600',
     marginTop: spacing.lg,

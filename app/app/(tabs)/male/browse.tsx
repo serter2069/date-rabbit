@@ -377,6 +377,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   filterBadgeText: {
+    fontFamily: typography.fonts.heading,
     fontSize: 10,
     fontWeight: '700',
   },

@@ -197,6 +197,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.lg,
     fontWeight: '600',
   },
@@ -226,6 +227,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   statusTitle: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.xl,
     fontWeight: '700',
     marginBottom: spacing.sm,
@@ -240,6 +242,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   infoTitle: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.lg,
     fontWeight: '600',
     marginBottom: spacing.sm,
@@ -253,6 +256,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   sectionTitle: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.md,
     fontWeight: '600',
     marginBottom: spacing.md,
@@ -291,6 +295,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
   },
   editProfileText: {
+    fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.md,
     fontWeight: '500',
   },

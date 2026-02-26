@@ -15,7 +15,7 @@ import Animated, {
   withTiming,
   interpolateColor,
 } from 'react-native-reanimated';
-import { colors, borderRadius, spacing, typography } from '../constants/theme';
+import { colors, borderRadius, spacing, typography, shadows, borderWidth } from '../constants/theme';
 
 const AnimatedView = Animated.createAnimatedComponent(View);
 
@@ -67,15 +67,11 @@ export function Input({
   const animatedBorderStyle = useAnimatedStyle(() => {
     const borderColor = error
       ? colors.error
-      : interpolateColor(
-          focusAnimation.value,
-          [0, 1],
-          [colors.border, colors.primary]
-        );
+      : colors.black;
 
     return {
       borderColor,
-      borderWidth: error || focusAnimation.value > 0 ? 1.5 : 1,
+      borderWidth: borderWidth.normal,
     };
   });
 
@@ -175,15 +171,16 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.background,
+    backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderWidth: borderWidth.normal,
+    borderColor: colors.black,
     overflow: 'hidden',
+    ...shadows.sm,
   },
   inputContainerFilled: {
     backgroundColor: colors.surface,
-    borderColor: colors.surface,
+    borderColor: colors.black,
   },
   inputContainerDisabled: {
     backgroundColor: colors.surface,

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, StyleProp, ViewStyle, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors, borderRadius, spacing, shadows } from '../constants/theme';
+import { colors, borderRadius, spacing, shadows, borderWidth } from '../constants/theme';
 
 type CardVariant = 'default' | 'elevated' | 'outlined' | 'gradient';
 type CardShadow = 'none' | 'sm' | 'md' | 'lg';
@@ -21,7 +21,7 @@ export function Card({
   style,
   padding = 'md',
   variant = 'default',
-  shadow = 'sm',
+  shadow = 'md',
   onPress,
   testID,
 }: CardProps) {
@@ -30,7 +30,7 @@ export function Card({
       case 'elevated':
         return colors.surfaceElevated;
       case 'outlined':
-        return colors.background;
+        return colors.surface;
       case 'gradient':
         return 'transparent';
       default:
@@ -86,15 +86,17 @@ export function Card({
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.sm,
+    borderWidth: borderWidth.normal,
+    borderColor: colors.black,
     overflow: 'hidden',
   },
   outlined: {
-    borderWidth: 1.5,
-    borderColor: colors.border,
+    borderWidth: borderWidth.normal,
+    borderColor: colors.black,
   },
   pressable: {
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.sm,
   },
   pressed: {
     opacity: 0.9,

@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import { Card } from '../../../../src/components/Card';
 import { Button } from '../../../../src/components/Button';
 import { Icon } from '../../../../src/components/Icon';
-import { useTheme, spacing, typography, borderRadius } from '../../../../src/constants/theme';
+import { useTheme, spacing, typography, borderRadius, colors } from '../../../../src/constants/theme';
 import { paymentsApi } from '../../../../src/services/api';
 
 interface Payout {
@@ -260,6 +260,7 @@ const styles = StyleSheet.create({
     padding: spacing.xs,
   },
   title: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.lg,
     fontWeight: '600',
   },
@@ -272,10 +273,12 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xl,
   },
   balanceLabel: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     opacity: 0.8,
   },
   balanceAmount: {
+    fontFamily: typography.fonts.heading,
     fontSize: 42,
     fontWeight: '700',
     marginTop: spacing.sm,
@@ -294,6 +297,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   sectionTitle: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.md,
     fontWeight: '600',
     marginBottom: spacing.md,
@@ -312,7 +316,7 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: '#ccc',
+    borderColor: colors.borderLight,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.md,
@@ -331,12 +335,14 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
   },
   currencySymbol: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.xl,
     fontWeight: '600',
     marginRight: spacing.sm,
   },
   amountInput: {
     flex: 1,
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.xl,
     fontWeight: '600',
     padding: spacing.md,
@@ -368,6 +374,7 @@ const styles = StyleSheet.create({
     marginLeft: spacing.md,
   },
   payoutAmount: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.md,
     fontWeight: '600',
   },
@@ -380,6 +387,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.sm,
   },
   statusText: {
+    fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.xs,
     fontWeight: '500',
     textTransform: 'capitalize',

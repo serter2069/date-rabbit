@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '../../src/components/Icon';
-import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
+import { useTheme, colors as themeColors, spacing, typography, borderRadius } from '../../src/constants/theme';
 
 export default function RoleSelectScreen() {
   const insets = useSafeAreaInsets();
@@ -34,12 +34,12 @@ export default function RoleSelectScreen() {
         </Text>
 
         <TouchableOpacity
-          style={[styles.roleCard, { backgroundColor: colors.white, borderColor: colors.accent }]}
+          style={[styles.roleCard, { backgroundColor: colors.surface, borderColor: colors.black }]}
           onPress={() => handleSelectRole('companion')}
           testID="role-select-companion-btn"
         >
-          <View style={[styles.iconContainer, { backgroundColor: colors.accent + '20' }]}>
-            <Icon name="user" size={32} color={colors.accent} />
+          <View style={[styles.iconContainer, { backgroundColor: colors.accent }]}>
+            <Icon name="user" size={32} color={colors.black} />
           </View>
           <View style={styles.roleInfo}>
             <Text style={[styles.roleTitle, { color: colors.text }]}>Date Companion</Text>
@@ -53,12 +53,12 @@ export default function RoleSelectScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.roleCard, { backgroundColor: colors.white, borderColor: colors.secondary }]}
+          style={[styles.roleCard, { backgroundColor: colors.surface, borderColor: colors.black }]}
           onPress={() => handleSelectRole('seeker')}
           testID="role-select-seeker-btn"
         >
-          <View style={[styles.iconContainer, { backgroundColor: colors.secondary + '20' }]}>
-            <Icon name="search" size={32} color={colors.secondary} />
+          <View style={[styles.iconContainer, { backgroundColor: colors.secondary }]}>
+            <Icon name="search" size={32} color={colors.black} />
           </View>
           <View style={styles.roleInfo}>
             <Text style={[styles.roleTitle, { color: colors.text }]}>Date Seeker</Text>
@@ -67,7 +67,7 @@ export default function RoleSelectScreen() {
             </Text>
           </View>
           <View style={[styles.badge, { backgroundColor: colors.secondary }]}>
-            <Text style={[styles.badgeText, { color: colors.white }]}>Book dates</Text>
+            <Text style={[styles.badgeText, { color: colors.black }]}>Book dates</Text>
           </View>
         </TouchableOpacity>
       </View>
@@ -109,18 +109,20 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.xl,
     padding: spacing.lg,
     marginBottom: spacing.md,
-    borderWidth: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 5,
+    borderWidth: 3,
+    shadowColor: '#000000',
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4,
     minHeight: 140,
   },
   iconContainer: {
     width: 56,
     height: 56,
-    borderRadius: 28,
+    borderRadius: borderRadius.md,
+    borderWidth: 2,
+    borderColor: themeColors.black,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.md,

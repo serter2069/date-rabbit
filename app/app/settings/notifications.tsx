@@ -182,6 +182,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.lg,
     fontWeight: '600',
   },
@@ -205,6 +206,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   permissionTitle: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.md,
     fontWeight: '600',
     marginBottom: spacing.xs,
@@ -220,6 +222,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   enableButtonText: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.md,
     fontWeight: '600',
   },
@@ -227,6 +230,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   sectionTitle: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.md,
     fontWeight: '600',
     marginBottom: spacing.md,
@@ -247,6 +251,7 @@ const styles = StyleSheet.create({
     marginRight: spacing.md,
   },
   settingTitle: {
+    fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.md,
     fontWeight: '500',
     marginBottom: 2,

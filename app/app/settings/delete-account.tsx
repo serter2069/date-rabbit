@@ -176,6 +176,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.lg,
     fontWeight: '600',
   },
@@ -203,6 +204,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   warningTitle: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.lg,
     fontWeight: '700',
   },
@@ -229,6 +231,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   confirmationLabel: {
+    fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.md,
     fontWeight: '500',
     marginBottom: spacing.sm,
@@ -238,6 +241,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.lg,
     fontWeight: '600',
     textAlign: 'center',
@@ -248,6 +252,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.lg,
   },
   cancelText: {
+    fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.md,
     fontWeight: '500',
   },

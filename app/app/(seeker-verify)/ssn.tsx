@@ -15,7 +15,7 @@ import { Icon } from '../../src/components/Icon';
 import { ProgressBar } from '../../src/components/verification/ProgressBar';
 import { SSNInput } from '../../src/components/verification/SSNInput';
 import { useVerificationStore } from '../../src/store/verificationStore';
-import { colors, spacing, typography, borderRadius } from '../../src/constants/theme';
+import { colors, spacing, typography, borderRadius, PAGE_PADDING } from '../../src/constants/theme';
 
 const STEPS = ['Intro', 'SSN', 'Photo ID', 'Selfie', 'Consent'];
 
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: spacing.lg + 4,
+    paddingHorizontal: PAGE_PADDING,
   },
   header: {
     marginBottom: spacing.xl,
@@ -118,7 +118,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: spacing.sm,
-    backgroundColor: 'rgba(184, 169, 232, 0.1)',
+    backgroundColor: colors.accent,
+    borderWidth: 2,
+    borderColor: colors.black,
     borderRadius: borderRadius.lg,
     padding: spacing.md,
     marginBottom: spacing.xl,
@@ -127,7 +129,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
-    color: colors.textSecondary,
+    color: colors.black,
     lineHeight: 20,
   },
 });
