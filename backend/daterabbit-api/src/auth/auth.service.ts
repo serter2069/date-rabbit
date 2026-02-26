@@ -21,9 +21,9 @@ export class AuthService {
   generateOtp(): string {
     // DEV режим: фиксированный код для быстрого тестирования
     if (this.configService.get('DEV_AUTH') === 'true') {
-      return '00000000';
+      return '000000';
     }
-    return Math.floor(10000000 + Math.random() * 90000000).toString();
+    return Math.floor(100000 + Math.random() * 900000).toString();
   }
 
   async startAuth(email: string): Promise<{ success: boolean; isNewUser: boolean }> {
@@ -45,7 +45,7 @@ export class AuthService {
 
     // DEV режим: пропускаем отправку email
     if (this.configService.get('DEV_AUTH') === 'true') {
-      console.log(`🔧 DEV MODE: OTP для ${email} → 00000000 (email не отправляется)`);
+      console.log(`🔧 DEV MODE: OTP для ${email} → 000000 (email не отправляется)`);
       return { success: true, isNewUser };
     }
 
@@ -63,11 +63,11 @@ export class AuthService {
           to: [{ email }],
           subject: 'Your DateRabbit Verification Code',
           htmlContent: `
-            <div style="font-family: Arial, sans-serif; max-width: 400px; margin: 0 auto; padding: 20px;">
-              <h2 style="color: #FF6B6B;">DateRabbit</h2>
-              <p>Your verification code is:</p>
-              <h1 style="font-size: 32px; letter-spacing: 4px; color: #333;">${otp}</h1>
-              <p style="color: #666;">This code expires in 10 minutes.</p>
+            <div style="font-family: 'Space Grotesk', Arial, sans-serif; max-width: 400px; margin: 0 auto; padding: 24px; background: #F4F0EA; border: 3px solid #000; border-radius: 12px;">
+              <h2 style="color: #FF2A5F; font-weight: 700; text-transform: uppercase; margin-bottom: 16px;">DateRabbit</h2>
+              <p style="color: #000; font-size: 16px;">Your verification code is:</p>
+              <h1 style="font-size: 36px; letter-spacing: 8px; color: #000; font-weight: 700; background: #fff; border: 3px solid #000; border-radius: 8px; padding: 16px; text-align: center; margin: 16px 0;">${otp}</h1>
+              <p style="color: #666; font-size: 14px;">This code expires in 10 minutes.</p>
             </div>
           `,
         }),

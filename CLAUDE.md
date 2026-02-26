@@ -6,9 +6,9 @@
 
 | Сценарий | Email | OTP код |
 |----------|-------|---------|
-| Существующий/Новый | `test@daterabbit.com` | `00000000` (8 цифр) |
+| Существующий/Новый | `test@daterabbit.com` | `000000` (6 цифр) |
 
-При `DEV_AUTH=true` — OTP всегда `00000000`, email НЕ отправляется.
+При `DEV_AUTH=true` — OTP всегда `000000`, email НЕ отправляется.
 
 **URLs для тестирования (см. `.ai/context.json`):**
 - Production: `https://daterabbit.smartlaunchhub.com`

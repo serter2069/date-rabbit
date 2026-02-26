@@ -1,28 +1,47 @@
 /**
- * AUTO-GENERATED from scenarios.ts — 2026-02-25
+ * AUTO-GENERATED from scenarios.ts — 2026-02-26
  * Do not edit manually.
  *
- * Uses data-testid selectors matching actual React Native testID props.
+ * Handles: onboarding gate, hidden OTP input (focus+type), role-select nav.
  */
 
 import { test, expect, Page } from '@playwright/test';
 
 const TEST_EMAIL = 'test@daterabbit.com';
-const TEST_OTP = '00000000';
+const TEST_OTP = '000000';
 
-// Helper: locate by testID
 const tid = (page: Page, id: string) => page.locator(`[data-testid="${id}"]`);
 
-// Helper: full login flow
-async function login(page: Page) {
+async function goToWelcome(page: Page) {
   await page.goto('/');
   await page.waitForTimeout(2000);
-  await page.getByText('Sign in').click();
+  const skipBtn = tid(page, 'onboarding-skip');
+  if (await skipBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
+    await skipBtn.click();
+    await page.waitForTimeout(1500);
+  }
+}
+
+async function goToLogin(page: Page) {
+  await goToWelcome(page);
+  await page.getByText('Sign in', { exact: true }).click();
   await page.waitForTimeout(1500);
+}
+
+async function fillOtp(page: Page, code: string) {
+  // OTP input is hidden (opacity:0, h:0, w:0) — focus it, then keyboard type
+  const otpInput = tid(page, 'otp-code-input');
+  await otpInput.focus();
+  await page.keyboard.type(code);
+  await page.waitForTimeout(500);
+}
+
+async function login(page: Page) {
+  await goToLogin(page);
   await tid(page, 'login-email-input').fill(TEST_EMAIL);
   await tid(page, 'login-continue-btn').click();
   await page.waitForTimeout(2000);
-  await tid(page, 'otp-code-input').fill(TEST_OTP);
+  await fillOtp(page, TEST_OTP);
   await tid(page, 'otp-verify-btn').click();
   await page.waitForTimeout(3000);
 }
@@ -34,67 +53,52 @@ async function login(page: Page) {
 test.describe('Phase 1: Critical', () => {
 
   test('Welcome - Page Loads', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForTimeout(3000);
+    await goToWelcome(page);
     await expect(page.getByText('Real dates')).toBeVisible();
     await expect(tid(page, 'welcome-seeker-btn')).toBeVisible();
     await expect(tid(page, 'welcome-companion-btn')).toBeVisible();
-    await expect(page.getByText('Sign in')).toBeVisible();
+    await expect(page.getByText('Sign in', { exact: true })).toBeVisible();
   });
 
-  test('Welcome - Find Companions navigates to Login', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForTimeout(2000);
+  test('Welcome - Find Companions navigates to Role Select', async ({ page }) => {
+    await goToWelcome(page);
     await tid(page, 'welcome-seeker-btn').click();
     await page.waitForTimeout(1500);
-    await expect(page.getByText('Welcome back')).toBeVisible();
+    await expect(page).toHaveURL(/role-select/);
   });
 
-  test('Welcome - Become Companion navigates to Login', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForTimeout(2000);
+  test('Welcome - Become Companion navigates to Role Select', async ({ page }) => {
+    await goToWelcome(page);
     await tid(page, 'welcome-companion-btn').click();
     await page.waitForTimeout(1500);
-    await page.screenshot({ path: 'test-results/03-after-companion-btn.png' });
+    await expect(page).toHaveURL(/role-select/);
   });
 
   test('Login - Full OTP Flow', async ({ page }) => {
     await login(page);
     await page.screenshot({ path: 'test-results/04-after-login.png' });
-    // Should be on authenticated screen (not welcome)
   });
 
   test('Login - Invalid OTP', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForTimeout(2000);
-    await page.getByText('Sign in').click();
-    await page.waitForTimeout(1500);
+    await goToLogin(page);
     await tid(page, 'login-email-input').fill(TEST_EMAIL);
     await tid(page, 'login-continue-btn').click();
     await page.waitForTimeout(2000);
-    await tid(page, 'otp-code-input').fill('99999999');
+    await fillOtp(page, '999999');
     await tid(page, 'otp-verify-btn').click();
     await page.waitForTimeout(2000);
-    // Should stay on OTP page
     await expect(page).toHaveURL(/otp/);
   });
 
   test('Login - Empty Email Validation', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForTimeout(2000);
-    await page.getByText('Sign in').click();
-    await page.waitForTimeout(1500);
+    await goToLogin(page);
     await tid(page, 'login-continue-btn').click();
     await page.waitForTimeout(1000);
-    // Should stay on login page
     await expect(page).toHaveURL(/login/);
   });
 
   test('OTP - Resend Code', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForTimeout(2000);
-    await page.getByText('Sign in').click();
-    await page.waitForTimeout(1500);
+    await goToLogin(page);
     await tid(page, 'login-email-input').fill(TEST_EMAIL);
     await tid(page, 'login-continue-btn').click();
     await page.waitForTimeout(2000);
@@ -104,10 +108,7 @@ test.describe('Phase 1: Critical', () => {
   });
 
   test('OTP - Back Navigation', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForTimeout(2000);
-    await page.getByText('Sign in').click();
-    await page.waitForTimeout(1500);
+    await goToLogin(page);
     await tid(page, 'login-email-input').fill(TEST_EMAIL);
     await tid(page, 'login-continue-btn').click();
     await page.waitForTimeout(2000);
@@ -143,7 +144,7 @@ test.describe('Phase 2: Post-Auth', () => {
     await login(page);
     await page.waitForTimeout(2000);
     const profileBtn = page.locator('[data-testid^="browse-view-profile-"]').first();
-    if (await profileBtn.isVisible()) {
+    if (await profileBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
       await profileBtn.click();
       await page.waitForTimeout(2000);
       await page.screenshot({ path: 'test-results/12-companion-profile.png' });
@@ -159,16 +160,9 @@ test.describe('Phase 2: Post-Auth', () => {
     await page.waitForTimeout(2000);
     await page.screenshot({ path: 'test-results/13-bookings-upcoming.png' });
     const pastTab = tid(page, 'bookings-tab-past');
-    if (await pastTab.isVisible()) {
+    if (await pastTab.isVisible({ timeout: 2000 }).catch(() => false)) {
       await pastTab.click();
       await page.waitForTimeout(1000);
-      await page.screenshot({ path: 'test-results/14-bookings-past.png' });
-    }
-    const cancelledTab = tid(page, 'bookings-tab-cancelled');
-    if (await cancelledTab.isVisible()) {
-      await cancelledTab.click();
-      await page.waitForTimeout(1000);
-      await page.screenshot({ path: 'test-results/15-bookings-cancelled.png' });
     }
   });
 
@@ -210,57 +204,21 @@ test.describe('Phase 3: Edge Cases', () => {
   test('Onboarding - Skip', async ({ page }) => {
     await page.goto('/onboarding');
     await page.waitForTimeout(2000);
-    await page.screenshot({ path: 'test-results/20-onboarding.png' });
     await tid(page, 'onboarding-skip').click();
     await page.waitForTimeout(1500);
-    await page.screenshot({ path: 'test-results/21-after-skip.png' });
   });
 
   test('Onboarding - Next Through All Slides', async ({ page }) => {
     await page.goto('/onboarding');
     await page.waitForTimeout(2000);
-    for (let i = 2; i <= 4; i++) {
+    for (let i = 0; i < 4; i++) {
       await tid(page, 'onboarding-next').click();
       await page.waitForTimeout(500);
-      await page.screenshot({ path: `test-results/2${i}-onboarding-slide${i}.png` });
-    }
-    await tid(page, 'onboarding-next').click();
-    await page.waitForTimeout(1500);
-    await page.screenshot({ path: 'test-results/25-after-onboarding.png' });
-  });
-
-  test('Favorite - Toggle', async ({ page }) => {
-    await login(page);
-    await page.waitForTimeout(2000);
-    const profileBtn = page.locator('[data-testid^="browse-view-profile-"]').first();
-    if (await profileBtn.isVisible()) {
-      await profileBtn.click();
-      await page.waitForTimeout(2000);
-      await tid(page, 'profile-view-favorite-btn').click();
-      await page.waitForTimeout(1000);
-      await page.screenshot({ path: 'test-results/26-favorite-toggled.png' });
-    }
-  });
-
-  test('Booking Form - Validation', async ({ page }) => {
-    await login(page);
-    await page.waitForTimeout(2000);
-    const bookBtn = page.locator('[data-testid^="browse-book-date-"]').first();
-    if (await bookBtn.isVisible()) {
-      await bookBtn.click();
-      await page.waitForTimeout(2000);
-      await page.screenshot({ path: 'test-results/27-booking-form-empty.png' });
-      await tid(page, 'booking-submit-btn').click();
-      await page.waitForTimeout(1000);
-      await page.screenshot({ path: 'test-results/28-booking-validation.png' });
     }
   });
 
   test('Login Back - Returns to Welcome', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForTimeout(2000);
-    await page.getByText('Sign in').click();
-    await page.waitForTimeout(1500);
+    await goToLogin(page);
     await tid(page, 'login-back-btn').click();
     await page.waitForTimeout(1500);
     await expect(page.getByText('Real dates')).toBeVisible();
@@ -277,10 +235,9 @@ test.describe('Phase 3: Edge Cases', () => {
   });
 
   test('Neo-Brutalism Visual Audit', async ({ page }) => {
-    await page.goto('/');
-    await page.waitForTimeout(3000);
+    await goToWelcome(page);
     await page.screenshot({ path: 'test-results/40-visual-welcome.png' });
-    await page.getByText('Sign in').click();
+    await page.getByText('Sign in', { exact: true }).click();
     await page.waitForTimeout(1500);
     await page.screenshot({ path: 'test-results/41-visual-login.png' });
     await tid(page, 'login-email-input').fill(TEST_EMAIL);

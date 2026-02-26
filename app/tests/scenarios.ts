@@ -139,7 +139,7 @@ export const selectors = {
 export const config = {
   baseUrl: 'https://daterabbit.smartlaunchhub.com',
   testEmail: 'test@daterabbit.com',
-  testOtp: '00000000',
+  testOtp: '000000',
   defaultTimeout: 10000,
 }
 
