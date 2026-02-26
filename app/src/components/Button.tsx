@@ -82,7 +82,7 @@ export function Button({
 
     // Add shadow for primary/pink buttons
     if ((variant === 'primary' || variant === 'pink') && !disabled) {
-      baseStyles.push(variant === 'pink' ? shadows.buttonAccent : shadows.button);
+      baseStyles.push(variant === 'pink' ? shadows.buttonPink : shadows.button);
     }
 
     if (style) baseStyles.push(style);
@@ -170,14 +170,14 @@ export function Button({
     );
   };
 
-  // Primary button with indigo gradient
+  // Primary button with dark gradient
   if (variant === 'primary') {
-    return renderGradientButton(colors.gradient.primary as readonly [string, string, ...string[]]);
+    return renderGradientButton(colors.gradient.dark as readonly [string, string, ...string[]]);
   }
 
-  // Pink button with secondary (pink) gradient
+  // Pink button with pink gradient
   if (variant === 'pink') {
-    return renderGradientButton(colors.gradient.secondary as readonly [string, string, ...string[]]);
+    return renderGradientButton(colors.gradient.primary as readonly [string, string, ...string[]]);
   }
 
   // On web, use plain TouchableOpacity
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
 
   // Variant styles
   secondary: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.white,
     borderWidth: 1.5,
     borderColor: colors.border,
   },
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   labelLight: {
-    color: colors.textSecondary,
+    color: 'rgba(255, 255, 255, 0.7)',
   },
   labelDark: {
     color: colors.textLight,

@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import { Card } from '../../../../src/components/Card';
 import { Button } from '../../../../src/components/Button';
 import { Icon } from '../../../../src/components/Icon';
-import { useTheme, colors, spacing, typography, borderRadius } from '../../../../src/constants/theme';
+import { useTheme, spacing, typography, borderRadius } from '../../../../src/constants/theme';
 import { paymentsApi } from '../../../../src/services/api';
 
 interface Payout {
@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: colors.border,
+    borderColor: '#ccc',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.md,

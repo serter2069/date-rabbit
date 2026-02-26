@@ -283,7 +283,7 @@ export default function ProfileViewScreen() {
 
           {/* Back button */}
           <TouchableOpacity
-            style={[styles.backButton, { top: insets.top + spacing.sm, backgroundColor: colors.surfaceElevated }]}
+            style={[styles.backButton, { top: insets.top + spacing.sm, backgroundColor: colors.white }]}
             onPress={() => router.back()}
             testID="profile-view-back-btn"
           >
@@ -292,7 +292,7 @@ export default function ProfileViewScreen() {
 
           {/* Favorite button */}
           <TouchableOpacity
-            style={[styles.favoriteButton, { top: insets.top + spacing.sm, backgroundColor: colors.surfaceElevated }]}
+            style={[styles.favoriteButton, { top: insets.top + spacing.sm, backgroundColor: colors.white }]}
             onPress={() => toggleFavorite(profile.id)}
             testID="profile-view-favorite-btn"
           >
@@ -301,7 +301,7 @@ export default function ProfileViewScreen() {
 
           {/* More menu button */}
           <TouchableOpacity
-            style={[styles.moreButton, { top: insets.top + spacing.sm, backgroundColor: colors.surfaceElevated }]}
+            style={[styles.moreButton, { top: insets.top + spacing.sm, backgroundColor: colors.white }]}
             onPress={() => setMenuVisible(true)}
             testID="profile-view-more-btn"
           >
@@ -418,7 +418,7 @@ export default function ProfileViewScreen() {
       </ScrollView>
 
       {/* Bottom Action Bar */}
-      <View style={[styles.bottomBar, { backgroundColor: colors.surface, borderTopColor: colors.border, paddingBottom: insets.bottom || spacing.xl }]}>
+      <View style={[styles.bottomBar, { backgroundColor: colors.white, borderTopColor: colors.border, paddingBottom: insets.bottom || spacing.xl }]}>
         <Button
           title="Message"
           onPress={handleMessage}
@@ -446,7 +446,7 @@ export default function ProfileViewScreen() {
           activeOpacity={1}
           onPress={() => setMenuVisible(false)}
         >
-          <View style={[styles.menuContainer, { backgroundColor: colors.surfaceElevated }]}>
+          <View style={[styles.menuContainer, { backgroundColor: colors.white }]}>
             <TouchableOpacity
               style={[styles.menuItem, { borderBottomColor: colors.border }]}
               onPress={handleBlockUser}
@@ -476,7 +476,7 @@ export default function ProfileViewScreen() {
         onRequestClose={() => setReportModalVisible(false)}
       >
         <View style={styles.reportModalOverlay}>
-          <View style={[styles.reportModalContent, { backgroundColor: colors.surfaceElevated }]}>
+          <View style={[styles.reportModalContent, { backgroundColor: colors.white }]}>
             <View style={styles.reportModalHeader}>
               <Text style={[styles.reportModalTitle, { color: colors.text }]}>Report {profile.name}</Text>
               <TouchableOpacity onPress={() => setReportModalVisible(false)}>

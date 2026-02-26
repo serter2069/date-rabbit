@@ -8,7 +8,7 @@ import { Card } from '../../../src/components/Card';
 import { Avatar } from '../../../src/components/Avatar';
 import { Badge } from '../../../src/components/Badge';
 import { Icon } from '../../../src/components/Icon';
-import { colors, spacing, typography, borderRadius, shadows, PAGE_PADDING } from '../../../src/constants/theme';
+import { colors, spacing, typography, borderRadius, shadows } from '../../../src/constants/theme';
 
 const featuredCompanions = [
   { id: '1', name: 'Sarah', age: 28, rating: 4.9, rate: 100, verified: true },
@@ -49,7 +49,7 @@ export default function MaleDashboard() {
 
       {/* Search */}
       <TouchableOpacity style={styles.searchBox} activeOpacity={0.8}>
-        <Icon name="search" size={20} color={colors.textSecondary} />
+        <Icon name="search" size={20} color={colors.textLight} />
         <Text style={styles.searchText}>Find your perfect date...</Text>
       </TouchableOpacity>
 
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   content: {
-    paddingHorizontal: PAGE_PADDING,
+    paddingHorizontal: spacing.lg + 4,
     paddingBottom: spacing.xxl,
   },
   header: {
@@ -207,12 +207,12 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md + 2,
     marginBottom: spacing.xl,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderLight,
   },
   searchText: {
     fontFamily: typography.fonts.body,
     fontSize: typography.sizes.md,
-    color: colors.textSecondary,
+    color: colors.textLight,
     flex: 1,
   },
   section: {
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderLight,
   },
   activityIconWrap: {
     width: 44,
@@ -379,7 +379,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: colors.border,
+    backgroundColor: colors.divider,
     marginVertical: spacing.sm,
   },
 });

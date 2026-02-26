@@ -234,9 +234,9 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.sm,
     borderRadius: borderRadius.full,
-    backgroundColor: 'rgba(108,99,255,0.12)',
+    backgroundColor: 'rgba(184, 169, 232, 0.15)',
     borderWidth: 1,
-    borderColor: 'rgba(108,99,255,0.2)',
+    borderColor: 'rgba(184, 169, 232, 0.3)',
   },
   durationText: {
     fontFamily: typography.fonts.bodyMedium,
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    ...shadows.buttonAccent,
+    ...shadows.buttonPink,
   },
   recordButtonActive: {
     backgroundColor: colors.error,

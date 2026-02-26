@@ -12,7 +12,7 @@ import { Button } from '../../src/components/Button';
 import { ProgressBar } from '../../src/components/verification/ProgressBar';
 import { ConsentForm } from '../../src/components/verification/ConsentForm';
 import { useVerificationStore } from '../../src/store/verificationStore';
-import { colors, spacing, typography, PAGE_PADDING } from '../../src/constants/theme';
+import { colors, spacing, typography } from '../../src/constants/theme';
 
 const STEPS = ['Intro', 'SSN', 'Photo ID', 'Selfie', 'Consent'];
 
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: PAGE_PADDING,
+    paddingHorizontal: spacing.lg + 4,
   },
   header: {
     marginBottom: spacing.xl,

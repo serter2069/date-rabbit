@@ -17,7 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../../src/components/Button';
 import { Icon } from '../../src/components/Icon';
 import { ProgressBar } from '../../src/components/verification';
-import { colors, spacing, typography, borderRadius, PAGE_PADDING, overlay } from '../../src/constants/theme';
+import { colors, spacing, typography, borderRadius } from '../../src/constants/theme';
 
 const MIN_PHOTOS = 3;
 const MAX_PHOTOS = 6;
@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    paddingHorizontal: PAGE_PADDING,
+    paddingHorizontal: spacing.lg + 4,
   },
   header: {
     alignItems: 'center',
@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: borderRadius.full,
-    backgroundColor: overlay.medium,
+    backgroundColor: 'rgba(248, 180, 196, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.md,
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderStyle: 'dashed',
     borderColor: colors.accent,
-    backgroundColor: overlay.heavy,
+    backgroundColor: 'rgba(184, 169, 232, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.xs,

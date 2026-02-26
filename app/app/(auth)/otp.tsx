@@ -83,7 +83,7 @@ export default function OTPScreen() {
           key={i}
           style={[
             styles.codeBox,
-            { borderColor: colors.border, backgroundColor: colors.surfaceElevated },
+            { borderColor: colors.border, backgroundColor: colors.white },
             isFilled && { borderColor: colors.primary, backgroundColor: colors.primary + '10' },
             isActive && { borderColor: colors.primary },
           ]}

@@ -18,7 +18,7 @@ import {
   SelfieCapture,
 } from '../../src/components/verification';
 import { useVerificationStore } from '../../src/store/verificationStore';
-import { colors, spacing, typography, borderRadius, PAGE_PADDING } from '../../src/constants/theme';
+import { colors, spacing, typography, borderRadius } from '../../src/constants/theme';
 
 export default function CompVerifyScreen() {
   const insets = useSafeAreaInsets();
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    paddingHorizontal: PAGE_PADDING,
+    paddingHorizontal: spacing.lg + 4,
   },
   header: {
     marginBottom: spacing.xl,

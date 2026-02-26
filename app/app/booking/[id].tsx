@@ -134,7 +134,7 @@ export default function BookingScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + spacing.sm, backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
+      <View style={[styles.header, { paddingTop: insets.top + spacing.sm, backgroundColor: colors.white, borderBottomColor: colors.border }]}>
         <TouchableOpacity style={[styles.backButton, { backgroundColor: colors.surface }]} onPress={() => router.back()} testID="booking-back-btn">
           <Icon name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>
@@ -163,7 +163,7 @@ export default function BookingScreen() {
                 key={activity.id}
                 style={[
                   styles.activityCard,
-                  { backgroundColor: colors.surface, borderColor: colors.border },
+                  { backgroundColor: colors.white, borderColor: colors.border },
                   selectedActivity === activity.id && { borderColor: colors.primary, backgroundColor: colors.primary + '10' },
                 ]}
                 onPress={() => setSelectedActivity(activity.id)}
@@ -203,7 +203,7 @@ export default function BookingScreen() {
                 key={duration.hours}
                 style={[
                   styles.durationCard,
-                  { backgroundColor: colors.surface, borderColor: colors.border },
+                  { backgroundColor: colors.white, borderColor: colors.border },
                   selectedDuration === duration.hours && { borderColor: colors.primary, backgroundColor: colors.primary + '10' },
                 ]}
                 onPress={() => setSelectedDuration(duration.hours)}
@@ -242,7 +242,7 @@ export default function BookingScreen() {
                   key={index}
                   style={[
                     styles.dateCard,
-                    { backgroundColor: colors.surface, borderColor: colors.border },
+                    { backgroundColor: colors.white, borderColor: colors.border },
                     isSelected && { borderColor: colors.primary, backgroundColor: colors.primary },
                   ]}
                   onPress={() => setSelectedDate(d.date)}
@@ -285,7 +285,7 @@ export default function BookingScreen() {
                   key={time}
                   style={[
                     styles.timeSlot,
-                    { backgroundColor: colors.surface, borderColor: colors.border },
+                    { backgroundColor: colors.white, borderColor: colors.border },
                     isSelected && { borderColor: colors.primary, backgroundColor: colors.primary },
                   ]}
                   onPress={() => setSelectedTime(time)}
@@ -307,7 +307,7 @@ export default function BookingScreen() {
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Where? *</Text>
           <TextInput
-            style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
+            style={[styles.input, { backgroundColor: colors.white, borderColor: colors.border, color: colors.text }]}
             placeholder="Restaurant name, address, or area..."
             value={location}
             onChangeText={setLocation}
@@ -320,7 +320,7 @@ export default function BookingScreen() {
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Add a message (optional)</Text>
           <TextInput
-            style={[styles.input, styles.textArea, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
+            style={[styles.input, styles.textArea, { backgroundColor: colors.white, borderColor: colors.border, color: colors.text }]}
             placeholder="Tell them a bit about what you have in mind..."
             value={message}
             onChangeText={setMessage}
@@ -356,7 +356,7 @@ export default function BookingScreen() {
       </ScrollView>
 
       {/* Submit Button */}
-      <View style={[styles.bottomBar, { backgroundColor: colors.surface, borderTopColor: colors.border, paddingBottom: insets.bottom || spacing.xl }]}>
+      <View style={[styles.bottomBar, { backgroundColor: colors.white, borderTopColor: colors.border, paddingBottom: insets.bottom || spacing.xl }]}>
         <View style={styles.bottomInfo}>
           <Text style={[styles.bottomTotal, { color: colors.text }]}>${total}</Text>
           <Text style={[styles.bottomLabel, { color: colors.textSecondary }]}>Total</Text>

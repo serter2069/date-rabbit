@@ -17,7 +17,7 @@ import Animated, {
 import { Button } from '../../src/components/Button';
 import { Icon } from '../../src/components/Icon';
 import { useVerificationStore } from '../../src/store/verificationStore';
-import { colors, spacing, typography, borderRadius, PAGE_PADDING, overlay } from '../../src/constants/theme';
+import { colors, spacing, typography, borderRadius } from '../../src/constants/theme';
 
 const IS_DEV = __DEV__;
 
@@ -118,7 +118,7 @@ export default function SeekerVerifyPendingScreen() {
         </View>
       </View>
 
-      <View style={[styles.footer, { paddingHorizontal: PAGE_PADDING }]}>
+      <View style={[styles.footer, { paddingHorizontal: spacing.lg + 4 }]}>
         <Button
           title="Continue to App"
           onPress={() => {}}
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
     width: 140,
     height: 140,
     borderRadius: borderRadius.full,
-    backgroundColor: overlay.heavy,
+    backgroundColor: 'rgba(248, 180, 196, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.xl,
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: borderRadius.full,
-    backgroundColor: overlay.medium,
+    backgroundColor: 'rgba(248, 180, 196, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-    backgroundColor: overlay.medium,
+    backgroundColor: 'rgba(184, 169, 232, 0.12)',
     borderRadius: borderRadius.full,
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.md,

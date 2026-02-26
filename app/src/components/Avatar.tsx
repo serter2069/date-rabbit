@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Image, Text, StyleSheet } from 'react-native';
-import { colors, borderRadius, typography } from '../constants/theme';
+import { colors, borderRadius } from '../constants/theme';
 
 interface AvatarProps {
   uri?: string;
@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
   },
   initials: {
     color: colors.white,
-    fontFamily: typography.fonts.bodySemiBold,
+    fontWeight: '600',
   },
   badge: {
     position: 'absolute',

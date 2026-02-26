@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    ...shadows.buttonAccent,
+    ...shadows.buttonPink,
   },
   captureHint: {
     fontFamily: typography.fonts.body,
