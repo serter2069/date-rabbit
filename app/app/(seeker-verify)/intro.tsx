@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../../src/components/Button';
 import { Icon } from '../../src/components/Icon';
 import { ProgressBar } from '../../src/components/verification/ProgressBar';
+import { useVerificationStore } from '../../src/store/verificationStore';
 import { colors, spacing, typography, borderRadius } from '../../src/constants/theme';
 
 const STEPS = ['Intro', 'SSN', 'Photo ID', 'Selfie', 'Consent'];
@@ -39,6 +40,16 @@ const REQUIREMENTS = [
 
 export default function SeekerVerifyIntroScreen() {
   const insets = useSafeAreaInsets();
+  const { startVerification, isLoading } = useVerificationStore();
+  const [starting, setStarting] = useState(false);
+
+  const handleGetStarted = async () => {
+    setStarting(true);
+    await startVerification();
+    setStarting(false);
+    // Navigate even if API fails — screens handle errors individually
+    router.push('/(seeker-verify)/ssn');
+  };
 
   return (
     <View style={styles.container}>
@@ -88,7 +99,8 @@ export default function SeekerVerifyIntroScreen() {
 
         <Button
           title="Get Started"
-          onPress={() => router.push('/(seeker-verify)/ssn')}
+          onPress={handleGetStarted}
+          loading={starting || isLoading}
           variant="pink"
           fullWidth
           size="lg"

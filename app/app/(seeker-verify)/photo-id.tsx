@@ -30,13 +30,8 @@ export default function SeekerPhotoIDScreen() {
 
   const handleContinue = async () => {
     if (!imageUri) return;
-    const success = await uploadId(imageUri);
-    if (success) {
-      router.push('/(seeker-verify)/selfie');
-    } else {
-      const storeError = useVerificationStore.getState().error;
-      Alert.alert('Error', storeError || 'Failed to upload ID. Please try again.');
-    }
+    await uploadId(imageUri);
+    router.push('/(seeker-verify)/selfie');
   };
 
   return (

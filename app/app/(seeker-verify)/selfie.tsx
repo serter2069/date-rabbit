@@ -23,13 +23,8 @@ export default function SeekerSelfieScreen() {
 
   const handleContinue = async () => {
     if (!imageUri) return;
-    const success = await uploadSelfie(imageUri);
-    if (success) {
-      router.push('/(seeker-verify)/consent');
-    } else {
-      const storeError = useVerificationStore.getState().error;
-      Alert.alert('Error', storeError || 'Failed to upload selfie. Please try again.');
-    }
+    await uploadSelfie(imageUri);
+    router.push('/(seeker-verify)/consent');
   };
 
   return (

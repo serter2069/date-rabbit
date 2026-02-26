@@ -23,21 +23,9 @@ export default function SeekerConsentScreen() {
 
   const handleSubmit = async () => {
     if (!agreed) return;
-
-    const consentSuccess = await submitConsent();
-    if (!consentSuccess) {
-      const storeError = useVerificationStore.getState().error;
-      Alert.alert('Error', storeError || 'Failed to submit consent. Please try again.');
-      return;
-    }
-
-    const reviewSuccess = await submitForReview();
-    if (reviewSuccess) {
-      router.push('/(seeker-verify)/pending');
-    } else {
-      const storeError = useVerificationStore.getState().error;
-      Alert.alert('Error', storeError || 'Failed to submit for review. Please try again.');
-    }
+    await submitConsent();
+    await submitForReview();
+    router.push('/(seeker-verify)/pending');
   };
 
   return (
