@@ -74,6 +74,22 @@ jobs:
           cd /var/www/daterabbit/api
           npm ci --production
 
+      - name: Setup database (if needed)
+        continue-on-error: true
+        run: |
+          # Try psql connection as postgres via peer auth
+          PGPASSWORD="" psql -h localhost -U postgres -tc "SELECT 1 FROM pg_roles WHERE rolname='daterabbit'" 2>/dev/null | grep -q 1 && echo "User exists" || {
+            # Try creating via local socket
+            psql -h /var/run/postgresql -U postgres -c "CREATE USER daterabbit WITH PASSWORD 'daterabbit';" 2>/dev/null || \
+            PGPASSWORD=postgres psql -h localhost -U postgres -c "CREATE USER daterabbit WITH PASSWORD 'daterabbit';" 2>/dev/null || \
+            echo "Could not create user - may need manual setup"
+          }
+          PGPASSWORD="" psql -h localhost -U postgres -tc "SELECT 1 FROM pg_database WHERE datname='daterabbit'" 2>/dev/null | grep -q 1 && echo "DB exists" || {
+            psql -h /var/run/postgresql -U postgres -c "CREATE DATABASE daterabbit OWNER daterabbit;" 2>/dev/null || \
+            PGPASSWORD=postgres psql -h localhost -U postgres -c "CREATE DATABASE daterabbit OWNER daterabbit;" 2>/dev/null || \
+            echo "Could not create database - may need manual setup"
+          }
+
       - name: Restart backend
         run: |
           cd /var/www/daterabbit/api
