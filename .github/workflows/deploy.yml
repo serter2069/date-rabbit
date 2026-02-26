@@ -37,10 +37,49 @@ jobs:
           npm ci
           npm run build
 
+      - name: Fix nginx config (root → /var/www/daterabbit/web)
+        run: |
+          if grep -q 'root /var/www/daterabbit;' /etc/nginx/sites-enabled/daterabbit; then
+            sudo sed -i 's|root /var/www/daterabbit;|root /var/www/daterabbit/web;|' /etc/nginx/sites-enabled/daterabbit
+            sudo sed -i 's|alias /var/www/daterabbit/_expo;|alias /var/www/daterabbit/web/_expo;|' /etc/nginx/sites-enabled/daterabbit
+            sudo nginx -t && sudo systemctl reload nginx
+            echo "Nginx config fixed and reloaded"
+          else
+            echo "Nginx config already correct"
+          fi
+
       - name: Deploy frontend
         run: |
           rsync -rlD --delete \
             app/dist/ /var/www/daterabbit/web/
+
+      - name: Create backend .env if missing
+        run: |
+          if [ ! -f /var/www/daterabbit/api/.env ]; then
+            cat > /var/www/daterabbit/api/.env << 'ENVEOF'
+          PORT=3004
+          NODE_ENV=development
+          DEV_AUTH=true
+          DB_HOST=localhost
+          DB_PORT=5432
+          DB_USERNAME=daterabbit
+          DB_PASSWORD=daterabbit
+          DB_NAME=daterabbit
+          JWT_SECRET=daterabbit-dev-jwt-secret-change-in-prod
+          ENVEOF
+            echo ".env created with defaults"
+          else
+            echo ".env already exists"
+          fi
+
+      - name: Setup database (if needed)
+        run: |
+          sudo -u postgres psql -tc "SELECT 1 FROM pg_roles WHERE rolname='daterabbit'" | grep -q 1 || \
+            sudo -u postgres psql -c "CREATE USER daterabbit WITH PASSWORD 'daterabbit';"
+          sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname='daterabbit'" | grep -q 1 || \
+            sudo -u postgres psql -c "CREATE DATABASE daterabbit OWNER daterabbit;"
+          sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE daterabbit TO daterabbit;" 2>/dev/null || true
+          echo "Database ready"
 
       - name: Deploy backend
         run: |
@@ -59,20 +98,14 @@ jobs:
           sudo pm2 restart daterabbit || sudo pm2 start dist/main.js --name daterabbit
           sudo chown -R www-data:www-data /var/www/daterabbit/
 
-      - name: Diagnostics
-        if: always()
+      - name: Verify deployment
         run: |
-          echo "=== Frontend files ==="
-          ls -la /var/www/daterabbit/web/ 2>&1 || echo "web dir not found"
-          ls -la /var/www/daterabbit/web/index.html 2>&1 || echo "no index.html"
+          sleep 5
           echo "=== version.json ==="
-          cat /var/www/daterabbit/web/version.json 2>&1 || echo "no version.json"
-          echo "=== Backend files ==="
-          ls -la /var/www/daterabbit/api/dist/ 2>&1 | head -10
-          echo "=== Backend .env exists? ==="
+          cat /var/www/daterabbit/web/version.json
+          echo "=== PM2 status ==="
+          sudo pm2 show daterabbit | grep -E "(status|restarts|uptime)"
+          echo "=== Backend .env ==="
           test -f /var/www/daterabbit/api/.env && echo ".env EXISTS" || echo ".env MISSING"
-          echo "=== PM2 logs (last 30 lines) ==="
-          sudo pm2 logs daterabbit --nostream --lines 30 2>&1 || echo "no pm2 logs"
-          echo "=== Nginx config ==="
-          cat /etc/nginx/sites-enabled/daterabbit* 2>&1 || echo "no daterabbit nginx config"
-          ls /etc/nginx/sites-enabled/ 2>&1
+          echo "=== PM2 error logs (last 10) ==="
+          sudo pm2 logs daterabbit --nostream --lines 10 --err 2>&1 || true
