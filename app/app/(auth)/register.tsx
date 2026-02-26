@@ -108,6 +108,7 @@ export default function RegisterScreen() {
         rating: 5.0,
         reviewCount: 0,
         isVerified: false,
+        verificationStatus: 'not_started',
         createdAt: new Date().toISOString(),
       });
       setOnboardingSeen();
@@ -115,10 +116,11 @@ export default function RegisterScreen() {
 
     setLoading(false);
 
+    // Route to verification flow
     if (isFemale) {
-      router.replace('/female');
+      router.replace('/(comp-onboard)/step1');
     } else {
-      router.replace('/male');
+      router.replace('/(seeker-verify)/intro');
     }
   };
 

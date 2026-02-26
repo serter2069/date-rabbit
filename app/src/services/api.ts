@@ -1,5 +1,6 @@
 // API Client for DateRabbit Backend
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import type { Verification, VerificationReference } from '../types';
 
 const API_BASE_URL = 'https://daterabbit-api.smartlaunchhub.com/api';
 
@@ -496,6 +497,111 @@ export const calendarApi = {
   },
 };
 
+// Verification API
+export const verificationApi = {
+  start: () =>
+    apiRequest<Verification>('/verification/start', { method: 'POST' }),
+
+  getStatus: () =>
+    apiRequest<Verification>('/verification/status'),
+
+  submitSSN: (ssnLast4: string) =>
+    apiRequest<Verification>('/verification/ssn', {
+      method: 'POST',
+      body: { ssnLast4 },
+    }),
+
+  uploadId: async (uri: string): Promise<Verification> => {
+    const token = await getToken();
+    const formData = new FormData();
+    const extension = uri.split('.').pop() || 'jpg';
+    const type = `image/${extension === 'jpg' ? 'jpeg' : extension}`;
+    formData.append('photo', {
+      uri,
+      type,
+      name: `id-photo.${extension}`,
+    } as unknown as Blob);
+    const response = await fetch(`${API_BASE_URL}/verification/upload-id`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
+      },
+      body: formData,
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new ApiError(data.message || 'Upload failed', response.status);
+    }
+    return data;
+  },
+
+  uploadSelfie: async (uri: string): Promise<Verification> => {
+    const token = await getToken();
+    const formData = new FormData();
+    const extension = uri.split('.').pop() || 'jpg';
+    const type = `image/${extension === 'jpg' ? 'jpeg' : extension}`;
+    formData.append('photo', {
+      uri,
+      type,
+      name: `selfie.${extension}`,
+    } as unknown as Blob);
+    const response = await fetch(`${API_BASE_URL}/verification/selfie`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
+      },
+      body: formData,
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new ApiError(data.message || 'Upload failed', response.status);
+    }
+    return data;
+  },
+
+  uploadVideo: async (uri: string): Promise<Verification> => {
+    const token = await getToken();
+    const formData = new FormData();
+    const extension = uri.split('.').pop() || 'mp4';
+    const type = `video/${extension}`;
+    formData.append('video', {
+      uri,
+      type,
+      name: `video.${extension}`,
+    } as unknown as Blob);
+    const response = await fetch(`${API_BASE_URL}/verification/video`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
+      },
+      body: formData,
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new ApiError(data.message || 'Upload failed', response.status);
+    }
+    return data;
+  },
+
+  submitReferences: (refs: VerificationReference[]) =>
+    apiRequest<Verification>('/verification/references', {
+      method: 'POST',
+      body: { references: refs },
+    }),
+
+  submitConsent: (consentGiven: boolean) =>
+    apiRequest<Verification>('/verification/consent', {
+      method: 'POST',
+      body: { consentGiven },
+    }),
+
+  submit: () =>
+    apiRequest<Verification>('/verification/submit', { method: 'POST' }),
+};
+
 // Types
 export interface User {
   id: string;
@@ -511,6 +617,7 @@ export interface User {
   rating?: number;
   reviewCount?: number;
   isVerified?: boolean;
+  verificationStatus?: import('../types').VerificationStatus;
   photos?: { id: string; url: string; order: number; isPrimary: boolean }[];
   stripeOnboardingComplete?: boolean;
   expoPushToken?: string;

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { User, UserRole } from '../types';
+import type { User, UserRole, VerificationStatus } from '../types';
 import { authApi, usersApi, setToken, getToken, ApiError, User as ApiUser } from '../services/api';
 
 type AuthStep = 'idle' | 'email' | 'otp' | 'onboarding' | 'authenticated';
@@ -72,6 +72,7 @@ function mapApiUserToUser(apiUser: ApiUser): User {
     rating: apiUser.rating,
     reviewCount: apiUser.reviewCount,
     isVerified: apiUser.isVerified,
+    verificationStatus: apiUser.verificationStatus as VerificationStatus | undefined,
     stripeOnboardingComplete: apiUser.stripeOnboardingComplete,
     latitude: apiUser.latitude,
     longitude: apiUser.longitude,

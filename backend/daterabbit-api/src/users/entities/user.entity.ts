@@ -12,6 +12,14 @@ export enum UserRole {
   COMPANION = 'companion',
 }
 
+export enum UserVerificationStatus {
+  NOT_STARTED = 'not_started',
+  IN_PROGRESS = 'in_progress',
+  PENDING_REVIEW = 'pending_review',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+}
+
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
@@ -49,6 +57,13 @@ export class User {
 
   @Column({ default: false })
   isVerified: boolean;
+
+  @Column({
+    type: 'enum',
+    enum: UserVerificationStatus,
+    default: UserVerificationStatus.NOT_STARTED,
+  })
+  verificationStatus: UserVerificationStatus;
 
   @Column({ default: true })
   isActive: boolean;
