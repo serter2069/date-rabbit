@@ -41,12 +41,8 @@ function DigitBox({
   }, [isFocused, focusAnim]);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    borderColor: interpolateColor(
-      focusAnim.value,
-      [0, 1],
-      [colors.border, colors.primary]
-    ),
-    borderWidth: isFocused ? 1.5 : 1,
+    borderColor: isFocused ? colors.primary : colors.black,
+    borderWidth: isFocused ? 3 : 3,
   }));
 
   return (
@@ -171,9 +167,9 @@ const styles = StyleSheet.create({
     width: 56,
     height: 64,
     borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.background,
+    borderWidth: 3,
+    borderColor: colors.black,
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },

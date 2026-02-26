@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Image, Text, StyleSheet } from 'react-native';
-import { colors, borderRadius } from '../constants/theme';
+import { colors, borderRadius, borderWidth } from '../constants/theme';
 
 interface AvatarProps {
   uri?: string;
@@ -41,11 +41,15 @@ const styles = StyleSheet.create({
   },
   image: {
     backgroundColor: colors.surface,
+    borderWidth: borderWidth.normal,
+    borderColor: colors.black,
   },
   placeholder: {
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: borderWidth.normal,
+    borderColor: colors.black,
   },
   initials: {
     color: colors.white,

@@ -7,7 +7,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
-import { colors, borderRadius, spacing, typography, touchTargets, shadows } from '../constants/theme';
+import { colors, borderRadius, spacing, typography, touchTargets, shadows, borderWidth } from '../constants/theme';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -222,6 +222,8 @@ const styles = StyleSheet.create({
 
   gradientWrapper: {
     borderRadius: borderRadius.lg,
+    borderWidth: borderWidth.normal,
+    borderColor: colors.black,
     overflow: 'hidden',
   },
 
@@ -242,14 +244,14 @@ const styles = StyleSheet.create({
 
   // Variant styles
   secondary: {
-    backgroundColor: colors.white,
-    borderWidth: 1.5,
-    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    borderWidth: borderWidth.normal,
+    borderColor: colors.black,
   },
   outline: {
     backgroundColor: 'transparent',
-    borderWidth: 1.5,
-    borderColor: colors.primary,
+    borderWidth: borderWidth.normal,
+    borderColor: colors.black,
   },
   ghost: {
     backgroundColor: 'transparent',
@@ -285,9 +287,11 @@ const styles = StyleSheet.create({
 
   // Text styles
   text: {
-    fontFamily: typography.fonts.bodySemiBold,
-    fontWeight: '600',
+    fontFamily: typography.fonts.bodyBold,
+    fontWeight: '700',
     fontSize: typography.sizes.md,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   text_primary: {
     color: colors.white,
@@ -299,7 +303,7 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   text_outline: {
-    color: colors.primary,
+    color: colors.text,
   },
   text_ghost: {
     color: colors.textMuted,
@@ -327,7 +331,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   labelLight: {
-    color: 'rgba(255, 255, 255, 0.7)',
+    color: colors.textMuted,
   },
   labelDark: {
     color: colors.textLight,

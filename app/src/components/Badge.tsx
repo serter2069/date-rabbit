@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors, borderRadius, spacing, typography } from '../constants/theme';
+import { colors, borderRadius, spacing, typography, borderWidth } from '../constants/theme';
 
 type BadgeVariant = 'pink' | 'purple' | 'gray' | 'success' | 'warning' | 'gradient';
 type BadgeSize = 'sm' | 'md' | 'lg';
@@ -128,11 +128,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: borderRadius.full,
-    borderWidth: 1,
+    borderWidth: borderWidth.thin,
+    borderColor: colors.black,
     alignSelf: 'flex-start',
   },
   gradientBadge: {
-    borderWidth: 0,
+    borderWidth: borderWidth.thin,
+    borderColor: colors.black,
   },
   icon: {
     marginRight: spacing.xs + 2,

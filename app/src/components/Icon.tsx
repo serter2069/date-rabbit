@@ -164,8 +164,6 @@ const iconMap: Record<string, LucideIcon> = {
   palette: Palette,
   footprints: Footprints,
   'party-popper': PartyPopper,
-  receipt: Receipt,
-  cake: Cake,
   'calendar-x': Calendar,
   'building-2': Grid,
 };

@@ -99,11 +99,10 @@ export function CustomTabBar({ role }: CustomTabBarProps) {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: colors.white,
-    borderTopWidth: 1,
-    borderTopColor: colors.borderLight,
+    backgroundColor: colors.surface,
+    borderTopWidth: 3,
+    borderTopColor: colors.black,
     paddingTop: spacing.sm,
-    ...shadows.sm,
   },
   tab: {
     flex: 1,
@@ -136,7 +135,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   labelActive: {
-    color: colors.secondary,
+    color: colors.primary,
   },
   labelInactive: {
     color: colors.textMuted,

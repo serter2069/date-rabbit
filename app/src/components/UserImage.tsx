@@ -43,6 +43,8 @@ export function UserImage({
       width: size,
       height: size,
       borderRadius: actualBorderRadius,
+      borderWidth: 3,
+      borderColor: colors.black,
       overflow: 'hidden',
       position: 'relative',
     },

@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { colors, spacing, typography, borderRadius } from '../constants/theme';
+import { colors, spacing, typography, borderRadius, borderWidth } from '../constants/theme';
 
 interface PhotoUploadProps {
   photos: string[];
@@ -197,8 +197,8 @@ const styles = StyleSheet.create({
     width: PHOTO_SIZE,
     height: PHOTO_SIZE * 1.25,
     borderRadius: borderRadius.lg,
-    borderWidth: 2,
-    borderColor: colors.border,
+    borderWidth: borderWidth.normal,
+    borderColor: colors.black,
     borderStyle: 'dashed',
     justifyContent: 'center',
     alignItems: 'center',
