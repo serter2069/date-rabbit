@@ -20,7 +20,6 @@ jobs:
           cd app
           npm ci --legacy-peer-deps
           npx expo export --platform web
-          mkdir -p dist/version
           cat > dist/version.json << VEOF
           {
             "version": "$(git rev-parse --short HEAD)",
@@ -63,22 +62,13 @@ jobs:
             echo ".env already exists"
           fi
 
-      - name: Setup database (if needed)
-        continue-on-error: true
-        run: |
-          sudo -u postgres psql -tc "SELECT 1 FROM pg_roles WHERE rolname='daterabbit'" | grep -q 1 || \
-            sudo -u postgres psql -c "CREATE USER daterabbit WITH PASSWORD 'daterabbit';"
-          sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname='daterabbit'" | grep -q 1 || \
-            sudo -u postgres psql -c "CREATE DATABASE daterabbit OWNER daterabbit;"
-          sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE daterabbit TO daterabbit;" 2>/dev/null || true
-          echo "Database ready"
-
       - name: Deploy backend
         run: |
           rsync -rlD --delete \
             --exclude 'node_modules' \
             --exclude '.env' \
             --exclude 'dist' \
+            --exclude 'uploads' \
             backend/daterabbit-api/ /var/www/daterabbit/api/
           rsync -rlD backend/daterabbit-api/dist/ /var/www/daterabbit/api/dist/
           cd /var/www/daterabbit/api
@@ -91,12 +81,13 @@ jobs:
           sudo chown -R www-data:www-data /var/www/daterabbit/
 
       - name: Verify deployment
+        if: always()
         run: |
-          sleep 5
+          sleep 3
           echo "=== version.json ==="
-          cat /var/www/daterabbit/version.json
+          cat /var/www/daterabbit/version.json 2>&1 || echo "no version.json"
           echo "=== PM2 status ==="
-          sudo pm2 show daterabbit | grep -E "(status|restarts|uptime)"
+          sudo pm2 show daterabbit 2>&1 | grep -E "(status|restarts|uptime)" || true
           echo "=== Backend .env ==="
           test -f /var/www/daterabbit/api/.env && echo ".env EXISTS" || echo ".env MISSING"
           echo "=== PM2 error logs (last 10) ==="
