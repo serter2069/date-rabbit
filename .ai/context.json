@@ -7,8 +7,8 @@
   "local_api_url": "http://localhost:3001/api",
   "test_auth": {
     "email": "test@daterabbit.com",
-    "otp_code": "00000000",
-    "note": "8-digit code. Работает с DEV_AUTH=true в backend/.env"
+    "otp_code": "000000",
+    "note": "6-digit code. Работает с DEV_AUTH=true в backend/.env"
   },
   "routes": [
     "/welcome",
