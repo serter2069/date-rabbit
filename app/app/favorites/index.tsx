@@ -168,6 +168,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.lg,
     fontWeight: '600',
   },
@@ -205,6 +206,7 @@ const styles = StyleSheet.create({
     marginLeft: spacing.md,
   },
   cardName: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.lg,
     fontWeight: '600',
   },
@@ -222,6 +224,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   rating: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.sm,
     fontWeight: '600',
   },
@@ -242,6 +245,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   rateValue: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.xl,
     fontWeight: '700',
   },

@@ -189,7 +189,7 @@ export default function ChatScreen() {
                       <Text
                         style={[
                           styles.messageTime,
-                          { color: isMine ? 'rgba(255,255,255,0.7)' : colors.textSecondary }
+                          { color: isMine ? colors.white + 'BB' : colors.textSecondary }
                         ]}
                       >
                         {formatTime(new Date(message.createdAt))}
@@ -261,10 +261,12 @@ const styles = StyleSheet.create({
     marginLeft: spacing.sm,
   },
   headerName: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.md,
     fontWeight: '600',
   },
   headerStatus: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.xs,
   },
   bookButton: {
@@ -275,6 +277,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   bookButtonText: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.sm,
     fontWeight: '600',
   },
@@ -293,6 +296,7 @@ const styles = StyleSheet.create({
     marginVertical: spacing.md,
   },
   dateHeaderText: {
+    fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.xs,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
@@ -320,6 +324,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 4,
   },
   messageText: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.md,
     lineHeight: 20,
   },
@@ -345,6 +350,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   input: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.md,
     maxHeight: 100,
   },

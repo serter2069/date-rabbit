@@ -18,7 +18,7 @@ import { Button } from '../../src/components/Button';
 import { Card } from '../../src/components/Card';
 import { Icon } from '../../src/components/Icon';
 import { UserImage } from '../../src/components/UserImage';
-import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
+import { useTheme, spacing, typography, borderRadius, colors } from '../../src/constants/theme';
 import { useFavoritesStore } from '../../src/store/favoritesStore';
 import { usersApi, companionsApi, CompanionDetail } from '../../src/services/api';
 
@@ -602,6 +602,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   photoText: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.xl,
     fontWeight: '600',
     marginTop: spacing.md,
@@ -643,13 +644,15 @@ const styles = StyleSheet.create({
     left: spacing.lg,
     width: 44,
     height: 44,
-    borderRadius: 22,
+    borderRadius: borderRadius.sm,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    borderWidth: 2,
+    borderColor: colors.border,
+    shadowColor: '#000000',
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
     elevation: 3,
   },
   favoriteButton: {
@@ -657,13 +660,15 @@ const styles = StyleSheet.create({
     right: spacing.lg + 52,
     width: 44,
     height: 44,
-    borderRadius: 22,
+    borderRadius: borderRadius.sm,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    borderWidth: 2,
+    borderColor: colors.border,
+    shadowColor: '#000000',
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
     elevation: 3,
   },
   moreButton: {
@@ -671,13 +676,15 @@ const styles = StyleSheet.create({
     right: spacing.lg,
     width: 44,
     height: 44,
-    borderRadius: 22,
+    borderRadius: borderRadius.sm,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    borderWidth: 2,
+    borderColor: colors.border,
+    shadowColor: '#000000',
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
     elevation: 3,
   },
   menuOverlay: {
@@ -699,6 +706,7 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   menuItemText: {
+    fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.md,
     fontWeight: '500',
   },
@@ -720,10 +728,12 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   reportModalTitle: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.lg,
     fontWeight: '600',
   },
   reportSectionTitle: {
+    fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.md,
     fontWeight: '500',
     marginBottom: spacing.sm,
@@ -754,6 +764,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   reportReasonText: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.md,
   },
   reportInput: {
@@ -770,6 +781,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   reportSubmitText: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.md,
     fontWeight: '600',
   },
@@ -788,6 +800,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   name: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.xxl,
     fontWeight: '700',
   },
@@ -799,6 +812,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.full,
   },
   verified: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.sm,
     fontWeight: '600',
   },
@@ -808,6 +822,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   location: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.md,
   },
   statsRow: {
@@ -821,10 +836,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statValue: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.md,
     fontWeight: '600',
   },
   statLabel: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     marginLeft: spacing.xs,
   },
@@ -836,10 +853,12 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
   },
   rateValue: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.xl,
     fontWeight: '700',
   },
   rateLabel: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     marginLeft: 2,
   },
@@ -853,15 +872,18 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   sectionTitle: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.lg,
     fontWeight: '600',
     marginBottom: spacing.sm,
   },
   seeAll: {
+    fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.sm,
     fontWeight: '500',
   },
   bio: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.md,
     lineHeight: 24,
   },
@@ -876,6 +898,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.full,
   },
   tagText: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
   },
   detailRow: {
@@ -891,9 +914,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   detailLabel: {
+    fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.md,
   },
   detailValue: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.md,
   },
   review: {
@@ -907,6 +932,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   reviewName: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.md,
     fontWeight: '600',
   },
@@ -915,11 +941,13 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   reviewText: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     fontStyle: 'italic',
     marginBottom: spacing.xs,
   },
   reviewDate: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.xs,
   },
   bottomBar: {
@@ -960,6 +988,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalPhotoText: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.md,
     marginTop: spacing.md,
   },
@@ -974,13 +1003,16 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   loadingText: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.md,
   },
   errorText: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.lg,
     fontWeight: '600',
   },
   errorSubtext: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     textAlign: 'center',
   },

@@ -282,6 +282,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.lg,
     fontWeight: '600',
   },
@@ -303,6 +304,7 @@ const styles = StyleSheet.create({
     borderRightWidth: 1,
   },
   ratingNumber: {
+    fontFamily: typography.fonts.heading,
     fontSize: 48,
     fontWeight: '700',
   },
@@ -357,6 +359,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   sortButtonText: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.sm,
     fontWeight: '600',
   },
@@ -372,6 +375,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   reviewerName: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.md,
     fontWeight: '600',
   },
@@ -430,10 +434,12 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.md,
   },
   modalTitle: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.lg,
     fontWeight: '600',
   },
   modalSubmit: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.md,
     fontWeight: '600',
     textAlign: 'right',
@@ -442,6 +448,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   modalLabel: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.md,
     fontWeight: '600',
     marginBottom: spacing.md,

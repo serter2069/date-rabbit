@@ -2,13 +2,12 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useAuthStore } from '../../../src/store/authStore';
 import { Card } from '../../../src/components/Card';
 import { Avatar } from '../../../src/components/Avatar';
 import { Badge } from '../../../src/components/Badge';
 import { Icon } from '../../../src/components/Icon';
-import { colors, spacing, typography, borderRadius, shadows } from '../../../src/constants/theme';
+import { colors, spacing, typography, borderRadius, shadows, PAGE_PADDING } from '../../../src/constants/theme';
 
 const featuredCompanions = [
   { id: '1', name: 'Sarah', age: 28, rating: 4.9, rate: 100, verified: true },
@@ -102,12 +101,9 @@ export default function MaleDashboard() {
                   <Icon name="star" size={14} color={colors.warning} />
                   <Text style={styles.companionRating}>{companion.rating}</Text>
                 </View>
-                <LinearGradient
-                  colors={colors.gradient.softPink as readonly [string, string, ...string[]]}
-                  style={styles.rateTag}
-                >
+                <View style={styles.rateTag}>
                   <Text style={styles.companionRate}>${companion.rate}/hr</Text>
-                </LinearGradient>
+                </View>
               </Card>
             ))}
           </View>
@@ -157,12 +153,9 @@ function ActivityCard({ icon, label, count }: { icon: string; label: string; cou
 function StepItem({ number, title, description }: { number: number; title: string; description: string }) {
   return (
     <View style={styles.stepItem}>
-      <LinearGradient
-        colors={colors.gradient.primary as readonly [string, string, ...string[]]}
-        style={styles.stepNumber}
-      >
+      <View style={styles.stepNumber}>
         <Text style={styles.stepNumberText}>{number}</Text>
-      </LinearGradient>
+      </View>
       <View style={styles.stepInfo}>
         <Text style={styles.stepTitle}>{title}</Text>
         <Text style={styles.stepDescription}>{description}</Text>
@@ -177,7 +170,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   content: {
-    paddingHorizontal: spacing.lg + 4,
+    paddingHorizontal: PAGE_PADDING,
     paddingBottom: spacing.xxl,
   },
   header: {
@@ -303,13 +296,16 @@ const styles = StyleSheet.create({
   rateTag: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
-    borderRadius: borderRadius.full,
+    borderRadius: borderRadius.sm,
     marginTop: spacing.sm,
+    backgroundColor: colors.secondary,
+    borderWidth: 2,
+    borderColor: colors.border,
   },
   companionRate: {
     fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.sm,
-    color: colors.secondary,
+    color: colors.text,
   },
   activitiesGrid: {
     flexDirection: 'row',
@@ -353,9 +349,12 @@ const styles = StyleSheet.create({
   stepNumber: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: borderRadius.sm,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: colors.primary,
+    borderWidth: 2,
+    borderColor: colors.border,
   },
   stepNumberText: {
     fontFamily: typography.fonts.bodySemiBold,

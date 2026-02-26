@@ -394,6 +394,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.lg,
     fontWeight: '600',
   },
@@ -414,10 +415,12 @@ const styles = StyleSheet.create({
     marginLeft: spacing.md,
   },
   companionName: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.lg,
     fontWeight: '600',
   },
   companionRate: {
+    fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.md,
     fontWeight: '500',
   },
@@ -425,6 +428,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
   },
   sectionTitle: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.md,
     fontWeight: '600',
     marginBottom: spacing.md,
@@ -444,6 +448,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   activityLabel: {
+    fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.sm,
     fontWeight: '500',
     marginTop: spacing.xs,
@@ -457,6 +462,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.sm,
   },
   popularText: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: 10,
     fontWeight: '600',
   },
@@ -476,11 +482,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   durationLabel: {
+    fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.sm,
     fontWeight: '500',
     marginBottom: spacing.xs,
   },
   durationPrice: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.md,
     fontWeight: '700',
   },
@@ -499,15 +507,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   dateDay: {
+    fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.xs,
     fontWeight: '500',
   },
   dateDayNum: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.xl,
     fontWeight: '700',
     marginVertical: spacing.xs,
   },
   dateMonth: {
+    fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.xs,
     fontWeight: '500',
   },
@@ -525,6 +536,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   timeSlotText: {
+    fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.sm,
     fontWeight: '500',
   },
@@ -543,6 +555,7 @@ const styles = StyleSheet.create({
   },
   summaryCard: {},
   summaryTitle: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.md,
     fontWeight: '600',
     marginBottom: spacing.md,
@@ -553,9 +566,11 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   summaryLabel: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.md,
   },
   summaryValue: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.md,
   },
   summaryTotal: {
@@ -564,10 +579,12 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
   },
   totalLabel: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.lg,
     fontWeight: '600',
   },
   totalValue: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.xl,
     fontWeight: '700',
   },
@@ -586,10 +603,12 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   bottomTotal: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.xl,
     fontWeight: '700',
   },
   bottomLabel: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
   },
   submitButton: {
