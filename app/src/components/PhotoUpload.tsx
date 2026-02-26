@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
     left: spacing.sm,
     fontSize: typography.sizes.xs,
     color: colors.textSecondary,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surfaceElevated,
     paddingHorizontal: spacing.xs,
     borderRadius: borderRadius.sm,
   },

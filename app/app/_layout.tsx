@@ -4,18 +4,17 @@ import { Platform, View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useAuthStore } from '../src/store/authStore';
 import { useFonts } from 'expo-font';
 import {
-  DMSans_400Regular,
-  DMSans_500Medium,
-  DMSans_600SemiBold,
-  DMSans_700Bold,
-} from '@expo-google-fonts/dm-sans';
+  PlusJakartaSans_400Regular,
+  PlusJakartaSans_500Medium,
+  PlusJakartaSans_600SemiBold,
+  PlusJakartaSans_700Bold,
+} from '@expo-google-fonts/plus-jakarta-sans';
 import {
-  Fraunces_400Regular,
-  Fraunces_500Medium,
-  Fraunces_600SemiBold,
-  Fraunces_400Regular_Italic,
-  Fraunces_500Medium_Italic,
-} from '@expo-google-fonts/fraunces';
+  Outfit_400Regular,
+  Outfit_500Medium,
+  Outfit_600SemiBold,
+  Outfit_700Bold,
+} from '@expo-google-fonts/outfit';
 import { colors } from '../src/constants/theme';
 
 export default function RootLayout() {
@@ -23,17 +22,16 @@ export default function RootLayout() {
   const needsVerification = isAuthenticated && user?.verificationStatus !== 'approved';
   const isSeeker = user?.role === 'seeker';
 
-  // Load custom fonts
+  // Load Onyx fonts
   const [fontsLoaded] = useFonts({
-    DMSans_400Regular,
-    DMSans_500Medium,
-    DMSans_600SemiBold,
-    DMSans_700Bold,
-    Fraunces_400Regular,
-    Fraunces_500Medium,
-    Fraunces_600SemiBold,
-    Fraunces_400Regular_Italic,
-    Fraunces_500Medium_Italic,
+    PlusJakartaSans_400Regular,
+    PlusJakartaSans_500Medium,
+    PlusJakartaSans_600SemiBold,
+    PlusJakartaSans_700Bold,
+    Outfit_400Regular,
+    Outfit_500Medium,
+    Outfit_600SemiBold,
+    Outfit_700Bold,
   });
 
   // Show loading screen while fonts load
@@ -47,7 +45,7 @@ export default function RootLayout() {
 
   return (
     <>
-      <StatusBar style="dark" />
+      <StatusBar style="light" />
       <Stack
         screenOptions={{
           headerShown: false,

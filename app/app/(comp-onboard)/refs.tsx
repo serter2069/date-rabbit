@@ -16,7 +16,7 @@ import { Icon } from '../../src/components/Icon';
 import { ProgressBar, ConsentForm } from '../../src/components/verification';
 import { useVerificationStore } from '../../src/store/verificationStore';
 import type { VerificationReference } from '../../src/types';
-import { colors, spacing, typography, borderRadius } from '../../src/constants/theme';
+import { colors, spacing, typography, borderRadius, PAGE_PADDING, overlay } from '../../src/constants/theme';
 
 interface RefForm {
   name: string;
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    paddingHorizontal: spacing.lg + 4,
+    paddingHorizontal: PAGE_PADDING,
   },
   header: {
     marginBottom: spacing.xl,
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: borderRadius.full,
-    backgroundColor: 'rgba(184, 169, 232, 0.15)',
+    backgroundColor: overlay.medium,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -84,7 +84,7 @@ export default function EarningsScreen() {
           <Button
             title="Withdraw"
             onPress={() => router.push('/female/earnings/withdraw')}
-            style={{ backgroundColor: colors.white }}
+            style={{ backgroundColor: colors.surfaceElevated }}
             textStyle={{ color: colors.primary }}
             size="md"
           />

@@ -11,7 +11,7 @@ import Animated, {
 import { useEffect } from 'react';
 import { Icon, IconName } from './Icon';
 import { Button } from './Button';
-import { useTheme } from '../constants/theme';
+import { colors, spacing, typography } from '../constants/theme';
 
 interface EmptyStateProps {
   icon: IconName;
@@ -30,8 +30,6 @@ export function EmptyState({
   onAction,
   style,
 }: EmptyStateProps) {
-  const { colors, spacing, typography } = useTheme();
-
   // Animation values
   const scale = useSharedValue(1);
   const translateY = useSharedValue(0);
@@ -65,41 +63,6 @@ export function EmptyState({
     ],
   }));
 
-  const styles = StyleSheet.create({
-    container: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingVertical: spacing.xxl * 2,
-      paddingHorizontal: spacing.lg,
-    },
-    iconContainer: {
-      width: 100,
-      height: 100,
-      borderRadius: 50,
-      backgroundColor: colors.surface,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginBottom: spacing.lg,
-    },
-    title: {
-      fontSize: typography.sizes.lg,
-      fontWeight: '600',
-      color: colors.text,
-      marginBottom: spacing.sm,
-      textAlign: 'center',
-    },
-    description: {
-      fontSize: typography.sizes.sm,
-      color: colors.textSecondary,
-      textAlign: 'center',
-      maxWidth: 280,
-      lineHeight: 22,
-    },
-    button: {
-      marginTop: spacing.lg,
-    },
-  });
-
   return (
     <View style={[styles.container, style]}>
       <Animated.View style={[styles.iconContainer, animatedIconStyle]}>
@@ -119,3 +82,39 @@ export function EmptyState({
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.xxl * 2,
+    paddingHorizontal: spacing.lg,
+  },
+  iconContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.lg,
+  },
+  title: {
+    fontFamily: typography.fonts.heading,
+    fontSize: typography.sizes.lg,
+    color: colors.text,
+    marginBottom: spacing.sm,
+    textAlign: 'center',
+  },
+  description: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.sm,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    maxWidth: 280,
+    lineHeight: 22,
+  },
+  button: {
+    marginTop: spacing.lg,
+  },
+});

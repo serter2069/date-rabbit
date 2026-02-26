@@ -157,7 +157,7 @@ export default function CalendarScreen() {
           key={day}
           style={[
             styles.dayCell,
-            isToday && [styles.todayCell, { backgroundColor: colors.primaryLight + '30' }],
+            isToday && [styles.todayCell, { backgroundColor: colors.primary + '30' }],
             isSelected && [styles.selectedCell, { backgroundColor: colors.primary }],
             isBlocked && !isSelectedForBlock && [styles.blockedCell, { backgroundColor: colors.error + '20' }],
             isSelectedForBlock && [styles.selectedForBlockCell, { backgroundColor: isBlocked ? colors.success + '30' : colors.error + '30' }],
@@ -235,7 +235,7 @@ export default function CalendarScreen() {
       </View>
 
       {blockMode && (
-        <View style={[styles.blockModeBar, { backgroundColor: colors.primaryLight + '20' }]}>
+        <View style={[styles.blockModeBar, { backgroundColor: colors.primary + '20' }]}>
           <Text style={[styles.blockModeText, { color: colors.primary }]}>
             Tap dates to block/unblock. Selected: {selectedForBlock.size}
           </Text>
@@ -280,7 +280,7 @@ export default function CalendarScreen() {
             {selectedDayBookings.length > 0 ? (
               selectedDayBookings.map((booking) => (
                 <Card key={booking.id} style={styles.eventCard}>
-                  <View style={[styles.eventTime, { backgroundColor: colors.primaryLight + '30' }]}>
+                  <View style={[styles.eventTime, { backgroundColor: colors.primary + '30' }]}>
                     <Text style={[styles.eventTimeText, { color: colors.primary }]}>
                       {new Date(booking.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </Text>

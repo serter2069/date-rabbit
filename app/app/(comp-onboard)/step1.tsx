@@ -11,7 +11,7 @@ import { Button } from '../../src/components/Button';
 import { Icon } from '../../src/components/Icon';
 import { ProgressBar } from '../../src/components/verification';
 import { useVerificationStore } from '../../src/store/verificationStore';
-import { colors, spacing, typography, borderRadius } from '../../src/constants/theme';
+import { colors, spacing, typography, borderRadius, PAGE_PADDING, overlay } from '../../src/constants/theme';
 
 const REQUIREMENTS = [
   { icon: 'lock', label: 'SSN last 4 digits', description: 'For identity verification' },
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   content: {
-    paddingHorizontal: spacing.lg + 4,
+    paddingHorizontal: PAGE_PADDING,
   },
   header: {
     alignItems: 'center',
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: borderRadius.full,
-    backgroundColor: 'rgba(248, 180, 196, 0.15)',
+    backgroundColor: overlay.medium,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.md,
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: borderRadius.md,
-    backgroundColor: 'rgba(184, 169, 232, 0.15)',
+    backgroundColor: overlay.medium,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,

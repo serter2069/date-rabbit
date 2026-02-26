@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
   },
   closeButton: {
     width: 40,
@@ -420,7 +420,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     padding: spacing.lg,
-    backgroundColor: colors.white,
+    backgroundColor: colors.surface,
     borderTopWidth: 1,
     borderTopColor: colors.border,
   },
