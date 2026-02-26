@@ -10,7 +10,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '../../src/components/Icon';
 import { ProgressBar } from '../../src/components/verification';
 import { useVerificationStore } from '../../src/store/verificationStore';
-import { colors, spacing, typography, borderRadius } from '../../src/constants/theme';
+import { colors, spacing, typography, borderRadius, PAGE_PADDING } from '../../src/constants/theme';
 
 const POLL_INTERVAL_MS = 10_000;
 
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-    paddingHorizontal: spacing.lg + 4,
+    paddingHorizontal: PAGE_PADDING,
   },
   content: {
     flex: 1,
@@ -136,7 +136,9 @@ const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: borderRadius.full,
-    backgroundColor: 'rgba(184, 169, 232, 0.15)',
+    backgroundColor: colors.accent,
+    borderWidth: 3,
+    borderColor: colors.black,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.lg,

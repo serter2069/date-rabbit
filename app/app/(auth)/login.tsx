@@ -14,7 +14,7 @@ import { useAuthStore } from '../../src/store/authStore';
 import { Button } from '../../src/components/Button';
 import { Input } from '../../src/components/Input';
 import { Icon } from '../../src/components/Icon';
-import { colors, spacing, typography, borderRadius } from '../../src/constants/theme';
+import { colors, spacing, typography, borderRadius, PAGE_PADDING } from '../../src/constants/theme';
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flexGrow: 1,
-    paddingHorizontal: spacing.lg + 4,
+    paddingHorizontal: PAGE_PADDING,
   },
   backButton: {
     width: 44,

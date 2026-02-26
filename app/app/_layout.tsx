@@ -4,18 +4,11 @@ import { Platform, View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useAuthStore } from '../src/store/authStore';
 import { useFonts } from 'expo-font';
 import {
-  DMSans_400Regular,
-  DMSans_500Medium,
-  DMSans_600SemiBold,
-  DMSans_700Bold,
-} from '@expo-google-fonts/dm-sans';
-import {
-  Fraunces_400Regular,
-  Fraunces_500Medium,
-  Fraunces_600SemiBold,
-  Fraunces_400Regular_Italic,
-  Fraunces_500Medium_Italic,
-} from '@expo-google-fonts/fraunces';
+  SpaceGrotesk_400Regular,
+  SpaceGrotesk_500Medium,
+  SpaceGrotesk_600SemiBold,
+  SpaceGrotesk_700Bold,
+} from '@expo-google-fonts/space-grotesk';
 import { colors } from '../src/constants/theme';
 
 export default function RootLayout() {
@@ -23,17 +16,12 @@ export default function RootLayout() {
   const needsVerification = isAuthenticated && user?.verificationStatus !== 'approved';
   const isSeeker = user?.role === 'seeker';
 
-  // Load custom fonts
+  // Load Neo-Brutalism font
   const [fontsLoaded] = useFonts({
-    DMSans_400Regular,
-    DMSans_500Medium,
-    DMSans_600SemiBold,
-    DMSans_700Bold,
-    Fraunces_400Regular,
-    Fraunces_500Medium,
-    Fraunces_600SemiBold,
-    Fraunces_400Regular_Italic,
-    Fraunces_500Medium_Italic,
+    SpaceGrotesk_400Regular,
+    SpaceGrotesk_500Medium,
+    SpaceGrotesk_600SemiBold,
+    SpaceGrotesk_700Bold,
   });
 
   // Show loading screen while fonts load

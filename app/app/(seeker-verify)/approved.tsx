@@ -17,7 +17,7 @@ import Animated, {
 import { Button } from '../../src/components/Button';
 import { Icon } from '../../src/components/Icon';
 import { useAuthStore } from '../../src/store/authStore';
-import { colors, spacing, typography, borderRadius } from '../../src/constants/theme';
+import { colors, spacing, typography, borderRadius, PAGE_PADDING } from '../../src/constants/theme';
 
 export default function SeekerVerifyApprovedScreen() {
   const insets = useSafeAreaInsets();
@@ -103,7 +103,7 @@ export default function SeekerVerifyApprovedScreen() {
         </Animated.View>
       </View>
 
-      <View style={[styles.footer, { paddingHorizontal: spacing.lg + 4 }]}>
+      <View style={[styles.footer, { paddingHorizontal: PAGE_PADDING }]}>
         <Button
           title="Get Started"
           onPress={handleGetStarted}
@@ -133,14 +133,16 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: borderRadius.full,
     backgroundColor: colors.primary,
+    borderWidth: 3,
+    borderColor: colors.black,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.xl,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.35,
-    shadowRadius: 24,
-    elevation: 8,
+    shadowColor: '#000000',
+    shadowOffset: { width: 6, height: 6 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 6,
   },
   checkContainer: {
     alignItems: 'center',

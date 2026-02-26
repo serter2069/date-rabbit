@@ -102,11 +102,11 @@ export default function ProfileSetupScreen() {
 
           <View style={styles.roleContainer}>
             <TouchableOpacity
-              style={[styles.roleCard, { borderColor: colors.accent, backgroundColor: colors.accent + '10' }]}
+              style={[styles.roleCard, { borderColor: colors.black, backgroundColor: colors.accent }]}
               onPress={() => handleRoleSelect('companion')}
               testID="setup-companion-btn"
             >
-              <View style={[styles.roleIconContainer, { backgroundColor: colors.accent + '20' }]}>
+              <View style={[styles.roleIconContainer, { backgroundColor: colors.black }]}>
                 <Icon name="user" size={32} color={colors.accent} />
               </View>
               <Text style={[styles.roleTitle, { color: colors.text }]}>Companion</Text>
@@ -116,11 +116,11 @@ export default function ProfileSetupScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.roleCard, { borderColor: colors.secondary, backgroundColor: colors.secondary + '10' }]}
+              style={[styles.roleCard, { borderColor: colors.black, backgroundColor: colors.secondary }]}
               onPress={() => handleRoleSelect('seeker')}
               testID="setup-seeker-btn"
             >
-              <View style={[styles.roleIconContainer, { backgroundColor: colors.secondary + '20' }]}>
+              <View style={[styles.roleIconContainer, { backgroundColor: colors.black }]}>
                 <Icon name="search" size={32} color={colors.secondary} />
               </View>
               <Text style={[styles.roleTitle, { color: colors.text }]}>Date Seeker</Text>
@@ -158,7 +158,7 @@ export default function ProfileSetupScreen() {
               <View style={styles.inputGroup}>
                 <Text style={[styles.label, { color: colors.text }]}>Your name</Text>
                 <TextInput
-                  style={[styles.input, { backgroundColor: colors.white, borderColor: colors.border, color: colors.text }]}
+                  style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
                   placeholder="Enter your name"
                   placeholderTextColor={colors.textSecondary}
                   value={name}
@@ -171,7 +171,7 @@ export default function ProfileSetupScreen() {
               <View style={styles.inputGroup}>
                 <Text style={[styles.label, { color: colors.text }]}>Age</Text>
                 <TextInput
-                  style={[styles.input, { backgroundColor: colors.white, borderColor: colors.border, color: colors.text }]}
+                  style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
                   placeholder="Your age"
                   placeholderTextColor={colors.textSecondary}
                   value={age}
@@ -185,7 +185,7 @@ export default function ProfileSetupScreen() {
               <View style={styles.inputGroup}>
                 <Text style={[styles.label, { color: colors.text }]}>Location</Text>
                 <TextInput
-                  style={[styles.input, { backgroundColor: colors.white, borderColor: colors.border, color: colors.text }]}
+                  style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
                   placeholder="City, State"
                   placeholderTextColor={colors.textSecondary}
                   value={location}
@@ -218,7 +218,7 @@ export default function ProfileSetupScreen() {
               <View style={styles.inputGroup}>
                 <Text style={[styles.label, { color: colors.text }]}>About you</Text>
                 <TextInput
-                  style={[styles.input, styles.textArea, { backgroundColor: colors.white, borderColor: colors.border, color: colors.text }]}
+                  style={[styles.input, styles.textArea, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
                   placeholder={
                     role === 'companion'
                       ? 'Share your interests, personality, what you enjoy on dates...'
@@ -238,7 +238,7 @@ export default function ProfileSetupScreen() {
                 <View style={styles.inputGroup}>
                   <Text style={[styles.label, { color: colors.text }]}>Hourly Rate ($)</Text>
                   <TextInput
-                    style={[styles.input, { backgroundColor: colors.white, borderColor: colors.border, color: colors.text }]}
+                    style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
                     placeholder="Your hourly rate"
                     placeholderTextColor={colors.textSecondary}
                     value={hourlyRate}
@@ -310,9 +310,14 @@ const styles = StyleSheet.create({
   roleCard: {
     padding: spacing.xl,
     borderRadius: borderRadius.xl,
-    borderWidth: 2,
+    borderWidth: 3,
     alignItems: 'center',
     minHeight: 180,
+    shadowColor: '#000000',
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 4,
   },
   roleIconContainer: {
     width: 64,

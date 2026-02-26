@@ -6,7 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Button } from '../../src/components/Button';
 import { Badge } from '../../src/components/Badge';
 import { Icon } from '../../src/components/Icon';
-import { colors, spacing, typography, borderRadius } from '../../src/constants/theme';
+import { colors, spacing, typography, borderRadius, PAGE_PADDING } from '../../src/constants/theme';
 
 export default function WelcomeScreen() {
   const insets = useSafeAreaInsets();
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    paddingHorizontal: spacing.lg + 4,
+    paddingHorizontal: PAGE_PADDING,
     flexGrow: 1,
   },
 
