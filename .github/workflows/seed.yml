@@ -1,0 +1,28 @@
+name: Seed Database
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "seed" to confirm database seeding'
+        required: true
+        default: ''
+
+jobs:
+  seed:
+    if: github.event.inputs.confirm == 'seed'
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run seed script
+        run: |
+          cd /var/www/daterabbit/api
+          npx ts-node -r tsconfig-paths/register src/seed/seed.ts
+        env:
+          NODE_ENV: development
