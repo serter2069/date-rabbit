@@ -298,11 +298,13 @@ export const bookingsApi = {
   getRequests: (status: 'pending' | 'accepted' | 'completed' = 'pending') =>
     apiRequest<{ bookings: Booking[]; total: number }>(`/bookings/requests?status=${status}`),
 
-  updateStatus: (id: string, status: 'accepted' | 'declined' | 'cancelled', reason?: string) =>
-    apiRequest<Booking>(`/bookings/${id}/status`, {
-      method: 'PATCH',
-      body: { status, reason },
-    }),
+  updateStatus: (id: string, status: 'accepted' | 'declined' | 'cancelled', reason?: string) => {
+    if (status === 'accepted') {
+      return apiRequest<Booking>(`/bookings/${id}/confirm`, { method: 'PUT' });
+    } else {
+      return apiRequest<Booking>(`/bookings/${id}/cancel`, { method: 'PUT', body: { reason } });
+    }
+  },
 
   complete: (id: string) =>
     apiRequest<Booking>(`/bookings/${id}/complete`, {
@@ -319,44 +321,35 @@ export const bookingsApi = {
 // Messages API
 export interface Message {
   id: string;
-  bookingId: string;
   senderId: string;
   content: string;
   isRead: boolean;
   createdAt: string;
+  isOwn?: boolean;
 }
 
 export interface Chat {
-  bookingId: string;
+  id: string; // conversation id
   otherUser: {
     id: string;
     name: string;
-    photo?: string;
+    photos?: any[];
   };
-  lastMessage?: {
-    content: string;
-    createdAt: string;
-    isRead: boolean;
-  };
-  unreadCount: number;
+  lastMessageAt?: string;
+  unreadCount?: number;
 }
 
 export const messagesApi = {
   getChats: () =>
-    apiRequest<Chat[]>('/messages/chats'),
+    apiRequest<Chat[]>('/messages/conversations'),
 
-  getMessages: (bookingId: string, page = 1) =>
-    apiRequest<{ messages: Message[]; total: number }>(`/messages/${bookingId}?page=${page}`),
+  getMessages: (userId: string, page = 1, limit = 50) =>
+    apiRequest<any[]>(`/messages/${userId}?limit=${limit}&offset=${(page - 1) * limit}`),
 
-  sendMessage: (bookingId: string, content: string) =>
-    apiRequest<Message>('/messages', {
+  sendMessage: (userId: string, content: string) =>
+    apiRequest<any>(`/messages/${userId}`, {
       method: 'POST',
-      body: { bookingId, content },
-    }),
-
-  markAsRead: (bookingId: string) =>
-    apiRequest<{ success: boolean }>(`/messages/${bookingId}/read`, {
-      method: 'POST',
+      body: { content },
     }),
 
   getUnreadCount: () =>

@@ -7,7 +7,7 @@ jest.mock('../../services/api', () => ({
     getChats: jest.fn(),
     getMessages: jest.fn(),
     sendMessage: jest.fn(),
-    markAsRead: jest.fn(),
+    getUnreadCount: jest.fn(),
   },
   ApiError: class ApiError extends Error {
     statusCode: number;
@@ -19,23 +19,18 @@ jest.mock('../../services/api', () => ({
 }));
 
 const mockChat: api.Chat = {
-  bookingId: 'booking-1',
+  id: 'conv-1',
   otherUser: {
     id: 'user-2',
     name: 'Sarah',
-    photo: 'https://example.com/photo.jpg',
+    photos: [],
   },
-  lastMessage: {
-    id: 'msg-1',
-    content: 'Hello!',
-    createdAt: '2024-03-10T10:00:00Z',
-  },
+  lastMessageAt: '2024-03-10T10:00:00Z',
   unreadCount: 2,
 };
 
 const mockMessage: api.Message = {
   id: 'msg-1',
-  bookingId: 'booking-1',
   senderId: 'user-1',
   content: 'Hello!',
   createdAt: '2024-03-10T10:00:00Z',
@@ -65,7 +60,7 @@ describe('messagesStore', () => {
       });
 
       expect(result.current.chats).toHaveLength(1);
-      expect(result.current.chats[0].bookingId).toBe('booking-1');
+      expect(result.current.chats[0].id).toBe('conv-1');
     });
 
     it('should handle error fetching chats', async () => {
@@ -83,18 +78,18 @@ describe('messagesStore', () => {
   });
 
   describe('fetchMessages', () => {
-    it('should fetch messages for booking', async () => {
+    it('should fetch messages for user', async () => {
       const mockGetMessages = api.messagesApi.getMessages as jest.Mock;
       mockGetMessages.mockResolvedValue([mockMessage]);
 
       const { result } = renderHook(() => useMessagesStore());
 
       await act(async () => {
-        await result.current.fetchMessages('booking-1');
+        await result.current.fetchMessages('user-2');
       });
 
-      expect(result.current.messages['booking-1']).toHaveLength(1);
-      expect(result.current.messages['booking-1'][0].content).toBe('Hello!');
+      expect(result.current.messages['user-2']).toHaveLength(1);
+      expect(result.current.messages['user-2'][0].content).toBe('Hello!');
     });
   });
 
@@ -109,39 +104,39 @@ describe('messagesStore', () => {
       // Initialize messages array
       await act(async () => {
         useMessagesStore.setState({
-          messages: { 'booking-1': [mockMessage] },
+          messages: { 'user-2': [mockMessage] },
           chats: [mockChat],
         });
       });
 
       await act(async () => {
-        const response = await result.current.sendMessage('booking-1', 'Hi there!');
-        expect(response?.id).toBe('msg-2');
+        const response = await result.current.sendMessage('user-2', 'Hi there!');
+        expect(response?.success).toBe(true);
       });
 
-      expect(mockSendMessage).toHaveBeenCalledWith('booking-1', 'Hi there!');
-      expect(result.current.messages['booking-1']).toHaveLength(2);
+      expect(mockSendMessage).toHaveBeenCalledWith('user-2', 'Hi there!');
+      expect(result.current.messages['user-2']).toHaveLength(2);
     });
 
-    it('should update chat lastMessage after sending', async () => {
+    it('should update chat lastMessageAt after sending', async () => {
       const mockSendMessage = api.messagesApi.sendMessage as jest.Mock;
-      const newMessage = { ...mockMessage, id: 'msg-2', content: 'New message' };
+      const newMessage = { ...mockMessage, id: 'msg-2', content: 'New message', createdAt: '2024-03-10T11:00:00Z' };
       mockSendMessage.mockResolvedValue(newMessage);
 
       const { result } = renderHook(() => useMessagesStore());
 
       await act(async () => {
         useMessagesStore.setState({
-          messages: { 'booking-1': [] },
+          messages: { 'user-2': [] },
           chats: [mockChat],
         });
       });
 
       await act(async () => {
-        await result.current.sendMessage('booking-1', 'New message');
+        await result.current.sendMessage('user-2', 'New message');
       });
 
-      expect(result.current.chats[0].lastMessage?.content).toBe('New message');
+      expect(result.current.chats[0].lastMessageAt).toBe('2024-03-10T11:00:00Z');
     });
 
     it('should handle send message error', async () => {
@@ -151,56 +146,47 @@ describe('messagesStore', () => {
       const { result } = renderHook(() => useMessagesStore());
 
       await act(async () => {
-        const response = await result.current.sendMessage('booking-1', 'Hello');
-        expect(response).toBeNull();
+        const response = await result.current.sendMessage('user-2', 'Hello');
+        expect(response.success).toBe(false);
       });
 
       expect(result.current.error).toBe('Failed to send message');
     });
   });
 
-  describe('markAsRead', () => {
-    it('should mark messages as read and update unread count', async () => {
-      const mockMarkAsRead = api.messagesApi.markAsRead as jest.Mock;
-      mockMarkAsRead.mockResolvedValue({ success: true });
-
-      const { result } = renderHook(() => useMessagesStore());
-
-      await act(async () => {
-        useMessagesStore.setState({
-          chats: [{ ...mockChat, unreadCount: 5 }],
-          messages: { 'booking-1': [{ ...mockMessage, isRead: false }] },
-        });
-      });
-
-      await act(async () => {
-        await result.current.markAsRead('booking-1');
-      });
-
-      expect(result.current.chats[0].unreadCount).toBe(0);
-      expect(result.current.messages['booking-1'][0].isRead).toBe(true);
-    });
-  });
-
   describe('getMessages', () => {
-    it('should return messages for booking', async () => {
+    it('should return messages for user', async () => {
       const { result } = renderHook(() => useMessagesStore());
 
       await act(async () => {
         useMessagesStore.setState({
-          messages: { 'booking-1': [mockMessage] },
+          messages: { 'user-2': [mockMessage] },
         });
       });
 
-      const messages = result.current.getMessages('booking-1');
+      const messages = result.current.getMessages('user-2');
       expect(messages).toHaveLength(1);
     });
 
-    it('should return empty array for non-existent booking', () => {
+    it('should return empty array for non-existent user', () => {
       const { result } = renderHook(() => useMessagesStore());
 
       const messages = result.current.getMessages('non-existent');
       expect(messages).toEqual([]);
+    });
+  });
+
+  describe('getChat', () => {
+    it('should return chat by otherUser.id', async () => {
+      const { result } = renderHook(() => useMessagesStore());
+
+      await act(async () => {
+        useMessagesStore.setState({ chats: [mockChat] });
+      });
+
+      const chat = result.current.getChat('user-2');
+      expect(chat).toBeDefined();
+      expect(chat?.id).toBe('conv-1');
     });
   });
 });

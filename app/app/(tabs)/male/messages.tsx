@@ -34,7 +34,7 @@ export default function MessagesScreen() {
   const handleOpenChat = (chat: Chat) => {
     router.push({
       pathname: '/chat/[id]',
-      params: { id: chat.bookingId, name: chat.otherUser.name },
+      params: { id: chat.otherUser.id, name: chat.otherUser.name },
     });
   };
 
@@ -62,13 +62,13 @@ export default function MessagesScreen() {
         ) : (
           chats.map((chat) => (
             <TouchableOpacity
-              key={chat.bookingId}
+              key={chat.id}
               style={[styles.conversationItem, { borderBottomColor: colors.border }]}
               onPress={() => handleOpenChat(chat)}
-              testID={`messages-conversation-${chat.bookingId}`}
+              testID={`messages-conversation-${chat.id}`}
             >
               <UserImage
-                uri={chat.otherUser.photo}
+                uri={chat.otherUser.photos?.[0]?.url}
                 name={chat.otherUser.name}
                 size={56}
                 showVerified
@@ -76,9 +76,9 @@ export default function MessagesScreen() {
               <View style={styles.conversationInfo}>
                 <View style={styles.conversationHeader}>
                   <Text style={[styles.conversationName, { color: colors.text }]}>{chat.otherUser.name}</Text>
-                  {chat.lastMessage && (
+                  {chat.lastMessageAt && (
                     <Text style={[styles.conversationTime, { color: colors.textSecondary }]}>
-                      {formatTime(chat.lastMessage.createdAt)}
+                      {formatTime(chat.lastMessageAt)}
                     </Text>
                   )}
                 </View>
@@ -87,15 +87,15 @@ export default function MessagesScreen() {
                     style={[
                       styles.lastMessage,
                       { color: colors.textSecondary },
-                      chat.unreadCount > 0 && { color: colors.text, fontWeight: '500' },
+                      (chat.unreadCount || 0) > 0 && { color: colors.text, fontWeight: '500' },
                     ]}
                     numberOfLines={1}
                   >
-                    {chat.lastMessage?.content || 'No messages yet'}
+                    {'No messages yet'}
                   </Text>
-                  {chat.unreadCount > 0 && (
+                  {(chat.unreadCount || 0) > 0 && (
                     <View style={[styles.unreadBadge, { backgroundColor: colors.primary }]}>
-                      <Text style={[styles.unreadCount, { color: colors.white }]}>{chat.unreadCount}</Text>
+                      <Text style={[styles.unreadCount, { color: colors.white }]}>{chat.unreadCount || 0}</Text>
                     </View>
                   )}
                 </View>

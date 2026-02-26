@@ -99,24 +99,20 @@ export interface OnboardingSlide {
 
 export interface Message {
   id: string;
-  bookingId: string;
   senderId: string;
   content: string;
   isRead: boolean;
   createdAt: string;
+  isOwn?: boolean;
 }
 
 export interface Chat {
-  bookingId: string;
+  id: string; // conversation id
   otherUser: {
     id: string;
     name: string;
-    photo?: string;
+    photos?: any[];
   };
-  lastMessage?: {
-    content: string;
-    createdAt: string;
-    isRead: boolean;
-  };
-  unreadCount: number;
+  lastMessageAt?: string;
+  unreadCount?: number;
 }

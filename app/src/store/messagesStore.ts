@@ -3,7 +3,7 @@ import { messagesApi, Message, Chat, ApiError } from '../services/api';
 
 interface MessagesState {
   chats: Chat[];
-  messages: Record<string, Message[]>; // bookingId -> messages
+  messages: Record<string, Message[]>; // otherUserId -> messages
   isLoading: boolean;
   isSending: boolean;
   unreadCount: number;
@@ -11,14 +11,13 @@ interface MessagesState {
 
   // Actions
   fetchChats: () => Promise<void>;
-  fetchMessages: (bookingId: string, page?: number) => Promise<void>;
-  sendMessage: (bookingId: string, content: string) => Promise<{ success: boolean; error?: string }>;
-  markAsRead: (bookingId: string) => Promise<void>;
+  fetchMessages: (otherUserId: string, page?: number) => Promise<void>;
+  sendMessage: (otherUserId: string, content: string) => Promise<{ success: boolean; error?: string }>;
   refreshUnreadCount: () => Promise<void>;
 
   // Utility
-  getChat: (bookingId: string) => Chat | undefined;
-  getMessages: (bookingId: string) => Message[];
+  getChat: (otherUserId: string) => Chat | undefined;
+  getMessages: (otherUserId: string) => Message[];
   clearError: () => void;
 }
 
@@ -35,7 +34,7 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
 
     try {
       const chats = await messagesApi.getChats();
-      const totalUnread = chats.reduce((sum, chat) => sum + chat.unreadCount, 0);
+      const totalUnread = chats.reduce((sum, chat) => sum + (chat.unreadCount || 0), 0);
       set({ chats, unreadCount: totalUnread, isLoading: false });
     } catch (err) {
       const message = err instanceof ApiError ? err.message : 'Failed to fetch chats';
@@ -43,17 +42,18 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
     }
   },
 
-  fetchMessages: async (bookingId, page = 1) => {
+  fetchMessages: async (otherUserId, page = 1) => {
     set({ isLoading: true, error: null });
 
     try {
-      const response = await messagesApi.getMessages(bookingId, page);
+      // Backend auto-marks messages as read on GET
+      const msgs = await messagesApi.getMessages(otherUserId, page);
       set((state) => ({
         messages: {
           ...state.messages,
-          [bookingId]: page === 1
-            ? response.messages
-            : [...(state.messages[bookingId] || []), ...response.messages],
+          [otherUserId]: page === 1
+            ? msgs
+            : [...(state.messages[otherUserId] || []), ...msgs],
         },
         isLoading: false,
       }));
@@ -63,23 +63,19 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
     }
   },
 
-  sendMessage: async (bookingId, content) => {
+  sendMessage: async (otherUserId, content) => {
     set({ isSending: true, error: null });
 
     try {
-      const newMessage = await messagesApi.sendMessage(bookingId, content);
+      const newMessage = await messagesApi.sendMessage(otherUserId, content);
 
       set((state) => {
-        const existingMessages = state.messages[bookingId] || [];
+        const existingMessages = state.messages[otherUserId] || [];
         const updatedChats = state.chats.map((chat) =>
-          chat.bookingId === bookingId
+          chat.otherUser.id === otherUserId
             ? {
                 ...chat,
-                lastMessage: {
-                  content,
-                  createdAt: newMessage.createdAt,
-                  isRead: false,
-                },
+                lastMessageAt: newMessage.createdAt,
               }
             : chat
         );
@@ -87,7 +83,7 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
         return {
           messages: {
             ...state.messages,
-            [bookingId]: [...existingMessages, newMessage],
+            [otherUserId]: [...existingMessages, newMessage],
           },
           chats: updatedChats,
           isSending: false,
@@ -102,33 +98,6 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
     }
   },
 
-  markAsRead: async (bookingId) => {
-    try {
-      await messagesApi.markAsRead(bookingId);
-
-      set((state) => {
-        const chat = state.chats.find((c) => c.bookingId === bookingId);
-        const unreadDecrease = chat?.unreadCount || 0;
-
-        return {
-          chats: state.chats.map((c) =>
-            c.bookingId === bookingId ? { ...c, unreadCount: 0 } : c
-          ),
-          messages: {
-            ...state.messages,
-            [bookingId]: (state.messages[bookingId] || []).map((msg) => ({
-              ...msg,
-              isRead: true,
-            })),
-          },
-          unreadCount: Math.max(0, state.unreadCount - unreadDecrease),
-        };
-      });
-    } catch {
-      // Silent fail
-    }
-  },
-
   refreshUnreadCount: async () => {
     try {
       const response = await messagesApi.getUnreadCount();
@@ -138,12 +107,12 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
     }
   },
 
-  getChat: (bookingId) => {
-    return get().chats.find((c) => c.bookingId === bookingId);
+  getChat: (otherUserId) => {
+    return get().chats.find((c) => c.otherUser.id === otherUserId);
   },
 
-  getMessages: (bookingId) => {
-    return get().messages[bookingId] || [];
+  getMessages: (otherUserId) => {
+    return get().messages[otherUserId] || [];
   },
 
   clearError: () => set({ error: null }),
