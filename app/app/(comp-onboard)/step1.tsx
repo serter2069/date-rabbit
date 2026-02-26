@@ -31,7 +31,7 @@ export default function CompStep1Screen() {
   }, []);
 
   const handleNext = () => {
-    router.push('/(comp-onboard)/verify');
+    router.push('/(comp-onboard)/step2');
   };
 
   return (

@@ -11,6 +11,7 @@ export default function CompOnboardLayout() {
       }}
     >
       <Stack.Screen name="step1" />
+      <Stack.Screen name="step2" />
       <Stack.Screen name="verify" />
       <Stack.Screen name="video" />
       <Stack.Screen name="refs" />
