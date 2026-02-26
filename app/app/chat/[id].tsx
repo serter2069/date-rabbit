@@ -99,7 +99,7 @@ export default function ChatScreen() {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
     >
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + spacing.sm, backgroundColor: colors.white, borderBottomColor: colors.border }]}>
+      <View style={[styles.header, { paddingTop: insets.top + spacing.sm, backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton} testID="chat-back-btn">
           <Icon name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>
@@ -175,7 +175,7 @@ export default function ChatScreen() {
                         styles.messageBubble,
                         isMine
                           ? [styles.messageBubbleMine, { backgroundColor: colors.primary }]
-                          : [styles.messageBubbleOther, { backgroundColor: colors.white }]
+                          : [styles.messageBubbleOther, { backgroundColor: colors.surfaceElevated }]
                       ]}
                     >
                       <Text
@@ -204,7 +204,7 @@ export default function ChatScreen() {
       </ScrollView>
 
       {/* Input Area */}
-      <View style={[styles.inputContainer, { backgroundColor: colors.white, borderTopColor: colors.border, paddingBottom: insets.bottom || spacing.md }]}>
+      <View style={[styles.inputContainer, { backgroundColor: colors.surface, borderTopColor: colors.border, paddingBottom: insets.bottom || spacing.md }]}>
         <View style={[styles.inputWrapper, { backgroundColor: colors.background }]}>
           <TextInput
             style={[styles.input, { color: colors.text }]}

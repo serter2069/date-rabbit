@@ -34,7 +34,7 @@ export default function RoleSelectScreen() {
         </Text>
 
         <TouchableOpacity
-          style={[styles.roleCard, { backgroundColor: colors.white, borderColor: colors.accent }]}
+          style={[styles.roleCard, { backgroundColor: colors.surface, borderColor: colors.accent }]}
           onPress={() => handleSelectRole('companion')}
           testID="role-select-companion-btn"
         >
@@ -53,7 +53,7 @@ export default function RoleSelectScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.roleCard, { backgroundColor: colors.white, borderColor: colors.secondary }]}
+          style={[styles.roleCard, { backgroundColor: colors.surface, borderColor: colors.secondary }]}
           onPress={() => handleSelectRole('seeker')}
           testID="role-select-seeker-btn"
         >

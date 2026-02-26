@@ -180,7 +180,7 @@ export interface IconProps {
 export function Icon({
   name,
   size = 24,
-  color = colors.text,
+  color = colors.textSecondary,
   strokeWidth = 2,
 }: IconProps) {
   const IconComponent = iconMap[name];

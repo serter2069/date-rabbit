@@ -44,7 +44,7 @@ export default function FemaleProfileScreen() {
           </View>
         </View>
 
-        <View style={[styles.rateBox, { backgroundColor: colors.primaryLight + '20' }]}>
+        <View style={[styles.rateBox, { backgroundColor: colors.primary + '15' }]}>
           <Text style={[styles.rateLabel, { color: colors.textSecondary }]}>Your Rate</Text>
           <Text style={[styles.rateValue, { color: colors.primary }]}>${user?.hourlyRate}/hr</Text>
         </View>

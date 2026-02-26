@@ -158,7 +158,7 @@ export default function ProfileSetupScreen() {
               <View style={styles.inputGroup}>
                 <Text style={[styles.label, { color: colors.text }]}>Your name</Text>
                 <TextInput
-                  style={[styles.input, { backgroundColor: colors.white, borderColor: colors.border, color: colors.text }]}
+                  style={[styles.input, { backgroundColor: colors.surfaceElevated, borderColor: colors.border, color: colors.text }]}
                   placeholder="Enter your name"
                   placeholderTextColor={colors.textSecondary}
                   value={name}
@@ -171,7 +171,7 @@ export default function ProfileSetupScreen() {
               <View style={styles.inputGroup}>
                 <Text style={[styles.label, { color: colors.text }]}>Age</Text>
                 <TextInput
-                  style={[styles.input, { backgroundColor: colors.white, borderColor: colors.border, color: colors.text }]}
+                  style={[styles.input, { backgroundColor: colors.surfaceElevated, borderColor: colors.border, color: colors.text }]}
                   placeholder="Your age"
                   placeholderTextColor={colors.textSecondary}
                   value={age}
@@ -185,7 +185,7 @@ export default function ProfileSetupScreen() {
               <View style={styles.inputGroup}>
                 <Text style={[styles.label, { color: colors.text }]}>Location</Text>
                 <TextInput
-                  style={[styles.input, { backgroundColor: colors.white, borderColor: colors.border, color: colors.text }]}
+                  style={[styles.input, { backgroundColor: colors.surfaceElevated, borderColor: colors.border, color: colors.text }]}
                   placeholder="City, State"
                   placeholderTextColor={colors.textSecondary}
                   value={location}
@@ -218,7 +218,7 @@ export default function ProfileSetupScreen() {
               <View style={styles.inputGroup}>
                 <Text style={[styles.label, { color: colors.text }]}>About you</Text>
                 <TextInput
-                  style={[styles.input, styles.textArea, { backgroundColor: colors.white, borderColor: colors.border, color: colors.text }]}
+                  style={[styles.input, styles.textArea, { backgroundColor: colors.surfaceElevated, borderColor: colors.border, color: colors.text }]}
                   placeholder={
                     role === 'companion'
                       ? 'Share your interests, personality, what you enjoy on dates...'
@@ -238,7 +238,7 @@ export default function ProfileSetupScreen() {
                 <View style={styles.inputGroup}>
                   <Text style={[styles.label, { color: colors.text }]}>Hourly Rate ($)</Text>
                   <TextInput
-                    style={[styles.input, { backgroundColor: colors.white, borderColor: colors.border, color: colors.text }]}
+                    style={[styles.input, { backgroundColor: colors.surfaceElevated, borderColor: colors.border, color: colors.text }]}
                     placeholder="Your hourly rate"
                     placeholderTextColor={colors.textSecondary}
                     value={hourlyRate}

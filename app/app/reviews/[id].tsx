@@ -102,7 +102,7 @@ export default function ReviewsScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { paddingTop: insets.top + spacing.sm, backgroundColor: colors.white, borderBottomColor: colors.border }]}>
+      <View style={[styles.header, { paddingTop: insets.top + spacing.sm, backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Icon name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>
@@ -203,7 +203,7 @@ export default function ReviewsScreen() {
       </ScrollView>
 
       {/* Write Review Button */}
-      <View style={[styles.bottomBar, { backgroundColor: colors.white, borderTopColor: colors.border, paddingBottom: insets.bottom || spacing.xl }]}>
+      <View style={[styles.bottomBar, { backgroundColor: colors.surface, borderTopColor: colors.border, paddingBottom: insets.bottom || spacing.xl }]}>
         <Button
           title="Write a Review"
           onPress={() => setWriteReviewVisible(true)}
@@ -218,8 +218,8 @@ export default function ReviewsScreen() {
         presentationStyle="pageSheet"
         onRequestClose={() => setWriteReviewVisible(false)}
       >
-        <View style={[styles.modalContainer, { backgroundColor: colors.white }]}>
-          <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
+        <View style={[styles.modalContainer, { backgroundColor: colors.surfaceElevated }]}>
+          <View style={[styles.modalHeader, { backgroundColor: colors.surfaceElevated, borderBottomColor: colors.border }]}>
             <TouchableOpacity onPress={() => setWriteReviewVisible(false)} style={styles.modalButton}>
               <Text style={[styles.modalCancel, { color: colors.textSecondary }]}>Cancel</Text>
             </TouchableOpacity>

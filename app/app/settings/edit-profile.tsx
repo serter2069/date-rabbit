@@ -88,7 +88,7 @@ export default function EditProfileScreen() {
       style={[styles.container, { backgroundColor: colors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <View style={[styles.header, { paddingTop: insets.top + spacing.sm, backgroundColor: colors.white, borderBottomColor: colors.border }]}>
+      <View style={[styles.header, { paddingTop: insets.top + spacing.sm, backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Icon name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>
@@ -116,7 +116,7 @@ export default function EditProfileScreen() {
           <View style={styles.inputGroup}>
             <Text style={[styles.label, { color: colors.text }]}>Name</Text>
             <TextInput
-              style={[styles.input, { backgroundColor: colors.white, borderColor: colors.border, color: colors.text }]}
+              style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
               value={formData.name}
               onChangeText={(v) => updateField('name', v)}
               placeholder="Your name"
@@ -128,7 +128,7 @@ export default function EditProfileScreen() {
           <View style={styles.inputGroup}>
             <Text style={[styles.label, { color: colors.text }]}>Bio</Text>
             <TextInput
-              style={[styles.input, styles.bioInput, { backgroundColor: colors.white, borderColor: colors.border, color: colors.text }]}
+              style={[styles.input, styles.bioInput, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
               value={formData.bio}
               onChangeText={(v) => updateField('bio', v)}
               placeholder="Tell others about yourself..."
@@ -144,7 +144,7 @@ export default function EditProfileScreen() {
           <View style={styles.inputGroup}>
             <Text style={[styles.label, { color: colors.text }]}>Location</Text>
             <TextInput
-              style={[styles.input, { backgroundColor: colors.white, borderColor: colors.border, color: colors.text }]}
+              style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
               value={formData.location}
               onChangeText={(v) => updateField('location', v)}
               placeholder="City, State"
@@ -156,7 +156,7 @@ export default function EditProfileScreen() {
             <View style={styles.inputGroup}>
               <Text style={[styles.label, { color: colors.text }]}>Hourly Rate ($)</Text>
               <TextInput
-                style={[styles.input, { backgroundColor: colors.white, borderColor: colors.border, color: colors.text }]}
+                style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
                 value={formData.hourlyRate}
                 onChangeText={(v) => updateField('hourlyRate', v.replace(/[^0-9]/g, ''))}
                 placeholder="100"
@@ -171,7 +171,7 @@ export default function EditProfileScreen() {
         </View>
 
         {/* Account Info (Read-only) */}
-        <View style={[styles.section, { backgroundColor: colors.white }]}>
+        <View style={[styles.section, { backgroundColor: colors.surface }]}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Account Info</Text>
           <View style={[styles.infoRow, { borderBottomColor: colors.border }]}>
             <Text style={[styles.infoLabel, { color: colors.textSecondary }]}>Email</Text>

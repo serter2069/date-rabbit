@@ -8,7 +8,7 @@ import { Card } from '../../../src/components/Card';
 import { Avatar } from '../../../src/components/Avatar';
 import { Badge } from '../../../src/components/Badge';
 import { Icon } from '../../../src/components/Icon';
-import { colors, spacing, typography, borderRadius, shadows } from '../../../src/constants/theme';
+import { colors, spacing, typography, borderRadius, shadows, PAGE_PADDING } from '../../../src/constants/theme';
 
 export default function FemaleDashboard() {
   const insets = useSafeAreaInsets();
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   content: {
-    paddingHorizontal: spacing.lg + 4,
+    paddingHorizontal: PAGE_PADDING,
     paddingBottom: spacing.xxl,
   },
   header: {
@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: colors.divider,
+    backgroundColor: colors.border,
     marginVertical: spacing.sm,
   },
   actionsRow: {
@@ -351,7 +351,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.lg,
     paddingHorizontal: spacing.sm,
     borderWidth: 1,
-    borderColor: colors.borderLight,
+    borderColor: colors.border,
   },
   actionIconWrap: {
     width: 48,
