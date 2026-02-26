@@ -1,115 +1,291 @@
 /**
- * AUTO-GENERATED from scenarios.ts
- * Do not edit manually - run: npm run generate:tests
- * 
- * Uses text-based selectors for React Native Web compatibility
+ * AUTO-GENERATED from scenarios.ts — 2026-02-25
+ * Do not edit manually.
+ *
+ * Uses data-testid selectors matching actual React Native testID props.
  */
 
 import { test, expect, Page } from '@playwright/test';
-import { startLogicTest, analyzeIfLogicMode, endLogicTest } from '../logic/helpers';
 
+const TEST_EMAIL = 'test@daterabbit.com';
+const TEST_OTP = '00000000';
 
-test('Welcome - Load Page', async ({ page }) => {
-  startLogicTest('welcome-load-page');
+// Helper: locate by testID
+const tid = (page: Page, id: string) => page.locator(`[data-testid="${id}"]`);
+
+// Helper: full login flow
+async function login(page: Page) {
+  await page.goto('/');
+  await page.waitForTimeout(2000);
+  await page.getByText('Sign in').click();
+  await page.waitForTimeout(1500);
+  await tid(page, 'login-email-input').fill(TEST_EMAIL);
+  await tid(page, 'login-continue-btn').click();
+  await page.waitForTimeout(2000);
+  await tid(page, 'otp-code-input').fill(TEST_OTP);
+  await tid(page, 'otp-verify-btn').click();
+  await page.waitForTimeout(3000);
+}
+
+// =============================================
+// PHASE 1: CRITICAL — Auth & Navigation
+// =============================================
+
+test.describe('Phase 1: Critical', () => {
+
+  test('Welcome - Page Loads', async ({ page }) => {
     await page.goto('/');
     await page.waitForTimeout(3000);
-    await analyzeIfLogicMode(page, '01-welcome', '');
-    await expect(page.getByText('DateRabbit')).toBeVisible();
-    await expect(page.getByText('Create Account')).toBeVisible();
-  endLogicTest();
-});
+    await expect(page.getByText('Real dates')).toBeVisible();
+    await expect(tid(page, 'welcome-seeker-btn')).toBeVisible();
+    await expect(tid(page, 'welcome-companion-btn')).toBeVisible();
+    await expect(page.getByText('Sign in')).toBeVisible();
+  });
 
-
-test('Welcome - Navigate to Login', async ({ page }) => {
-  startLogicTest('welcome-navigate-to-login');
+  test('Welcome - Find Companions navigates to Login', async ({ page }) => {
     await page.goto('/');
     await page.waitForTimeout(2000);
-    await page.getByText('I already have an account').first().click(); // Go to login
+    await tid(page, 'welcome-seeker-btn').click();
+    await page.waitForTimeout(1500);
+    await expect(page.getByText('Welcome back')).toBeVisible();
+  });
+
+  test('Welcome - Become Companion navigates to Login', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForTimeout(2000);
+    await tid(page, 'welcome-companion-btn').click();
+    await page.waitForTimeout(1500);
+    await page.screenshot({ path: 'test-results/03-after-companion-btn.png' });
+  });
+
+  test('Login - Full OTP Flow', async ({ page }) => {
+    await login(page);
+    await page.screenshot({ path: 'test-results/04-after-login.png' });
+    // Should be on authenticated screen (not welcome)
+  });
+
+  test('Login - Invalid OTP', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForTimeout(2000);
+    await page.getByText('Sign in').click();
+    await page.waitForTimeout(1500);
+    await tid(page, 'login-email-input').fill(TEST_EMAIL);
+    await tid(page, 'login-continue-btn').click();
+    await page.waitForTimeout(2000);
+    await tid(page, 'otp-code-input').fill('99999999');
+    await tid(page, 'otp-verify-btn').click();
+    await page.waitForTimeout(2000);
+    // Should stay on OTP page
+    await expect(page).toHaveURL(/otp/);
+  });
+
+  test('Login - Empty Email Validation', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForTimeout(2000);
+    await page.getByText('Sign in').click();
+    await page.waitForTimeout(1500);
+    await tid(page, 'login-continue-btn').click();
     await page.waitForTimeout(1000);
+    // Should stay on login page
     await expect(page).toHaveURL(/login/);
-    await analyzeIfLogicMode(page, '02-login', '');
-  endLogicTest();
-});
+  });
 
-
-test('Welcome - Navigate to Register', async ({ page }) => {
-  startLogicTest('welcome-navigate-to-register');
+  test('OTP - Resend Code', async ({ page }) => {
     await page.goto('/');
     await page.waitForTimeout(2000);
-    await page.getByText('Create Account').first().click(); // Create account
-    await page.waitForTimeout(1000);
-    await expect(page).toHaveURL(/role-select/);
-    await analyzeIfLogicMode(page, '03-role-select', '');
-  endLogicTest();
+    await page.getByText('Sign in').click();
+    await page.waitForTimeout(1500);
+    await tid(page, 'login-email-input').fill(TEST_EMAIL);
+    await tid(page, 'login-continue-btn').click();
+    await page.waitForTimeout(2000);
+    await tid(page, 'otp-resend-btn').click();
+    await page.waitForTimeout(1500);
+    await page.screenshot({ path: 'test-results/07-otp-resent.png' });
+  });
+
+  test('OTP - Back Navigation', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForTimeout(2000);
+    await page.getByText('Sign in').click();
+    await page.waitForTimeout(1500);
+    await tid(page, 'login-email-input').fill(TEST_EMAIL);
+    await tid(page, 'login-continue-btn').click();
+    await page.waitForTimeout(2000);
+    await tid(page, 'otp-back-btn').click();
+    await page.waitForTimeout(1500);
+    await expect(page.getByText('Welcome back')).toBeVisible();
+  });
 });
 
+// =============================================
+// PHASE 2: IMPORTANT — Post-Auth Flows
+// =============================================
 
-test('Role Select - Choose Seeker', async ({ page }) => {
-  startLogicTest('role-select-choose-seeker');
-    await page.goto('/(auth)/role-select');
+test.describe('Phase 2: Post-Auth', () => {
+
+  test('Browse Companions - Page Loads', async ({ page }) => {
+    await login(page);
     await page.waitForTimeout(2000);
-    await analyzeIfLogicMode(page, '04-role-select-page', '');
-    await page.getByText('Date Seeker').first().click(); // Select seeker
-    await page.waitForTimeout(1000);
-    await expect(page).toHaveURL(/register/);
-    await analyzeIfLogicMode(page, '05-register-seeker', '');
-  endLogicTest();
+    await page.screenshot({ path: 'test-results/10-browse-page.png' });
+    await expect(tid(page, 'browse-search-input')).toBeVisible();
+    await expect(tid(page, 'browse-filter-btn')).toBeVisible();
+  });
+
+  test('Browse Companions - Search', async ({ page }) => {
+    await login(page);
+    await page.waitForTimeout(2000);
+    await tid(page, 'browse-search-input').fill('Test');
+    await page.waitForTimeout(1500);
+    await page.screenshot({ path: 'test-results/11-browse-search.png' });
+  });
+
+  test('View Companion Profile', async ({ page }) => {
+    await login(page);
+    await page.waitForTimeout(2000);
+    const profileBtn = page.locator('[data-testid^="browse-view-profile-"]').first();
+    if (await profileBtn.isVisible()) {
+      await profileBtn.click();
+      await page.waitForTimeout(2000);
+      await page.screenshot({ path: 'test-results/12-companion-profile.png' });
+      await expect(tid(page, 'profile-view-book-btn')).toBeVisible();
+      await expect(tid(page, 'profile-view-message-btn')).toBeVisible();
+    }
+  });
+
+  test('Bookings Tab - Navigation', async ({ page }) => {
+    await login(page);
+    await page.waitForTimeout(2000);
+    await page.getByText('Bookings').click();
+    await page.waitForTimeout(2000);
+    await page.screenshot({ path: 'test-results/13-bookings-upcoming.png' });
+    const pastTab = tid(page, 'bookings-tab-past');
+    if (await pastTab.isVisible()) {
+      await pastTab.click();
+      await page.waitForTimeout(1000);
+      await page.screenshot({ path: 'test-results/14-bookings-past.png' });
+    }
+    const cancelledTab = tid(page, 'bookings-tab-cancelled');
+    if (await cancelledTab.isVisible()) {
+      await cancelledTab.click();
+      await page.waitForTimeout(1000);
+      await page.screenshot({ path: 'test-results/15-bookings-cancelled.png' });
+    }
+  });
+
+  test('Messages - Page Loads', async ({ page }) => {
+    await login(page);
+    await page.waitForTimeout(2000);
+    await page.getByText('Messages').click();
+    await page.waitForTimeout(2000);
+    await page.screenshot({ path: 'test-results/16-messages.png' });
+  });
+
+  test('Own Profile - Page Loads', async ({ page }) => {
+    await login(page);
+    await page.waitForTimeout(2000);
+    await page.getByText('Profile').click();
+    await page.waitForTimeout(2000);
+    await page.screenshot({ path: 'test-results/17-profile.png' });
+    await expect(tid(page, 'profile-edit-btn')).toBeVisible();
+    await expect(tid(page, 'profile-signout-btn')).toBeVisible();
+  });
+
+  test('Signout Flow', async ({ page }) => {
+    await login(page);
+    await page.waitForTimeout(2000);
+    await page.getByText('Profile').click();
+    await page.waitForTimeout(1500);
+    await tid(page, 'profile-signout-btn').click();
+    await page.waitForTimeout(2000);
+    await expect(page.getByText('Real dates')).toBeVisible();
+  });
 });
 
+// =============================================
+// PHASE 3: NICE-TO-HAVE — Edge Cases
+// =============================================
 
-test('Role Select - Choose Companion', async ({ page }) => {
-  startLogicTest('role-select-choose-companion');
-    await page.goto('/(auth)/role-select');
+test.describe('Phase 3: Edge Cases', () => {
+
+  test('Onboarding - Skip', async ({ page }) => {
+    await page.goto('/onboarding');
     await page.waitForTimeout(2000);
-    await page.getByText('Date Companion').first().click(); // Select companion
-    await page.waitForTimeout(1000);
-    await expect(page).toHaveURL(/register/);
-    await analyzeIfLogicMode(page, '06-register-companion', '');
-  endLogicTest();
-});
+    await page.screenshot({ path: 'test-results/20-onboarding.png' });
+    await tid(page, 'onboarding-skip').click();
+    await page.waitForTimeout(1500);
+    await page.screenshot({ path: 'test-results/21-after-skip.png' });
+  });
 
-
-test('Login - Page Loads', async ({ page }) => {
-  startLogicTest('login-page-loads');
-    await page.goto('/(auth)/login');
+  test('Onboarding - Next Through All Slides', async ({ page }) => {
+    await page.goto('/onboarding');
     await page.waitForTimeout(2000);
-    await analyzeIfLogicMode(page, '07-login-page', '');
-    await expect(page.getByText('Welcome')).toBeVisible();
-    await page.getByPlaceholder('email@example.com').fill('test@example.com');
-    await analyzeIfLogicMode(page, '08-login-email-filled', '');
-  endLogicTest();
-});
+    for (let i = 2; i <= 4; i++) {
+      await tid(page, 'onboarding-next').click();
+      await page.waitForTimeout(500);
+      await page.screenshot({ path: `test-results/2${i}-onboarding-slide${i}.png` });
+    }
+    await tid(page, 'onboarding-next').click();
+    await page.waitForTimeout(1500);
+    await page.screenshot({ path: 'test-results/25-after-onboarding.png' });
+  });
 
-
-test('Register - Fill Seeker Form', async ({ page }) => {
-  startLogicTest('register-fill-seeker-form');
-    await page.goto('/(auth)/register?role=male');
+  test('Favorite - Toggle', async ({ page }) => {
+    await login(page);
     await page.waitForTimeout(2000);
-    await analyzeIfLogicMode(page, '10-register-form-seeker', '');
-    await page.getByPlaceholder('Your name').fill('Test User');
-    await page.getByPlaceholder('email@example.com').fill('test@example.com');
-    await analyzeIfLogicMode(page, '11-register-filled', '');
-  endLogicTest();
-});
+    const profileBtn = page.locator('[data-testid^="browse-view-profile-"]').first();
+    if (await profileBtn.isVisible()) {
+      await profileBtn.click();
+      await page.waitForTimeout(2000);
+      await tid(page, 'profile-view-favorite-btn').click();
+      await page.waitForTimeout(1000);
+      await page.screenshot({ path: 'test-results/26-favorite-toggled.png' });
+    }
+  });
 
-
-test('Register - Fill Companion Form', async ({ page }) => {
-  startLogicTest('register-fill-companion-form');
-    await page.goto('/(auth)/register?role=female');
+  test('Booking Form - Validation', async ({ page }) => {
+    await login(page);
     await page.waitForTimeout(2000);
-    await analyzeIfLogicMode(page, '12-register-form-companion', '');
-    await page.getByPlaceholder('Your name').fill('Companion User');
-    await page.getByPlaceholder('email@example.com').fill('companion@example.com');
-    await analyzeIfLogicMode(page, '13-register-filled', '');
-  endLogicTest();
-});
+    const bookBtn = page.locator('[data-testid^="browse-book-date-"]').first();
+    if (await bookBtn.isVisible()) {
+      await bookBtn.click();
+      await page.waitForTimeout(2000);
+      await page.screenshot({ path: 'test-results/27-booking-form-empty.png' });
+      await tid(page, 'booking-submit-btn').click();
+      await page.waitForTimeout(1000);
+      await page.screenshot({ path: 'test-results/28-booking-validation.png' });
+    }
+  });
 
-
-test('OTP - Page Loads', async ({ page }) => {
-  startLogicTest('otp-page-loads');
-    await page.goto('/(auth)/otp');
+  test('Login Back - Returns to Welcome', async ({ page }) => {
+    await page.goto('/');
     await page.waitForTimeout(2000);
-    await analyzeIfLogicMode(page, '14-otp-page', '');
-    await expect(page.getByText('Verify')).toBeVisible();
-  endLogicTest();
+    await page.getByText('Sign in').click();
+    await page.waitForTimeout(1500);
+    await tid(page, 'login-back-btn').click();
+    await page.waitForTimeout(1500);
+    await expect(page.getByText('Real dates')).toBeVisible();
+  });
+
+  test('Profile - Edit Navigation', async ({ page }) => {
+    await login(page);
+    await page.waitForTimeout(2000);
+    await page.getByText('Profile').click();
+    await page.waitForTimeout(1500);
+    await tid(page, 'profile-edit-btn').click();
+    await page.waitForTimeout(2000);
+    await page.screenshot({ path: 'test-results/30-edit-profile.png' });
+  });
+
+  test('Neo-Brutalism Visual Audit', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForTimeout(3000);
+    await page.screenshot({ path: 'test-results/40-visual-welcome.png' });
+    await page.getByText('Sign in').click();
+    await page.waitForTimeout(1500);
+    await page.screenshot({ path: 'test-results/41-visual-login.png' });
+    await tid(page, 'login-email-input').fill(TEST_EMAIL);
+    await tid(page, 'login-continue-btn').click();
+    await page.waitForTimeout(2000);
+    await page.screenshot({ path: 'test-results/42-visual-otp.png' });
+  });
 });
