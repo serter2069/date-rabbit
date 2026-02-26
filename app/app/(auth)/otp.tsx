@@ -16,7 +16,7 @@ import { Button } from '../../src/components/Button';
 import { Icon } from '../../src/components/Icon';
 import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
 
-const CODE_LENGTH = 8;
+const CODE_LENGTH = 6;
 
 export default function OTPScreen() {
   const insets = useSafeAreaInsets();
@@ -51,7 +51,7 @@ export default function OTPScreen() {
 
   const handleVerify = async () => {
     if (code.length !== CODE_LENGTH) {
-      Alert.alert('Invalid Code', 'Please enter all 8 digits');
+      Alert.alert('Invalid Code', 'Please enter all 6 digits');
       return;
     }
 
@@ -112,7 +112,7 @@ export default function OTPScreen() {
 
         <Text style={[styles.title, { color: colors.text }]}>Enter Code</Text>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          We sent an 8-digit code to{'\n'}
+          We sent a 6-digit code to{'\n'}
           <Text style={[styles.email, { color: colors.primary }]}>{pendingEmail}</Text>
         </Text>
 
@@ -202,8 +202,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
   },
   codeBox: {
-    width: 40,
-    height: 52,
+    width: 48,
+    height: 56,
     borderWidth: 2,
     borderRadius: borderRadius.md,
     justifyContent: 'center',
