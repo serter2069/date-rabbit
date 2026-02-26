@@ -18,7 +18,7 @@ jobs:
       - name: Build frontend (Expo web)
         run: |
           cd app
-          npm ci
+          npm ci --legacy-peer-deps
           npx expo export --platform web
           mkdir -p dist/version
           cat > dist/version.json << VEOF
