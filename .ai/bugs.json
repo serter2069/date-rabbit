@@ -293,28 +293,24 @@
       "id": "BUG-023",
       "type": "bug",
       "severity": "medium",
-      "status": "open",
+      "status": "pending_review",
       "title": "Booking form submit button non-functional on web",
-      "description": "Booking form renders correctly with all fields, but Send Request button does not trigger handleSubmit on web. React Native Web state selections may not persist correctly through Playwright interactions. API works (direct call returns 201).",
+      "description": "Booking form renders correctly with all fields, but Send Request button does not trigger handleSubmit on web. Root cause: Alert.alert() is a no-op on web — success callback with navigation was inside Alert.alert, so nothing happened after successful booking.",
       "platform": "web",
       "created": "2026-02-27",
-      "steps_to_reproduce": [
-        "Navigate to booking form for any companion",
-        "Select activity, duration, date, time, enter location",
-        "Click Send Request",
-        "Nothing happens, no error, no navigation"
-      ],
+      "fix": "Created cross-platform showAlert() helper that uses window.alert on web and Alert.alert on native. Success navigation now triggers correctly after alert dismissal.",
       "found_by": "e2e-browser"
     },
     {
       "id": "BUG-024",
       "type": "bug",
       "severity": "low",
-      "status": "open",
+      "status": "pending_review",
       "title": "Terms/Privacy pages crash on web",
-      "description": "Clicking Terms or Privacy links from welcome page opens new tab that shows chrome error page. Routes not implemented.",
+      "description": "Clicking Terms or Privacy links from welcome page opened new tab to non-existent daterabbit.com URLs.",
       "platform": "web",
       "created": "2026-02-27",
+      "fix": "Created in-app /terms and /privacy routes with full content. Updated welcome.tsx and register.tsx to use router.push() instead of external URLs.",
       "found_by": "e2e-browser"
     }
   ]
