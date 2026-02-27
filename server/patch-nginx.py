@@ -28,8 +28,11 @@ proxy_block = """    # API proxy to NestJS backend
 with open(conf_path, 'r') as f:
     content = f.read()
 
-# Backup
-shutil.copy2(conf_path, conf_path + '.bak')
+# Backup to /tmp (runner may not have write access to /etc/nginx/)
+import os
+backup_path = '/tmp/nginx-daterabbit-' + os.path.basename(conf_path) + '.bak'
+shutil.copy2(conf_path, backup_path)
+print(f"Backup saved to {backup_path}")
 
 # Insert before first 'location / {' (the catch-all)
 marker = '    location / {'
