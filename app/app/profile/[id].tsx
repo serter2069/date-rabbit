@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   Dimensions,
   Modal,
-  Alert,
   TextInput,
   ActivityIndicator,
 } from 'react-native';
@@ -15,6 +14,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import { Button } from '../../src/components/Button';
+import { showAlert, showConfirm } from '../../src/utils/alert';
 import { Card } from '../../src/components/Card';
 import { Icon } from '../../src/components/Icon';
 import { UserImage } from '../../src/components/UserImage';
@@ -150,7 +150,7 @@ export default function ProfileViewScreen() {
 
   const handleReportUser = async () => {
     if (!selectedReason) {
-      Alert.alert('Select Reason', 'Please select a reason for your report');
+      showAlert('Select Reason', 'Please select a reason for your report');
       return;
     }
 
@@ -164,9 +164,9 @@ export default function ProfileViewScreen() {
       setReportModalVisible(false);
       setSelectedReason(null);
       setReportDescription('');
-      Alert.alert('Report Submitted', result.message);
+      showAlert('Report Submitted', result.message);
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to submit report');
+      showAlert('Error', err.message || 'Failed to submit report');
     } finally {
       setIsReporting(false);
     }
@@ -174,25 +174,18 @@ export default function ProfileViewScreen() {
 
   const handleBlockUser = () => {
     setMenuVisible(false);
-    Alert.alert(
+    showConfirm(
       'Block User',
       `Are you sure you want to block ${profile.name}? You won't see their profile or receive messages from them.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Block',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await usersApi.blockUser(profile.id);
-              Alert.alert('Blocked', `${profile.name} has been blocked.`);
-              router.back();
-            } catch (err) {
-              Alert.alert('Error', 'Failed to block user');
-            }
-          },
-        },
-      ]
+      async () => {
+        try {
+          await usersApi.blockUser(profile.id);
+          showAlert('Blocked', `${profile.name} has been blocked.`, () => router.back());
+        } catch (err) {
+          showAlert('Error', 'Failed to block user');
+        }
+      },
+      'Block',
     );
   };
 

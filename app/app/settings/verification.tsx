@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
@@ -16,6 +15,7 @@ import { Button } from '../../src/components/Button';
 import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
 import { useAuthStore } from '../../src/store/authStore';
 import { usersApi } from '../../src/services/api';
+import { showAlert, showConfirm } from '../../src/utils/alert';
 
 interface Requirement {
   name: string;
@@ -52,30 +52,25 @@ export default function VerificationScreen() {
   }, [fetchStatus]);
 
   const handleRequestVerification = async () => {
-    Alert.alert(
+    showConfirm(
       'Request Verification',
       'Are you sure you want to submit your profile for verification?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Submit',
-          onPress: async () => {
-            setIsSubmitting(true);
-            try {
-              const result = await usersApi.requestVerification();
-              if (result.success) {
-                Alert.alert('Success', result.message);
-                await refreshUser();
-                await fetchStatus();
-              }
-            } catch (err: any) {
-              Alert.alert('Error', err.message || 'Failed to submit verification request');
-            } finally {
-              setIsSubmitting(false);
-            }
-          },
-        },
-      ]
+      async () => {
+        setIsSubmitting(true);
+        try {
+          const result = await usersApi.requestVerification();
+          if (result.success) {
+            showAlert('Success', result.message);
+            await refreshUser();
+            await fetchStatus();
+          }
+        } catch (err: any) {
+          showAlert('Error', err.message || 'Failed to submit verification request');
+        } finally {
+          setIsSubmitting(false);
+        }
+      },
+      'Submit',
     );
   };
 

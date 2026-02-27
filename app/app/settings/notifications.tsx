@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Switch,
-  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -15,6 +14,7 @@ import { Icon } from '../../src/components/Icon';
 import { Card } from '../../src/components/Card';
 import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
 import { useAuthStore } from '../../src/store/authStore';
+import { showAlert } from '../../src/utils/alert';
 
 interface NotificationSetting {
   id: string;
@@ -55,10 +55,9 @@ export default function NotificationsSettingsScreen() {
       await updateProfile({ expoPushToken: token.data, notificationsEnabled: true });
       setMasterEnabled(true);
     } else {
-      Alert.alert(
+      showAlert(
         'Permission Required',
         'Please enable notifications in your device settings to receive updates.',
-        [{ text: 'OK' }]
       );
     }
   };

@@ -40,24 +40,32 @@ export default function BrowseScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Request location permission and get current location
+  // Request location permission and get current location (with timeout for web)
   useEffect(() => {
     (async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      setLocationPermission(status === 'granted' ? 'granted' : 'denied');
-
-      if (status === 'granted') {
-        try {
-          const location = await Location.getCurrentPositionAsync({
-            accuracy: Location.Accuracy.Balanced,
-          });
-          setUserLocation({
-            latitude: location.coords.latitude,
-            longitude: location.coords.longitude,
-          });
-        } catch {
-          // Location fetch failed, continue without
+      try {
+        const locationResult = await Promise.race([
+          (async () => {
+            const { status } = await Location.requestForegroundPermissionsAsync();
+            setLocationPermission(status === 'granted' ? 'granted' : 'denied');
+            if (status === 'granted') {
+              const location = await Location.getCurrentPositionAsync({
+                accuracy: Location.Accuracy.Balanced,
+              });
+              return {
+                latitude: location.coords.latitude,
+                longitude: location.coords.longitude,
+              };
+            }
+            return null;
+          })(),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
+        ]);
+        if (locationResult) {
+          setUserLocation(locationResult);
         }
+      } catch {
+        // Location fetch failed, continue without
       }
     })();
   }, []);

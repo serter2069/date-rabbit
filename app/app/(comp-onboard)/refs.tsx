@@ -6,10 +6,10 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { showAlert } from '../../src/utils/alert';
 import { Button } from '../../src/components/Button';
 import { Input } from '../../src/components/Input';
 import { Icon } from '../../src/components/Icon';
@@ -77,21 +77,21 @@ export default function CompRefsScreen() {
     const refsOk = await submitReferences(refsPayload);
     if (!refsOk) {
       setSubmitting(false);
-      Alert.alert('Error', 'Failed to submit references. Please try again.');
+      showAlert('Error', 'Failed to submit references. Please try again.');
       return;
     }
 
     const consentOk = await submitConsent();
     if (!consentOk) {
       setSubmitting(false);
-      Alert.alert('Error', 'Failed to submit consent. Please try again.');
+      showAlert('Error', 'Failed to submit consent. Please try again.');
       return;
     }
 
     const reviewOk = await submitForReview();
     if (!reviewOk) {
       setSubmitting(false);
-      Alert.alert('Error', 'Failed to submit for review. Please try again.');
+      showAlert('Error', 'Failed to submit for review. Please try again.');
       return;
     }
 

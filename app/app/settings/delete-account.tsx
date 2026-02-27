@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,6 +15,7 @@ import { Button } from '../../src/components/Button';
 import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
 import { useAuthStore } from '../../src/store/authStore';
 import { usersApi } from '../../src/services/api';
+import { showAlert, showConfirm } from '../../src/utils/alert';
 
 export default function DeleteAccountScreen() {
   const insets = useSafeAreaInsets();
@@ -28,36 +28,25 @@ export default function DeleteAccountScreen() {
   const canDelete = confirmation.toLowerCase() === 'delete';
 
   const handleDeleteAccount = () => {
-    Alert.alert(
+    showConfirm(
       'Delete Account',
       'This action cannot be undone. All your data will be permanently deleted. Are you absolutely sure?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete Forever',
-          style: 'destructive',
-          onPress: async () => {
-            setIsDeleting(true);
-            try {
-              const result = await usersApi.deleteAccount();
-              if (result.success) {
-                Alert.alert('Account Deleted', result.message, [
-                  {
-                    text: 'OK',
-                    onPress: async () => {
-                      await logout();
-                      router.replace('/welcome');
-                    },
-                  },
-                ]);
-              }
-            } catch (err: any) {
-              Alert.alert('Error', err.message || 'Failed to delete account');
-              setIsDeleting(false);
-            }
-          },
-        },
-      ]
+      async () => {
+        setIsDeleting(true);
+        try {
+          const result = await usersApi.deleteAccount();
+          if (result.success) {
+            showAlert('Account Deleted', result.message, async () => {
+              await logout();
+              router.replace('/welcome');
+            });
+          }
+        } catch (err: any) {
+          showAlert('Error', err.message || 'Failed to delete account');
+          setIsDeleting(false);
+        }
+      },
+      'Delete Forever',
     );
   };
 

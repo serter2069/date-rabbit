@@ -9,11 +9,11 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { showAlert } from '../../src/utils/alert';
 import { Button } from '../../src/components/Button';
 import { Icon } from '../../src/components/Icon';
 import { ProgressBar } from '../../src/components/verification';
@@ -34,7 +34,7 @@ export default function CompStep2Screen() {
 
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission needed', 'Please allow access to your photo library to upload profile photos.');
+      showAlert('Permission needed', 'Please allow access to your photo library to upload profile photos.');
       return;
     }
 

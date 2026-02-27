@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import { showAlert, showConfirm } from '../../../src/utils/alert';
 import { Card } from '../../../src/components/Card';
 import { UserImage } from '../../../src/components/UserImage';
 import { Button } from '../../../src/components/Button';
@@ -32,47 +33,36 @@ export default function RequestsScreen() {
   }, [activeTab]);
 
   const handleAccept = useCallback((booking: Booking) => {
-    Alert.alert(
+    showConfirm(
       'Accept Request',
       `Accept date with ${booking.seeker.name}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Accept',
-          onPress: async () => {
-            const result = await acceptRequest(booking.id);
-            if (result.success) {
-              Alert.alert('Accepted', 'Date request accepted!');
-              fetchRequests(activeTab);
-            } else {
-              Alert.alert('Error', result.error || 'Failed to accept');
-            }
-          },
-        },
-      ]
+      async () => {
+        const result = await acceptRequest(booking.id);
+        if (result.success) {
+          showAlert('Accepted', 'Date request accepted!');
+          fetchRequests(activeTab);
+        } else {
+          showAlert('Error', result.error || 'Failed to accept');
+        }
+      },
+      'Accept'
     );
   }, [activeTab]);
 
   const handleDecline = useCallback((booking: Booking) => {
-    Alert.alert(
+    showConfirm(
       'Decline Request',
       `Decline date with ${booking.seeker.name}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Decline',
-          style: 'destructive',
-          onPress: async () => {
-            const result = await declineRequest(booking.id);
-            if (result.success) {
-              Alert.alert('Declined', 'Date request declined.');
-              fetchRequests(activeTab);
-            } else {
-              Alert.alert('Error', result.error || 'Failed to decline');
-            }
-          },
-        },
-      ]
+      async () => {
+        const result = await declineRequest(booking.id);
+        if (result.success) {
+          showAlert('Declined', 'Date request declined.');
+          fetchRequests(activeTab);
+        } else {
+          showAlert('Error', result.error || 'Failed to decline');
+        }
+      },
+      'Decline'
     );
   }, [activeTab]);
 

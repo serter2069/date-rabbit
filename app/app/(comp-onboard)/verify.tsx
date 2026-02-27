@@ -6,10 +6,10 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { showAlert } from '../../src/utils/alert';
 import { Button } from '../../src/components/Button';
 import {
   ProgressBar,
@@ -47,21 +47,21 @@ export default function CompVerifyScreen() {
     const ssnOk = await submitSSN(ssn);
     if (!ssnOk) {
       setSubmitting(false);
-      Alert.alert('Error', 'Failed to submit SSN. Please try again.');
+      showAlert('Error', 'Failed to submit SSN. Please try again.');
       return;
     }
 
     const idOk = await uploadId(idUri!);
     if (!idOk) {
       setSubmitting(false);
-      Alert.alert('Error', 'Failed to upload ID photo. Please try again.');
+      showAlert('Error', 'Failed to upload ID photo. Please try again.');
       return;
     }
 
     const selfieOk = await uploadSelfie(selfieUri!);
     if (!selfieOk) {
       setSubmitting(false);
-      Alert.alert('Error', 'Failed to upload selfie. Please try again.');
+      showAlert('Error', 'Failed to upload selfie. Please try again.');
       return;
     }
 

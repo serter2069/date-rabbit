@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -18,6 +17,7 @@ import { PhotoUpload } from '../../src/components/PhotoUpload';
 import { useAuthStore } from '../../src/store/authStore';
 import { useImagePicker } from '../../src/hooks/useImagePicker';
 import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
+import { showAlert } from '../../src/utils/alert';
 
 export default function EditProfileScreen() {
   const insets = useSafeAreaInsets();
@@ -50,12 +50,12 @@ export default function EditProfileScreen() {
 
   const handleSave = async () => {
     if (!formData.name.trim()) {
-      Alert.alert('Error', 'Name is required');
+      showAlert('Error', 'Name is required');
       return;
     }
 
     if (formData.bio.length > 500) {
-      Alert.alert('Error', 'Bio must be 500 characters or less');
+      showAlert('Error', 'Bio must be 500 characters or less');
       return;
     }
 
@@ -71,7 +71,7 @@ export default function EditProfileScreen() {
       });
       router.back();
     } catch {
-      Alert.alert('Error', 'Failed to save changes');
+      showAlert('Error', 'Failed to save changes');
     } finally {
       setLoading(false);
     }

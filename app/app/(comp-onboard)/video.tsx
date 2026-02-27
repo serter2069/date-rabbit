@@ -4,10 +4,10 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { showAlert } from '../../src/utils/alert';
 import { Button } from '../../src/components/Button';
 import { Icon } from '../../src/components/Icon';
 import { ProgressBar, VideoRecorder } from '../../src/components/verification';
@@ -39,7 +39,7 @@ export default function CompVideoScreen() {
     setSubmitting(false);
 
     if (!ok) {
-      Alert.alert('Error', 'Failed to upload video. Please try again.');
+      showAlert('Error', 'Failed to upload video. Please try again.');
       return;
     }
 
