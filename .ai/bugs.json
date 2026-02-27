@@ -1,31 +1,7 @@
 {
   "version": "1.0",
-  "updated": "2026-02-27",
+  "updated": "2026-02-27T06:00:00Z",
   "bugs": [
-    {
-      "id": "BUG-API-001",
-      "type": "bug",
-      "severity": "high",
-      "status": "fixed",
-      "title": "Companions API: UUID validation + number conversion",
-      "description": "/api/companions/search returned 500 due to :id route catching 'search' as UUID. Also fixed rating/hourlyRate string to number conversion.",
-      "platform": "api",
-      "created": "2026-02-17T03:00:00Z",
-      "fixed": "2026-02-17T03:40:00Z",
-      "fix": "Added UUID regex validation in :id route, Number() for rating/hourlyRate"
-    },
-    {
-      "id": "BUG-BROWSE-001",
-      "type": "bug",
-      "severity": "high",
-      "status": "fixed",
-      "title": "Browse screen crash: rating.toFixed is not a function",
-      "description": "Browse screen crashed with 'e.rating.toFixed is not a function'. Rating comes as string from API.",
-      "platform": "web",
-      "created": "2026-02-17T03:17:00Z",
-      "fixed": "2026-02-17T03:35:00Z",
-      "fix": "Added Number() wrapper: Number(companion.rating).toFixed(1)"
-    },
     {
       "id": "BUG-BOOKINGS-001",
       "type": "bug",
@@ -312,6 +288,30 @@
       "created": "2026-02-27",
       "fix": "Created in-app /terms and /privacy routes with full content. Updated welcome.tsx and register.tsx to use router.push() instead of external URLs.",
       "found_by": "e2e-browser"
+    },
+    {
+      "id": "BUG-025",
+      "type": "bug",
+      "severity": "high",
+      "status": "pending_review",
+      "title": "All Alert.alert calls are no-op on web (18 screens affected)",
+      "description": "Alert.alert() from React Native does nothing on web. This broke all error messages, success notifications, and confirmation dialogs across the entire app on web platform. Auth flow (OTP), booking, profile, settings, onboarding - all affected.",
+      "platform": "web",
+      "created": "2026-02-27",
+      "fix": "Created shared app/src/utils/alert.ts with showAlert() (window.alert on web) and showConfirm() (window.confirm on web). Replaced all Alert.alert calls in 18 files. Also added location timeout to browse.tsx.",
+      "found_by": "code-audit"
+    },
+    {
+      "id": "BUG-026",
+      "type": "bug",
+      "severity": "medium",
+      "status": "pending_review",
+      "title": "Chat sendMessage fails silently - input cleared without error feedback",
+      "description": "In chat/[id].tsx, if sendMessage() fails (network error, API down), the message is already cleared from input and user gets no feedback. They don't know if the message was sent.",
+      "platform": "all",
+      "created": "2026-02-27",
+      "fix": "Added try-catch around sendMessage. On failure: restores message text to input, shows cross-platform alert.",
+      "found_by": "code-audit"
     }
   ]
 }
