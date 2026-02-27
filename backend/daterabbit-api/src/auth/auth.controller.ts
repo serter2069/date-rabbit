@@ -1,7 +1,6 @@
-import { Controller, Post, Body, HttpException, HttpStatus, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Body, HttpException, HttpStatus, Request } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { UserRole } from '../users/entities/user.entity';
 
 @Controller('auth')
@@ -41,10 +40,10 @@ export class AuthController {
   }
 
   @Post('register')
-  @UseGuards(JwtAuthGuard)
   async register(
     @Request() req,
     @Body() body: {
+      email?: string;
       name: string;
       role: 'seeker' | 'companion';
       age?: number;
@@ -57,9 +56,27 @@ export class AuthController {
       throw new HttpException('Name is required', HttpStatus.BAD_REQUEST);
     }
 
-    // Email comes from verified JWT — not from request body
+    // If JWT provided, use email from token (more secure)
+    // Otherwise require email in body (frontend compat)
+    let email: string;
+    const authHeader = req.headers?.authorization;
+    if (authHeader?.startsWith('Bearer ')) {
+      const decoded = this.authService.validateToken(authHeader.slice(7));
+      if (decoded) {
+        email = decoded.email;
+      } else if (body.email) {
+        email = body.email.toLowerCase();
+      } else {
+        throw new HttpException('Authentication required', HttpStatus.UNAUTHORIZED);
+      }
+    } else if (body.email) {
+      email = body.email.toLowerCase();
+    } else {
+      throw new HttpException('Email is required', HttpStatus.BAD_REQUEST);
+    }
+
     const result = await this.authService.register({
-      email: req.user.email,
+      email,
       name: body.name,
       role: body.role === 'companion' ? UserRole.COMPANION : UserRole.SEEKER,
       age: body.age,

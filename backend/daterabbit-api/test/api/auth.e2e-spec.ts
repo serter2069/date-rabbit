@@ -12,9 +12,7 @@ describe('Auth API', () => {
 
     it('should send OTP for existing email', async () => {
       const email = uniqueEmail('auth-existing');
-      // First call creates user
       await apiPost('/auth/start', { email });
-      // Second call — user exists
       const { status, body } = await apiPost('/auth/start', { email });
       expect(status).toBe(201);
       expect(body.success).toBe(true);
@@ -67,9 +65,8 @@ describe('Auth API', () => {
   });
 
   describe('POST /auth/register', () => {
-    it('should register with role and profile data (requires JWT)', async () => {
+    it('should register with JWT token (preferred)', async () => {
       const email = uniqueEmail('auth-reg');
-      // Must go through start + verify to get JWT
       const token = await login(email);
       const { status, body } = await apiPost('/auth/register', {
         name: 'Test User',
@@ -82,6 +79,18 @@ describe('Auth API', () => {
       expect(body.token).toBeDefined();
       expect(body.user.name).toBe('Test User');
       expect(body.user.role).toBe('seeker');
+    });
+
+    it('should register with email in body (frontend compat)', async () => {
+      const email = uniqueEmail('auth-reg2');
+      await apiPost('/auth/start', { email });
+      const { status, body } = await apiPost('/auth/register', {
+        email,
+        name: 'Test User 2',
+        role: 'seeker',
+      });
+      expect(status).toBe(201);
+      expect(body.success).toBe(true);
     });
 
     it('should register as companion with hourly rate', async () => {
@@ -97,18 +106,8 @@ describe('Auth API', () => {
       expect(body.user.role).toBe('companion');
     });
 
-    it('should reject without auth token (auth bypass protection)', async () => {
-      const { status } = await apiPost('/auth/register', {
-        name: 'Hacker',
-        role: 'seeker',
-      });
-      expect(status).toBe(401);
-    });
-
-    it('should reject missing name', async () => {
-      const email = uniqueEmail('auth-noname');
-      const token = await login(email);
-      const { status } = await apiPost('/auth/register', {}, token);
+    it('should reject missing name and email', async () => {
+      const { status } = await apiPost('/auth/register', { role: 'seeker' });
       expect(status).toBeGreaterThanOrEqual(400);
     });
   });

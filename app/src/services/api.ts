@@ -102,7 +102,6 @@ export const authApi = {
     apiRequest<{ success: boolean; token: string; user: User }>('/auth/register', {
       method: 'POST',
       body: data,
-      auth: false,
     }),
 };
 
