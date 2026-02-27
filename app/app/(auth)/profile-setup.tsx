@@ -8,10 +8,10 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { showAlert } from '../../src/utils/alert';
 import { useAuthStore } from '../../src/store/authStore';
 import { Button } from '../../src/components/Button';
 import { Icon } from '../../src/components/Icon';
@@ -39,16 +39,16 @@ export default function ProfileSetupScreen() {
 
   const handleBasicNext = () => {
     if (!name.trim()) {
-      Alert.alert('Required', 'Please enter your name');
+      showAlert('Required', 'Please enter your name');
       return;
     }
     const ageNum = parseInt(age);
     if (isNaN(ageNum) || ageNum < 18 || ageNum > 99) {
-      Alert.alert('Invalid Age', 'Please enter a valid age (18-99)');
+      showAlert('Invalid Age', 'Please enter a valid age (18-99)');
       return;
     }
     if (!location.trim()) {
-      Alert.alert('Required', 'Please enter your location');
+      showAlert('Required', 'Please enter your location');
       return;
     }
     setStep('details');
@@ -56,14 +56,14 @@ export default function ProfileSetupScreen() {
 
   const handleComplete = () => {
     if (!bio.trim()) {
-      Alert.alert('Required', 'Please write something about yourself');
+      showAlert('Required', 'Please write something about yourself');
       return;
     }
 
     if (role === 'companion') {
       const rate = parseInt(hourlyRate);
       if (isNaN(rate) || rate < 1) {
-        Alert.alert('Required', 'Please enter your hourly rate');
+        showAlert('Required', 'Please enter your hourly rate');
         return;
       }
     }

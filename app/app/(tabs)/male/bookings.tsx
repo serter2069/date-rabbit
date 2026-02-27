@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import { showAlert, showConfirm } from '../../../src/utils/alert';
 import { Card } from '../../../src/components/Card';
 import { UserImage } from '../../../src/components/UserImage';
 import { Button } from '../../../src/components/Button';
@@ -38,25 +39,20 @@ export default function BookingsScreen() {
   }, [activeTab]);
 
   const handleCancelBooking = useCallback((booking: Booking) => {
-    Alert.alert(
+    showConfirm(
       'Cancel Booking',
       `Are you sure you want to cancel your date with ${booking.companion.name}?`,
-      [
-        { text: 'No', style: 'cancel' },
-        {
-          text: 'Yes, Cancel',
-          style: 'destructive',
-          onPress: async () => {
-            const result = await cancelBooking(booking.id, 'Cancelled by user');
-            if (result.success) {
-              Alert.alert('Cancelled', 'Your booking has been cancelled.');
-              fetchMyBookings(filterMap[activeTab]);
-            } else {
-              Alert.alert('Error', result.error || 'Failed to cancel booking');
-            }
-          },
-        },
-      ]
+      async () => {
+        const result = await cancelBooking(booking.id, 'Cancelled by user');
+        if (result.success) {
+          showAlert('Cancelled', 'Your booking has been cancelled.');
+          fetchMyBookings(filterMap[activeTab]);
+        } else {
+          showAlert('Error', result.error || 'Failed to cancel booking');
+        }
+      },
+      'Yes, Cancel',
+      'No'
     );
   }, [activeTab]);
 

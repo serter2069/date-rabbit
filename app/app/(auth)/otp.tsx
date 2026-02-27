@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -15,6 +14,7 @@ import { useAuthStore } from '../../src/store/authStore';
 import { Button } from '../../src/components/Button';
 import { Icon } from '../../src/components/Icon';
 import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
+import { showAlert } from '../../src/utils/alert';
 
 const CODE_LENGTH = 6;
 
@@ -51,13 +51,13 @@ export default function OTPScreen() {
 
   const handleVerify = async () => {
     if (code.length !== CODE_LENGTH) {
-      Alert.alert('Invalid Code', 'Please enter all 6 digits');
+      showAlert('Invalid Code', 'Please enter all 6 digits');
       return;
     }
 
     const result = await verifyCode(code);
     if (!result.success) {
-      Alert.alert('Verification Failed', result.error || 'Invalid code. Please try again.');
+      showAlert('Verification Failed', result.error || 'Invalid code. Please try again.');
     }
   };
 
@@ -67,9 +67,9 @@ export default function OTPScreen() {
     const result = await resendCode();
     if (result.success) {
       setResendCooldown(60);
-      Alert.alert('Code Sent', 'A new code has been sent to your email');
+      showAlert('Code Sent', 'A new code has been sent to your email');
     } else {
-      Alert.alert('Error', result.error || 'Failed to resend code');
+      showAlert('Error', result.error || 'Failed to resend code');
     }
   };
 

@@ -6,8 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  Alert,
-  Platform,
   ActivityIndicator,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -19,6 +17,7 @@ import { UserImage } from '../../src/components/UserImage';
 import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
 import { useBookingsStore } from '../../src/store/bookingsStore';
 import { companionsApi, CompanionDetail } from '../../src/services/api';
+import { showAlert } from '../../src/utils/alert';
 
 // Activity IDs aligned with backend ActivityType enum
 const activities = [
@@ -62,16 +61,6 @@ const timeSlots = [
   '3:00 PM', '4:00 PM', '5:00 PM', '6:00 PM', '7:00 PM',
   '8:00 PM', '9:00 PM',
 ];
-
-// Cross-platform alert — Alert.alert is a no-op on web
-function showAlert(title: string, message: string, onOk?: () => void) {
-  if (Platform.OS === 'web') {
-    window.alert(`${title}\n\n${message}`);
-    onOk?.();
-  } else {
-    Alert.alert(title, message, onOk ? [{ text: 'OK', onPress: onOk }] : undefined);
-  }
-}
 
 export default function BookingScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();

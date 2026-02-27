@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { showAlert } from '../../../src/utils/alert';
 import { Card } from '../../../src/components/Card';
 import { EmptyState } from '../../../src/components/EmptyState';
 import { Icon } from '../../../src/components/Icon';
@@ -102,7 +103,7 @@ export default function CalendarScreen() {
 
   const handleBlockDates = async () => {
     if (selectedForBlock.size === 0) {
-      Alert.alert('No Dates Selected', 'Please select dates to block');
+      showAlert('No Dates Selected', 'Please select dates to block');
       return;
     }
 
@@ -117,12 +118,12 @@ export default function CalendarScreen() {
         await calendarApi.unblockDates(datesToUnblock);
       }
 
-      Alert.alert('Success', 'Calendar updated successfully');
+      showAlert('Success', 'Calendar updated successfully');
       setBlockMode(false);
       setSelectedForBlock(new Set());
       fetchData();
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to update calendar');
+      showAlert('Error', error.message || 'Failed to update calendar');
     }
   };
 

@@ -7,12 +7,12 @@ import {
   TouchableOpacity,
   Modal,
   TextInput,
-  Alert,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from '../../src/components/Card';
 import { Button } from '../../src/components/Button';
+import { showAlert } from '../../src/utils/alert';
 import { Icon } from '../../src/components/Icon';
 import { EmptyState } from '../../src/components/EmptyState';
 import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
@@ -74,13 +74,11 @@ export default function ReviewsScreen() {
 
   const handleSubmitReview = () => {
     if (reviewText.trim().length < 10) {
-      Alert.alert('Error', 'Please write at least 10 characters');
+      showAlert('Error', 'Please write at least 10 characters');
       return;
     }
     // In production, this would submit to API
-    Alert.alert('Success', 'Your review has been submitted!', [
-      { text: 'OK', onPress: () => setWriteReviewVisible(false) }
-    ]);
+    showAlert('Success', 'Your review has been submitted!', () => setWriteReviewVisible(false));
     setReviewText('');
     setReviewRating(5);
   };

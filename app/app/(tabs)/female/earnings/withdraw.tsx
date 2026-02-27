@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { showAlert, showConfirm } from '../../../../src/utils/alert';
 import { Card } from '../../../../src/components/Card';
 import { Button } from '../../../../src/components/Button';
 import { Icon } from '../../../../src/components/Icon';
@@ -51,37 +52,32 @@ export default function WithdrawScreen() {
     const withdrawAmount = useFullAmount ? undefined : parseFloat(amount);
 
     if (!useFullAmount && (!withdrawAmount || withdrawAmount < 1)) {
-      Alert.alert('Invalid Amount', 'Please enter an amount of at least $1.00');
+      showAlert('Invalid Amount', 'Please enter an amount of at least $1.00');
       return;
     }
 
     if (!useFullAmount && withdrawAmount > balance.available) {
-      Alert.alert('Insufficient Balance', 'The amount exceeds your available balance');
+      showAlert('Insufficient Balance', 'The amount exceeds your available balance');
       return;
     }
 
-    Alert.alert(
+    showConfirm(
       'Confirm Withdrawal',
       `Withdraw ${useFullAmount ? `$${balance.available.toFixed(2)}` : `$${withdrawAmount?.toFixed(2)}`} to your bank account?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Withdraw',
-          onPress: async () => {
-            setWithdrawing(true);
-            try {
-              const result = await paymentsApi.createPayout(withdrawAmount);
-              Alert.alert('Success', result.message);
-              fetchData();
-              setAmount('');
-            } catch (error: any) {
-              Alert.alert('Error', error.message || 'Failed to create payout');
-            } finally {
-              setWithdrawing(false);
-            }
-          },
-        },
-      ]
+      async () => {
+        setWithdrawing(true);
+        try {
+          const result = await paymentsApi.createPayout(withdrawAmount);
+          showAlert('Success', result.message);
+          fetchData();
+          setAmount('');
+        } catch (error: any) {
+          showAlert('Error', error.message || 'Failed to create payout');
+        } finally {
+          setWithdrawing(false);
+        }
+      },
+      'Withdraw'
     );
   };
 
