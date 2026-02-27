@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "updated": "2026-02-18",
+  "updated": "2026-02-27",
   "bugs": [
     {
       "id": "BUG-API-001",
@@ -264,6 +264,58 @@
       ],
       "found_by": "user",
       "action_required": "Create 3-4 HTML style mockups with different modern design directions for user review"
+    },
+    {
+      "id": "BUG-021",
+      "type": "bug",
+      "severity": "high",
+      "status": "pending_review",
+      "title": "Profile page infinite loading on web (expo-location hangs)",
+      "description": "Companion profile page shows 'Loading profile...' forever on web. expo-location's requestForegroundPermissionsAsync() hangs in web browsers, blocking the API fetch.",
+      "platform": "web",
+      "created": "2026-02-27",
+      "fix": "Wrapped location request in Promise.race with 5-second timeout. Profile loads without location if geolocation times out.",
+      "found_by": "e2e-browser"
+    },
+    {
+      "id": "BUG-022",
+      "type": "bug",
+      "severity": "critical",
+      "status": "pending_review",
+      "title": "Registration creates demo user instead of real user",
+      "description": "Register screen calls completeOnboarding without passing email from form. completeOnboarding uses pendingEmail from store (null when no OTP flow), sends empty email to API, API fails, frontend falls back to demo user with id 'demo-xxx'.",
+      "platform": "all",
+      "created": "2026-02-27",
+      "fix": "Added email field to OnboardingData interface. Register screen now passes formData.email. completeOnboarding uses data.email || pendingEmail || ''.",
+      "found_by": "e2e-browser"
+    },
+    {
+      "id": "BUG-023",
+      "type": "bug",
+      "severity": "medium",
+      "status": "open",
+      "title": "Booking form submit button non-functional on web",
+      "description": "Booking form renders correctly with all fields, but Send Request button does not trigger handleSubmit on web. React Native Web state selections may not persist correctly through Playwright interactions. API works (direct call returns 201).",
+      "platform": "web",
+      "created": "2026-02-27",
+      "steps_to_reproduce": [
+        "Navigate to booking form for any companion",
+        "Select activity, duration, date, time, enter location",
+        "Click Send Request",
+        "Nothing happens, no error, no navigation"
+      ],
+      "found_by": "e2e-browser"
+    },
+    {
+      "id": "BUG-024",
+      "type": "bug",
+      "severity": "low",
+      "status": "open",
+      "title": "Terms/Privacy pages crash on web",
+      "description": "Clicking Terms or Privacy links from welcome page opens new tab that shows chrome error page. Routes not implemented.",
+      "platform": "web",
+      "created": "2026-02-27",
+      "found_by": "e2e-browser"
     }
   ]
 }
