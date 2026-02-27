@@ -274,12 +274,12 @@ export interface Booking {
 export interface CreateBookingData {
   companionId: string;
   activity: string;
-  date: string;
+  dateTime: string;
   duration: number;
   location?: string;
   latitude?: number;
   longitude?: number;
-  message?: string;
+  notes?: string;
 }
 
 export const bookingsApi = {

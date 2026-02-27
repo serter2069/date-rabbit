@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,16 +17,17 @@ import { Icon } from '../../src/components/Icon';
 import { UserImage } from '../../src/components/UserImage';
 import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
 import { useBookingsStore } from '../../src/store/bookingsStore';
+import { companionsApi, CompanionDetail } from '../../src/services/api';
 
+// Activity IDs aligned with backend ActivityType enum
 const activities = [
   { id: 'dinner', icon: 'utensils', label: 'Dinner', popular: true },
   { id: 'drinks', icon: 'wine', label: 'Drinks' },
   { id: 'coffee', icon: 'coffee', label: 'Coffee' },
-  { id: 'movie', icon: 'film', label: 'Movie' },
-  { id: 'theater', icon: 'theater', label: 'Theater' },
-  { id: 'art', icon: 'palette', label: 'Art Gallery' },
+  { id: 'events', icon: 'party-popper', label: 'Event/Party' },
+  { id: 'museums', icon: 'palette', label: 'Museum / Gallery' },
   { id: 'walk', icon: 'footprints', label: 'Walk in Park' },
-  { id: 'event', icon: 'party-popper', label: 'Event/Party' },
+  { id: 'other', icon: 'star', label: 'Other' },
 ];
 
 const durations = [
@@ -60,68 +62,85 @@ const timeSlots = [
   '8:00 PM', '9:00 PM',
 ];
 
-const profilesData: Record<string, any> = {
-  '1': { id: '1', name: 'Sarah', hourlyRate: 100 },
-  '2': { id: '2', name: 'Emma', hourlyRate: 85 },
-};
-
 export default function BookingScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const profile = profilesData[id || ''] || { id: '0', name: 'Companion', hourlyRate: 100 };
 
   const { createBooking } = useBookingsStore();
 
   const availableDates = generateDates();
 
+  const [companion, setCompanion] = useState<CompanionDetail | null>(null);
+  const [isLoadingCompanion, setIsLoadingCompanion] = useState(true);
   const [selectedActivity, setSelectedActivity] = useState<string | null>(null);
   const [selectedDuration, setSelectedDuration] = useState<number>(2);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [location, setLocation] = useState('');
-  const [message, setMessage] = useState('');
+  const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    if (!id) return;
+    setIsLoadingCompanion(true);
+    companionsApi.getById(id)
+      .then((data) => setCompanion(data))
+      .catch(() => Alert.alert('Error', 'Could not load companion profile.'))
+      .finally(() => setIsLoadingCompanion(false));
+  }, [id]);
+
   const serviceFee = 0.15; // 15% platform fee
-  const subtotal = profile.hourlyRate * selectedDuration;
+  const hourlyRate = companion?.hourlyRate ?? 0;
+  const subtotal = hourlyRate * selectedDuration;
   const fee = Math.round(subtotal * serviceFee);
   const total = subtotal + fee;
 
   const isValid = selectedActivity && selectedDate && selectedTime && location.length > 0;
 
   const handleSubmit = async () => {
-    if (!isValid) {
+    if (!isValid || !companion) {
       Alert.alert('Missing Information', 'Please fill in all required fields.');
       return;
     }
 
     setIsSubmitting(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    const activityLabel = activities.find((a) => a.id === selectedActivity)?.label || '';
+    // Combine selected date and time slot into a single ISO dateTime string
+    const dateTime = (() => {
+      const base = new Date(selectedDate!);
+      // Parse time slot like "7:00 PM" into hours/minutes
+      const match = selectedTime!.match(/(\d+):(\d+)\s*(AM|PM)/i);
+      if (match) {
+        let hours = parseInt(match[1], 10);
+        const minutes = parseInt(match[2], 10);
+        const period = match[3].toUpperCase();
+        if (period === 'PM' && hours !== 12) hours += 12;
+        if (period === 'AM' && hours === 12) hours = 0;
+        base.setHours(hours, minutes, 0, 0);
+      }
+      return base.toISOString();
+    })();
 
     const result = await createBooking({
-      companionId: profile.id,
-      activity: activityLabel,
-      date: selectedDate!.toISOString(),
+      companionId: companion.id,
+      activity: selectedActivity!,
+      dateTime,
       duration: selectedDuration,
       location,
-      message,
+      notes,
     });
+
+    setIsSubmitting(false);
 
     if (!result.success) {
       Alert.alert('Error', result.error || 'Failed to send request');
       return;
     }
 
-    setIsSubmitting(false);
-
     Alert.alert(
       'Request Sent!',
-      `Your date request has been sent to ${profile.name}. You'll be notified when they respond.`,
+      `Your date request has been sent to ${companion.name}. You'll be notified when they respond.`,
       [
         {
           text: 'View My Bookings',
@@ -130,6 +149,14 @@ export default function BookingScreen() {
       ]
     );
   };
+
+  if (isLoadingCompanion) {
+    return (
+      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -146,10 +173,10 @@ export default function BookingScreen() {
         {/* Companion Info */}
         <Card style={styles.companionCard}>
           <View style={styles.companionInfo}>
-            <UserImage name={profile.name} size={56} />
+            <UserImage name={companion?.name ?? ''} size={56} />
             <View style={styles.companionDetails}>
-              <Text style={[styles.companionName, { color: colors.text }]}>{profile.name}</Text>
-              <Text style={[styles.companionRate, { color: colors.primary }]}>${profile.hourlyRate}/hour</Text>
+              <Text style={[styles.companionName, { color: colors.text }]}>{companion?.name}</Text>
+              <Text style={[styles.companionRate, { color: colors.primary }]}>${companion?.hourlyRate}/hour</Text>
             </View>
           </View>
         </Card>
@@ -220,7 +247,7 @@ export default function BookingScreen() {
                   { color: colors.textSecondary },
                   selectedDuration === duration.hours && { color: colors.primary },
                 ]}>
-                  ${profile.hourlyRate * duration.hours}
+                  ${hourlyRate * duration.hours}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -322,8 +349,8 @@ export default function BookingScreen() {
           <TextInput
             style={[styles.input, styles.textArea, { backgroundColor: colors.white, borderColor: colors.border, color: colors.text }]}
             placeholder="Tell them a bit about what you have in mind..."
-            value={message}
-            onChangeText={setMessage}
+            value={notes}
+            onChangeText={setNotes}
             multiline
             numberOfLines={4}
             textAlignVertical="top"
@@ -337,7 +364,7 @@ export default function BookingScreen() {
           <Text style={[styles.summaryTitle, { color: colors.text }]}>Price Summary</Text>
           <View style={styles.summaryRow}>
             <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-              ${profile.hourlyRate} × {selectedDuration} hours
+              ${hourlyRate} × {selectedDuration} hours
             </Text>
             <Text style={[styles.summaryValue, { color: colors.text }]}>${subtotal}</Text>
           </View>
@@ -377,6 +404,10 @@ export default function BookingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   header: {
     flexDirection: 'row',

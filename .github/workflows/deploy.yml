@@ -3,6 +3,12 @@ name: Deploy
 on:
   push:
     branches: [main, development]
+  workflow_dispatch:
+    inputs:
+      seed:
+        description: 'Run seed script after deploy? Type "yes"'
+        required: false
+        default: ''
 
 jobs:
   deploy:
@@ -90,3 +96,10 @@ jobs:
           sudo pm2 show daterabbit 2>&1 | grep -E "(status|restarts|uptime)" || true
           echo "=== PM2 error logs (last 5) ==="
           sudo pm2 logs daterabbit --nostream --lines 5 --err 2>&1 || true
+
+      - name: Run seed script
+        if: github.event.inputs.seed == 'yes'
+        run: |
+          cp /var/www/daterabbit/api/.env backend/daterabbit-api/.env
+          cd backend/daterabbit-api
+          npx ts-node src/seed/seed.ts 2>&1
