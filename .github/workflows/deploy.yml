@@ -117,47 +117,33 @@ jobs:
           sudo pm2 restart daterabbit || sudo pm2 start dist/main.js --name daterabbit
           sudo chown -R www-data:www-data /var/www/daterabbit/
 
-      - name: Ensure nginx API proxy
+      - name: Deploy nginx config
         run: |
-          echo "=== All nginx daterabbit configs ==="
-          grep -rl "daterabbit" /etc/nginx/sites-available/ /etc/nginx/sites-enabled/ 2>/dev/null || echo "None"
+          CONF="/etc/nginx/sites-available/daterabbit"
 
-          echo ""
-          echo "=== daterabbit-api config (potential conflict) ==="
-          cat /etc/nginx/sites-available/daterabbit-api 2>/dev/null || echo "Not found"
-          echo ""
+          echo "=== Before ==="
+          head -5 "$CONF" 2>/dev/null || echo "No existing config"
 
-          # Disable conflicting daterabbit-api config if it exists in sites-enabled
-          if [ -L /etc/nginx/sites-enabled/daterabbit-api ]; then
-            echo "⚠️ Removing conflicting daterabbit-api symlink from sites-enabled"
-            sudo rm /etc/nginx/sites-enabled/daterabbit-api
+          # Replace config entirely from repo
+          sudo cp server/nginx-daterabbit.conf "$CONF"
+          sudo chmod 644 "$CONF"
+
+          # Ensure symlink exists in sites-enabled
+          if [ ! -L /etc/nginx/sites-enabled/daterabbit ]; then
+            sudo ln -sf "$CONF" /etc/nginx/sites-enabled/daterabbit
           fi
 
-          # Patch the main daterabbit config
-          SPA_CONF="/etc/nginx/sites-available/daterabbit"
-          if ! grep -q "proxy_pass.*3004" "$SPA_CONF" 2>/dev/null; then
-            echo "🔧 Patching $SPA_CONF..."
-            sudo chown $(whoami) "$SPA_CONF"
-            sudo chmod 644 "$SPA_CONF"
-            python3 server/patch-nginx.py "$SPA_CONF"
-            sudo chown root:root "$SPA_CONF"
-            sudo chmod 444 "$SPA_CONF"
-          else
-            echo "✅ Proxy already in config"
-          fi
-
-          echo ""
-          echo "=== Final config ==="
-          cat "$SPA_CONF"
+          echo "=== After ==="
+          cat "$CONF"
 
           sudo nginx -t 2>&1
-          sudo systemctl reload nginx && echo "Nginx reloaded"
+          sudo systemctl reload nginx && echo "Nginx config deployed and reloaded"
 
           sleep 2
+          echo ""
           echo "=== Verification ==="
           curl -s -o /dev/null -w "Backend direct (3004): %{http_code}\n" http://localhost:3004/api/payments/earnings || true
-          curl -s -o /dev/null -w "Nginx port 80:         %{http_code}\n" http://localhost/api/payments/earnings -H "Host: daterabbit.smartlaunchhub.com" || true
-          curl -s -o /dev/null -w "Nginx port 443:        %{http_code}\n" --resolve "daterabbit.smartlaunchhub.com:443:127.0.0.1" -k https://daterabbit.smartlaunchhub.com/api/payments/earnings || true
+          curl -s -o /dev/null -w "Nginx HTTPS (443):     %{http_code}\n" --resolve "daterabbit.smartlaunchhub.com:443:127.0.0.1" -k https://daterabbit.smartlaunchhub.com/api/payments/earnings || true
 
       - name: Verify deployment
         if: always()
@@ -271,47 +257,33 @@ jobs:
           sudo pm2 restart daterabbit || sudo pm2 start dist/main.js --name daterabbit
           sudo chown -R www-data:www-data /var/www/daterabbit/
 
-      - name: Ensure nginx API proxy
+      - name: Deploy nginx config
         run: |
-          echo "=== All nginx daterabbit configs ==="
-          grep -rl "daterabbit" /etc/nginx/sites-available/ /etc/nginx/sites-enabled/ 2>/dev/null || echo "None"
+          CONF="/etc/nginx/sites-available/daterabbit"
 
-          echo ""
-          echo "=== daterabbit-api config (potential conflict) ==="
-          cat /etc/nginx/sites-available/daterabbit-api 2>/dev/null || echo "Not found"
-          echo ""
+          echo "=== Before ==="
+          head -5 "$CONF" 2>/dev/null || echo "No existing config"
 
-          # Disable conflicting daterabbit-api config if it exists in sites-enabled
-          if [ -L /etc/nginx/sites-enabled/daterabbit-api ]; then
-            echo "⚠️ Removing conflicting daterabbit-api symlink from sites-enabled"
-            sudo rm /etc/nginx/sites-enabled/daterabbit-api
+          # Replace config entirely from repo
+          sudo cp server/nginx-daterabbit.conf "$CONF"
+          sudo chmod 644 "$CONF"
+
+          # Ensure symlink exists in sites-enabled
+          if [ ! -L /etc/nginx/sites-enabled/daterabbit ]; then
+            sudo ln -sf "$CONF" /etc/nginx/sites-enabled/daterabbit
           fi
 
-          # Patch the main daterabbit config
-          SPA_CONF="/etc/nginx/sites-available/daterabbit"
-          if ! grep -q "proxy_pass.*3004" "$SPA_CONF" 2>/dev/null; then
-            echo "🔧 Patching $SPA_CONF..."
-            sudo chown $(whoami) "$SPA_CONF"
-            sudo chmod 644 "$SPA_CONF"
-            python3 server/patch-nginx.py "$SPA_CONF"
-            sudo chown root:root "$SPA_CONF"
-            sudo chmod 444 "$SPA_CONF"
-          else
-            echo "✅ Proxy already in config"
-          fi
-
-          echo ""
-          echo "=== Final config ==="
-          cat "$SPA_CONF"
+          echo "=== After ==="
+          cat "$CONF"
 
           sudo nginx -t 2>&1
-          sudo systemctl reload nginx && echo "Nginx reloaded"
+          sudo systemctl reload nginx && echo "Nginx config deployed and reloaded"
 
           sleep 2
+          echo ""
           echo "=== Verification ==="
           curl -s -o /dev/null -w "Backend direct (3004): %{http_code}\n" http://localhost:3004/api/payments/earnings || true
-          curl -s -o /dev/null -w "Nginx port 80:         %{http_code}\n" http://localhost/api/payments/earnings -H "Host: daterabbit.smartlaunchhub.com" || true
-          curl -s -o /dev/null -w "Nginx port 443:        %{http_code}\n" --resolve "daterabbit.smartlaunchhub.com:443:127.0.0.1" -k https://daterabbit.smartlaunchhub.com/api/payments/earnings || true
+          curl -s -o /dev/null -w "Nginx HTTPS (443):     %{http_code}\n" --resolve "daterabbit.smartlaunchhub.com:443:127.0.0.1" -k https://daterabbit.smartlaunchhub.com/api/payments/earnings || true
 
       - name: Verify deployment
         if: always()
