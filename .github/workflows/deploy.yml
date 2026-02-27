@@ -95,9 +95,16 @@ jobs:
       - name: Patch nginx with API proxy
         continue-on-error: true
         run: |
-          if [ -f server/patch-nginx.sh ]; then
-            sudo bash server/patch-nginx.sh
-          fi
+          CONF=$(grep -rl "daterabbit" /etc/nginx/sites-enabled/ 2>/dev/null | head -1)
+          [ -z "$CONF" ] && CONF=$(grep -rl "daterabbit" /etc/nginx/sites-available/ 2>/dev/null | head -1)
+          if [ -z "$CONF" ]; then echo "WARN: No nginx config found"; exit 0; fi
+          echo "Found: $CONF"
+          if grep -q "proxy_pass.*3004" "$CONF" 2>/dev/null; then echo "Already patched"; exit 0; fi
+          ORIG_OWNER=$(stat -c '%U:%G' "$CONF" 2>/dev/null || echo "root:root")
+          sudo chown $(whoami) "$CONF"
+          python3 server/patch-nginx.py "$CONF"
+          sudo chown $ORIG_OWNER "$CONF"
+          sudo systemctl reload nginx && echo "Nginx patched and reloaded"
 
       - name: Verify deployment
         if: always()
@@ -189,9 +196,16 @@ jobs:
       - name: Patch nginx with API proxy
         continue-on-error: true
         run: |
-          if [ -f server/patch-nginx.sh ]; then
-            sudo bash server/patch-nginx.sh
-          fi
+          CONF=$(grep -rl "daterabbit" /etc/nginx/sites-enabled/ 2>/dev/null | head -1)
+          [ -z "$CONF" ] && CONF=$(grep -rl "daterabbit" /etc/nginx/sites-available/ 2>/dev/null | head -1)
+          if [ -z "$CONF" ]; then echo "WARN: No nginx config found"; exit 0; fi
+          echo "Found: $CONF"
+          if grep -q "proxy_pass.*3004" "$CONF" 2>/dev/null; then echo "Already patched"; exit 0; fi
+          ORIG_OWNER=$(stat -c '%U:%G' "$CONF" 2>/dev/null || echo "root:root")
+          sudo chown $(whoami) "$CONF"
+          python3 server/patch-nginx.py "$CONF"
+          sudo chown $ORIG_OWNER "$CONF"
+          sudo systemctl reload nginx && echo "Nginx patched and reloaded"
 
       - name: Verify deployment
         if: always()
