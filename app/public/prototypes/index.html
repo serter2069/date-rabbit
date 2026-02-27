@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DateRabbit — Prototypes</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #F4F0EA; font-family: 'Space Grotesk', sans-serif; color: #000; padding: 40px 20px; }
+  h1 { font-size: 32px; font-weight: 900; text-transform: uppercase; text-align: center; margin-bottom: 8px; }
+  .subtitle { text-align: center; color: #666; font-size: 16px; margin-bottom: 40px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; max-width: 1200px; margin: 0 auto; }
+  .card { background: #FFF; border: 3px solid #000; border-radius: 8px; padding: 16px 20px; box-shadow: 4px 4px 0px #000; text-decoration: none; color: #000; transition: transform 0.15s; }
+  .card:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0px #000; }
+  .card-id { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #FF2A5F; margin-bottom: 4px; }
+  .card-title { font-size: 18px; font-weight: 700; }
+  .count { text-align: center; margin-bottom: 24px; }
+  .badge { display: inline-block; background: #4DF0FF; border: 3px solid #000; border-radius: 8px; padding: 8px 16px; font-weight: 800; font-size: 14px; box-shadow: 4px 4px 0px #000; }
+</style>
+</head>
+<body>
+<h1>DateRabbit Prototypes</h1>
+<p class="subtitle">All screens from the workflow schema</p>
+<div class="count"><span class="badge">69 screens</span></div>
+<div class="grid">
+  <a class="card" href="welcome.html"><div class="card-id">welcome</div><div class="card-title">Welcome</div></a>
+  <a class="card" href="login.html"><div class="card-id">login</div><div class="card-title">Login</div></a>
+  <a class="card" href="otp.html"><div class="card-id">otp</div><div class="card-title">Otp</div></a>
+  <a class="card" href="role.html"><div class="card-id">role</div><div class="card-title">Role</div></a>
+  <a class="card" href="seeker_setup.html"><div class="card-id">seeker_setup</div><div class="card-title">Seeker Setup</div></a>
+  <a class="card" href="verify_intro.html"><div class="card-id">verify_intro</div><div class="card-title">Verify Intro</div></a>
+  <a class="card" href="verify_pending.html"><div class="card-id">verify_pending</div><div class="card-title">Verify Pending</div></a>
+  <a class="card" href="verify_approved.html"><div class="card-id">verify_approved</div><div class="card-title">Verify Approved</div></a>
+  <a class="card" href="browse.html"><div class="card-id">browse</div><div class="card-title">Browse</div></a>
+  <a class="card" href="filters.html"><div class="card-id">filters</div><div class="card-title">Filters</div></a>
+  <a class="card" href="comp_profile.html"><div class="card-id">comp_profile</div><div class="card-title">Comp Profile</div></a>
+  <a class="card" href="book.html"><div class="card-id">book</div><div class="card-title">Book</div></a>
+  <a class="card" href="payment.html"><div class="card-id">payment</div><div class="card-title">Payment</div></a>
+  <a class="card" href="request_sent.html"><div class="card-id">request_sent</div><div class="card-title">Request Sent</div></a>
+  <a class="card" href="booking_confirmed.html"><div class="card-id">booking_confirmed</div><div class="card-title">Booking Confirmed</div></a>
+  <a class="card" href="seeker_declined.html"><div class="card-id">seeker_declined</div><div class="card-title">Seeker Declined</div></a>
+  <a class="card" href="checkin.html"><div class="card-id">checkin</div><div class="card-title">Checkin</div></a>
+  <a class="card" href="no_show.html"><div class="card-id">no_show</div><div class="card-title">No Show</div></a>
+  <a class="card" href="active_date.html"><div class="card-id">active_date</div><div class="card-title">Active Date</div></a>
+  <a class="card" href="extend_date.html"><div class="card-id">extend_date</div><div class="card-title">Extend Date</div></a>
+  <a class="card" href="date_summary.html"><div class="card-id">date_summary</div><div class="card-title">Date Summary</div></a>
+  <a class="card" href="date_issue.html"><div class="card-id">date_issue</div><div class="card-title">Date Issue</div></a>
+  <a class="card" href="review_seeker.html"><div class="card-id">review_seeker</div><div class="card-title">Review Seeker</div></a>
+  <a class="card" href="cancel_booking.html"><div class="card-id">cancel_booking</div><div class="card-title">Cancel Booking</div></a>
+  <a class="card" href="comp_onboard1.html"><div class="card-id">comp_onboard1</div><div class="card-title">Comp Onboard1</div></a>
+  <a class="card" href="comp_onboard2.html"><div class="card-id">comp_onboard2</div><div class="card-title">Comp Onboard2</div></a>
+  <a class="card" href="comp_verify.html"><div class="card-id">comp_verify</div><div class="card-title">Comp Verify</div></a>
+  <a class="card" href="comp_pending.html"><div class="card-id">comp_pending</div><div class="card-title">Comp Pending</div></a>
+  <a class="card" href="comp_dash.html"><div class="card-id">comp_dash</div><div class="card-title">Comp Dash</div></a>
+  <a class="card" href="comp_request.html"><div class="card-id">comp_request</div><div class="card-title">Comp Request</div></a>
+  <a class="card" href="comp_decline.html"><div class="card-id">comp_decline</div><div class="card-title">Comp Decline</div></a>
+  <a class="card" href="comp_checkin.html"><div class="card-id">comp_checkin</div><div class="card-title">Comp Checkin</div></a>
+  <a class="card" href="comp_extend_req.html"><div class="card-id">comp_extend_req</div><div class="card-title">Comp Extend Req</div></a>
+  <a class="card" href="comp_enddate.html"><div class="card-id">comp_enddate</div><div class="card-title">Comp Enddate</div></a>
+  <a class="card" href="review_comp.html"><div class="card-id">review_comp</div><div class="card-title">Review Comp</div></a>
+  <a class="card" href="comp_calendar.html"><div class="card-id">comp_calendar</div><div class="card-title">Comp Calendar</div></a>
+  <a class="card" href="comp_edit.html"><div class="card-id">comp_edit</div><div class="card-title">Comp Edit</div></a>
+  <a class="card" href="comp_avail.html"><div class="card-id">comp_avail</div><div class="card-title">Comp Avail</div></a>
+  <a class="card" href="comp_earnings.html"><div class="card-id">comp_earnings</div><div class="card-title">Comp Earnings</div></a>
+  <a class="card" href="payout_setup.html"><div class="card-id">payout_setup</div><div class="card-title">Payout Setup</div></a>
+  <a class="card" href="bookings.html"><div class="card-id">bookings</div><div class="card-title">Bookings</div></a>
+  <a class="card" href="chat_list.html"><div class="card-id">chat_list</div><div class="card-title">Chat List</div></a>
+  <a class="card" href="chat_convo.html"><div class="card-id">chat_convo</div><div class="card-title">Chat Convo</div></a>
+  <a class="card" href="my_profile.html"><div class="card-id">my_profile</div><div class="card-title">My Profile</div></a>
+  <a class="card" href="settings.html"><div class="card-id">settings</div><div class="card-title">Settings</div></a>
+  <a class="card" href="notifications.html"><div class="card-id">notifications</div><div class="card-title">Notifications</div></a>
+  <a class="card" href="pay_methods.html"><div class="card-id">pay_methods</div><div class="card-title">Pay Methods</div></a>
+  <a class="card" href="report.html"><div class="card-id">report</div><div class="card-title">Report</div></a>
+  <a class="card" href="favorites.html"><div class="card-id">favorites</div><div class="card-title">Favorites</div></a>
+  <a class="card" href="end_early.html"><div class="card-id">end_early</div><div class="card-title">End Early</div></a>
+  <a class="card" href="sos.html"><div class="card-id">sos</div><div class="card-title">Sos</div></a>
+  <a class="card" href="safety_checkin.html"><div class="card-id">safety_checkin</div><div class="card-title">Safety Checkin</div></a>
+  <a class="card" href="selfie_verify.html"><div class="card-id">selfie_verify</div><div class="card-title">Selfie Verify</div></a>
+  <a class="card" href="date_plan.html"><div class="card-id">date_plan</div><div class="card-title">Date Plan</div></a>
+  <a class="card" href="pre_chat.html"><div class="card-id">pre_chat</div><div class="card-title">Pre Chat</div></a>
+  <a class="card" href="date_photo.html"><div class="card-id">date_photo</div><div class="card-title">Date Photo</div></a>
+  <a class="card" href="comp_packages.html"><div class="card-id">comp_packages</div><div class="card-title">Comp Packages</div></a>
+  <a class="card" href="referral.html"><div class="card-id">referral</div><div class="card-title">Referral</div></a>
+  <a class="card" href="verify_ssn.html"><div class="card-id">verify_ssn</div><div class="card-title">Verify Ssn</div></a>
+  <a class="card" href="verify_id.html"><div class="card-id">verify_id</div><div class="card-title">Verify Id</div></a>
+  <a class="card" href="verify_selfie.html"><div class="card-id">verify_selfie</div><div class="card-title">Verify Selfie</div></a>
+  <a class="card" href="verify_consent.html"><div class="card-id">verify_consent</div><div class="card-title">Verify Consent</div></a>
+  <a class="card" href="comp_video.html"><div class="card-id">comp_video</div><div class="card-title">Comp Video</div></a>
+  <a class="card" href="comp_refs.html"><div class="card-id">comp_refs</div><div class="card-title">Comp Refs</div></a>
+  <a class="card" href="comp_photos.html"><div class="card-id">comp_photos</div><div class="card-title">Comp Photos</div></a>
+  <a class="card" href="brand-spec-example.html"><div class="card-id">brand-spec-example</div><div class="card-title">Brand Spec — Neo-Brutalism</div></a>
+  <a class="card" href="proto-welcome.html"><div class="card-id">proto-welcome</div><div class="card-title">Welcome</div></a>
+  <a class="card" href="proto-login.html"><div class="card-id">proto-login</div><div class="card-title">Login</div></a>
+  <a class="card" href="proto-otp.html"><div class="card-id">proto-otp</div><div class="card-title">OTP Code</div></a>
+</div>
+</body>
+</html>
