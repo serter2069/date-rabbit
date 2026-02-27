@@ -89,16 +89,26 @@ export default function ProfileViewScreen() {
       try {
         let latitude: number | undefined;
         let longitude: number | undefined;
-        
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status === 'granted') {
-          try {
-            const location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-            latitude = location.coords.latitude;
-            longitude = location.coords.longitude;
-          } catch {}
-        }
-        
+
+        // Wrap location in timeout — expo-location can hang on web
+        try {
+          const locationResult = await Promise.race([
+            (async () => {
+              const { status } = await Location.requestForegroundPermissionsAsync();
+              if (status === 'granted') {
+                const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+                return { lat: loc.coords.latitude, lng: loc.coords.longitude };
+              }
+              return null;
+            })(),
+            new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
+          ]);
+          if (locationResult) {
+            latitude = locationResult.lat;
+            longitude = locationResult.lng;
+          }
+        } catch {}
+
         const data = await companionsApi.getById(id, latitude, longitude);
         
         setProfile({
