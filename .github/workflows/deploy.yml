@@ -92,19 +92,39 @@ jobs:
           sudo pm2 restart daterabbit || sudo pm2 start dist/main.js --name daterabbit
           sudo chown -R www-data:www-data /var/www/daterabbit/
 
-      - name: Patch nginx with API proxy
+      - name: Ensure nginx API proxy
         continue-on-error: true
         run: |
+          echo "=== All daterabbit nginx configs ==="
+          echo "--- sites-enabled ---"
+          ls -la /etc/nginx/sites-enabled/ 2>/dev/null | grep -i daterabbit || echo "(none)"
+          echo "--- sites-available ---"
+          ls -la /etc/nginx/sites-available/ 2>/dev/null | grep -i daterabbit || echo "(none)"
+
+          # Check if API proxy is already active in sites-enabled
+          if grep -rl "proxy_pass.*3004" /etc/nginx/sites-enabled/ 2>/dev/null | head -1; then
+            echo "API proxy already active in sites-enabled"
+            exit 0
+          fi
+
+          # Try to enable existing daterabbit-api config
+          if [ -f /etc/nginx/sites-available/daterabbit-api ]; then
+            echo "Enabling daterabbit-api config..."
+            sudo ln -sf /etc/nginx/sites-available/daterabbit-api /etc/nginx/sites-enabled/daterabbit-api
+            sudo systemctl reload nginx && echo "daterabbit-api enabled and nginx reloaded" || echo "WARN: reload failed"
+            exit 0
+          fi
+
+          # Fallback: patch the main SPA config
           CONF=$(grep -rl "daterabbit" /etc/nginx/sites-enabled/ 2>/dev/null | head -1)
-          [ -z "$CONF" ] && CONF=$(grep -rl "daterabbit" /etc/nginx/sites-available/ 2>/dev/null | head -1)
-          if [ -z "$CONF" ]; then echo "WARN: No nginx config found"; exit 0; fi
-          echo "Found: $CONF"
-          if grep -q "proxy_pass.*3004" "$CONF" 2>/dev/null; then echo "Already patched"; exit 0; fi
-          ORIG_OWNER=$(stat -c '%U:%G' "$CONF" 2>/dev/null || echo "root:root")
-          sudo chown $(whoami) "$CONF"
-          python3 server/patch-nginx.py "$CONF"
-          sudo chown $ORIG_OWNER "$CONF"
-          sudo systemctl reload nginx && echo "Nginx patched and reloaded"
+          if [ -n "$CONF" ] && ! grep -q "proxy_pass.*3004" "$CONF"; then
+            echo "Patching SPA config: $CONF"
+            ORIG_OWNER=$(stat -c '%U:%G' "$CONF" 2>/dev/null || echo "root:root")
+            sudo chown $(whoami) "$CONF"
+            python3 server/patch-nginx.py "$CONF"
+            sudo chown $ORIG_OWNER "$CONF"
+            sudo systemctl reload nginx && echo "Nginx patched and reloaded"
+          fi
 
       - name: Verify deployment
         if: always()
@@ -193,19 +213,39 @@ jobs:
           sudo pm2 restart daterabbit || sudo pm2 start dist/main.js --name daterabbit
           sudo chown -R www-data:www-data /var/www/daterabbit/
 
-      - name: Patch nginx with API proxy
+      - name: Ensure nginx API proxy
         continue-on-error: true
         run: |
+          echo "=== All daterabbit nginx configs ==="
+          echo "--- sites-enabled ---"
+          ls -la /etc/nginx/sites-enabled/ 2>/dev/null | grep -i daterabbit || echo "(none)"
+          echo "--- sites-available ---"
+          ls -la /etc/nginx/sites-available/ 2>/dev/null | grep -i daterabbit || echo "(none)"
+
+          # Check if API proxy is already active in sites-enabled
+          if grep -rl "proxy_pass.*3004" /etc/nginx/sites-enabled/ 2>/dev/null | head -1; then
+            echo "API proxy already active in sites-enabled"
+            exit 0
+          fi
+
+          # Try to enable existing daterabbit-api config
+          if [ -f /etc/nginx/sites-available/daterabbit-api ]; then
+            echo "Enabling daterabbit-api config..."
+            sudo ln -sf /etc/nginx/sites-available/daterabbit-api /etc/nginx/sites-enabled/daterabbit-api
+            sudo systemctl reload nginx && echo "daterabbit-api enabled and nginx reloaded" || echo "WARN: reload failed"
+            exit 0
+          fi
+
+          # Fallback: patch the main SPA config
           CONF=$(grep -rl "daterabbit" /etc/nginx/sites-enabled/ 2>/dev/null | head -1)
-          [ -z "$CONF" ] && CONF=$(grep -rl "daterabbit" /etc/nginx/sites-available/ 2>/dev/null | head -1)
-          if [ -z "$CONF" ]; then echo "WARN: No nginx config found"; exit 0; fi
-          echo "Found: $CONF"
-          if grep -q "proxy_pass.*3004" "$CONF" 2>/dev/null; then echo "Already patched"; exit 0; fi
-          ORIG_OWNER=$(stat -c '%U:%G' "$CONF" 2>/dev/null || echo "root:root")
-          sudo chown $(whoami) "$CONF"
-          python3 server/patch-nginx.py "$CONF"
-          sudo chown $ORIG_OWNER "$CONF"
-          sudo systemctl reload nginx && echo "Nginx patched and reloaded"
+          if [ -n "$CONF" ] && ! grep -q "proxy_pass.*3004" "$CONF"; then
+            echo "Patching SPA config: $CONF"
+            ORIG_OWNER=$(stat -c '%U:%G' "$CONF" 2>/dev/null || echo "root:root")
+            sudo chown $(whoami) "$CONF"
+            python3 server/patch-nginx.py "$CONF"
+            sudo chown $ORIG_OWNER "$CONF"
+            sudo systemctl reload nginx && echo "Nginx patched and reloaded"
+          fi
 
       - name: Verify deployment
         if: always()
