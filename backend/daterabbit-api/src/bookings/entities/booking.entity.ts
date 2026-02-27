@@ -66,6 +66,9 @@ export class Booking {
   @Column({ type: 'enum', enum: BookingStatus, default: BookingStatus.PENDING })
   status: BookingStatus;
 
+  @Column({ nullable: true })
+  paymentIntentId: string;
+
   @Column({ type: 'text', nullable: true })
   cancellationReason: string;
 

@@ -53,6 +53,7 @@ jobs:
 
       - name: Create backend .env if missing
         run: |
+          mkdir -p /var/www/daterabbit/api
           if [ ! -f /var/www/daterabbit/api/.env ]; then
             cat > /var/www/daterabbit/api/.env << 'ENVEOF'
           PORT=3004
@@ -64,8 +65,11 @@ jobs:
           DB_PASSWORD=daterabbit
           DB_NAME=daterabbit
           JWT_SECRET=daterabbit-dev-jwt-secret-change-in-prod
+          STRIPE_SECRET_KEY=
+          STRIPE_WEBHOOK_SECRET=
+          APP_URL=https://daterabbit.smartlaunchhub.com
           ENVEOF
-            echo ".env created with defaults"
+            echo ".env created with defaults (add Stripe keys manually!)"
           else
             echo ".env already exists"
           fi
@@ -81,6 +85,15 @@ jobs:
           rsync -rlD backend/daterabbit-api/dist/ /var/www/daterabbit/api/dist/
           cd /var/www/daterabbit/api
           npm ci --production
+
+      - name: Setup nginx config
+        run: |
+          if [ -f server/nginx-daterabbit.conf ]; then
+            sudo cp server/nginx-daterabbit.conf /etc/nginx/sites-available/daterabbit
+            sudo ln -sf /etc/nginx/sites-available/daterabbit /etc/nginx/sites-enabled/daterabbit
+            sudo nginx -t && sudo systemctl reload nginx
+            echo "Nginx config updated and reloaded"
+          fi
 
       - name: Restart backend
         run: |
@@ -98,6 +111,9 @@ jobs:
           sudo pm2 show daterabbit 2>&1 | grep -E "(status|restarts|uptime)" || true
           echo "=== PM2 error logs (last 5) ==="
           sudo pm2 logs daterabbit --nostream --lines 5 --err 2>&1 || true
+          echo "=== API smoke test ==="
+          curl -s -o /dev/null -w "GET /api/payments/earnings: %{http_code}\n" http://localhost:3004/api/payments/earnings || true
+          curl -s -o /dev/null -w "POST /api/webhooks/stripe: %{http_code}\n" -X POST http://localhost:3004/api/webhooks/stripe || true
 
       - name: Run seed script
         if: github.event.inputs.seed == 'yes'
@@ -166,6 +182,15 @@ jobs:
           cd /var/www/daterabbit/api
           npm ci --production
 
+      - name: Setup nginx config
+        run: |
+          if [ -f server/nginx-daterabbit.conf ]; then
+            sudo cp server/nginx-daterabbit.conf /etc/nginx/sites-available/daterabbit
+            sudo ln -sf /etc/nginx/sites-available/daterabbit /etc/nginx/sites-enabled/daterabbit
+            sudo nginx -t && sudo systemctl reload nginx
+            echo "Nginx config updated and reloaded"
+          fi
+
       - name: Restart backend
         run: |
           cd /var/www/daterabbit/api
@@ -182,3 +207,5 @@ jobs:
           sudo pm2 show daterabbit 2>&1 | grep -E "(status|restarts|uptime)" || true
           echo "=== PM2 error logs (last 5) ==="
           sudo pm2 logs daterabbit --nostream --lines 5 --err 2>&1 || true
+          echo "=== API smoke test ==="
+          curl -s -o /dev/null -w "GET /api/payments/earnings: %{http_code}\n" http://localhost:3004/api/payments/earnings || true

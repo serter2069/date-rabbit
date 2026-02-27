@@ -129,6 +129,10 @@ export class PaymentsService {
       },
     });
 
+    await this.bookingsRepo.update(bookingId, {
+      paymentIntentId: paymentIntent.id,
+    });
+
     return { clientSecret: paymentIntent.client_secret! };
   }
 
