@@ -69,6 +69,12 @@ export class User {
   isActive: boolean;
 
   @Column({ nullable: true })
+  stripeAccountId: string;
+
+  @Column({ default: false })
+  stripeOnboardingComplete: boolean;
+
+  @Column({ nullable: true })
   otpCode: string;
 
   @Column({ nullable: true })

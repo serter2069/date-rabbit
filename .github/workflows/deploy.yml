@@ -11,7 +11,9 @@ on:
         default: ''
 
 jobs:
-  deploy:
+  deploy-staging:
+    name: Deploy → Staging
+    if: github.ref == 'refs/heads/development'
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
@@ -103,3 +105,80 @@ jobs:
           cp /var/www/daterabbit/api/.env backend/daterabbit-api/.env
           cd backend/daterabbit-api
           npx ts-node src/seed/seed.ts 2>&1
+
+  deploy-production:
+    name: Deploy → Production
+    if: github.ref == 'refs/heads/main'
+    runs-on: self-hosted
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build frontend (Expo web)
+        run: |
+          cd app
+          npm ci --legacy-peer-deps
+          npx expo export --platform web
+          cat > dist/version.json << VEOF
+          {
+            "version": "$(git rev-parse --short HEAD)",
+            "commit": "$(git rev-parse HEAD)",
+            "branch": "${{ github.ref_name }}",
+            "deployed": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "message": "$(git log -1 --pretty=%s | head -c 100)"
+          }
+          VEOF
+
+      - name: Build backend (NestJS)
+        run: |
+          cd backend/daterabbit-api
+          npm ci
+          npm run build
+
+      - name: Deploy frontend
+        run: |
+          rsync -rlD --delete \
+            --exclude 'api' \
+            --exclude 'uploads' \
+            app/dist/ /var/www/daterabbit/
+
+      - name: Create backend .env if missing
+        run: |
+          if [ ! -f /var/www/daterabbit/api/.env ]; then
+            echo "ERROR: Production .env must be pre-configured!"
+            exit 1
+          fi
+
+      - name: Deploy backend
+        run: |
+          rsync -rlD --delete \
+            --exclude 'node_modules' \
+            --exclude '.env' \
+            --exclude 'dist' \
+            --exclude 'uploads' \
+            backend/daterabbit-api/ /var/www/daterabbit/api/
+          rsync -rlD backend/daterabbit-api/dist/ /var/www/daterabbit/api/dist/
+          cd /var/www/daterabbit/api
+          npm ci --production
+
+      - name: Restart backend
+        run: |
+          cd /var/www/daterabbit/api
+          sudo pm2 restart daterabbit || sudo pm2 start dist/main.js --name daterabbit
+          sudo chown -R www-data:www-data /var/www/daterabbit/
+
+      - name: Verify deployment
+        if: always()
+        run: |
+          sleep 5
+          echo "=== version.json ==="
+          cat /var/www/daterabbit/version.json 2>&1 || echo "no version.json"
+          echo "=== PM2 status ==="
+          sudo pm2 show daterabbit 2>&1 | grep -E "(status|restarts|uptime)" || true
+          echo "=== PM2 error logs (last 5) ==="
+          sudo pm2 logs daterabbit --nostream --lines 5 --err 2>&1 || true
