@@ -1,5 +1,5 @@
 import { Controller, Post, Body, HttpException, HttpStatus } from '@nestjs/common';
-import { Throttle } from '@nestjs/throttler';
+import { Throttle, SkipThrottle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { UserRole } from '../users/entities/user.entity';
 
@@ -8,7 +8,7 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('start')
-  @Throttle({ default: { limit: 5, ttl: 3600000 } }) // 5 emails per hour
+  @Throttle({ default: { limit: 20, ttl: 3600000 } }) // 20 emails per hour
   async startAuth(@Body() body: { email: string }) {
     if (!body.email) {
       throw new HttpException('Email is required', HttpStatus.BAD_REQUEST);
@@ -19,7 +19,7 @@ export class AuthController {
   }
 
   @Post('verify')
-  @Throttle({ default: { limit: 3, ttl: 600000 } }) // 3 OTP attempts per 10 min
+  @Throttle({ default: { limit: 20, ttl: 600000 } }) // 20 OTP attempts per 10 min
   async verifyOtp(@Body() body: { email: string; code: string }) {
     if (!body.email || !body.code) {
       throw new HttpException('Email and code are required', HttpStatus.BAD_REQUEST);
