@@ -111,13 +111,13 @@ export default function WelcomeScreen() {
         <View style={styles.footer}>
           <Text
             style={styles.footerLink}
-            onPress={() => openLink('https://daterabbit.com/terms')}
+            onPress={() => router.push('/terms')}
           >
             Terms
           </Text>
           <Text
             style={styles.footerLink}
-            onPress={() => openLink('https://daterabbit.com/privacy')}
+            onPress={() => router.push('/privacy')}
           >
             Privacy
           </Text>

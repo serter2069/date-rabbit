@@ -76,6 +76,8 @@ export default function RootLayout() {
         <Stack.Screen name="settings/notifications" />
         <Stack.Screen name="settings/verification" />
         <Stack.Screen name="settings/delete-account" />
+        <Stack.Screen name="terms" />
+        <Stack.Screen name="privacy" />
       </Stack>
     </>
   );

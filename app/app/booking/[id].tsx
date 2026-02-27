@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
+  Platform,
   ActivityIndicator,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -62,6 +63,16 @@ const timeSlots = [
   '8:00 PM', '9:00 PM',
 ];
 
+// Cross-platform alert — Alert.alert is a no-op on web
+function showAlert(title: string, message: string, onOk?: () => void) {
+  if (Platform.OS === 'web') {
+    window.alert(`${title}\n\n${message}`);
+    onOk?.();
+  } else {
+    Alert.alert(title, message, onOk ? [{ text: 'OK', onPress: onOk }] : undefined);
+  }
+}
+
 export default function BookingScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
@@ -86,7 +97,7 @@ export default function BookingScreen() {
     setIsLoadingCompanion(true);
     companionsApi.getById(id)
       .then((data) => setCompanion(data))
-      .catch(() => Alert.alert('Error', 'Could not load companion profile.'))
+      .catch(() => showAlert('Error', 'Could not load companion profile.'))
       .finally(() => setIsLoadingCompanion(false));
   }, [id]);
 
@@ -100,7 +111,7 @@ export default function BookingScreen() {
 
   const handleSubmit = async () => {
     if (!isValid || !companion) {
-      Alert.alert('Missing Information', 'Please fill in all required fields.');
+      showAlert('Missing Information', 'Please fill in all required fields.');
       return;
     }
 
@@ -134,19 +145,14 @@ export default function BookingScreen() {
     setIsSubmitting(false);
 
     if (!result.success) {
-      Alert.alert('Error', result.error || 'Failed to send request');
+      showAlert('Error', result.error || 'Failed to send request');
       return;
     }
 
-    Alert.alert(
+    showAlert(
       'Request Sent!',
       `Your date request has been sent to ${companion.name}. You'll be notified when they respond.`,
-      [
-        {
-          text: 'View My Bookings',
-          onPress: () => router.replace('/(tabs)/male/bookings'),
-        },
-      ]
+      () => router.replace('/(tabs)/male/bookings'),
     );
   };
 
