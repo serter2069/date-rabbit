@@ -30,7 +30,7 @@ export default function StripeRefreshScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.iconCircle, { backgroundColor: colors.warning + '20' }]}>
-        <Icon name="refresh-cw" size={48} color={colors.warning} />
+        <Icon name="refresh" size={48} color={colors.warning} />
       </View>
       <Text style={[styles.title, { color: colors.text }]}>Session Expired</Text>
       <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
