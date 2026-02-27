@@ -12,6 +12,7 @@ import { User } from '../../users/entities/user.entity';
 export enum BookingStatus {
   PENDING = 'pending',
   CONFIRMED = 'confirmed',
+  PAID = 'paid',
   CANCELLED = 'cancelled',
   COMPLETED = 'completed',
 }
