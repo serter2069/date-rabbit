@@ -118,51 +118,46 @@ jobs:
           sudo chown -R www-data:www-data /var/www/daterabbit/
 
       - name: Ensure nginx API proxy
-        continue-on-error: true
         run: |
-          echo "=== DEBUG: All nginx configs for daterabbit ==="
-          grep -rl "daterabbit" /etc/nginx/sites-available/ /etc/nginx/sites-enabled/ 2>/dev/null || echo "No configs found"
+          echo "=== All nginx daterabbit configs ==="
+          grep -rl "daterabbit" /etc/nginx/sites-available/ /etc/nginx/sites-enabled/ 2>/dev/null || echo "None"
+
+          echo ""
+          echo "=== daterabbit-api config (potential conflict) ==="
+          cat /etc/nginx/sites-available/daterabbit-api 2>/dev/null || echo "Not found"
           echo ""
 
-          PATCHED=false
-          for CONF in /etc/nginx/sites-available/daterabbit /etc/nginx/sites-enabled/daterabbit; do
-            [ -f "$CONF" ] || continue
+          # Disable conflicting daterabbit-api config if it exists in sites-enabled
+          if [ -L /etc/nginx/sites-enabled/daterabbit-api ]; then
+            echo "⚠️ Removing conflicting daterabbit-api symlink from sites-enabled"
+            sudo rm /etc/nginx/sites-enabled/daterabbit-api
+          fi
 
-            echo "=== Checking: $CONF ==="
-            echo "--- Content (first 60 lines) ---"
-            head -60 "$CONF"
-            echo "---"
-
-            if grep -q "proxy_pass.*3004" "$CONF" 2>/dev/null; then
-              echo "✅ $CONF already has API proxy"
-              continue
-            fi
-
-            if ! grep -q "location / {" "$CONF" 2>/dev/null; then
-              echo "⚠️  $CONF has no 'location / {' block, skipping"
-              continue
-            fi
-
-            echo "🔧 Patching $CONF with API proxy..."
-            sudo chown $(whoami) "$CONF"
-            sudo chmod 644 "$CONF"
-            python3 server/patch-nginx.py "$CONF"
-            sudo chown root:root "$CONF"
-            sudo chmod 444 "$CONF"
-            PATCHED=true
-          done
-
-          if [ "$PATCHED" = true ]; then
-            sudo nginx -t 2>&1
-            sudo systemctl reload nginx && echo "Nginx patched and reloaded successfully"
+          # Patch the main daterabbit config
+          SPA_CONF="/etc/nginx/sites-available/daterabbit"
+          if ! grep -q "proxy_pass.*3004" "$SPA_CONF" 2>/dev/null; then
+            echo "🔧 Patching $SPA_CONF..."
+            sudo chown $(whoami) "$SPA_CONF"
+            sudo chmod 644 "$SPA_CONF"
+            python3 server/patch-nginx.py "$SPA_CONF"
+            sudo chown root:root "$SPA_CONF"
+            sudo chmod 444 "$SPA_CONF"
           else
-            echo "No patching needed or no suitable configs found"
+            echo "✅ Proxy already in config"
           fi
 
           echo ""
-          echo "=== Final proxy verification ==="
-          curl -s -o /dev/null -w "GET  /api/payments/earnings (via localhost): %{http_code}\n" http://localhost:3004/api/payments/earnings || true
-          curl -s -o /dev/null -w "GET  /api/payments/earnings (via nginx 80):  %{http_code}\n" http://localhost/api/payments/earnings -H "Host: daterabbit.smartlaunchhub.com" || true
+          echo "=== Final config ==="
+          cat "$SPA_CONF"
+
+          sudo nginx -t 2>&1
+          sudo systemctl reload nginx && echo "Nginx reloaded"
+
+          sleep 2
+          echo "=== Verification ==="
+          curl -s -o /dev/null -w "Backend direct (3004): %{http_code}\n" http://localhost:3004/api/payments/earnings || true
+          curl -s -o /dev/null -w "Nginx port 80:         %{http_code}\n" http://localhost/api/payments/earnings -H "Host: daterabbit.smartlaunchhub.com" || true
+          curl -s -o /dev/null -w "Nginx port 443:        %{http_code}\n" --resolve "daterabbit.smartlaunchhub.com:443:127.0.0.1" -k https://daterabbit.smartlaunchhub.com/api/payments/earnings || true
 
       - name: Verify deployment
         if: always()
@@ -277,51 +272,46 @@ jobs:
           sudo chown -R www-data:www-data /var/www/daterabbit/
 
       - name: Ensure nginx API proxy
-        continue-on-error: true
         run: |
-          echo "=== DEBUG: All nginx configs for daterabbit ==="
-          grep -rl "daterabbit" /etc/nginx/sites-available/ /etc/nginx/sites-enabled/ 2>/dev/null || echo "No configs found"
+          echo "=== All nginx daterabbit configs ==="
+          grep -rl "daterabbit" /etc/nginx/sites-available/ /etc/nginx/sites-enabled/ 2>/dev/null || echo "None"
+
+          echo ""
+          echo "=== daterabbit-api config (potential conflict) ==="
+          cat /etc/nginx/sites-available/daterabbit-api 2>/dev/null || echo "Not found"
           echo ""
 
-          PATCHED=false
-          for CONF in /etc/nginx/sites-available/daterabbit /etc/nginx/sites-enabled/daterabbit; do
-            [ -f "$CONF" ] || continue
+          # Disable conflicting daterabbit-api config if it exists in sites-enabled
+          if [ -L /etc/nginx/sites-enabled/daterabbit-api ]; then
+            echo "⚠️ Removing conflicting daterabbit-api symlink from sites-enabled"
+            sudo rm /etc/nginx/sites-enabled/daterabbit-api
+          fi
 
-            echo "=== Checking: $CONF ==="
-            echo "--- Content (first 60 lines) ---"
-            head -60 "$CONF"
-            echo "---"
-
-            if grep -q "proxy_pass.*3004" "$CONF" 2>/dev/null; then
-              echo "✅ $CONF already has API proxy"
-              continue
-            fi
-
-            if ! grep -q "location / {" "$CONF" 2>/dev/null; then
-              echo "⚠️  $CONF has no 'location / {' block, skipping"
-              continue
-            fi
-
-            echo "🔧 Patching $CONF with API proxy..."
-            sudo chown $(whoami) "$CONF"
-            sudo chmod 644 "$CONF"
-            python3 server/patch-nginx.py "$CONF"
-            sudo chown root:root "$CONF"
-            sudo chmod 444 "$CONF"
-            PATCHED=true
-          done
-
-          if [ "$PATCHED" = true ]; then
-            sudo nginx -t 2>&1
-            sudo systemctl reload nginx && echo "Nginx patched and reloaded successfully"
+          # Patch the main daterabbit config
+          SPA_CONF="/etc/nginx/sites-available/daterabbit"
+          if ! grep -q "proxy_pass.*3004" "$SPA_CONF" 2>/dev/null; then
+            echo "🔧 Patching $SPA_CONF..."
+            sudo chown $(whoami) "$SPA_CONF"
+            sudo chmod 644 "$SPA_CONF"
+            python3 server/patch-nginx.py "$SPA_CONF"
+            sudo chown root:root "$SPA_CONF"
+            sudo chmod 444 "$SPA_CONF"
           else
-            echo "No patching needed or no suitable configs found"
+            echo "✅ Proxy already in config"
           fi
 
           echo ""
-          echo "=== Final proxy verification ==="
-          curl -s -o /dev/null -w "GET  /api/payments/earnings (via localhost): %{http_code}\n" http://localhost:3004/api/payments/earnings || true
-          curl -s -o /dev/null -w "GET  /api/payments/earnings (via nginx 80):  %{http_code}\n" http://localhost/api/payments/earnings -H "Host: daterabbit.smartlaunchhub.com" || true
+          echo "=== Final config ==="
+          cat "$SPA_CONF"
+
+          sudo nginx -t 2>&1
+          sudo systemctl reload nginx && echo "Nginx reloaded"
+
+          sleep 2
+          echo "=== Verification ==="
+          curl -s -o /dev/null -w "Backend direct (3004): %{http_code}\n" http://localhost:3004/api/payments/earnings || true
+          curl -s -o /dev/null -w "Nginx port 80:         %{http_code}\n" http://localhost/api/payments/earnings -H "Host: daterabbit.smartlaunchhub.com" || true
+          curl -s -o /dev/null -w "Nginx port 443:        %{http_code}\n" --resolve "daterabbit.smartlaunchhub.com:443:127.0.0.1" -k https://daterabbit.smartlaunchhub.com/api/payments/earnings || true
 
       - name: Verify deployment
         if: always()
