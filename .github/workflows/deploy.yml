@@ -120,30 +120,19 @@ jobs:
       - name: Ensure nginx API proxy
         continue-on-error: true
         run: |
-          CONF="/etc/nginx/sites-available/daterabbit"
-          # Write complete nginx config via python3 (avoids heredoc YAML indentation issues)
-          # Idempotent - runs on every deploy to restore /api/ proxy if config was reset
-          sudo chown $(whoami) "$CONF" 2>/dev/null || (sudo touch "$CONF" && sudo chown $(whoami) "$CONF")
-          sudo chmod 644 "$CONF"
-          python3 server/write-nginx-config.py "$CONF"
-          sudo chown root:root "$CONF"
-          sudo chmod 644 "$CONF"
-          sudo ln -sf "$CONF" /etc/nginx/sites-enabled/daterabbit
-          echo "=== Wrote nginx config ==="
-          grep -n "proxy_pass\|listen\|server_name\|location /api" "$CONF" || true
-          if sudo nginx -t 2>&1; then
-            sudo systemctl reload nginx && echo "Nginx reloaded successfully"
-          else
-            echo "nginx -t failed, trying graceful reload..."
-            sudo nginx -s reload 2>&1 || sudo systemctl reload nginx 2>&1 || echo "Reload failed"
+          SPA_CONF="/etc/nginx/sites-available/daterabbit"
+          if grep -q "proxy_pass.*3004" "$SPA_CONF" 2>/dev/null; then
+            echo "SPA config already has API proxy"
+            exit 0
           fi
-          sleep 2
-          echo "--- Direct backend test ---"
-          HTTP=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:3004/api/auth/start -H 'Content-Type: application/json' -d '{"email":"test@t.com"}' 2>/dev/null)
-          echo "Direct backend: $HTTP"
-          echo "--- Local nginx 443 test ---"
-          HTTP443=$(curl -sk -o /dev/null -w "%{http_code}" -X POST https://localhost/api/auth/start -H 'Content-Type: application/json' -H 'Host: daterabbit.smartlaunchhub.com' -d '{"email":"test@t.com"}' 2>/dev/null)
-          echo "Local nginx 443: $HTTP443"
+          echo "Patching SPA config with API proxy..."
+          sudo chown $(whoami) "$SPA_CONF"
+          sudo chmod 644 "$SPA_CONF"
+          python3 server/patch-nginx.py "$SPA_CONF"
+          sudo chown root:root "$SPA_CONF"
+          sudo chmod 444 "$SPA_CONF"
+          sudo nginx -t 2>&1
+          sudo systemctl reload nginx && echo "Nginx patched and reloaded successfully"
 
       - name: Verify deployment
         if: always()
@@ -155,11 +144,9 @@ jobs:
           sudo pm2 show daterabbit 2>&1 | grep -E "(status|restarts|uptime)" || true
           echo "=== PM2 error logs (last 5) ==="
           sudo pm2 logs daterabbit --nostream --lines 5 --err 2>&1 || true
-          echo "=== API smoke test (direct port) ==="
+          echo "=== API smoke test ==="
           curl -s -o /dev/null -w "GET /api/payments/earnings: %{http_code}\n" http://localhost:3004/api/payments/earnings || true
           curl -s -o /dev/null -w "POST /api/webhooks/stripe: %{http_code}\n" -X POST http://localhost:3004/api/webhooks/stripe || true
-          echo "=== API smoke test (via nginx) ==="
-          curl -s -o /dev/null -w "POST /api/auth/start via nginx: %{http_code}\n" -X POST https://daterabbit.smartlaunchhub.com/api/auth/start -H 'Content-Type: application/json' -d '{"email":"smoke@test.com"}' || true
 
       - name: Run seed script
         if: github.event.inputs.seed == 'yes'
@@ -260,20 +247,19 @@ jobs:
       - name: Ensure nginx API proxy
         continue-on-error: true
         run: |
-          CONF="/etc/nginx/sites-available/daterabbit"
-          sudo chown $(whoami) "$CONF" 2>/dev/null || (sudo touch "$CONF" && sudo chown $(whoami) "$CONF")
-          sudo chmod 644 "$CONF"
-          python3 server/write-nginx-config.py "$CONF"
-          sudo chown root:root "$CONF"
-          sudo chmod 644 "$CONF"
-          sudo ln -sf "$CONF" /etc/nginx/sites-enabled/daterabbit
-          grep -n "proxy_pass\|listen\|location /api\|server_name" "$CONF" || true
-          if sudo nginx -t 2>&1; then
-            sudo systemctl reload nginx && echo "Nginx reloaded successfully"
-          else
-            echo "nginx -t failed, trying graceful reload..."
-            sudo nginx -s reload 2>&1 || sudo systemctl reload nginx 2>&1 || echo "Reload failed"
+          SPA_CONF="/etc/nginx/sites-available/daterabbit"
+          if grep -q "proxy_pass.*3004" "$SPA_CONF" 2>/dev/null; then
+            echo "SPA config already has API proxy"
+            exit 0
           fi
+          echo "Patching SPA config with API proxy..."
+          sudo chown $(whoami) "$SPA_CONF"
+          sudo chmod 644 "$SPA_CONF"
+          python3 server/patch-nginx.py "$SPA_CONF"
+          sudo chown root:root "$SPA_CONF"
+          sudo chmod 444 "$SPA_CONF"
+          sudo nginx -t 2>&1
+          sudo systemctl reload nginx && echo "Nginx patched and reloaded successfully"
 
       - name: Verify deployment
         if: always()
