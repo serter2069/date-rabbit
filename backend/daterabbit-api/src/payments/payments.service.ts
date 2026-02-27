@@ -146,7 +146,9 @@ export class PaymentsService {
     const completedBookings = await this.bookingsRepo
       .createQueryBuilder('b')
       .where('b.companionId = :userId', { userId })
-      .andWhere('b.status = :status', { status: BookingStatus.COMPLETED })
+      .andWhere('b.status IN (:...statuses)', {
+        statuses: [BookingStatus.PAID, BookingStatus.COMPLETED],
+      })
       .getMany();
 
     const totalEarnings = completedBookings.reduce(
@@ -154,9 +156,24 @@ export class PaymentsService {
       0,
     );
 
+    let pendingPayouts = 0;
+    try {
+      const user = await this.usersRepo.findOne({ where: { id: userId } });
+      if (user?.stripeAccountId && this.stripe) {
+        const balance = await this.stripe.balance.retrieve({
+          stripeAccount: user.stripeAccountId,
+        });
+        const pending =
+          balance.pending.find((b) => b.currency === 'usd')?.amount ?? 0;
+        pendingPayouts = pending / 100;
+      }
+    } catch {
+      // Stripe not configured or account issue — return 0
+    }
+
     return {
       totalEarnings: Math.round(totalEarnings * 100) / 100,
-      pendingPayouts: 0, // Will be populated from Stripe balance when connected
+      pendingPayouts,
       completedBookings: completedBookings.length,
     };
   }
@@ -172,7 +189,10 @@ export class PaymentsService {
     totalPages: number;
   }> {
     const [bookings, total] = await this.bookingsRepo.findAndCount({
-      where: { companionId: userId, status: BookingStatus.COMPLETED },
+      where: [
+        { companionId: userId, status: BookingStatus.PAID },
+        { companionId: userId, status: BookingStatus.COMPLETED },
+      ],
       relations: ['seeker'],
       order: { updatedAt: 'DESC' },
       skip: (page - 1) * limit,
@@ -331,7 +351,7 @@ export class PaymentsService {
         const bookingId = pi.metadata.bookingId;
         if (bookingId) {
           await this.bookingsRepo.update(bookingId, {
-            status: BookingStatus.CONFIRMED,
+            status: BookingStatus.PAID,
           });
         }
         break;

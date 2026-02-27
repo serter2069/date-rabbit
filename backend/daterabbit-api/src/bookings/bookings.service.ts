@@ -65,7 +65,9 @@ export class BookingsService {
     return this.bookingsRepository.find({
       where: [
         { seekerId: userId, status: BookingStatus.CONFIRMED },
+        { seekerId: userId, status: BookingStatus.PAID },
         { companionId: userId, status: BookingStatus.CONFIRMED },
+        { companionId: userId, status: BookingStatus.PAID },
       ],
       relations: ['seeker', 'companion'],
       order: { dateTime: 'ASC' },
