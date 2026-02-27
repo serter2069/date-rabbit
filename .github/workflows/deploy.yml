@@ -95,38 +95,8 @@ jobs:
       - name: Patch nginx with API proxy
         continue-on-error: true
         run: |
-          echo "=== Finding nginx config for daterabbit ==="
-          CONF=$(grep -rl "daterabbit" /etc/nginx/sites-enabled/ 2>/dev/null | head -1)
-          if [ -z "$CONF" ]; then
-            CONF=$(grep -rl "daterabbit" /etc/nginx/sites-available/ 2>/dev/null | head -1)
-          fi
-          echo "Found config: $CONF"
-          if [ -n "$CONF" ]; then
-            if grep -q "proxy_pass.*3004" "$CONF" 2>/dev/null; then
-              echo "API proxy already configured, skipping"
-            else
-              echo "Injecting /api/ proxy block..."
-              # Insert location /api/ block before the catch-all location /
-              sudo sed -i '/location \/ {/i\
-    # API proxy to NestJS backend\
-    location /api/ {\
-        proxy_pass http://127.0.0.1:3004;\
-        proxy_http_version 1.1;\
-        proxy_set_header Upgrade $http_upgrade;\
-        proxy_set_header Connection '"'"'upgrade'"'"';\
-        proxy_set_header Host $host;\
-        proxy_set_header X-Real-IP $remote_addr;\
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\
-        proxy_set_header X-Forwarded-Proto $scheme;\
-        proxy_cache_bypass $http_upgrade;\
-        client_max_body_size 10m;\
-    }\
-' "$CONF"
-              sudo nginx -t 2>&1 && sudo systemctl reload nginx && echo "Nginx patched and reloaded" || \
-                echo "WARN: Nginx config test failed after patch"
-            fi
-          else
-            echo "WARN: No nginx config found for daterabbit"
+          if [ -f server/patch-nginx.sh ]; then
+            sudo bash server/patch-nginx.sh
           fi
 
       - name: Verify deployment
@@ -219,31 +189,8 @@ jobs:
       - name: Patch nginx with API proxy
         continue-on-error: true
         run: |
-          CONF=$(grep -rl "daterabbit" /etc/nginx/sites-enabled/ 2>/dev/null | head -1)
-          if [ -z "$CONF" ]; then
-            CONF=$(grep -rl "daterabbit" /etc/nginx/sites-available/ 2>/dev/null | head -1)
-          fi
-          if [ -n "$CONF" ]; then
-            if grep -q "proxy_pass.*3004" "$CONF" 2>/dev/null; then
-              echo "API proxy already configured"
-            else
-              sudo sed -i '/location \/ {/i\
-    location /api/ {\
-        proxy_pass http://127.0.0.1:3004;\
-        proxy_http_version 1.1;\
-        proxy_set_header Upgrade $http_upgrade;\
-        proxy_set_header Connection '"'"'upgrade'"'"';\
-        proxy_set_header Host $host;\
-        proxy_set_header X-Real-IP $remote_addr;\
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\
-        proxy_set_header X-Forwarded-Proto $scheme;\
-        proxy_cache_bypass $http_upgrade;\
-        client_max_body_size 10m;\
-    }\
-' "$CONF"
-              sudo nginx -t 2>&1 && sudo systemctl reload nginx && echo "Nginx patched and reloaded" || \
-                echo "WARN: Nginx patch failed"
-            fi
+          if [ -f server/patch-nginx.sh ]; then
+            sudo bash server/patch-nginx.sh
           fi
 
       - name: Verify deployment
