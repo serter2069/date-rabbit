@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comp Pending — DateRabbit Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: #e8e4de;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .prototype-container {
+    /* Remove extra shadows/borders since the inner div already has them */
+  }
+</style>
+</head>
+<body>
+<div class="prototype-container">
+<div style="width:375px;height:812px;background:#F4F0EA;font-family:'Space Grotesk', 'Helvetica Neue', sans-serif;color:#000000;position:relative;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 40px rgba(0,0,0,0.2);border-radius:40px;border:8px solid #000;box-sizing:border-box;"><div style="flex:1;overflow-y:auto;padding:24px 20px 100px;">
+<div style="padding:20px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;margin-top:10px;"><div style="display:flex;align-items:center;gap:12px;"><div style="width:40px;height:40px;background:#FFF;border:3px solid #000;border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:4px 4px 0px #000;"><img src="https://api.iconify.design/lucide/arrow-left.svg?color=%23000000&strokeWidth=2" width="20" height="20" style="display:block;object-fit:contain;" alt="arrow-left" /></div><h1 style="font-size:22px;font-weight:900;margin:0;text-transform:uppercase;">Application Status</h1></div></div>
+  <div style="text-align:center;margin:16px 0;">
+    <div style="width:72px;height:72px;background:#FFE600;border:4px solid #000;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;box-shadow:8px 8px 0px #000;"><img src="https://api.iconify.design/lucide/loader.svg?color=%23000000&strokeWidth=2" width="32" height="32" style="display:block;object-fit:contain;" alt="loader" /></div>
+    <h2 style="font-size:20px;font-weight:900;text-transform:uppercase;margin:0 0 4px;">Under Review</h2>
+    <p style="color:#666;font-size:13px;margin:0;">Estimated: 3-5 business days</p>
+  </div>
+  <div style="background:#FFF;border:4px solid #000;border-radius:16px;overflow:hidden;box-shadow:8px 8px 0px #000;margin-bottom:16px;">
+    <div style="padding:12px 14px;display:flex;align-items:center;gap:10px;border-bottom:3px solid #000;">
+      <div style="width:24px;height:24px;background:#D1FAE5;border:2px solid #000;border-radius:50%;display:flex;align-items:center;justify-content:center;"><img src="https://api.iconify.design/lucide/check.svg?color=%2316A34A&strokeWidth=2" width="12" height="12" style="display:block;object-fit:contain;" alt="check" /></div>
+      <div style="flex:1;font-weight:700;font-size:13px;">Identity Verified</div>
+      <img src="https://api.iconify.design/lucide/check-circle.svg?color=%2316A34A&strokeWidth=2&fill=%2316A34A" width="16" height="16" style="display:block;object-fit:contain;" alt="check-circle" />
+    </div>
+    <div style="padding:12px 14px;display:flex;align-items:center;gap:10px;border-bottom:3px solid #000;">
+      <div style="width:24px;height:24px;background:#D1FAE5;border:2px solid #000;border-radius:50%;display:flex;align-items:center;justify-content:center;"><img src="https://api.iconify.design/lucide/check.svg?color=%2316A34A&strokeWidth=2" width="12" height="12" style="display:block;object-fit:contain;" alt="check" /></div>
+      <div style="flex:1;font-weight:700;font-size:13px;">Photo ID Matched</div>
+      <img src="https://api.iconify.design/lucide/check-circle.svg?color=%2316A34A&strokeWidth=2&fill=%2316A34A" width="16" height="16" style="display:block;object-fit:contain;" alt="check-circle" />
+    </div>
+    <div style="padding:12px 14px;display:flex;align-items:center;gap:10px;border-bottom:3px solid #000;">
+      <div style="width:24px;height:24px;background:#D1FAE5;border:2px solid #000;border-radius:50%;display:flex;align-items:center;justify-content:center;"><img src="https://api.iconify.design/lucide/check.svg?color=%2316A34A&strokeWidth=2" width="12" height="12" style="display:block;object-fit:contain;" alt="check" /></div>
+      <div style="flex:1;font-weight:700;font-size:13px;">Video Reviewed</div>
+      <img src="https://api.iconify.design/lucide/check-circle.svg?color=%2316A34A&strokeWidth=2&fill=%2316A34A" width="16" height="16" style="display:block;object-fit:contain;" alt="check-circle" />
+    </div>
+    <div style="padding:12px 14px;display:flex;align-items:center;gap:10px;border-bottom:3px solid #000;">
+      <div style="width:24px;height:24px;background:#FEF3C7;border:2px solid #000;border-radius:50%;display:flex;align-items:center;justify-content:center;"><img src="https://api.iconify.design/lucide/loader.svg?color=%23D97706&strokeWidth=2" width="12" height="12" style="display:block;object-fit:contain;" alt="loader" /></div>
+      <div style="flex:1;">
+        <div style="font-weight:700;font-size:13px;">References</div>
+        <div style="font-size:11px;color:#D97706;font-weight:600;">1/2 responded</div>
+      </div>
+      <img src="https://api.iconify.design/lucide/clock.svg?color=%23D97706&strokeWidth=2" width="16" height="16" style="display:block;object-fit:contain;" alt="clock" />
+    </div>
+    <div style="padding:12px 14px;display:flex;align-items:center;gap:10px;border-bottom:3px solid #000;">
+      <div style="width:24px;height:24px;background:#FEF3C7;border:2px solid #000;border-radius:50%;display:flex;align-items:center;justify-content:center;"><img src="https://api.iconify.design/lucide/loader.svg?color=%23D97706&strokeWidth=2" width="12" height="12" style="display:block;object-fit:contain;" alt="loader" /></div>
+      <div style="flex:1;">
+        <div style="font-weight:700;font-size:13px;">Criminal Records</div>
+        <div style="font-size:11px;color:#D97706;font-weight:600;">Searching county courts...</div>
+      </div>
+      <img src="https://api.iconify.design/lucide/clock.svg?color=%23D97706&strokeWidth=2" width="16" height="16" style="display:block;object-fit:contain;" alt="clock" />
+    </div>
+    <div style="padding:12px 14px;display:flex;align-items:center;gap:10px;">
+      <div style="width:24px;height:24px;background:#F0F0F0;border:2px solid #000;border-radius:50%;display:flex;align-items:center;justify-content:center;"><img src="https://api.iconify.design/lucide/minus.svg?color=%23999&strokeWidth=2" width="12" height="12" style="display:block;object-fit:contain;" alt="minus" /></div>
+      <div style="flex:1;font-weight:700;font-size:13px;color:#999;">Sex Offender Deep Check</div>
+    </div>
+  </div>
+  <div style="background:#4DF0FF;border:3px solid #000;border-radius:8px;padding:14px;margin-bottom:12px;">
+    <div style="font-weight:800;font-size:13px;margin-bottom:4px;">While you wait:</div>
+    <div style="font-size:12px;color:#333;">Complete your profile, add photos, set your hourly rate and availability. You'll be ready to go as soon as you're approved!</div>
+  </div>
+  <div style="display:flex;gap:10px;">
+    <div style="flex:1;"><div style="background:#FFE600;border:3px solid #000;padding:14px;text-align:center;font-weight:900;font-size:16px;text-transform:uppercase;box-shadow:4px 4px 0px #000;cursor:pointer;color:#000000;width:100%;box-sizing:border-box;border-radius:8px;">Edit Profile</div></div>
+    <div style="flex:1;"><div style="background:#FFF;border:3px solid #000;padding:14px;text-align:center;font-weight:900;font-size:16px;text-transform:uppercase;box-shadow:4px 4px 0px #000;cursor:pointer;color:#000000;width:100%;box-sizing:border-box;border-radius:8px;">Checkr Portal</div></div>
+  </div>
+</div>
+</div></div>
+</div>
+</body>
+</html>
