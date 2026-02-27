@@ -120,14 +120,74 @@ jobs:
       - name: Ensure nginx API proxy
         continue-on-error: true
         run: |
-          # Write complete nginx config on EVERY deploy (idempotent fix)
-          # The config file was being reset between deployments, so we always overwrite it
-          sudo bash server/write-nginx-config.sh
-          # Ensure symlink is correct
-          sudo ln -sf /etc/nginx/sites-available/daterabbit /etc/nginx/sites-enabled/daterabbit
-          # Verify what we wrote
-          echo "=== Current nginx config ==="
-          grep -n "proxy_pass\|listen\|location /api\|server_name" /etc/nginx/sites-available/daterabbit || true
+          CONF="/etc/nginx/sites-available/daterabbit"
+          # Write complete nginx config using sudo tee (idempotent, runs every deploy)
+          # This replaces the lost/reset config file with the correct one including /api/ proxy
+          sudo chown $(whoami) "$CONF" 2>/dev/null || sudo touch "$CONF" && sudo chown $(whoami) "$CONF"
+          sudo chmod 644 "$CONF"
+          cat > "$CONF" << 'NGINXEOF'
+server {
+    server_name daterabbit.smartlaunchhub.com;
+
+    root /var/www/daterabbit;
+    index index.html;
+
+    # API proxy to NestJS backend
+    location /api/ {
+        proxy_pass http://127.0.0.1:3004;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+        client_max_body_size 10m;
+    }
+
+    location /uploads/ {
+        alias /var/www/daterabbit/api/uploads/;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location /_expo {
+        alias /var/www/daterabbit/_expo;
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+    }
+
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml text/javascript;
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/daterabbit.smartlaunchhub.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/daterabbit.smartlaunchhub.com/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+}
+
+server {
+    if ($host = daterabbit.smartlaunchhub.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+    listen 80;
+    server_name daterabbit.smartlaunchhub.com;
+    return 404; # managed by Certbot
+}
+NGINXEOF
+          sudo chown root:root "$CONF"
+          sudo chmod 644 "$CONF"
+          # Ensure symlink in sites-enabled exists
+          sudo ln -sf "$CONF" /etc/nginx/sites-enabled/daterabbit
+          echo "=== Wrote nginx config ==="
+          grep -n "proxy_pass\|listen\|server_name\|location /api" "$CONF" || true
           # Reload nginx
           if sudo nginx -t 2>&1; then
             sudo systemctl reload nginx && echo "Nginx reloaded successfully"
@@ -139,7 +199,7 @@ jobs:
           echo "--- Direct backend test ---"
           HTTP=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:3004/api/auth/start -H 'Content-Type: application/json' -d '{"email":"test@t.com"}' 2>/dev/null)
           echo "Direct backend: $HTTP"
-          echo "--- Local nginx port 443 test ---"
+          echo "--- Local nginx 443 test ---"
           HTTP443=$(curl -sk -o /dev/null -w "%{http_code}" -X POST https://localhost/api/auth/start -H 'Content-Type: application/json' -H 'Host: daterabbit.smartlaunchhub.com' -d '{"email":"test@t.com"}' 2>/dev/null)
           echo "Local nginx 443: $HTTP443"
 
