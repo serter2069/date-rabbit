@@ -120,56 +120,28 @@ jobs:
       - name: Ensure nginx API proxy
         continue-on-error: true
         run: |
-          SPA_CONF="/etc/nginx/sites-available/daterabbit"
-          echo "=== Diagnosing nginx config ==="
-          echo "--- All nginx sites-enabled ---"
-          ls -la /etc/nginx/sites-enabled/
-          echo "--- daterabbit nginx config (full) ---"
-          sudo cat "$SPA_CONF" 2>/dev/null || echo "File not found at $SPA_CONF"
-          echo "--- Checking for daterabbit in conf.d ---"
-          ls -la /etc/nginx/conf.d/ 2>/dev/null || echo "No conf.d"
-          echo "--- Checking nginx -T for daterabbit blocks ---"
-          sudo nginx -T 2>/dev/null | grep -B5 "daterabbit\|proxy_pass.*3004" | head -50 || true
-          echo "=== End diagnosis ==="
-          # Check proxy_pass count (may be duplicated)
-          PROXY_COUNT=$(sudo grep -c "proxy_pass.*3004" "$SPA_CONF" 2>/dev/null || echo 0)
-          echo "proxy_pass count in $SPA_CONF: $PROXY_COUNT"
-          if [ "$PROXY_COUNT" -gt "1" ]; then
-            echo "Found $PROXY_COUNT duplicate proxy blocks, deduplicating..."
-            sudo chown $(whoami) "$SPA_CONF"
-            sudo chmod 644 "$SPA_CONF"
-            python3 server/fix-nginx-dedup.py "$SPA_CONF"
-            sudo chown root:root "$SPA_CONF"
-            sudo chmod 444 "$SPA_CONF"
-          elif [ "$PROXY_COUNT" -eq "0" ]; then
-            echo "No proxy block found, adding..."
-            sudo chown $(whoami) "$SPA_CONF"
-            sudo chmod 644 "$SPA_CONF"
-            python3 server/patch-nginx.py "$SPA_CONF"
-            sudo chown root:root "$SPA_CONF"
-            sudo chmod 444 "$SPA_CONF"
-            echo "Patch applied"
-          else
-            echo "Config looks good (1 proxy block)"
-          fi
-          # Reload nginx - ignore failures from OTHER sites' broken configs
+          # Write complete nginx config on EVERY deploy (idempotent fix)
+          # The config file was being reset between deployments, so we always overwrite it
+          sudo bash server/write-nginx-config.sh
+          # Ensure symlink is correct
+          sudo ln -sf /etc/nginx/sites-available/daterabbit /etc/nginx/sites-enabled/daterabbit
+          # Verify what we wrote
+          echo "=== Current nginx config ==="
+          grep -n "proxy_pass\|listen\|location /api\|server_name" /etc/nginx/sites-available/daterabbit || true
+          # Reload nginx
           if sudo nginx -t 2>&1; then
             sudo systemctl reload nginx && echo "Nginx reloaded successfully"
           else
-            echo "nginx -t failed (likely unrelated site config issue), trying graceful reload anyway..."
-            sudo nginx -s reload 2>&1 || sudo systemctl reload nginx 2>&1 || echo "Reload failed but continuing"
+            echo "nginx -t failed, trying graceful reload..."
+            sudo nginx -s reload 2>&1 || sudo systemctl reload nginx 2>&1 || echo "Reload failed"
           fi
-          # Verify proxy is active
           sleep 2
           echo "--- Direct backend test ---"
           HTTP=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:3004/api/auth/start -H 'Content-Type: application/json' -d '{"email":"test@t.com"}' 2>/dev/null)
-          echo "Direct backend test: POST /api/auth/start → $HTTP"
-          echo "--- Local nginx test (port 80) ---"
-          HTTP80=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost/api/auth/start -H 'Content-Type: application/json' -d '{"email":"test@t.com"}' -L 2>/dev/null)
-          echo "Local nginx port 80 test: POST /api/auth/start → $HTTP80"
-          echo "--- Local nginx test (port 443) ---"
+          echo "Direct backend: $HTTP"
+          echo "--- Local nginx port 443 test ---"
           HTTP443=$(curl -sk -o /dev/null -w "%{http_code}" -X POST https://localhost/api/auth/start -H 'Content-Type: application/json' -H 'Host: daterabbit.smartlaunchhub.com' -d '{"email":"test@t.com"}' 2>/dev/null)
-          echo "Local nginx port 443 test: POST /api/auth/start → $HTTP443"
+          echo "Local nginx 443: $HTTP443"
 
       - name: Verify deployment
         if: always()
@@ -286,24 +258,15 @@ jobs:
       - name: Ensure nginx API proxy
         continue-on-error: true
         run: |
-          SPA_CONF="/etc/nginx/sites-available/daterabbit"
-          if grep -q "proxy_pass.*3004" "$SPA_CONF" 2>/dev/null; then
-            echo "SPA config already has API proxy - ensuring nginx is loaded with it"
-          else
-            echo "Patching SPA config with API proxy..."
-            sudo chown $(whoami) "$SPA_CONF"
-            sudo chmod 644 "$SPA_CONF"
-            python3 server/patch-nginx.py "$SPA_CONF"
-            sudo chown root:root "$SPA_CONF"
-            sudo chmod 444 "$SPA_CONF"
-            echo "Patch applied"
-          fi
-          # Reload nginx - ignore failures from OTHER sites' broken configs
+          # Write complete nginx config on EVERY deploy (idempotent fix)
+          sudo bash server/write-nginx-config.sh
+          sudo ln -sf /etc/nginx/sites-available/daterabbit /etc/nginx/sites-enabled/daterabbit
+          grep -n "proxy_pass\|listen\|location /api\|server_name" /etc/nginx/sites-available/daterabbit || true
           if sudo nginx -t 2>&1; then
             sudo systemctl reload nginx && echo "Nginx reloaded successfully"
           else
-            echo "nginx -t failed (likely unrelated site config issue), trying graceful reload anyway..."
-            sudo nginx -s reload 2>&1 || sudo systemctl reload nginx 2>&1 || echo "Reload failed but continuing"
+            echo "nginx -t failed, trying graceful reload..."
+            sudo nginx -s reload 2>&1 || sudo systemctl reload nginx 2>&1 || echo "Reload failed"
           fi
 
       - name: Verify deployment
