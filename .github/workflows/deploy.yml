@@ -86,6 +86,31 @@ jobs:
           cd /var/www/daterabbit/api
           npm ci --production
 
+      - name: Update Stripe env vars
+        env:
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+        run: |
+          ENV_FILE="/var/www/daterabbit/api/.env"
+          if [ -f "$ENV_FILE" ]; then
+            # Update STRIPE_SECRET_KEY
+            if grep -q "^STRIPE_SECRET_KEY=" "$ENV_FILE"; then
+              sed -i "s|^STRIPE_SECRET_KEY=.*|STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}|" "$ENV_FILE"
+            else
+              echo "STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}" >> "$ENV_FILE"
+            fi
+            # Update STRIPE_WEBHOOK_SECRET
+            if grep -q "^STRIPE_WEBHOOK_SECRET=" "$ENV_FILE"; then
+              sed -i "s|^STRIPE_WEBHOOK_SECRET=.*|STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}|" "$ENV_FILE"
+            else
+              echo "STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}" >> "$ENV_FILE"
+            fi
+            echo "Stripe env vars updated"
+          else
+            echo "ERROR: .env not found at $ENV_FILE"
+            exit 1
+          fi
+
       - name: Restart backend
         run: |
           cd /var/www/daterabbit/api
@@ -95,11 +120,7 @@ jobs:
       - name: Ensure nginx API proxy
         continue-on-error: true
         run: |
-          # Target the main SPA config specifically
           SPA_CONF="/etc/nginx/sites-available/daterabbit"
-          echo "=== Checking SPA config ==="
-          cat "$SPA_CONF" 2>/dev/null | head -30 || echo "File not found"
-          echo "=== Checking for proxy_pass in SPA config ==="
           if grep -q "proxy_pass.*3004" "$SPA_CONF" 2>/dev/null; then
             echo "SPA config already has API proxy"
             exit 0
@@ -110,8 +131,6 @@ jobs:
           python3 server/patch-nginx.py "$SPA_CONF"
           sudo chown root:root "$SPA_CONF"
           sudo chmod 444 "$SPA_CONF"
-          echo "=== Patched config ==="
-          cat "$SPA_CONF" | head -40
           sudo nginx -t 2>&1
           sudo systemctl reload nginx && echo "Nginx patched and reloaded successfully"
 
@@ -196,6 +215,29 @@ jobs:
           cd /var/www/daterabbit/api
           npm ci --production
 
+      - name: Update Stripe env vars
+        env:
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+        run: |
+          ENV_FILE="/var/www/daterabbit/api/.env"
+          if [ -f "$ENV_FILE" ]; then
+            if grep -q "^STRIPE_SECRET_KEY=" "$ENV_FILE"; then
+              sed -i "s|^STRIPE_SECRET_KEY=.*|STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}|" "$ENV_FILE"
+            else
+              echo "STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}" >> "$ENV_FILE"
+            fi
+            if grep -q "^STRIPE_WEBHOOK_SECRET=" "$ENV_FILE"; then
+              sed -i "s|^STRIPE_WEBHOOK_SECRET=.*|STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}|" "$ENV_FILE"
+            else
+              echo "STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}" >> "$ENV_FILE"
+            fi
+            echo "Stripe env vars updated"
+          else
+            echo "ERROR: .env not found at $ENV_FILE"
+            exit 1
+          fi
+
       - name: Restart backend
         run: |
           cd /var/www/daterabbit/api
@@ -205,11 +247,7 @@ jobs:
       - name: Ensure nginx API proxy
         continue-on-error: true
         run: |
-          # Target the main SPA config specifically
           SPA_CONF="/etc/nginx/sites-available/daterabbit"
-          echo "=== Checking SPA config ==="
-          cat "$SPA_CONF" 2>/dev/null | head -30 || echo "File not found"
-          echo "=== Checking for proxy_pass in SPA config ==="
           if grep -q "proxy_pass.*3004" "$SPA_CONF" 2>/dev/null; then
             echo "SPA config already has API proxy"
             exit 0
@@ -220,8 +258,6 @@ jobs:
           python3 server/patch-nginx.py "$SPA_CONF"
           sudo chown root:root "$SPA_CONF"
           sudo chmod 444 "$SPA_CONF"
-          echo "=== Patched config ==="
-          cat "$SPA_CONF" | head -40
           sudo nginx -t 2>&1
           sudo systemctl reload nginx && echo "Nginx patched and reloaded successfully"
 
