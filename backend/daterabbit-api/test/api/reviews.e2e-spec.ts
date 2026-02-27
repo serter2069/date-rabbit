@@ -9,19 +9,20 @@ describe('Reviews API', () => {
   beforeAll(async () => {
     // Create seeker
     const seekerEmail = uniqueEmail('rv-seeker');
-    await apiPost('/auth/start', { email: seekerEmail });
-    const sv = await apiPost('/auth/verify', { email: seekerEmail, code: '000000' });
-    seekerToken = sv.body.token;
-    await apiPost('/auth/register', { email: seekerEmail, name: 'Review Seeker', role: 'seeker' });
+    seekerToken = await login(seekerEmail);
+    await apiPost('/auth/register', {
+      name: 'Review Seeker',
+      role: 'seeker',
+    }, seekerToken);
 
     // Create companion
     const compEmail = uniqueEmail('rv-comp');
-    await apiPost('/auth/start', { email: compEmail });
-    const cv = await apiPost('/auth/verify', { email: compEmail, code: '000000' });
-    companionToken = cv.body.token;
+    companionToken = await login(compEmail);
     const cr = await apiPost('/auth/register', {
-      email: compEmail, name: 'Review Companion', role: 'companion', hourlyRate: 60,
-    });
+      name: 'Review Companion',
+      role: 'companion',
+      hourlyRate: 60,
+    }, companionToken);
     companionId = cr.body.user.id;
 
     // Create booking → confirm → complete

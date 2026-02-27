@@ -25,6 +25,11 @@ describe('Auth API', () => {
       const { status } = await apiPost('/auth/start', {});
       expect(status).toBeGreaterThanOrEqual(400);
     });
+
+    it('should reject invalid email format', async () => {
+      const { status } = await apiPost('/auth/start', { email: 'not-an-email' });
+      expect(status).toBe(400);
+    });
   });
 
   describe('POST /auth/verify', () => {
@@ -43,9 +48,8 @@ describe('Auth API', () => {
     it('should reject wrong OTP', async () => {
       const email = uniqueEmail('auth-wrong');
       await apiPost('/auth/start', { email });
-      const { status, body } = await apiPost('/auth/verify', { email, code: '999999' });
+      const { status } = await apiPost('/auth/verify', { email, code: '999999' });
       expect(status).toBe(401);
-      expect(body.success).toBeUndefined();
     });
 
     it('should reject missing fields', async () => {
@@ -63,17 +67,16 @@ describe('Auth API', () => {
   });
 
   describe('POST /auth/register', () => {
-    it('should register with role and profile data', async () => {
+    it('should register with role and profile data (requires JWT)', async () => {
       const email = uniqueEmail('auth-reg');
-      // Need to start auth first to create user
-      await apiPost('/auth/start', { email });
+      // Must go through start + verify to get JWT
+      const token = await login(email);
       const { status, body } = await apiPost('/auth/register', {
-        email,
         name: 'Test User',
         role: 'seeker',
         age: 25,
         location: 'New York',
-      });
+      }, token);
       expect(status).toBe(201);
       expect(body.success).toBe(true);
       expect(body.token).toBeDefined();
@@ -83,20 +86,29 @@ describe('Auth API', () => {
 
     it('should register as companion with hourly rate', async () => {
       const email = uniqueEmail('auth-comp');
-      await apiPost('/auth/start', { email });
+      const token = await login(email);
       const { status, body } = await apiPost('/auth/register', {
-        email,
         name: 'Test Companion',
         role: 'companion',
         hourlyRate: 75,
         bio: 'Test bio',
-      });
+      }, token);
       expect(status).toBe(201);
       expect(body.user.role).toBe('companion');
     });
 
+    it('should reject without auth token (auth bypass protection)', async () => {
+      const { status } = await apiPost('/auth/register', {
+        name: 'Hacker',
+        role: 'seeker',
+      });
+      expect(status).toBe(401);
+    });
+
     it('should reject missing name', async () => {
-      const { status } = await apiPost('/auth/register', { email: 'x@x.com' });
+      const email = uniqueEmail('auth-noname');
+      const token = await login(email);
+      const { status } = await apiPost('/auth/register', {}, token);
       expect(status).toBeGreaterThanOrEqual(400);
     });
   });

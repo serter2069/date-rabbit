@@ -41,8 +41,8 @@ export class MessagesController {
     const messages = await this.messagesService.getMessages(
       req.user.id,
       otherUserId,
-      limit ? parseInt(limit) : 50,
-      offset ? parseInt(offset) : 0,
+      Math.min(limit ? parseInt(limit) || 50 : 50, 100),
+      offset ? parseInt(offset) || 0 : 0,
     );
 
     // Mark as read
@@ -66,6 +66,9 @@ export class MessagesController {
   ) {
     if (!body.content?.trim()) {
       throw new HttpException('Message content is required', HttpStatus.BAD_REQUEST);
+    }
+    if (body.content.length > 5000) {
+      throw new HttpException('Message too long (max 5000 chars)', HttpStatus.BAD_REQUEST);
     }
 
     const message = await this.messagesService.sendMessage(

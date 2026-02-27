@@ -1,6 +1,7 @@
-import { Controller, Post, Body, HttpException, HttpStatus } from '@nestjs/common';
-import { Throttle, SkipThrottle } from '@nestjs/throttler';
+import { Controller, Post, Body, HttpException, HttpStatus, UseGuards, Request } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { UserRole } from '../users/entities/user.entity';
 
 @Controller('auth')
@@ -10,16 +11,21 @@ export class AuthController {
   @Post('start')
   @Throttle({ default: { limit: 20, ttl: 3600000 } }) // 20 emails per hour
   async startAuth(@Body() body: { email: string }) {
-    if (!body.email) {
+    if (!body.email || typeof body.email !== 'string') {
       throw new HttpException('Email is required', HttpStatus.BAD_REQUEST);
     }
 
-    const result = await this.authService.startAuth(body.email.toLowerCase());
+    const email = body.email.toLowerCase().trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      throw new HttpException('Invalid email format', HttpStatus.BAD_REQUEST);
+    }
+
+    const result = await this.authService.startAuth(email);
     return result;
   }
 
   @Post('verify')
-  @Throttle({ default: { limit: 20, ttl: 600000 } }) // 20 OTP attempts per 10 min
+  @Throttle({ default: { limit: 10, ttl: 600000 } }) // 10 OTP attempts per 10 min
   async verifyOtp(@Body() body: { email: string; code: string }) {
     if (!body.email || !body.code) {
       throw new HttpException('Email and code are required', HttpStatus.BAD_REQUEST);
@@ -35,21 +41,25 @@ export class AuthController {
   }
 
   @Post('register')
-  async register(@Body() body: {
-    email: string;
-    name: string;
-    role: 'seeker' | 'companion';
-    age?: number;
-    location?: string;
-    bio?: string;
-    hourlyRate?: number;
-  }) {
-    if (!body.email || !body.name) {
-      throw new HttpException('Email and name are required', HttpStatus.BAD_REQUEST);
+  @UseGuards(JwtAuthGuard)
+  async register(
+    @Request() req,
+    @Body() body: {
+      name: string;
+      role: 'seeker' | 'companion';
+      age?: number;
+      location?: string;
+      bio?: string;
+      hourlyRate?: number;
+    },
+  ) {
+    if (!body.name) {
+      throw new HttpException('Name is required', HttpStatus.BAD_REQUEST);
     }
 
+    // Email comes from verified JWT — not from request body
     const result = await this.authService.register({
-      email: body.email.toLowerCase(),
+      email: req.user.email,
       name: body.name,
       role: body.role === 'companion' ? UserRole.COMPANION : UserRole.SEEKER,
       age: body.age,

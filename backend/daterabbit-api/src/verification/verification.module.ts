@@ -7,7 +7,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { Verification } from './entities/verification.entity';
 import { VerificationService } from './verification.service';
-import { VerificationController } from './verification.controller';
+import { VerificationController, VerificationWebhookController } from './verification.controller';
 import { UsersModule } from '../users/users.module';
 import { UploadsModule } from '../uploads/uploads.module';
 
@@ -17,6 +17,7 @@ const UPLOADS_ROOT = path.join(process.cwd(), 'uploads');
   imports: [
     TypeOrmModule.forFeature([Verification]),
     MulterModule.register({
+      limits: { fileSize: 20 * 1024 * 1024 }, // 20MB max
       storage: multer.diskStorage({
         destination: (req, _file, cb) => {
           // Determine upload subdirectory from request URL
@@ -38,7 +39,7 @@ const UPLOADS_ROOT = path.join(process.cwd(), 'uploads');
     UploadsModule,
   ],
   providers: [VerificationService],
-  controllers: [VerificationController],
+  controllers: [VerificationController, VerificationWebhookController],
   exports: [VerificationService],
 })
 export class VerificationModule {}

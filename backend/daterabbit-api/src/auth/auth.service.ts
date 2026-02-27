@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import * as crypto from 'crypto';
 import { UsersService } from '../users/users.service';
 import { User, UserRole } from '../users/entities/user.entity';
 
@@ -23,7 +24,7 @@ export class AuthService {
     if (this.configService.get('DEV_AUTH') === 'true') {
       return '000000';
     }
-    return Math.floor(100000 + Math.random() * 900000).toString();
+    return crypto.randomInt(100000, 1000000).toString();
   }
 
   async startAuth(email: string): Promise<{ success: boolean; isNewUser: boolean }> {
@@ -100,7 +101,11 @@ export class AuthService {
       return { success: false, error: 'OTP expired' };
     }
 
-    if (user.otpCode !== code) {
+    const isValid = user.otpCode.length === code.length &&
+      crypto.timingSafeEqual(Buffer.from(user.otpCode), Buffer.from(code));
+    if (!isValid) {
+      // Invalidate OTP after failed attempt to prevent brute-force
+      await this.usersService.clearOtp(user.id);
       return { success: false, error: 'Invalid OTP' };
     }
 

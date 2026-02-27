@@ -6,28 +6,22 @@ describe('Bookings API', () => {
   let companionId: string;
 
   beforeAll(async () => {
-    // Create seeker
+    // Create seeker (login gives JWT via start+verify)
     const seekerEmail = uniqueEmail('bk-seeker');
-    await apiPost('/auth/start', { email: seekerEmail });
-    const seekerVerify = await apiPost('/auth/verify', { email: seekerEmail, code: '000000' });
-    seekerToken = seekerVerify.body.token;
+    seekerToken = await login(seekerEmail);
     await apiPost('/auth/register', {
-      email: seekerEmail,
       name: 'Booking Seeker',
       role: 'seeker',
-    });
+    }, seekerToken);
 
     // Create companion
     const compEmail = uniqueEmail('bk-comp');
-    await apiPost('/auth/start', { email: compEmail });
-    const compVerify = await apiPost('/auth/verify', { email: compEmail, code: '000000' });
-    companionToken = compVerify.body.token;
+    companionToken = await login(compEmail);
     const regResult = await apiPost('/auth/register', {
-      email: compEmail,
       name: 'Booking Companion',
       role: 'companion',
       hourlyRate: 80,
-    });
+    }, companionToken);
     companionId = regResult.body.user.id;
   });
 

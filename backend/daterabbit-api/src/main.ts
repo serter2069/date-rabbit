@@ -8,12 +8,12 @@ async function bootstrap() {
   });
 
   // Enable CORS
+  const corsOrigins = ['https://daterabbit.smartlaunchhub.com'];
+  if (process.env.NODE_ENV !== 'production') {
+    corsOrigins.push('http://localhost:8081', 'http://localhost:19006');
+  }
   app.enableCors({
-    origin: [
-      'https://daterabbit.smartlaunchhub.com',
-      'http://localhost:8081',
-      'http://localhost:19006',
-    ],
+    origin: corsOrigins,
     credentials: true,
   });
 

@@ -7,6 +7,8 @@ import {
   UseGuards,
   UseInterceptors,
   UploadedFile,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -72,8 +74,28 @@ export class VerificationController {
     return this.verificationService.submitForReview(req.user.id);
   }
 
+  // Webhook moved to a separate unguarded controller below
+}
+
+// Separate controller for external webhooks — no JWT guard
+@Controller('verification')
+export class VerificationWebhookController {
+  constructor(private readonly verificationService: VerificationService) {}
+
   @Post('webhook')
-  handleWebhook(@Body() payload: any) {
-    return this.verificationService.handleWebhook(payload);
+  handleWebhook(
+    @Body() payload: any,
+    @Req() req: any,
+  ) {
+    // Validate webhook signature from Checkr
+    const signature = req.headers['x-checkr-signature'];
+    if (!signature) {
+      throw new HttpException('Missing webhook signature', HttpStatus.UNAUTHORIZED);
+    }
+
+    // TODO: Verify HMAC signature against CHECKR_WEBHOOK_SECRET when configured
+    // For now, log the webhook but don't auto-approve verifications
+    console.log('Verification webhook received (signature validation pending)');
+    return { received: true };
   }
 }

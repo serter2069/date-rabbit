@@ -98,7 +98,7 @@ export class UsersService {
     const total = await query.getCount();
     const companions = await query
       .skip(filters.offset || 0)
-      .take(filters.limit || 20)
+      .take(Math.min(filters.limit || 20, 100))
       .getMany();
 
     return { companions, total };
