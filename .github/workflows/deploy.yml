@@ -92,23 +92,41 @@ jobs:
           sudo pm2 restart daterabbit || sudo pm2 start dist/main.js --name daterabbit
           sudo chown -R www-data:www-data /var/www/daterabbit/
 
-      - name: Setup nginx config
+      - name: Patch nginx with API proxy
         continue-on-error: true
         run: |
-          if [ -f server/nginx-daterabbit.conf ]; then
-            cp server/nginx-daterabbit.conf /tmp/nginx-daterabbit.conf
-            sudo chmod 644 /tmp/nginx-daterabbit.conf
-            sudo chown root:root /tmp/nginx-daterabbit.conf 2>/dev/null || true
-            if [ -w /etc/nginx/sites-available/ ]; then
-              cp /tmp/nginx-daterabbit.conf /etc/nginx/sites-available/daterabbit
+          echo "=== Finding nginx config for daterabbit ==="
+          CONF=$(grep -rl "daterabbit" /etc/nginx/sites-enabled/ 2>/dev/null | head -1)
+          if [ -z "$CONF" ]; then
+            CONF=$(grep -rl "daterabbit" /etc/nginx/sites-available/ 2>/dev/null | head -1)
+          fi
+          echo "Found config: $CONF"
+          if [ -n "$CONF" ]; then
+            if grep -q "proxy_pass.*3004" "$CONF" 2>/dev/null; then
+              echo "API proxy already configured, skipping"
             else
-              echo "Cannot write to sites-available, trying mv approach..."
-              sudo mv /tmp/nginx-daterabbit.conf /etc/nginx/sites-available/daterabbit 2>/dev/null || \
-                echo "WARN: Cannot install nginx config automatically. Install manually from server/nginx-daterabbit.conf"
+              echo "Injecting /api/ proxy block..."
+              # Insert location /api/ block before the catch-all location /
+              sudo sed -i '/location \/ {/i\
+    # API proxy to NestJS backend\
+    location /api/ {\
+        proxy_pass http://127.0.0.1:3004;\
+        proxy_http_version 1.1;\
+        proxy_set_header Upgrade $http_upgrade;\
+        proxy_set_header Connection '"'"'upgrade'"'"';\
+        proxy_set_header Host $host;\
+        proxy_set_header X-Real-IP $remote_addr;\
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\
+        proxy_set_header X-Forwarded-Proto $scheme;\
+        proxy_cache_bypass $http_upgrade;\
+        client_max_body_size 10m;\
+    }\
+' "$CONF"
+              sudo nginx -t 2>&1 && sudo systemctl reload nginx && echo "Nginx patched and reloaded" || \
+                echo "WARN: Nginx config test failed after patch"
             fi
-            sudo ln -sf /etc/nginx/sites-available/daterabbit /etc/nginx/sites-enabled/daterabbit 2>/dev/null || true
-            sudo nginx -t 2>&1 && sudo systemctl reload nginx && echo "Nginx config updated and reloaded" || \
-              echo "WARN: Nginx reload failed, check config manually"
+          else
+            echo "WARN: No nginx config found for daterabbit"
           fi
 
       - name: Verify deployment
@@ -198,21 +216,34 @@ jobs:
           sudo pm2 restart daterabbit || sudo pm2 start dist/main.js --name daterabbit
           sudo chown -R www-data:www-data /var/www/daterabbit/
 
-      - name: Setup nginx config
+      - name: Patch nginx with API proxy
         continue-on-error: true
         run: |
-          if [ -f server/nginx-daterabbit.conf ]; then
-            cp server/nginx-daterabbit.conf /tmp/nginx-daterabbit.conf
-            sudo chmod 644 /tmp/nginx-daterabbit.conf
-            if [ -w /etc/nginx/sites-available/ ]; then
-              cp /tmp/nginx-daterabbit.conf /etc/nginx/sites-available/daterabbit
+          CONF=$(grep -rl "daterabbit" /etc/nginx/sites-enabled/ 2>/dev/null | head -1)
+          if [ -z "$CONF" ]; then
+            CONF=$(grep -rl "daterabbit" /etc/nginx/sites-available/ 2>/dev/null | head -1)
+          fi
+          if [ -n "$CONF" ]; then
+            if grep -q "proxy_pass.*3004" "$CONF" 2>/dev/null; then
+              echo "API proxy already configured"
             else
-              sudo mv /tmp/nginx-daterabbit.conf /etc/nginx/sites-available/daterabbit 2>/dev/null || \
-                echo "WARN: Cannot install nginx config automatically"
+              sudo sed -i '/location \/ {/i\
+    location /api/ {\
+        proxy_pass http://127.0.0.1:3004;\
+        proxy_http_version 1.1;\
+        proxy_set_header Upgrade $http_upgrade;\
+        proxy_set_header Connection '"'"'upgrade'"'"';\
+        proxy_set_header Host $host;\
+        proxy_set_header X-Real-IP $remote_addr;\
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\
+        proxy_set_header X-Forwarded-Proto $scheme;\
+        proxy_cache_bypass $http_upgrade;\
+        client_max_body_size 10m;\
+    }\
+' "$CONF"
+              sudo nginx -t 2>&1 && sudo systemctl reload nginx && echo "Nginx patched and reloaded" || \
+                echo "WARN: Nginx patch failed"
             fi
-            sudo ln -sf /etc/nginx/sites-available/daterabbit /etc/nginx/sites-enabled/daterabbit 2>/dev/null || true
-            sudo nginx -t 2>&1 && sudo systemctl reload nginx && echo "Nginx config updated and reloaded" || \
-              echo "WARN: Nginx reload failed"
           fi
 
       - name: Verify deployment
