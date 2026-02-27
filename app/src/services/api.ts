@@ -297,11 +297,27 @@ export const bookingsApi = {
     >(`/bookings?filter=${filter}&page=${page}`);
 
     // Handle both API response shapes
-    if ('bookings' in response) {
-      return response;
-    }
-    const all = [...(response.asSeeker || []), ...(response.asCompanion || [])];
-    return { bookings: all, total: all.length };
+    const raw = 'bookings' in response
+      ? response.bookings
+      : [...(response.asSeeker || []), ...(response.asCompanion || [])];
+
+    // Normalize field names (API may send dateTime/totalPrice instead of date/total)
+    const bookings = raw.map((b: any) => ({
+      ...b,
+      date: b.date ?? b.dateTime,
+      total: typeof b.total === 'number' ? b.total : parseFloat(b.totalPrice ?? b.total ?? '0'),
+      subtotal: typeof b.subtotal === 'number' ? b.subtotal : parseFloat(b.subtotal ?? '0'),
+      platformFee: typeof b.platformFee === 'number' ? b.platformFee : parseFloat(b.platformFee ?? '0'),
+      hourlyRate: typeof b.hourlyRate === 'number' ? b.hourlyRate : parseFloat(b.hourlyRate ?? b.companion?.hourlyRate ?? '0'),
+      companionEarnings: typeof b.companionEarnings === 'number' ? b.companionEarnings : parseFloat(b.companionEarnings ?? '0'),
+      isPaid: b.isPaid ?? false,
+      companion: {
+        ...b.companion,
+        photo: b.companion?.photo ?? b.companion?.photos?.[0]?.url,
+      },
+    }));
+
+    return { bookings, total: 'bookings' in response ? (response as any).total : bookings.length };
   },
 
   getRequests: (status: 'pending' | 'accepted' | 'completed' = 'pending') =>
