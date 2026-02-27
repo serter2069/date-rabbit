@@ -95,36 +95,25 @@ jobs:
       - name: Ensure nginx API proxy
         continue-on-error: true
         run: |
-          echo "=== All daterabbit nginx configs ==="
-          echo "--- sites-enabled ---"
-          ls -la /etc/nginx/sites-enabled/ 2>/dev/null | grep -i daterabbit || echo "(none)"
-          echo "--- sites-available ---"
-          ls -la /etc/nginx/sites-available/ 2>/dev/null | grep -i daterabbit || echo "(none)"
-
-          # Check if API proxy is already active in sites-enabled
-          if grep -rl "proxy_pass.*3004" /etc/nginx/sites-enabled/ 2>/dev/null | head -1; then
-            echo "API proxy already active in sites-enabled"
+          # Target the main SPA config specifically
+          SPA_CONF="/etc/nginx/sites-available/daterabbit"
+          echo "=== Checking SPA config ==="
+          cat "$SPA_CONF" 2>/dev/null | head -30 || echo "File not found"
+          echo "=== Checking for proxy_pass in SPA config ==="
+          if grep -q "proxy_pass.*3004" "$SPA_CONF" 2>/dev/null; then
+            echo "SPA config already has API proxy"
             exit 0
           fi
-
-          # Try to enable existing daterabbit-api config
-          if [ -f /etc/nginx/sites-available/daterabbit-api ]; then
-            echo "Enabling daterabbit-api config..."
-            sudo ln -sf /etc/nginx/sites-available/daterabbit-api /etc/nginx/sites-enabled/daterabbit-api
-            sudo systemctl reload nginx && echo "daterabbit-api enabled and nginx reloaded" || echo "WARN: reload failed"
-            exit 0
-          fi
-
-          # Fallback: patch the main SPA config
-          CONF=$(grep -rl "daterabbit" /etc/nginx/sites-enabled/ 2>/dev/null | head -1)
-          if [ -n "$CONF" ] && ! grep -q "proxy_pass.*3004" "$CONF"; then
-            echo "Patching SPA config: $CONF"
-            ORIG_OWNER=$(stat -c '%U:%G' "$CONF" 2>/dev/null || echo "root:root")
-            sudo chown $(whoami) "$CONF"
-            python3 server/patch-nginx.py "$CONF"
-            sudo chown $ORIG_OWNER "$CONF"
-            sudo systemctl reload nginx && echo "Nginx patched and reloaded"
-          fi
+          echo "Patching SPA config with API proxy..."
+          sudo chown $(whoami) "$SPA_CONF"
+          sudo chmod 644 "$SPA_CONF"
+          python3 server/patch-nginx.py "$SPA_CONF"
+          sudo chown root:root "$SPA_CONF"
+          sudo chmod 444 "$SPA_CONF"
+          echo "=== Patched config ==="
+          cat "$SPA_CONF" | head -40
+          sudo nginx -t 2>&1
+          sudo systemctl reload nginx && echo "Nginx patched and reloaded successfully"
 
       - name: Verify deployment
         if: always()
@@ -216,36 +205,25 @@ jobs:
       - name: Ensure nginx API proxy
         continue-on-error: true
         run: |
-          echo "=== All daterabbit nginx configs ==="
-          echo "--- sites-enabled ---"
-          ls -la /etc/nginx/sites-enabled/ 2>/dev/null | grep -i daterabbit || echo "(none)"
-          echo "--- sites-available ---"
-          ls -la /etc/nginx/sites-available/ 2>/dev/null | grep -i daterabbit || echo "(none)"
-
-          # Check if API proxy is already active in sites-enabled
-          if grep -rl "proxy_pass.*3004" /etc/nginx/sites-enabled/ 2>/dev/null | head -1; then
-            echo "API proxy already active in sites-enabled"
+          # Target the main SPA config specifically
+          SPA_CONF="/etc/nginx/sites-available/daterabbit"
+          echo "=== Checking SPA config ==="
+          cat "$SPA_CONF" 2>/dev/null | head -30 || echo "File not found"
+          echo "=== Checking for proxy_pass in SPA config ==="
+          if grep -q "proxy_pass.*3004" "$SPA_CONF" 2>/dev/null; then
+            echo "SPA config already has API proxy"
             exit 0
           fi
-
-          # Try to enable existing daterabbit-api config
-          if [ -f /etc/nginx/sites-available/daterabbit-api ]; then
-            echo "Enabling daterabbit-api config..."
-            sudo ln -sf /etc/nginx/sites-available/daterabbit-api /etc/nginx/sites-enabled/daterabbit-api
-            sudo systemctl reload nginx && echo "daterabbit-api enabled and nginx reloaded" || echo "WARN: reload failed"
-            exit 0
-          fi
-
-          # Fallback: patch the main SPA config
-          CONF=$(grep -rl "daterabbit" /etc/nginx/sites-enabled/ 2>/dev/null | head -1)
-          if [ -n "$CONF" ] && ! grep -q "proxy_pass.*3004" "$CONF"; then
-            echo "Patching SPA config: $CONF"
-            ORIG_OWNER=$(stat -c '%U:%G' "$CONF" 2>/dev/null || echo "root:root")
-            sudo chown $(whoami) "$CONF"
-            python3 server/patch-nginx.py "$CONF"
-            sudo chown $ORIG_OWNER "$CONF"
-            sudo systemctl reload nginx && echo "Nginx patched and reloaded"
-          fi
+          echo "Patching SPA config with API proxy..."
+          sudo chown $(whoami) "$SPA_CONF"
+          sudo chmod 644 "$SPA_CONF"
+          python3 server/patch-nginx.py "$SPA_CONF"
+          sudo chown root:root "$SPA_CONF"
+          sudo chmod 444 "$SPA_CONF"
+          echo "=== Patched config ==="
+          cat "$SPA_CONF" | head -40
+          sudo nginx -t 2>&1
+          sudo systemctl reload nginx && echo "Nginx patched and reloaded successfully"
 
       - name: Verify deployment
         if: always()
