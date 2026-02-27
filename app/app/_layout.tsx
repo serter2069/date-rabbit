@@ -10,6 +10,7 @@ import {
   SpaceGrotesk_700Bold,
 } from '@expo-google-fonts/space-grotesk';
 import { colors } from '../src/constants/theme';
+import { StripeProvider } from '../src/components/StripeProvider';
 
 export default function RootLayout() {
   const { isAuthenticated, hasSeenOnboarding, user } = useAuthStore();
@@ -34,7 +35,7 @@ export default function RootLayout() {
   }
 
   return (
-    <>
+    <StripeProvider>
       <StatusBar style="dark" />
       <Stack
         screenOptions={{
@@ -71,6 +72,9 @@ export default function RootLayout() {
         <Stack.Screen name="chat/[id]" />
         <Stack.Screen name="profile/[id]" />
         <Stack.Screen name="reviews/[id]" />
+        <Stack.Screen name="payment/[bookingId]" />
+        <Stack.Screen name="stripe/return" />
+        <Stack.Screen name="stripe/refresh" />
         <Stack.Screen name="favorites/index" />
         <Stack.Screen name="settings/edit-profile" />
         <Stack.Screen name="settings/notifications" />
@@ -79,7 +83,7 @@ export default function RootLayout() {
         <Stack.Screen name="terms" />
         <Stack.Screen name="privacy" />
       </Stack>
-    </>
+    </StripeProvider>
   );
 }
 
