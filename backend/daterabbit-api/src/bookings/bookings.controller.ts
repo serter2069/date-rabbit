@@ -24,10 +24,38 @@ export class BookingsController {
       throw new HttpException('Missing required fields', HttpStatus.BAD_REQUEST);
     }
 
+    const validActivities = Object.values(ActivityType);
+    if (!validActivities.includes(body.activity as ActivityType)) {
+      throw new HttpException(
+        `Invalid activity. Must be one of: ${validActivities.join(', ')}`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    if (typeof body.duration !== 'number' || body.duration <= 0) {
+      throw new HttpException('Duration must be a positive number', HttpStatus.BAD_REQUEST);
+    }
+
+    const dateTime = new Date(body.dateTime);
+    if (isNaN(dateTime.getTime())) {
+      throw new HttpException('Invalid dateTime format', HttpStatus.BAD_REQUEST);
+    }
+    if (dateTime < new Date()) {
+      throw new HttpException('Cannot book in the past', HttpStatus.BAD_REQUEST);
+    }
+
+    if (body.companionId === req.user.id) {
+      throw new HttpException('Cannot book yourself', HttpStatus.BAD_REQUEST);
+    }
+
+    if (body.notes && body.notes.length > 2000) {
+      throw new HttpException('Notes too long (max 2000 characters)', HttpStatus.BAD_REQUEST);
+    }
+
     const booking = await this.bookingsService.create({
       seekerId: req.user.id,
       companionId: body.companionId,
-      dateTime: new Date(body.dateTime),
+      dateTime,
       duration: body.duration,
       activity: body.activity as ActivityType,
       location: body.location,
@@ -83,6 +111,12 @@ export class BookingsController {
     if (booking.companionId !== req.user.id) {
       throw new HttpException('Only companion can confirm', HttpStatus.FORBIDDEN);
     }
+    if (booking.status !== BookingStatus.PENDING) {
+      throw new HttpException(
+        `Cannot confirm a ${booking.status} booking`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     const updated = await this.bookingsService.updateStatus(id, BookingStatus.CONFIRMED);
     return this.formatBooking(updated);
   }
@@ -95,6 +129,12 @@ export class BookingsController {
     }
     if (booking.seekerId !== req.user.id && booking.companionId !== req.user.id) {
       throw new HttpException('Unauthorized', HttpStatus.FORBIDDEN);
+    }
+    if (booking.status === BookingStatus.CANCELLED) {
+      throw new HttpException('Booking is already cancelled', HttpStatus.BAD_REQUEST);
+    }
+    if (booking.status === BookingStatus.COMPLETED) {
+      throw new HttpException('Cannot cancel a completed booking', HttpStatus.BAD_REQUEST);
     }
     const updated = await this.bookingsService.updateStatus(id, BookingStatus.CANCELLED, body.reason);
     return this.formatBooking(updated);
@@ -110,6 +150,7 @@ export class BookingsController {
       notes: booking.notes,
       totalPrice: booking.totalPrice,
       status: booking.status,
+      cancellationReason: booking.cancellationReason || undefined,
       seeker: booking.seeker ? {
         id: booking.seeker.id,
         name: booking.seeker.name,

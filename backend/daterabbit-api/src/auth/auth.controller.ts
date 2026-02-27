@@ -10,8 +10,12 @@ export class AuthController {
   @Post('start')
   @Throttle({ default: { limit: 20, ttl: 3600000 } }) // 20 emails per hour
   async startAuth(@Body() body: { email: string }) {
-    if (!body.email || typeof body.email !== 'string') {
+    if (!body || !body.email || typeof body.email !== 'string') {
       throw new HttpException('Email is required', HttpStatus.BAD_REQUEST);
+    }
+
+    if (body.email.length > 254) {
+      throw new HttpException('Email too long', HttpStatus.BAD_REQUEST);
     }
 
     const email = body.email.toLowerCase().trim();

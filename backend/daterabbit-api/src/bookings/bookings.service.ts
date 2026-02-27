@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Booking, BookingStatus, ActivityType } from './entities/booking.entity';
@@ -22,7 +22,10 @@ export class BookingsService {
     notes?: string;
   }): Promise<Booking> {
     const companion = await this.usersService.findById(data.companionId);
-    const totalPrice = (companion?.hourlyRate || 100) * data.duration;
+    if (!companion) {
+      throw new HttpException('Companion not found', HttpStatus.NOT_FOUND);
+    }
+    const totalPrice = (companion.hourlyRate || 100) * data.duration;
 
     const booking = this.bookingsRepository.create({
       ...data,

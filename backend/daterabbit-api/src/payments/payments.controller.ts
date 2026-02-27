@@ -9,6 +9,8 @@ import {
   Request,
   Headers,
   Req,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import type { Request as ExpressRequest } from 'express';
 import { SkipThrottle } from '@nestjs/throttler';
@@ -56,10 +58,12 @@ export class PaymentsController {
   @UseGuards(JwtAuthGuard)
   async getEarningsHistory(
     @Request() req,
-    @Query('page') page = 1,
-    @Query('limit') limit = 20,
+    @Query('page') page = '1',
+    @Query('limit') limit = '20',
   ) {
-    return this.paymentsService.getEarningsHistory(req.user.id, +page, +limit);
+    const p = Math.max(1, parseInt(page, 10) || 1);
+    const l = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
+    return this.paymentsService.getEarningsHistory(req.user.id, p, l);
   }
 
   // --- Payouts ---
