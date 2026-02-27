@@ -69,7 +69,7 @@ export default function PaymentScreen() {
     return (
       <View style={[styles.container, styles.center, { backgroundColor: colors.background }]}>
         <View style={[styles.errorIcon, { backgroundColor: colors.error + '20' }]}>
-          <Icon name="alert-circle" size={48} color={colors.error} />
+          <Icon name="alert" size={48} color={colors.error} />
         </View>
         <Text style={[styles.errorTitle, { color: colors.text }]}>Payment Error</Text>
         <Text style={[styles.errorMessage, { color: colors.textSecondary }]}>{error}</Text>

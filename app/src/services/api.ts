@@ -291,8 +291,18 @@ export const bookingsApi = {
   getById: (id: string) =>
     apiRequest<Booking>(`/bookings/${id}`),
 
-  getMyBookings: (filter: 'all' | 'pending' | 'upcoming' | 'past' = 'all', page = 1) =>
-    apiRequest<{ bookings: Booking[]; total: number }>(`/bookings?filter=${filter}&page=${page}`),
+  getMyBookings: async (filter: 'all' | 'pending' | 'upcoming' | 'past' = 'all', page = 1) => {
+    const response = await apiRequest<
+      { bookings: Booking[]; total: number } | { asSeeker: Booking[]; asCompanion: Booking[] }
+    >(`/bookings?filter=${filter}&page=${page}`);
+
+    // Handle both API response shapes
+    if ('bookings' in response) {
+      return response;
+    }
+    const all = [...(response.asSeeker || []), ...(response.asCompanion || [])];
+    return { bookings: all, total: all.length };
+  },
 
   getRequests: (status: 'pending' | 'accepted' | 'completed' = 'pending') =>
     apiRequest<{ bookings: Booking[]; total: number }>(`/bookings/requests?status=${status}`),
