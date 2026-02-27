@@ -83,6 +83,7 @@ export default function RegisterScreen() {
 
     const onboardingData = {
       name: formData.name,
+      email: formData.email,
       age: parseInt(formData.birthYear) ? new Date().getFullYear() - parseInt(formData.birthYear) : 25,
       role: role || 'seeker',
       bio: '',

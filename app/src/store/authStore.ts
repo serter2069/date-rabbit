@@ -15,6 +15,8 @@ interface OnboardingData {
   location: string;
   // Companion-specific
   hourlyRate?: number;
+  // Optional email override (used when registering without OTP flow)
+  email?: string;
 }
 
 interface ProfileUpdateData {
@@ -206,12 +208,13 @@ export const useAuthStore = create<AuthState>()(
       // Step 3: User completes profile after OTP verification
       completeOnboarding: async (data) => {
         const { pendingEmail } = get();
+        const email = data.email || pendingEmail || '';
 
         set({ isLoading: true, error: null });
 
         try {
           const result = await authApi.register({
-            email: pendingEmail || '',
+            email,
             name: data.name,
             role: data.role,
             age: data.age,
