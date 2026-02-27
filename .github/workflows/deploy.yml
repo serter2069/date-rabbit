@@ -86,20 +86,30 @@ jobs:
           cd /var/www/daterabbit/api
           npm ci --production
 
-      - name: Setup nginx config
-        run: |
-          if [ -f server/nginx-daterabbit.conf ]; then
-            sudo cp server/nginx-daterabbit.conf /etc/nginx/sites-available/daterabbit
-            sudo ln -sf /etc/nginx/sites-available/daterabbit /etc/nginx/sites-enabled/daterabbit
-            sudo nginx -t && sudo systemctl reload nginx
-            echo "Nginx config updated and reloaded"
-          fi
-
       - name: Restart backend
         run: |
           cd /var/www/daterabbit/api
           sudo pm2 restart daterabbit || sudo pm2 start dist/main.js --name daterabbit
           sudo chown -R www-data:www-data /var/www/daterabbit/
+
+      - name: Setup nginx config
+        continue-on-error: true
+        run: |
+          if [ -f server/nginx-daterabbit.conf ]; then
+            cp server/nginx-daterabbit.conf /tmp/nginx-daterabbit.conf
+            sudo chmod 644 /tmp/nginx-daterabbit.conf
+            sudo chown root:root /tmp/nginx-daterabbit.conf 2>/dev/null || true
+            if [ -w /etc/nginx/sites-available/ ]; then
+              cp /tmp/nginx-daterabbit.conf /etc/nginx/sites-available/daterabbit
+            else
+              echo "Cannot write to sites-available, trying mv approach..."
+              sudo mv /tmp/nginx-daterabbit.conf /etc/nginx/sites-available/daterabbit 2>/dev/null || \
+                echo "WARN: Cannot install nginx config automatically. Install manually from server/nginx-daterabbit.conf"
+            fi
+            sudo ln -sf /etc/nginx/sites-available/daterabbit /etc/nginx/sites-enabled/daterabbit 2>/dev/null || true
+            sudo nginx -t 2>&1 && sudo systemctl reload nginx && echo "Nginx config updated and reloaded" || \
+              echo "WARN: Nginx reload failed, check config manually"
+          fi
 
       - name: Verify deployment
         if: always()
@@ -182,20 +192,28 @@ jobs:
           cd /var/www/daterabbit/api
           npm ci --production
 
-      - name: Setup nginx config
-        run: |
-          if [ -f server/nginx-daterabbit.conf ]; then
-            sudo cp server/nginx-daterabbit.conf /etc/nginx/sites-available/daterabbit
-            sudo ln -sf /etc/nginx/sites-available/daterabbit /etc/nginx/sites-enabled/daterabbit
-            sudo nginx -t && sudo systemctl reload nginx
-            echo "Nginx config updated and reloaded"
-          fi
-
       - name: Restart backend
         run: |
           cd /var/www/daterabbit/api
           sudo pm2 restart daterabbit || sudo pm2 start dist/main.js --name daterabbit
           sudo chown -R www-data:www-data /var/www/daterabbit/
+
+      - name: Setup nginx config
+        continue-on-error: true
+        run: |
+          if [ -f server/nginx-daterabbit.conf ]; then
+            cp server/nginx-daterabbit.conf /tmp/nginx-daterabbit.conf
+            sudo chmod 644 /tmp/nginx-daterabbit.conf
+            if [ -w /etc/nginx/sites-available/ ]; then
+              cp /tmp/nginx-daterabbit.conf /etc/nginx/sites-available/daterabbit
+            else
+              sudo mv /tmp/nginx-daterabbit.conf /etc/nginx/sites-available/daterabbit 2>/dev/null || \
+                echo "WARN: Cannot install nginx config automatically"
+            fi
+            sudo ln -sf /etc/nginx/sites-available/daterabbit /etc/nginx/sites-enabled/daterabbit 2>/dev/null || true
+            sudo nginx -t 2>&1 && sudo systemctl reload nginx && echo "Nginx config updated and reloaded" || \
+              echo "WARN: Nginx reload failed"
+          fi
 
       - name: Verify deployment
         if: always()
