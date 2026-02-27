@@ -163,6 +163,7 @@ function BookingCard({ booking, type, colors, onCancel, formatDate }: BookingCar
       case 'accepted': return { bg: colors.success + '20', text: colors.success };
       case 'cancelled': return { bg: colors.error + '20', text: colors.error };
       case 'completed': return { bg: colors.primary + '20', text: colors.primary };
+      case 'paid': return { bg: colors.success + '20', text: colors.success };
       default: return { bg: colors.warning + '20', text: colors.warning };
     }
   };
@@ -193,6 +194,20 @@ function BookingCard({ booking, type, colors, onCancel, formatDate }: BookingCar
 
       {type === 'upcoming' && (
         <View style={styles.actions}>
+          {booking.status === 'confirmed' && !booking.isPaid && (
+            <Button
+              title={`Pay $${booking.total}`}
+              onPress={() => router.push(`/payment/${booking.id}`)}
+              size="sm"
+              style={{ flex: 1 }}
+            />
+          )}
+          {booking.isPaid && (
+            <View style={[styles.paidBadge, { backgroundColor: colors.success + '20' }]}>
+              <Icon name="check-circle" size={14} color={colors.success} />
+              <Text style={[styles.paidText, { color: colors.success }]}>Paid</Text>
+            </View>
+          )}
           <Button
             title="Message"
             onPress={() => router.push(`/chat/${booking.id}`)}
@@ -200,7 +215,7 @@ function BookingCard({ booking, type, colors, onCancel, formatDate }: BookingCar
             size="sm"
             style={{ flex: 1 }}
           />
-          {canCancel && (
+          {canCancel && !booking.isPaid && (
             <Button
               title="Cancel"
               onPress={onCancel}
@@ -353,5 +368,18 @@ const styles = StyleSheet.create({
     fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     marginBottom: spacing.xs,
+  },
+  paidBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.md,
+    gap: spacing.xs,
+  },
+  paidText: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.sm,
   },
 });

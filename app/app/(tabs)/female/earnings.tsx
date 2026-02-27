@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Platform, Linking } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
 import { Card } from '../../../src/components/Card';
 import { Button } from '../../../src/components/Button';
 import { Icon } from '../../../src/components/Icon';
 import { useTheme, spacing, typography, borderRadius } from '../../../src/constants/theme';
+import { useEarningsStore } from '../../../src/store/earningsStore';
 import { paymentsApi } from '../../../src/services/api';
 
 interface Transaction {
@@ -24,23 +26,29 @@ export default function EarningsScreen() {
   const router = useRouter();
   const { colors } = useTheme();
 
-  const [earnings, setEarnings] = useState({
-    totalEarnings: 0,
-    pendingPayouts: 0,
-    completedBookings: 0,
-  });
+  const {
+    earnings,
+    connectStatus,
+    isLoading: storeLoading,
+    fetchEarnings,
+    fetchConnectStatus,
+    startStripeOnboarding,
+  } = useEarningsStore();
+
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [onboardingLoading, setOnboardingLoading] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [earningsData, historyData] = await Promise.all([
-          paymentsApi.getEarnings(),
-          paymentsApi.getEarningsHistory(1, 4),
+        await Promise.all([
+          fetchEarnings(),
+          fetchConnectStatus(),
+          paymentsApi.getEarningsHistory(1, 4).then((data) => {
+            setTransactions(data.transactions);
+          }),
         ]);
-        setEarnings(earningsData);
-        setTransactions(historyData.transactions);
       } catch (error) {
         console.error('Failed to fetch earnings:', error);
       } finally {
@@ -50,6 +58,22 @@ export default function EarningsScreen() {
 
     fetchData();
   }, []);
+
+  const handleSetupPayments = async () => {
+    setOnboardingLoading(true);
+    const result = await startStripeOnboarding();
+    setOnboardingLoading(false);
+
+    if (result.success && result.url) {
+      if (Platform.OS === 'web') {
+        Linking.openURL(result.url);
+      } else {
+        await WebBrowser.openAuthSessionAsync(result.url, 'daterabbit://');
+        // Re-check status after returning from Stripe
+        fetchConnectStatus();
+      }
+    }
+  };
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -71,109 +95,141 @@ export default function EarningsScreen() {
     );
   }
 
+  const isConnected = connectStatus?.complete === true;
+  const payoutsEnabled = connectStatus?.payoutsEnabled === true;
+
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.md }]}>
       <View style={styles.header}>
         <Text style={[styles.title, { color: colors.text }]}>Earnings</Text>
       </View>
 
-      <Card style={[styles.balanceCard, { backgroundColor: colors.primary }]}>
-        <Text style={[styles.balanceLabel, { color: colors.white }]}>Total Earnings</Text>
-        <Text style={[styles.balanceAmount, { color: colors.white }]}>${earnings.totalEarnings.toFixed(2)}</Text>
-        <View style={styles.balanceActions}>
-          <Button
-            title="Withdraw"
-            onPress={() => router.push('/female/earnings/withdraw')}
-            style={{ backgroundColor: colors.white }}
-            textStyle={{ color: colors.primary }}
-            size="md"
-          />
-        </View>
-        <View style={styles.pendingRow}>
-          <Text style={[styles.pendingLabel, { color: colors.white }]}>Pending</Text>
-          <Text style={[styles.pendingAmount, { color: colors.white }]}>${earnings.pendingPayouts.toFixed(2)}</Text>
-        </View>
-      </Card>
-
-      <View style={styles.statsRow}>
-        <Card style={styles.statCard}>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Completed</Text>
-          <Text style={[styles.statValue, { color: colors.text }]}>{earnings.completedBookings}</Text>
-        </Card>
-        <Card style={styles.statCard}>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Total</Text>
-          <Text style={[styles.statValue, { color: colors.text }]}>${earnings.totalEarnings.toFixed(0)}</Text>
-        </Card>
-      </View>
-
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Transactions</Text>
-          <TouchableOpacity onPress={() => router.push('/female/earnings/history')}>
-            <Text style={[styles.seeAll, { color: colors.primary }]}>See All</Text>
-          </TouchableOpacity>
-        </View>
-
-        {transactions.length === 0 ? (
-          <Card style={styles.emptyCard}>
-            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-              No transactions yet
-            </Text>
-          </Card>
-        ) : (
-          transactions.map((tx) => (
-            <Card key={tx.id} style={styles.transactionCard}>
-              <View style={[styles.txIcon, { backgroundColor: tx.status === 'completed' ? colors.success + '20' : colors.warning + '20' }]}>
-                <Icon
-                  name={tx.status === 'completed' ? 'check' : 'clock'}
-                  size={18}
-                  color={tx.status === 'completed' ? colors.success : colors.warning}
-                />
-              </View>
-              <View style={styles.txInfo}>
-                <Text style={[styles.txName, { color: colors.text }]}>{tx.seekerName || 'Unknown'}</Text>
-                {tx.activity && (
-                  <Text style={[styles.txActivity, { color: colors.textSecondary }]}>{tx.activity}</Text>
-                )}
-                <Text style={[styles.txDate, { color: colors.textSecondary }]}>{formatDate(tx.createdAt)}</Text>
-              </View>
-              <View style={styles.txRight}>
-                <Text style={[
-                  styles.txAmount,
-                  { color: tx.status === 'completed' ? colors.success : colors.warning }
-                ]}>
-                  +${tx.amount.toFixed(2)}
-                </Text>
-                <Text style={[
-                  styles.txStatus,
-                  { color: tx.status === 'completed' ? colors.success : colors.warning }
-                ]}>
-                  {tx.status}
-                </Text>
-              </View>
-            </Card>
-          ))
-        )}
-      </View>
-
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>Payment Methods</Text>
-        <Card>
-          <View style={styles.paymentMethod}>
-            <View style={[styles.paymentIconContainer, { backgroundColor: colors.primary + '15' }]}>
-              <Icon name="building-2" size={24} color={colors.primary} />
-            </View>
-            <View style={styles.paymentInfo}>
-              <Text style={[styles.paymentName, { color: colors.text }]}>Bank Account</Text>
-              <Text style={[styles.paymentDetails, { color: colors.textSecondary }]}>••••4521</Text>
-            </View>
-            <Text style={[styles.paymentDefault, { color: colors.primary }]}>Default</Text>
+      {/* Stripe Connect Setup Banner */}
+      {!isConnected && (
+        <Card style={[styles.setupBanner, { backgroundColor: colors.primary }]}>
+          <View style={[styles.setupIcon, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
+            <Icon name="credit-card" size={28} color="#fff" />
           </View>
+          <Text style={styles.setupTitle}>Set Up Payments</Text>
+          <Text style={styles.setupDescription}>
+            Connect your bank account through Stripe to start receiving payments from bookings.
+          </Text>
+          <Button
+            title={onboardingLoading ? 'Redirecting...' : 'Set Up Now'}
+            onPress={handleSetupPayments}
+            disabled={onboardingLoading}
+            style={{ backgroundColor: colors.white, marginTop: spacing.md }}
+            textStyle={{ color: colors.primary }}
+          />
         </Card>
-        <TouchableOpacity style={styles.addPayment}>
-          <Text style={[styles.addPaymentText, { color: colors.primary }]}>+ Add Payment Method</Text>
-        </TouchableOpacity>
-      </View>
+      )}
+
+      {/* Verification Pending Warning */}
+      {isConnected && !payoutsEnabled && (
+        <Card style={[styles.warningBanner, { backgroundColor: colors.warning + '15', borderColor: colors.warning }]}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+            <Icon name="clock" size={20} color={colors.warning} />
+            <Text style={[styles.warningTitle, { color: colors.warning }]}>Verification Pending</Text>
+          </View>
+          <Text style={[styles.warningText, { color: colors.textSecondary }]}>
+            Stripe is reviewing your account. Payouts will be enabled once verification is complete.
+          </Text>
+        </Card>
+      )}
+
+      {/* Earnings Card - show when connected */}
+      {isConnected && (
+        <>
+          <Card style={[styles.balanceCard, { backgroundColor: colors.primary }]}>
+            <Text style={[styles.balanceLabel, { color: colors.white }]}>Total Earnings</Text>
+            <Text style={[styles.balanceAmount, { color: colors.white }]}>${earnings.totalEarnings.toFixed(2)}</Text>
+            <View style={styles.balanceActions}>
+              {payoutsEnabled && (
+                <Button
+                  title="Withdraw"
+                  onPress={() => router.push('/female/earnings/withdraw')}
+                  style={{ backgroundColor: colors.white }}
+                  textStyle={{ color: colors.primary }}
+                  size="md"
+                />
+              )}
+            </View>
+            <View style={styles.pendingRow}>
+              <Text style={[styles.pendingLabel, { color: colors.white }]}>Pending</Text>
+              <Text style={[styles.pendingAmount, { color: colors.white }]}>${earnings.pendingPayouts.toFixed(2)}</Text>
+            </View>
+          </Card>
+
+          <View style={styles.statsRow}>
+            <Card style={styles.statCard}>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Completed</Text>
+              <Text style={[styles.statValue, { color: colors.text }]}>{earnings.completedBookings}</Text>
+            </Card>
+            <Card style={styles.statCard}>
+              <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Total</Text>
+              <Text style={[styles.statValue, { color: colors.text }]}>${earnings.totalEarnings.toFixed(0)}</Text>
+            </Card>
+          </View>
+
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Transactions</Text>
+              <TouchableOpacity onPress={() => router.push('/female/earnings/history')}>
+                <Text style={[styles.seeAll, { color: colors.primary }]}>See All</Text>
+              </TouchableOpacity>
+            </View>
+
+            {transactions.length === 0 ? (
+              <Card style={styles.emptyCard}>
+                <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+                  No transactions yet
+                </Text>
+              </Card>
+            ) : (
+              transactions.map((tx) => (
+                <Card key={tx.id} style={styles.transactionCard}>
+                  <View style={[styles.txIcon, { backgroundColor: tx.status === 'completed' ? colors.success + '20' : colors.warning + '20' }]}>
+                    <Icon
+                      name={tx.status === 'completed' ? 'check' : 'clock'}
+                      size={18}
+                      color={tx.status === 'completed' ? colors.success : colors.warning}
+                    />
+                  </View>
+                  <View style={styles.txInfo}>
+                    <Text style={[styles.txName, { color: colors.text }]}>{tx.seekerName || 'Unknown'}</Text>
+                    {tx.activity && (
+                      <Text style={[styles.txActivity, { color: colors.textSecondary }]}>{tx.activity}</Text>
+                    )}
+                    <Text style={[styles.txDate, { color: colors.textSecondary }]}>{formatDate(tx.createdAt)}</Text>
+                  </View>
+                  <View style={styles.txRight}>
+                    <Text style={[
+                      styles.txAmount,
+                      { color: tx.status === 'completed' ? colors.success : colors.warning }
+                    ]}>
+                      +${tx.amount.toFixed(2)}
+                    </Text>
+                    <Text style={[
+                      styles.txStatus,
+                      { color: tx.status === 'completed' ? colors.success : colors.warning }
+                    ]}>
+                      {tx.status}
+                    </Text>
+                  </View>
+                </Card>
+              ))
+            )}
+          </View>
+
+          {/* Stripe Connected indicator */}
+          <View style={styles.connectedRow}>
+            <Icon name="check-circle" size={16} color={colors.success} />
+            <Text style={[styles.connectedText, { color: colors.textMuted }]}>
+              Stripe account connected
+            </Text>
+          </View>
+        </>
+      )}
     </ScrollView>
   );
 }
@@ -191,6 +247,45 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.xl,
+  },
+  setupBanner: {
+    marginBottom: spacing.lg,
+    alignItems: 'center',
+  },
+  setupIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+  },
+  setupTitle: {
+    fontFamily: typography.fonts.heading,
+    fontSize: typography.sizes.xl,
+    color: '#fff',
+    marginBottom: spacing.xs,
+  },
+  setupDescription: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.sm,
+    color: 'rgba(255,255,255,0.85)',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  warningBanner: {
+    marginBottom: spacing.lg,
+    borderWidth: 2,
+  },
+  warningTitle: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.md,
+  },
+  warningText: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.sm,
+    marginTop: spacing.xs,
+    lineHeight: 20,
   },
   balanceCard: {
     marginBottom: spacing.lg,
@@ -300,40 +395,16 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.xs,
     textTransform: 'capitalize',
   },
-  paymentMethod: {
+  connectedRow: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  paymentIconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
     justifyContent: 'center',
+    gap: spacing.xs,
+    paddingBottom: spacing.xl,
   },
-  paymentInfo: {
-    flex: 1,
-    marginLeft: spacing.md,
-  },
-  paymentName: {
-    fontFamily: typography.fonts.bodyMedium,
-    fontSize: typography.sizes.md,
-  },
-  paymentDetails: {
+  connectedText: {
     fontFamily: typography.fonts.body,
-    fontSize: typography.sizes.sm,
-  },
-  paymentDefault: {
-    fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.xs,
-  },
-  addPayment: {
-    marginTop: spacing.md,
-    alignItems: 'center',
-  },
-  addPaymentText: {
-    fontFamily: typography.fonts.bodyMedium,
-    fontSize: typography.sizes.sm,
   },
   loadingContainer: {
     justifyContent: 'center',
