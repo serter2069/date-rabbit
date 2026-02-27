@@ -17,6 +17,7 @@ import { EmptyState } from '../../src/components/EmptyState';
 import { useMessagesStore } from '../../src/store/messagesStore';
 import { useAuthStore } from '../../src/store/authStore';
 import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
+import { showAlert } from '../../src/utils/alert';
 
 export default function ChatScreen() {
   const { id, name } = useLocalSearchParams<{ id: string; name: string }>();
@@ -50,7 +51,13 @@ export default function ChatScreen() {
 
     const text = messageText.trim();
     setMessageText('');
-    await sendMessage(otherUserId, text);
+    try {
+      await sendMessage(otherUserId, text);
+    } catch {
+      // Restore message text on failure so user can retry
+      setMessageText(text);
+      showAlert('Send Failed', 'Message could not be sent. Please try again.');
+    }
   };
 
   const formatTime = (date: Date) => {
