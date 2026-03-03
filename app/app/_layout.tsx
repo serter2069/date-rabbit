@@ -13,6 +13,9 @@ import { useEffect } from 'react';
 import { colors } from '../src/constants/theme';
 import { StripeProvider } from '../src/components/StripeProvider';
 
+// Public routes accessible without authentication
+const PUBLIC_ROUTES = ['terms', 'privacy', 'onboarding', '(auth)'];
+
 function NavigationGuard() {
   const { isAuthenticated, hasSeenOnboarding, user } = useAuthStore();
   const router = useRouter();
@@ -22,6 +25,26 @@ function NavigationGuard() {
     const currentSegment = segments[0];
     const needsVerification = isAuthenticated && user?.verificationStatus !== 'approved';
     const isSeeker = user?.role === 'seeker';
+
+    // Allow public routes without any redirects
+    if (PUBLIC_ROUTES.includes(currentSegment)) {
+      // Only redirect from onboarding/auth if already authenticated
+      if (currentSegment === '(auth)' && isAuthenticated) {
+        // Authenticated user on auth page — redirect to app
+        if (needsVerification) {
+          if (isSeeker) {
+            router.replace('/(seeker-verify)/intro');
+          } else {
+            router.replace('/(comp-onboard)/step1');
+          }
+        } else {
+          const isCompanion = user?.role === 'companion';
+          router.replace(isCompanion ? '/(tabs)/female' : '/(tabs)/male');
+        }
+      }
+      // terms, privacy — always accessible, never redirect
+      return;
+    }
 
     if (!hasSeenOnboarding) {
       // Show onboarding intro slides
@@ -109,6 +132,8 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="(seeker-verify)" />
         <Stack.Screen name="(comp-onboard)" />
+        <Stack.Screen name="terms" />
+        <Stack.Screen name="privacy" />
         <Stack.Screen name="booking/[id]" />
         <Stack.Screen name="chat/[id]" />
         <Stack.Screen name="profile/[id]" />
@@ -121,8 +146,6 @@ export default function RootLayout() {
         <Stack.Screen name="settings/notifications" />
         <Stack.Screen name="settings/verification" />
         <Stack.Screen name="settings/delete-account" />
-        <Stack.Screen name="terms" />
-        <Stack.Screen name="privacy" />
       </Stack>
       <NavigationGuard />
     </StripeProvider>
