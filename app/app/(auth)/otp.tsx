@@ -8,7 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../src/store/authStore';
 import { Button } from '../../src/components/Button';
@@ -21,7 +21,19 @@ const CODE_LENGTH = 6;
 export default function OTPScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const { pendingEmail, verifyCode, resendCode, isLoading, error, clearError, authStep } = useAuthStore();
+  const params = useLocalSearchParams<{ email?: string }>();
+  const { pendingEmail, verifyCode, resendCode, isLoading, error, clearError, authStep, setPendingEmail } = useAuthStore();
+
+  // Use email from route params (reliable on web) or fall back to store value
+  const email = params.email || pendingEmail;
+
+  // Sync route param email back into the store if store lost it
+  useEffect(() => {
+    if (params.email && !pendingEmail && setPendingEmail) {
+      setPendingEmail(params.email);
+    }
+  }, [params.email]);
+
   const [code, setCode] = useState('');
   const [resendCooldown, setResendCooldown] = useState(0);
   const inputRef = useRef<TextInput>(null);
@@ -113,7 +125,7 @@ export default function OTPScreen() {
         <Text style={[styles.title, { color: colors.text }]}>Enter Code</Text>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
           We sent a 6-digit code to{'\n'}
-          <Text style={[styles.email, { color: colors.primary }]}>{pendingEmail}</Text>
+          <Text style={[styles.email, { color: colors.primary }]}>{email}</Text>
         </Text>
 
         <TouchableOpacity

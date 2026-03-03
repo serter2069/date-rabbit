@@ -57,6 +57,7 @@ interface AuthState {
   setOnboardingSeen: () => void;
   refreshUser: () => Promise<void>;
   initialize: () => Promise<void>;
+  setPendingEmail: (email: string) => void;
 }
 
 // Convert API user to local User type
@@ -305,6 +306,8 @@ export const useAuthStore = create<AuthState>()(
       clearError: () => set({ error: null }),
 
       setOnboardingSeen: () => set({ hasSeenOnboarding: true }),
+
+      setPendingEmail: (email) => set({ pendingEmail: email }),
     }),
     {
       name: 'auth-storage',
