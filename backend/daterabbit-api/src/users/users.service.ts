@@ -18,6 +18,11 @@ export class UsersService {
     return this.usersRepository.findOne({ where: { id } });
   }
 
+  // Find user including soft-deleted ones (used by JWT strategy to detect deactivated accounts)
+  async findByIdWithDeleted(id: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { id }, withDeleted: true });
+  }
+
   async create(data: Partial<User>): Promise<User> {
     const user = this.usersRepository.create(data);
     return this.usersRepository.save(user);
@@ -40,6 +45,14 @@ export class UsersService {
       otpCode: undefined,
       otpExpiresAt: undefined,
     } as any);
+  }
+
+  async deactivateAccount(userId: string): Promise<void> {
+    // Soft delete: set isActive=false and deletedAt timestamp via TypeORM softDelete
+    await this.usersRepository.update(userId, {
+      isActive: false,
+    });
+    await this.usersRepository.softDelete(userId);
   }
 
   async getCompanions(filters: {
