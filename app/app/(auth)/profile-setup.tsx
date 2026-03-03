@@ -61,9 +61,13 @@ export default function ProfileSetupScreen() {
     }
 
     if (role === 'companion') {
-      const rate = parseInt(hourlyRate);
-      if (isNaN(rate) || rate < 1) {
-        showAlert('Required', 'Please enter your hourly rate');
+      const rate = parseInt(hourlyRate, 10);
+      if (isNaN(rate) || rate <= 0) {
+        showAlert('Required', 'Please enter your hourly rate (must be greater than 0)');
+        return;
+      }
+      if (rate >= 10000) {
+        showAlert('Invalid Rate', 'Hourly rate must be less than $10,000');
         return;
       }
     }
