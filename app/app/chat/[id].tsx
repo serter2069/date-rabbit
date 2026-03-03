@@ -136,7 +136,7 @@ export default function ChatScreen() {
 
         <TouchableOpacity
           style={styles.headerProfile}
-          onPress={() => router.push({ pathname: '/profile/[id]', params: { id: id || '' } })}
+          onPress={() => router.push(`/profile/${id || ''}`)}
         >
           <UserImage name={companionName} size={40} />
           <View style={styles.headerInfo}>
@@ -147,7 +147,7 @@ export default function ChatScreen() {
 
         <TouchableOpacity
           style={[styles.bookButton, { backgroundColor: colors.primary }]}
-          onPress={() => router.push({ pathname: '/booking/[id]', params: { id: id || '' } })}
+          onPress={() => router.push(`/booking/${id || ''}`)}
           testID="chat-book-btn"
         >
           <Text style={[styles.bookButtonText, { color: colors.white }]}>Book</Text>

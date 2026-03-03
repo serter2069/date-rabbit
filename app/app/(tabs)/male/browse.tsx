@@ -278,7 +278,7 @@ export default function BrowseScreen() {
               <View style={styles.actions}>
                 <Button
                   title="View Profile"
-                  onPress={() => router.push({ pathname: '/profile/[id]', params: { id: companion.id } })}
+                  onPress={() => router.push(`/profile/${companion.id}`)}
                   variant="outline"
                   size="md"
                   style={styles.actionButton}
@@ -286,7 +286,7 @@ export default function BrowseScreen() {
                 />
                 <Button
                   title="Book Date"
-                  onPress={() => router.push({ pathname: '/booking/[id]', params: { id: companion.id } })}
+                  onPress={() => router.push(`/booking/${companion.id}`)}
                   size="md"
                   style={styles.actionButton}
                   testID={`browse-book-date-${companion.id}`}
