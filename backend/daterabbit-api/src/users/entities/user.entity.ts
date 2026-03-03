@@ -68,6 +68,9 @@ export class User {
   @Column({ default: true })
   isActive: boolean;
 
+  @Column({ default: false })
+  isAdmin: boolean;
+
   @Column({ nullable: true })
   stripeAccountId: string;
 
