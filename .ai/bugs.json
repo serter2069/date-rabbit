@@ -1,54 +1,19 @@
 {
   "version": "1.0",
-  "updated": "2026-02-27T06:00:00Z",
+  "updated": "2026-03-02T00:00:00Z",
   "bugs": [
     {
       "id": "BUG-BOOKINGS-001",
       "type": "bug",
       "severity": "high",
-      "status": "fixed",
+      "status": "open",
       "title": "Bookings screen crash: Cannot read properties of undefined",
       "description": "Bookings screen crashed - booking.companion could be undefined",
       "platform": "web",
       "created": "2026-02-17T03:21:00Z",
-      "fixed": "2026-02-17T03:36:00Z",
-      "fix": "Added fallback: const companion = booking.companion || { name: 'Unknown', ... }"
-    },
-    {
-      "id": "BUG-004",
-      "type": "bug",
-      "severity": "critical",
-      "status": "pending_review",
-      "title": "Create Account button blocked by overlay",
-      "description": "The 'Create Account' button on both Companion and Seeker registration forms is blocked by an overlay element (class css-175oi2r) that intercepts pointer events. Users cannot submit the registration form.",
-      "platform": "web",
-      "created": "2026-02-18",
-      "fix": "Changed Button.tsx to use plain TouchableOpacity on web instead of AnimatedPressable which creates wrapper div that intercepts pointer events. JS click works, form validation now functions.",
-      "found_by": "clicker, user, edge"
-    },
-    {
-      "id": "BUG-005",
-      "type": "bug",
-      "severity": "high",
-      "status": "pending_review",
-      "title": "Back button unclickable on registration forms",
-      "description": "The 'Back' button on registration forms is blocked by the same overlay element, preventing navigation back to role selection screen.",
-      "platform": "web",
-      "created": "2026-02-18",
-      "fix": "Same fix as BUG-004 - Button.tsx now uses plain TouchableOpacity on web platform.",
-      "found_by": "clicker"
-    },
-    {
-      "id": "BUG-006",
-      "type": "bug",
-      "severity": "high",
-      "status": "pending_review",
-      "title": "Missing route configuration for 'favorites'",
-      "description": "Console warning: 'No route named \"favorites\" exists in nested children'. Router looking for 'favorites' route but actual route is 'favorites/index'. Causes repeated warnings on every page navigation.",
-      "platform": "web",
-      "created": "2026-02-18",
-      "fix": "Updated _layout.tsx: changed Stack.Screen name from 'favorites' to 'favorites/index' to match actual route structure.",
-      "found_by": "clicker, user, edge"
+      "fixed": "2026-03-02T00:00:00Z",
+      "fix": "(1) handleCancelBooking() now uses booking.companion?.name || 'this companion' to guard against undefined/null companion. (2) bookingsApi.getById() now applies the same normalization as getMyBookings(), so bookings loaded via that path also have a safe companion object. (3) BookingCard fallback now checks rawCompanion.name instead of || operator, correctly detecting empty {} objects from normalization and applying the fallback.",
+      "verifier_comment": "[2026-03-03T02:02:25Z] Fix is incomplete and partially ineffective. (1) handleCancelBooking() at bookings.tsx:44 still directly accesses booking.companion.name without any guard — identical crash pattern to the original bug. (2) The fix in BookingCard (booking.companion || fallback) is dead code: api.ts normalization always produces companion as {} (never undefined), so the || operator never triggers the fallback. (3) bookingsApi.getById() at api.ts:291 bypasses normalization entirely — any booking loaded through that path with undefined companion will still crash at the cancel handler."
     },
     {
       "id": "BUG-007",
@@ -66,23 +31,6 @@
       ],
       "found_by": "clicker",
       "fix": "This is an Expo Router internal behavior. Warnings do not affect functionality. Will be resolved in future Expo SDK updates."
-    },
-    {
-      "id": "BUG-008",
-      "type": "ux",
-      "severity": "medium",
-      "status": "pending_review",
-      "title": "Terms of Service and Privacy Policy are not clickable links",
-      "description": "The text 'By continuing, you agree to our Terms of Service and Privacy Policy' contains no clickable links to these documents.",
-      "platform": "web",
-      "created": "2026-02-18",
-      "steps_to_reproduce": [
-        "View welcome page",
-        "Look for 'Terms of Service' and 'Privacy Policy' links",
-        "Observe they are plain text with no href"
-      ],
-      "found_by": "clicker",
-      "fix": "Made Terms and Privacy Policy clickable with underline styling. Opens daterabbit.com/terms and daterabbit.com/privacy in new tab."
     },
     {
       "id": "BUG-009",
@@ -105,7 +53,7 @@
       "id": "BUG-010",
       "type": "bug",
       "severity": "medium",
-      "status": "pending_review",
+      "status": "open",
       "title": "Protected routes redirect without feedback",
       "description": "Accessing protected routes without authentication redirects to welcome page without clear feedback. Users confused about why redirected.",
       "platform": "web",
@@ -115,55 +63,21 @@
         "Observe redirect to welcome page without notification"
       ],
       "found_by": "user",
-      "fix": "Added redirect=1 query param when redirecting unauthenticated users. Welcome page shows 'Please sign in to access that page' banner."
-    },
-    {
-      "id": "BUG-011",
-      "type": "bug",
-      "severity": "medium",
-      "status": "pending_review",
-      "title": "Full Name field accepts 500+ characters",
-      "description": "Full Name input accepts unlimited characters. No max length validation or UI feedback. Can cause database overflow or display issues.",
-      "platform": "web",
-      "created": "2026-02-18",
-      "fix": "Added maxLength={100} to Full Name TextInput in register.tsx, plus validation that shows error if name exceeds 100 characters.",
-      "found_by": "edge"
-    },
-    {
-      "id": "BUG-012",
-      "type": "bug",
-      "severity": "high",
-      "status": "pending_review",
-      "title": "Birth Year accepts negative values",
-      "description": "Birth Year field accepts negative numbers like -1, which is impossible. No min value validation.",
-      "platform": "web",
-      "created": "2026-02-18",
-      "fix": "Added validation in register.tsx: year must be >= 1900 and <= currentYear - 18. Shows 'You must be at least 18 years old' error for invalid values.",
-      "found_by": "edge"
-    },
-    {
-      "id": "BUG-013",
-      "type": "bug",
-      "severity": "critical",
-      "status": "pending_review",
-      "title": "Registration form submits with empty required fields",
-      "description": "Form allows submission with empty Email field. No client-side validation. Form redirects to role-select instead of showing validation errors.",
-      "platform": "web",
-      "created": "2026-02-18",
-      "fix": "Added comprehensive validation in register.tsx: checks name, email, birthYear are non-empty. Shows inline error messages for each field.",
-      "found_by": "edge"
+      "fix": "Added redirect=1 query param when redirecting unauthenticated users. Welcome page shows 'Please sign in to access that page' banner.",
+      "verifier_comment": "[2026-03-03T02:21:13Z] The redirect=1 query param is only added in app/index.tsx (entry point), but the actual protection gate for tab routes is (tabs)/_layout.tsx which uses `<Redirect href=\"/(auth)/welcome\" />` WITHOUT the redirect=1 param. When navigating directly to /male/browse, /female/requests, or any tab route without auth, the user is redirected to /welcome with no banner shown."
     },
     {
       "id": "BUG-014",
       "type": "bug",
       "severity": "critical",
-      "status": "pending_review",
+      "status": "open",
       "title": "Hourly Rate accepts negative values",
       "description": "Companion Hourly Rate field accepts negative numbers (-50). Would result in platform paying companion instead of charging. Critical business logic failure.",
       "platform": "web",
       "created": "2026-02-18",
       "fix": "Added validation: rate must be > 0. Shows 'Rate must be greater than $0' error. Also added error display for hourlyRate field in JSX.",
-      "found_by": "edge"
+      "found_by": "edge",
+      "verifier_comment": "[2026-03-03T02:35:40Z] Frontend-only fix. The backend API PUT /users/me accepts and persists negative hourlyRate values with HTTP 200. Direct API call with { hourlyRate: -50 } returns { hourlyRate: '-50.00' }. Also accepts { hourlyRate: 0 } returning { hourlyRate: '0.00' }. Any API client (Postman, curl, malicious app) bypasses the frontend regex entirely."
     },
     {
       "id": "BUG-015",
@@ -312,6 +226,54 @@
       "created": "2026-02-27",
       "fix": "Added try-catch around sendMessage. On failure: restores message text to input, shows cross-platform alert.",
       "found_by": "code-audit"
+    },
+    {
+      "id": "BUG-027",
+      "type": "bug",
+      "severity": "critical",
+      "status": "pending_review",
+      "title": "Post-login redirect loop: (seeker-verify) route missing on web",
+      "description": "After OTP verification succeeds, the router tries to navigate to (seeker-verify) layout which has no web route registered, causing an infinite redirect loop back to /login. Error: [Layout children]: No route named '(seeker-verify)'. This blocks ALL authenticated navigation on web for seeker role.",
+      "platform": "web",
+      "created": "2026-03-03",
+      "steps_to_reproduce": [
+        "Go to staging login page",
+        "Enter email and OTP (000000)",
+        "Click Verify",
+        "Observe infinite redirect loop"
+      ],
+      "found_by": "uc-test",
+      "fix": "Replaced conditional Stack.Screen rendering pattern in _layout.tsx with a NavigationGuard component that uses useSegments() + useEffect() + router.replace() for imperative navigation. All screens are now statically registered in the Stack (no conditionals), eliminating the duplicate/missing route error on web. index.tsx simplified to loading spinner only since NavigationGuard handles all redirects."
+    },
+    {
+      "id": "BUG-028",
+      "type": "bug",
+      "severity": "critical",
+      "status": "open",
+      "title": "OTP verify fails: email state lost on OTP page",
+      "description": "On the OTP page, the email address from login is not displayed ('We sent a 6-digit code to' with no email). When clicking Verify, the API returns 'Verification Failed - No email address provided'. The pendingEmail in auth store is not persisted through the navigation from login to OTP page on web.",
+      "platform": "web",
+      "created": "2026-03-03",
+      "steps_to_reproduce": [
+        "Go to staging login page",
+        "Enter test@daterabbit.com",
+        "Click Continue",
+        "On OTP page, notice email is missing from 'We sent a code to...' text",
+        "Enter 000000 and click Verify",
+        "See error: 'No email address provided'"
+      ],
+      "found_by": "uc-test"
+    },
+    {
+      "id": "BUG-029",
+      "type": "bug",
+      "severity": "low",
+      "status": "open",
+      "title": "Chat shows 'undefined' for non-existent companion",
+      "description": "Opening /chat/[id] with a non-existent conversation ID shows 'Say hello to undefined!' instead of an error state or fallback name. Companion name is not null-checked.",
+      "platform": "web",
+      "created": "2026-03-03",
+      "found_by": "uc-test"
     }
   ]
 }
