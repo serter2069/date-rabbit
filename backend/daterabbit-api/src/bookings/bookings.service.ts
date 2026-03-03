@@ -1,6 +1,6 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, MoreThanOrEqual, LessThan } from 'typeorm';
 import { Booking, BookingStatus, ActivityType } from './entities/booking.entity';
 import { UsersService } from '../users/users.service';
 
@@ -50,6 +50,75 @@ export class BookingsService {
       relations: ['seeker', 'companion'],
       order: { dateTime: 'DESC' },
     });
+  }
+
+  async findByUserFiltered(
+    userId: string,
+    filter: 'all' | 'upcoming' | 'pending' | 'past',
+    page = 1,
+    limit = 20,
+  ): Promise<{ bookings: Booking[]; total: number }> {
+    const now = new Date();
+    const skip = (page - 1) * limit;
+
+    // Build where conditions for both seeker and companion roles
+    let seekerWhere: object;
+    let companionWhere: object;
+
+    switch (filter) {
+      case 'upcoming':
+        // Confirmed/paid bookings with a future date
+        seekerWhere = [
+          { seekerId: userId, status: BookingStatus.CONFIRMED, dateTime: MoreThanOrEqual(now) },
+          { seekerId: userId, status: BookingStatus.PAID, dateTime: MoreThanOrEqual(now) },
+        ];
+        companionWhere = [
+          { companionId: userId, status: BookingStatus.CONFIRMED, dateTime: MoreThanOrEqual(now) },
+          { companionId: userId, status: BookingStatus.PAID, dateTime: MoreThanOrEqual(now) },
+        ];
+        break;
+
+      case 'pending':
+        seekerWhere = [{ seekerId: userId, status: BookingStatus.PENDING }];
+        companionWhere = [{ companionId: userId, status: BookingStatus.PENDING }];
+        break;
+
+      case 'past':
+        // Completed/cancelled bookings OR any booking with a past date
+        seekerWhere = [
+          { seekerId: userId, status: BookingStatus.COMPLETED },
+          { seekerId: userId, status: BookingStatus.CANCELLED },
+          { seekerId: userId, dateTime: LessThan(now), status: BookingStatus.CONFIRMED },
+          { seekerId: userId, dateTime: LessThan(now), status: BookingStatus.PAID },
+        ];
+        companionWhere = [
+          { companionId: userId, status: BookingStatus.COMPLETED },
+          { companionId: userId, status: BookingStatus.CANCELLED },
+          { companionId: userId, dateTime: LessThan(now), status: BookingStatus.CONFIRMED },
+          { companionId: userId, dateTime: LessThan(now), status: BookingStatus.PAID },
+        ];
+        break;
+
+      default: // 'all'
+        seekerWhere = [{ seekerId: userId }];
+        companionWhere = [{ companionId: userId }];
+        break;
+    }
+
+    const allWhere = [
+      ...(Array.isArray(seekerWhere) ? seekerWhere : [seekerWhere]),
+      ...(Array.isArray(companionWhere) ? companionWhere : [companionWhere]),
+    ];
+
+    const [bookings, total] = await this.bookingsRepository.findAndCount({
+      where: allWhere,
+      relations: ['seeker', 'companion'],
+      order: { dateTime: filter === 'past' ? 'DESC' : 'ASC' },
+      skip,
+      take: limit,
+    });
+
+    return { bookings, total };
   }
 
   async updateStatus(id: string, status: BookingStatus, reason?: string): Promise<Booking | null> {

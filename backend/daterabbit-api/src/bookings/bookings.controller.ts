@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Body, Param, UseGuards, Request, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Put, Body, Param, Query, UseGuards, Request, HttpException, HttpStatus } from '@nestjs/common';
 import { BookingsService } from './bookings.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { BookingStatus, ActivityType } from './entities/booking.entity';
@@ -66,15 +66,26 @@ export class BookingsController {
   }
 
   @Get()
-  async getMyBookings(@Request() req) {
-    // Get bookings as seeker
-    const seekerBookings = await this.bookingsService.findByUser(req.user.id, 'seeker');
-    // Get bookings as companion
-    const companionBookings = await this.bookingsService.findByUser(req.user.id, 'companion');
+  async getMyBookings(
+    @Request() req,
+    @Query('filter') filter: 'all' | 'upcoming' | 'pending' | 'past' = 'all',
+    @Query('page') page = '1',
+  ) {
+    const validFilters = ['all', 'upcoming', 'pending', 'past'];
+    const safeFilter = validFilters.includes(filter) ? filter : 'all';
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+
+    const { bookings, total } = await this.bookingsService.findByUserFiltered(
+      req.user.id,
+      safeFilter,
+      pageNum,
+    );
 
     return {
-      asSeeker: seekerBookings.map((b) => this.formatBooking(b)),
-      asCompanion: companionBookings.map((b) => this.formatBooking(b)),
+      bookings: bookings.map((b) => this.formatBooking(b)),
+      total,
+      page: pageNum,
+      filter: safeFilter,
     };
   }
 
