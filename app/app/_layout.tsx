@@ -55,15 +55,31 @@ export default function RootLayout() {
         {!hasSeenOnboarding ? (
           <Stack.Screen name="onboarding" />
         ) : !isAuthenticated ? (
-          <Stack.Screen name="(auth)" />
+          <>
+            <Stack.Screen name="(auth)" />
+            <Stack.Screen name="terms" />
+            <Stack.Screen name="privacy" />
+          </>
         ) : needsVerification ? (
           isSeeker ? (
-            <Stack.Screen name="(seeker-verify)" />
+            <>
+              <Stack.Screen name="(seeker-verify)" />
+              <Stack.Screen name="terms" />
+              <Stack.Screen name="privacy" />
+            </>
           ) : (
-            <Stack.Screen name="(comp-onboard)" />
+            <>
+              <Stack.Screen name="(comp-onboard)" />
+              <Stack.Screen name="terms" />
+              <Stack.Screen name="privacy" />
+            </>
           )
         ) : (
-          <Stack.Screen name="(tabs)" />
+          <>
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="terms" />
+            <Stack.Screen name="privacy" />
+          </>
         )}
         <Stack.Screen name="index" />
         <Stack.Screen name="(seeker-verify)" />
@@ -80,8 +96,6 @@ export default function RootLayout() {
         <Stack.Screen name="settings/notifications" />
         <Stack.Screen name="settings/verification" />
         <Stack.Screen name="settings/delete-account" />
-        <Stack.Screen name="terms" />
-        <Stack.Screen name="privacy" />
       </Stack>
     </StripeProvider>
   );
