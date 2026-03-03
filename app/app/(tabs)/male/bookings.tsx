@@ -215,7 +215,10 @@ function BookingCard({ booking, type, colors, onCancel, formatDate }: BookingCar
           )}
           <Button
             title="Message"
-            onPress={() => router.push(`/chat/${booking.id}`)}
+            onPress={() => router.push({
+              pathname: `/chat/${booking.companion?.id || booking.companion_id}`,
+              params: { name: booking.companion?.name }
+            })}
             variant="outline"
             size="sm"
             style={{ flex: 1 }}
