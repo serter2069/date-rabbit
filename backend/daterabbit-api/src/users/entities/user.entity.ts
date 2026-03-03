@@ -4,7 +4,7 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany,
+  DeleteDateColumn,
 } from 'typeorm';
 
 export enum UserRole {
@@ -85,4 +85,8 @@ export class User {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  // Soft delete timestamp - set when account is deactivated
+  @DeleteDateColumn({ nullable: true })
+  deletedAt: Date;
 }

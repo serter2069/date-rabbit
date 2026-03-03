@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Body, UseGuards, Request, Param, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Put, Delete, Body, UseGuards, Request, Param, BadRequestException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -50,6 +50,13 @@ export class UsersController {
     }
     const { otpCode, otpExpiresAt, ...safeUser } = updated;
     return safeUser;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('me')
+  async deleteAccount(@Request() req) {
+    await this.usersService.deactivateAccount(req.user.id);
+    return { success: true, message: 'Account deactivated' };
   }
 
   @Get(':id')
