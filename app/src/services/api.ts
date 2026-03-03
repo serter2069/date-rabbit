@@ -288,8 +288,24 @@ export const bookingsApi = {
       body: data,
     }),
 
-  getById: (id: string) =>
-    apiRequest<Booking>(`/bookings/${id}`),
+  getById: async (id: string) => {
+    const b = await apiRequest<any>(`/bookings/${id}`);
+    // Apply same normalization as getMyBookings to ensure companion is always safe to access
+    return {
+      ...b,
+      date: b.date ?? b.dateTime,
+      total: typeof b.total === 'number' ? b.total : parseFloat(b.totalPrice ?? b.total ?? '0'),
+      subtotal: typeof b.subtotal === 'number' ? b.subtotal : parseFloat(b.subtotal ?? '0'),
+      platformFee: typeof b.platformFee === 'number' ? b.platformFee : parseFloat(b.platformFee ?? '0'),
+      hourlyRate: typeof b.hourlyRate === 'number' ? b.hourlyRate : parseFloat(b.hourlyRate ?? b.companion?.hourlyRate ?? '0'),
+      companionEarnings: typeof b.companionEarnings === 'number' ? b.companionEarnings : parseFloat(b.companionEarnings ?? '0'),
+      isPaid: b.isPaid ?? false,
+      companion: {
+        ...b.companion,
+        photo: b.companion?.photo ?? b.companion?.photos?.[0]?.url,
+      },
+    } as Booking;
+  },
 
   getMyBookings: async (filter: 'all' | 'pending' | 'upcoming' | 'past' = 'all', page = 1) => {
     const response = await apiRequest<

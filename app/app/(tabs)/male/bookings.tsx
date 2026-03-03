@@ -39,9 +39,10 @@ export default function BookingsScreen() {
   }, [activeTab]);
 
   const handleCancelBooking = useCallback((booking: Booking) => {
+    const companionName = booking.companion?.name || 'this companion';
     showConfirm(
       'Cancel Booking',
-      `Are you sure you want to cancel your date with ${booking.companion.name}?`,
+      `Are you sure you want to cancel your date with ${companionName}?`,
       async () => {
         const result = await cancelBooking(booking.id, 'Cancelled by user');
         if (result.success) {
@@ -154,7 +155,11 @@ interface BookingCardProps {
 }
 
 function BookingCard({ booking, type, colors, onCancel, formatDate }: BookingCardProps) {
-  const companion = booking.companion || { name: 'Unknown', photo: null, rating: 0 };
+  // Guard against undefined companion OR empty object {} produced by normalization
+  const rawCompanion = booking.companion;
+  const companion = (rawCompanion && rawCompanion.name)
+    ? rawCompanion
+    : { name: 'Unknown', photo: null, rating: 0 };
   
   const getStatusStyle = (status: string) => {
     switch (status) {
