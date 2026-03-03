@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Body, UseGuards, Request, Param } from '@nestjs/common';
+import { Controller, Get, Put, Body, UseGuards, Request, Param, BadRequestException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -23,6 +23,20 @@ export class UsersController {
   @Put('me')
   async updateProfile(@Request() req, @Body() body: UpdateUserDto) {
     const { name, age, location, bio, photos, hourlyRate } = body;
+
+    // Validate hourlyRate if provided
+    if (hourlyRate !== undefined && hourlyRate !== null) {
+      if (typeof hourlyRate !== 'number' || isNaN(hourlyRate)) {
+        throw new BadRequestException('Hourly rate must be a number');
+      }
+      if (hourlyRate <= 0) {
+        throw new BadRequestException('Hourly rate must be greater than 0');
+      }
+      if (hourlyRate >= 10000) {
+        throw new BadRequestException('Hourly rate must be less than 10000');
+      }
+    }
+
     const updated = await this.usersService.update(req.user.id, {
       name,
       age,
