@@ -385,6 +385,7 @@ export interface Chat {
     name: string;
     photos?: any[];
   };
+  lastMessage?: string | null;
   lastMessageAt?: string;
   unreadCount?: number;
 }

@@ -22,6 +22,7 @@ export class MessagesController {
         photos: c.user1.photos,
       },
       lastMessageAt: c.lastMessageAt,
+      lastMessage: c.lastMessage?.content || null,
     }));
   }
 
