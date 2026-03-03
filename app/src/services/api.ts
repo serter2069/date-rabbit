@@ -290,19 +290,22 @@ export const bookingsApi = {
 
   getById: async (id: string) => {
     const b = await apiRequest<any>(`/bookings/${id}`);
-    // Apply same normalization as getMyBookings to ensure companion is always safe to access
+    // Normalize companion to always have safe defaults, even if API returns undefined or {}
+    const rawCompanion = b.companion ?? {};
     return {
       ...b,
       date: b.date ?? b.dateTime,
       total: typeof b.total === 'number' ? b.total : parseFloat(b.totalPrice ?? b.total ?? '0'),
       subtotal: typeof b.subtotal === 'number' ? b.subtotal : parseFloat(b.subtotal ?? '0'),
       platformFee: typeof b.platformFee === 'number' ? b.platformFee : parseFloat(b.platformFee ?? '0'),
-      hourlyRate: typeof b.hourlyRate === 'number' ? b.hourlyRate : parseFloat(b.hourlyRate ?? b.companion?.hourlyRate ?? '0'),
+      hourlyRate: typeof b.hourlyRate === 'number' ? b.hourlyRate : parseFloat(b.hourlyRate ?? rawCompanion.hourlyRate ?? '0'),
       companionEarnings: typeof b.companionEarnings === 'number' ? b.companionEarnings : parseFloat(b.companionEarnings ?? '0'),
       isPaid: b.isPaid ?? false,
       companion: {
-        ...b.companion,
-        photo: b.companion?.photo ?? b.companion?.photos?.[0]?.url,
+        id: rawCompanion.id ?? '',
+        name: rawCompanion.name ?? '',
+        rating: rawCompanion.rating ?? 0,
+        photo: rawCompanion.photo ?? rawCompanion.photos?.[0]?.url ?? null,
       },
     } as Booking;
   },
@@ -318,20 +321,26 @@ export const bookingsApi = {
       : [...(response.asSeeker || []), ...(response.asCompanion || [])];
 
     // Normalize field names (API may send dateTime/totalPrice instead of date/total)
-    const bookings = raw.map((b: any) => ({
-      ...b,
-      date: b.date ?? b.dateTime,
-      total: typeof b.total === 'number' ? b.total : parseFloat(b.totalPrice ?? b.total ?? '0'),
-      subtotal: typeof b.subtotal === 'number' ? b.subtotal : parseFloat(b.subtotal ?? '0'),
-      platformFee: typeof b.platformFee === 'number' ? b.platformFee : parseFloat(b.platformFee ?? '0'),
-      hourlyRate: typeof b.hourlyRate === 'number' ? b.hourlyRate : parseFloat(b.hourlyRate ?? b.companion?.hourlyRate ?? '0'),
-      companionEarnings: typeof b.companionEarnings === 'number' ? b.companionEarnings : parseFloat(b.companionEarnings ?? '0'),
-      isPaid: b.isPaid ?? false,
-      companion: {
-        ...b.companion,
-        photo: b.companion?.photo ?? b.companion?.photos?.[0]?.url,
-      },
-    }));
+    // companion is always normalized to a safe object with defaults so callers never crash
+    const bookings = raw.map((b: any) => {
+      const rawCompanion = b.companion ?? {};
+      return {
+        ...b,
+        date: b.date ?? b.dateTime,
+        total: typeof b.total === 'number' ? b.total : parseFloat(b.totalPrice ?? b.total ?? '0'),
+        subtotal: typeof b.subtotal === 'number' ? b.subtotal : parseFloat(b.subtotal ?? '0'),
+        platformFee: typeof b.platformFee === 'number' ? b.platformFee : parseFloat(b.platformFee ?? '0'),
+        hourlyRate: typeof b.hourlyRate === 'number' ? b.hourlyRate : parseFloat(b.hourlyRate ?? rawCompanion.hourlyRate ?? '0'),
+        companionEarnings: typeof b.companionEarnings === 'number' ? b.companionEarnings : parseFloat(b.companionEarnings ?? '0'),
+        isPaid: b.isPaid ?? false,
+        companion: {
+          id: rawCompanion.id ?? '',
+          name: rawCompanion.name ?? '',
+          rating: rawCompanion.rating ?? 0,
+          photo: rawCompanion.photo ?? rawCompanion.photos?.[0]?.url ?? null,
+        },
+      };
+    });
 
     return { bookings, total: 'bookings' in response ? (response as any).total : bookings.length };
   },
