@@ -59,7 +59,8 @@ jobs:
 
       - name: Deploy admin panel
         run: |
-          mkdir -p /var/www/daterabbit-admin
+          sudo mkdir -p /var/www/daterabbit-admin
+          sudo chown -R github-runner:www-data /var/www/daterabbit-admin
           rsync -rlD --delete \
             --exclude 'node_modules' \
             --exclude '.env.local' \
@@ -242,7 +243,8 @@ jobs:
 
       - name: Deploy admin panel
         run: |
-          mkdir -p /var/www/daterabbit-admin
+          sudo mkdir -p /var/www/daterabbit-admin
+          sudo chown -R github-runner:www-data /var/www/daterabbit-admin
           rsync -rlD --delete \
             --exclude 'node_modules' \
             --exclude '.env.local' \
