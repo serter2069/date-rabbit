@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, spacing, typography, borderRadius, shadows } from '../constants/theme';
 import { Home, Search, Calendar, MessageCircle, User, Grid, Mail, Wallet } from 'lucide-react-native';
+import { useMessagesStore } from '../store/messagesStore';
 
 interface TabItem {
   name: string;
@@ -37,6 +38,7 @@ export function CustomTabBar({ role }: CustomTabBarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const tabs = role === 'companion' ? companionTabs : seekerTabs;
+  const unreadCount = useMessagesStore((s) => s.unreadCount);
 
   const isActive = (path: string) => {
     if (path === '/male' || path === '/female') {
@@ -55,6 +57,8 @@ export function CustomTabBar({ role }: CustomTabBarProps) {
       {tabs.map((tab) => {
         const Icon = tab.icon;
         const active = isActive(tab.path);
+
+        const showBadge = tab.name === 'messages' && unreadCount > 0;
 
         return (
           <TouchableOpacity
@@ -75,10 +79,24 @@ export function CustomTabBar({ role }: CustomTabBarProps) {
                 >
                   <Icon size={20} color={colors.white} strokeWidth={2.5} />
                 </LinearGradient>
+                {showBadge && (
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </Text>
+                  </View>
+                )}
               </View>
             ) : (
               <View style={styles.iconWrap}>
                 <Icon size={20} color={colors.textMuted} strokeWidth={1.8} />
+                {showBadge && (
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </Text>
+                  </View>
+                )}
               </View>
             )}
             <Text
@@ -139,5 +157,23 @@ const styles = StyleSheet.create({
   },
   labelInactive: {
     color: colors.textMuted,
+  },
+  badge: {
+    position: 'absolute',
+    top: -4,
+    right: -6,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#FF3B30',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+  },
+  badgeText: {
+    color: colors.white,
+    fontSize: 9,
+    fontFamily: typography.fonts.bodyBold,
+    lineHeight: 12,
   },
 });

@@ -4,10 +4,14 @@ import { useAuthStore } from '../../src/store/authStore';
 import { colors } from '../../src/constants/theme';
 import { useEffect, useState } from 'react';
 import { CustomTabBar } from '../../src/components/CustomTabBar';
+import { useMessagesStore } from '../../src/store/messagesStore';
+
+const UNREAD_REFRESH_INTERVAL_MS = 30_000; // 30 seconds
 
 export default function TabsLayout() {
   const { user, isAuthenticated } = useAuthStore();
   const [isHydrated, setIsHydrated] = useState(false);
+  const refreshUnreadCount = useMessagesStore((s) => s.refreshUnreadCount);
 
   useEffect(() => {
     const unsubFinishHydration = useAuthStore.persist.onFinishHydration(() => {
@@ -22,6 +26,17 @@ export default function TabsLayout() {
       unsubFinishHydration();
     };
   }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    // Fetch immediately on mount
+    refreshUnreadCount();
+
+    // Then refresh periodically
+    const interval = setInterval(refreshUnreadCount, UNREAD_REFRESH_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [isAuthenticated, refreshUnreadCount]);
 
   if (!isHydrated) {
     return (
