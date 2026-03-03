@@ -6,9 +6,11 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
+  Platform,
   Alert,
 } from 'react-native';
 import { colors, spacing, typography, borderRadius, borderWidth } from '../constants/theme';
+import { showConfirm } from '../utils/alert';
 
 interface PhotoUploadProps {
   photos: string[];
@@ -28,25 +30,29 @@ export function PhotoUpload({
   onRemove,
 }: PhotoUploadProps) {
   const showAddOptions = () => {
-    Alert.alert(
-      'Add Photo',
-      'Choose an option',
-      [
-        { text: 'Take Photo', onPress: onTakePhoto },
-        { text: 'Choose from Library', onPress: onPickFromLibrary },
-        { text: 'Cancel', style: 'cancel' },
-      ]
-    );
+    if (Platform.OS === 'web') {
+      // Camera not available on web — go straight to library
+      onPickFromLibrary();
+    } else {
+      Alert.alert(
+        'Add Photo',
+        'Choose an option',
+        [
+          { text: 'Take Photo', onPress: onTakePhoto },
+          { text: 'Choose from Library', onPress: onPickFromLibrary },
+          { text: 'Cancel', style: 'cancel' },
+        ]
+      );
+    }
   };
 
   const handleRemove = (uri: string) => {
-    Alert.alert(
+    showConfirm(
       'Remove Photo',
       'Are you sure you want to remove this photo?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Remove', style: 'destructive', onPress: () => onRemove(uri) },
-      ]
+      () => onRemove(uri),
+      'Remove',
+      'Cancel'
     );
   };
 
