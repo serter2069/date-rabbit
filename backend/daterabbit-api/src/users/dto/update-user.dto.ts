@@ -1,14 +1,32 @@
 import {
   IsArray,
+  IsBoolean,
   IsInt,
   IsNumber,
   IsOptional,
   IsString,
+  IsUUID,
   Max,
   MaxLength,
   Min,
+  ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+
+export class PhotoDto {
+  @IsUUID()
+  id: string;
+
+  @IsString()
+  url: string;
+
+  @IsInt()
+  @Min(0)
+  order: number;
+
+  @IsBoolean()
+  isPrimary: boolean;
+}
 
 export class UpdateUserDto {
   @IsOptional()
@@ -35,8 +53,9 @@ export class UpdateUserDto {
 
   @IsOptional()
   @IsArray()
-  @IsString({ each: true })
-  photos?: string[];
+  @ValidateNested({ each: true })
+  @Type(() => PhotoDto)
+  photos?: PhotoDto[];
 
   @IsOptional()
   @IsNumber({ maxDecimalPlaces: 2 })
