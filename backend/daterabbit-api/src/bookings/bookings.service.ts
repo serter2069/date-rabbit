@@ -151,4 +151,38 @@ export class BookingsService {
       order: { createdAt: 'DESC' },
     });
   }
+
+  async complete(id: string, userId: string): Promise<Booking> {
+    const booking = await this.findById(id);
+
+    if (!booking) {
+      throw new HttpException('Booking not found', HttpStatus.NOT_FOUND);
+    }
+
+    if (booking.seekerId !== userId && booking.companionId !== userId) {
+      throw new HttpException('Unauthorized', HttpStatus.FORBIDDEN);
+    }
+
+    if (
+      booking.status !== BookingStatus.CONFIRMED &&
+      booking.status !== BookingStatus.PAID
+    ) {
+      throw new HttpException(
+        `Cannot complete a ${booking.status} booking`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // Booking date must be today or in the past
+    const now = new Date();
+    const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+    if (new Date(booking.dateTime) > todayEnd) {
+      throw new HttpException(
+        'Cannot complete a future booking',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    return this.updateStatus(id, BookingStatus.COMPLETED);
+  }
 }

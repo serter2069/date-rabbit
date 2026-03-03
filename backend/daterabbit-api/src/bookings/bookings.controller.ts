@@ -151,6 +151,12 @@ export class BookingsController {
     return this.formatBooking(updated);
   }
 
+  @Put(':id/complete')
+  async completeBooking(@Param('id') id: string, @Request() req) {
+    const updated = await this.bookingsService.complete(id, req.user.id);
+    return this.formatBooking(updated);
+  }
+
   private formatBooking(booking: any) {
     return {
       id: booking.id,
