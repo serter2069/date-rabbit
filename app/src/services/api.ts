@@ -116,18 +116,6 @@ export const usersApi = {
       body: data,
     }),
 
-  updateLocation: (latitude: number, longitude: number) =>
-    apiRequest<{ success: boolean }>('/users/me/location', {
-      method: 'PATCH',
-      body: { latitude, longitude },
-    }),
-
-  savePushToken: (pushToken: string) =>
-    apiRequest<{ success: boolean }>('/users/me/push-token', {
-      method: 'POST',
-      body: { pushToken },
-    }),
-
   blockUser: (userId: string, reason?: string) =>
     apiRequest<{ success: boolean }>(`/users/${userId}/block`, {
       method: 'POST',
@@ -474,46 +462,6 @@ export const paymentsApi = {
         createdAt: string;
       }[];
     }>(`/payments/payouts/history?limit=${limit}`),
-};
-
-// Media API
-export const mediaApi = {
-  uploadPhoto: async (uri: string): Promise<{ id: string; url: string }> => {
-    const token = await getToken();
-    const formData = new FormData();
-
-    // Get file extension
-    const extension = uri.split('.').pop() || 'jpg';
-    const type = `image/${extension === 'jpg' ? 'jpeg' : extension}`;
-
-    formData.append('photo', {
-      uri,
-      type,
-      name: `photo.${extension}`,
-    } as unknown as Blob);
-
-    const response = await fetch(`${API_BASE_URL}/media/photos`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'multipart/form-data',
-      },
-      body: formData,
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new ApiError(data.message || 'Upload failed', response.status);
-    }
-
-    return data;
-  },
-
-  deletePhoto: (id: string) =>
-    apiRequest<{ success: boolean }>(`/media/photos/${id}`, {
-      method: 'DELETE',
-    }),
 };
 
 // Calendar API
