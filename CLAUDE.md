@@ -16,7 +16,12 @@
 
 ---
 
+## Tasks & Bugs (diagrams.love)
+**Schema:** https://diagrams.love/canvas?schema=cmm9ykbh20003ll81v26ea4zj
+
+---
+
 ## Project Info
 
 - **Type:** React Native / Expo
-- **GitLab:** gitlab.com/serter2069/date-rabbit
+- **GitHub:** github.com/serter2069/date-rabbit

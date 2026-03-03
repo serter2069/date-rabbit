@@ -183,6 +183,10 @@ export class BookingsService {
       );
     }
 
-    return this.updateStatus(id, BookingStatus.COMPLETED);
+    const updated = await this.updateStatus(id, BookingStatus.COMPLETED);
+    if (!updated) {
+      throw new HttpException('Failed to update booking', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    return updated;
   }
 }

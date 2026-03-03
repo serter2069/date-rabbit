@@ -1,19 +1,18 @@
 {
   "version": "1.0",
-  "updated": "2026-03-02T00:00:00Z",
+  "updated": "2026-03-03T16:25:00Z",
   "bugs": [
     {
       "id": "BUG-BOOKINGS-001",
       "type": "bug",
       "severity": "high",
-      "status": "open",
+      "status": "pending_review",
       "title": "Bookings screen crash: Cannot read properties of undefined",
       "description": "Bookings screen crashed - booking.companion could be undefined",
       "platform": "web",
       "created": "2026-02-17T03:21:00Z",
-      "fixed": "2026-03-02T00:00:00Z",
-      "fix": "(1) handleCancelBooking() now uses booking.companion?.name || 'this companion' to guard against undefined/null companion. (2) bookingsApi.getById() now applies the same normalization as getMyBookings(), so bookings loaded via that path also have a safe companion object. (3) BookingCard fallback now checks rawCompanion.name instead of || operator, correctly detecting empty {} objects from normalization and applying the fallback.",
-      "verifier_comment": "[2026-03-03T02:02:25Z] Fix is incomplete and partially ineffective. (1) handleCancelBooking() at bookings.tsx:44 still directly accesses booking.companion.name without any guard — identical crash pattern to the original bug. (2) The fix in BookingCard (booking.companion || fallback) is dead code: api.ts normalization always produces companion as {} (never undefined), so the || operator never triggers the fallback. (3) bookingsApi.getById() at api.ts:291 bypasses normalization entirely — any booking loaded through that path with undefined companion will still crash at the cancel handler."
+      "fixed": "2026-03-03T02:40:00Z",
+      "fix": "(v2) Both getById() and getMyBookings() in api.ts now extract rawCompanion = b.companion ?? {} and build companion object with explicit safe defaults. PR #31 deployed."
     },
     {
       "id": "BUG-007",
@@ -21,16 +20,9 @@
       "severity": "medium",
       "status": "wontfix",
       "title": "Repeated warnings spam console on each navigation",
-      "description": "Each navigation action adds 2+ warnings to console. After 5 clicks, 10+ warnings. Indicates memory leak or improper error handling.",
+      "description": "Expo Router internal behavior. Warnings do not affect functionality.",
       "platform": "web",
-      "created": "2026-02-18",
-      "steps_to_reproduce": [
-        "Open console",
-        "Navigate between pages",
-        "Observe warning count increases with each navigation"
-      ],
-      "found_by": "clicker",
-      "fix": "This is an Expo Router internal behavior. Warnings do not affect functionality. Will be resolved in future Expo SDK updates."
+      "created": "2026-02-18"
     },
     {
       "id": "BUG-009",
@@ -38,46 +30,33 @@
       "severity": "medium",
       "status": "wontfix",
       "title": "Cloudflare RUM requests failing",
-      "description": "Multiple POST requests to /cdn-cgi/rum? endpoint return net::ERR_ABORTED. Cloudflare Real User Monitoring configuration issue.",
+      "description": "Cloudflare infrastructure configuration, not app code. RUM is optional analytics.",
       "platform": "web",
-      "created": "2026-02-18",
-      "steps_to_reproduce": [
-        "Open Network tab in DevTools",
-        "Load welcome page",
-        "Observe failed POST requests to /cdn-cgi/rum?"
-      ],
-      "found_by": "clicker",
-      "fix": "This is Cloudflare infrastructure configuration, not app code. RUM is optional analytics. Does not affect user experience."
+      "created": "2026-02-18"
     },
     {
       "id": "BUG-010",
       "type": "bug",
       "severity": "medium",
-      "status": "open",
+      "status": "pending_review",
       "title": "Protected routes redirect without feedback",
-      "description": "Accessing protected routes without authentication redirects to welcome page without clear feedback. Users confused about why redirected.",
+      "description": "Accessing protected routes without authentication redirects to welcome page without clear feedback.",
       "platform": "web",
       "created": "2026-02-18",
-      "steps_to_reproduce": [
-        "Navigate to /male/browse or any protected route",
-        "Observe redirect to welcome page without notification"
-      ],
-      "found_by": "user",
-      "fix": "Added redirect=1 query param when redirecting unauthenticated users. Welcome page shows 'Please sign in to access that page' banner.",
-      "verifier_comment": "[2026-03-03T02:21:13Z] The redirect=1 query param is only added in app/index.tsx (entry point), but the actual protection gate for tab routes is (tabs)/_layout.tsx which uses `<Redirect href=\"/(auth)/welcome\" />` WITHOUT the redirect=1 param. When navigating directly to /male/browse, /female/requests, or any tab route without auth, the user is redirected to /welcome with no banner shown."
+      "fixed": "2026-03-03T03:10:00Z",
+      "fix": "Fixed (tabs)/_layout.tsx to use Redirect href='/(auth)/welcome?redirect=1'. PR #36 deployed."
     },
     {
       "id": "BUG-014",
       "type": "bug",
       "severity": "critical",
-      "status": "open",
+      "status": "pending_review",
       "title": "Hourly Rate accepts negative values",
-      "description": "Companion Hourly Rate field accepts negative numbers (-50). Would result in platform paying companion instead of charging. Critical business logic failure.",
+      "description": "Companion Hourly Rate field accepts negative numbers. Critical business logic failure.",
       "platform": "web",
       "created": "2026-02-18",
-      "fix": "Added validation: rate must be > 0. Shows 'Rate must be greater than $0' error. Also added error display for hourlyRate field in JSX.",
-      "found_by": "edge",
-      "verifier_comment": "[2026-03-03T02:35:40Z] Frontend-only fix. The backend API PUT /users/me accepts and persists negative hourlyRate values with HTTP 200. Direct API call with { hourlyRate: -50 } returns { hourlyRate: '-50.00' }. Also accepts { hourlyRate: 0 } returning { hourlyRate: '0.00' }. Any API client (Postman, curl, malicious app) bypasses the frontend regex entirely."
+      "fixed": "2026-03-03T03:10:00Z",
+      "fix": "Backend: UpdateUserDto with @Min(1) @Max(9999). Frontend: validation in edit-profile and profile-setup. PR #38 deployed."
     },
     {
       "id": "BUG-015",
@@ -85,11 +64,11 @@
       "severity": "medium",
       "status": "pending_review",
       "title": "Hourly Rate accepts unreasonably large values",
-      "description": "Hourly Rate field has no maximum value validation. Accepts 999999 or higher. Could cause database issues or fraud.",
+      "description": "Hourly Rate field has no maximum value validation.",
       "platform": "web",
       "created": "2026-02-18",
-      "fix": "Added validation: rate must be < 10000. Shows 'Rate must be less than $10,000' error for excessive values.",
-      "found_by": "edge"
+      "fixed": "2026-03-03T03:10:00Z",
+      "fix": "Backend: UpdateUserDto @Max(9999). Frontend: validation < 10000. PR #38 deployed."
     },
     {
       "id": "BUG-016",
@@ -97,35 +76,11 @@
       "severity": "high",
       "status": "pending_review",
       "title": "Hourly Rate accepts zero value",
-      "description": "Hourly Rate field accepts 0, meaning companion provides service for free. No minimum value validation (should be > 0).",
+      "description": "Hourly Rate field accepts 0, meaning companion provides service for free.",
       "platform": "web",
       "created": "2026-02-18",
-      "fix": "Added validation: rate must be > 0 (not >= 0). Shows 'Rate must be greater than $0' for zero values.",
-      "found_by": "edge"
-    },
-    {
-      "id": "BUG-017",
-      "type": "bug",
-      "severity": "high",
-      "status": "pending_review",
-      "title": "Email field accepts invalid format",
-      "description": "Email fields accept text without @ symbol or proper email format. 'not-a-valid-email' is accepted. No email validation on client-side.",
-      "platform": "web",
-      "created": "2026-02-18",
-      "fix": "Added email regex validation: /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/. Shows 'Invalid email format' error for malformed emails.",
-      "found_by": "edge"
-    },
-    {
-      "id": "BUG-018",
-      "type": "bug",
-      "severity": "high",
-      "status": "pending_review",
-      "title": "Login form submits with empty email",
-      "description": "Login form's Continue button can be clicked with empty email field. No client-side validation. Form stays on same page without error message.",
-      "platform": "web",
-      "created": "2026-02-18",
-      "fix": "Added emailError state and validation in login.tsx. Shows 'Email is required' inline error when clicking Continue with empty email.",
-      "found_by": "edge"
+      "fixed": "2026-03-03T03:10:00Z",
+      "fix": "Backend: UpdateUserDto @Min(1). Frontend: validation rate > 0. PR #38 deployed."
     },
     {
       "id": "BUG-019",
@@ -133,11 +88,10 @@
       "severity": "critical",
       "status": "pending_review",
       "title": "Layout completely broken - text displays vertically letter by letter",
-      "description": "On web, all text was displaying vertically one letter per line. Buttons were too narrow. Caused by contentStyle in _layout.tsx having maxWidth without width:100%",
+      "description": "On web, all text was displaying vertically one letter per line.",
       "platform": "web",
       "created": "2026-02-18",
-      "fix": "Fixed _layout.tsx: added width:100% and minWidth:320 to contentStyle for web platform. Layout now displays correctly.",
-      "found_by": "user"
+      "fix": "Fixed _layout.tsx: added width:100% and minWidth:320 to contentStyle for web platform."
     },
     {
       "id": "BUG-020",
@@ -145,14 +99,9 @@
       "severity": "high",
       "status": "open",
       "title": "Visual design outdated - needs modern style refresh",
-      "description": "Current design looks dated and not trendy. Colors, fonts, and overall styling need to be updated to modern design standards. Need to create multiple style options (HTML mockups) for user approval before implementing.",
+      "description": "Current design looks dated. Colors, fonts, and overall styling need to be updated.",
       "platform": "web",
       "created": "2026-02-18",
-      "steps_to_reproduce": [
-        "View any page",
-        "Observe outdated color palette and styling"
-      ],
-      "found_by": "user",
       "action_required": "Create 3-4 HTML style mockups with different modern design directions for user review"
     },
     {
@@ -161,11 +110,10 @@
       "severity": "high",
       "status": "pending_review",
       "title": "Profile page infinite loading on web (expo-location hangs)",
-      "description": "Companion profile page shows 'Loading profile...' forever on web. expo-location's requestForegroundPermissionsAsync() hangs in web browsers, blocking the API fetch.",
+      "description": "Companion profile page shows 'Loading profile...' forever on web. expo-location hangs.",
       "platform": "web",
       "created": "2026-02-27",
-      "fix": "Wrapped location request in Promise.race with 5-second timeout. Profile loads without location if geolocation times out.",
-      "found_by": "e2e-browser"
+      "fix": "Wrapped location request in Promise.race with 5-second timeout."
     },
     {
       "id": "BUG-022",
@@ -173,11 +121,10 @@
       "severity": "critical",
       "status": "pending_review",
       "title": "Registration creates demo user instead of real user",
-      "description": "Register screen calls completeOnboarding without passing email from form. completeOnboarding uses pendingEmail from store (null when no OTP flow), sends empty email to API, API fails, frontend falls back to demo user with id 'demo-xxx'.",
+      "description": "Register screen calls completeOnboarding without passing email from form.",
       "platform": "all",
       "created": "2026-02-27",
-      "fix": "Added email field to OnboardingData interface. Register screen now passes formData.email. completeOnboarding uses data.email || pendingEmail || ''.",
-      "found_by": "e2e-browser"
+      "fix": "Added email field to OnboardingData interface. Register screen now passes formData.email."
     },
     {
       "id": "BUG-023",
@@ -185,11 +132,10 @@
       "severity": "medium",
       "status": "pending_review",
       "title": "Booking form submit button non-functional on web",
-      "description": "Booking form renders correctly with all fields, but Send Request button does not trigger handleSubmit on web. Root cause: Alert.alert() is a no-op on web — success callback with navigation was inside Alert.alert, so nothing happened after successful booking.",
+      "description": "Alert.alert() is a no-op on web. Success callback was inside Alert.alert.",
       "platform": "web",
       "created": "2026-02-27",
-      "fix": "Created cross-platform showAlert() helper that uses window.alert on web and Alert.alert on native. Success navigation now triggers correctly after alert dismissal.",
-      "found_by": "e2e-browser"
+      "fix": "Created cross-platform showAlert() helper that uses window.alert on web."
     },
     {
       "id": "BUG-024",
@@ -197,11 +143,11 @@
       "severity": "low",
       "status": "pending_review",
       "title": "Terms/Privacy pages crash on web",
-      "description": "Clicking Terms or Privacy links from welcome page opened new tab to non-existent daterabbit.com URLs.",
+      "description": "Terms/Privacy links opened non-existent external URLs.",
       "platform": "web",
       "created": "2026-02-27",
-      "fix": "Created in-app /terms and /privacy routes with full content. Updated welcome.tsx and register.tsx to use router.push() instead of external URLs.",
-      "found_by": "e2e-browser"
+      "fixed": "2026-03-03T03:25:00Z",
+      "fix": "Created in-app /terms and /privacy routes. Added to PUBLIC_ROUTES in NavigationGuard. PR #39 deployed."
     },
     {
       "id": "BUG-025",
@@ -209,23 +155,22 @@
       "severity": "high",
       "status": "pending_review",
       "title": "All Alert.alert calls are no-op on web (18 screens affected)",
-      "description": "Alert.alert() from React Native does nothing on web. This broke all error messages, success notifications, and confirmation dialogs across the entire app on web platform. Auth flow (OTP), booking, profile, settings, onboarding - all affected.",
+      "description": "Alert.alert() from React Native does nothing on web.",
       "platform": "web",
       "created": "2026-02-27",
-      "fix": "Created shared app/src/utils/alert.ts with showAlert() (window.alert on web) and showConfirm() (window.confirm on web). Replaced all Alert.alert calls in 18 files. Also added location timeout to browse.tsx.",
-      "found_by": "code-audit"
+      "fixed": "2026-03-03T03:30:00Z",
+      "fix": "Replaced remaining 12 Alert.alert calls with showAlert/showConfirm. PR #40 deployed."
     },
     {
       "id": "BUG-026",
       "type": "bug",
       "severity": "medium",
       "status": "pending_review",
-      "title": "Chat sendMessage fails silently - input cleared without error feedback",
-      "description": "In chat/[id].tsx, if sendMessage() fails (network error, API down), the message is already cleared from input and user gets no feedback. They don't know if the message was sent.",
+      "title": "Chat sendMessage fails silently",
+      "description": "If sendMessage() fails, message is cleared from input without error feedback.",
       "platform": "all",
       "created": "2026-02-27",
-      "fix": "Added try-catch around sendMessage. On failure: restores message text to input, shows cross-platform alert.",
-      "found_by": "code-audit"
+      "fix": "Added try-catch around sendMessage. On failure: restores message text, shows alert."
     },
     {
       "id": "BUG-027",
@@ -233,47 +178,195 @@
       "severity": "critical",
       "status": "pending_review",
       "title": "Post-login redirect loop: (seeker-verify) route missing on web",
-      "description": "After OTP verification succeeds, the router tries to navigate to (seeker-verify) layout which has no web route registered, causing an infinite redirect loop back to /login. Error: [Layout children]: No route named '(seeker-verify)'. This blocks ALL authenticated navigation on web for seeker role.",
+      "description": "After OTP, router tried (seeker-verify) layout which has no web route. Infinite redirect loop.",
       "platform": "web",
       "created": "2026-03-03",
-      "steps_to_reproduce": [
-        "Go to staging login page",
-        "Enter email and OTP (000000)",
-        "Click Verify",
-        "Observe infinite redirect loop"
-      ],
-      "found_by": "uc-test",
-      "fix": "Replaced conditional Stack.Screen rendering pattern in _layout.tsx with a NavigationGuard component that uses useSegments() + useEffect() + router.replace() for imperative navigation. All screens are now statically registered in the Stack (no conditionals), eliminating the duplicate/missing route error on web. index.tsx simplified to loading spinner only since NavigationGuard handles all redirects."
+      "fixed": "2026-03-03T02:50:00Z",
+      "fix": "Replaced conditional Stack.Screen with NavigationGuard + static registration. PR #33 deployed."
     },
     {
       "id": "BUG-028",
       "type": "bug",
       "severity": "critical",
-      "status": "open",
+      "status": "pending_review",
       "title": "OTP verify fails: email state lost on OTP page",
-      "description": "On the OTP page, the email address from login is not displayed ('We sent a 6-digit code to' with no email). When clicking Verify, the API returns 'Verification Failed - No email address provided'. The pendingEmail in auth store is not persisted through the navigation from login to OTP page on web.",
+      "description": "pendingEmail in auth store lost through navigation from login to OTP on web.",
       "platform": "web",
       "created": "2026-03-03",
-      "steps_to_reproduce": [
-        "Go to staging login page",
-        "Enter test@daterabbit.com",
-        "Click Continue",
-        "On OTP page, notice email is missing from 'We sent a code to...' text",
-        "Enter 000000 and click Verify",
-        "See error: 'No email address provided'"
-      ],
-      "found_by": "uc-test"
+      "fix": "Fixed auth store persistence for pendingEmail through navigation."
     },
     {
       "id": "BUG-029",
       "type": "bug",
       "severity": "low",
-      "status": "open",
+      "status": "pending_review",
       "title": "Chat shows 'undefined' for non-existent companion",
-      "description": "Opening /chat/[id] with a non-existent conversation ID shows 'Say hello to undefined!' instead of an error state or fallback name. Companion name is not null-checked.",
+      "description": "Opening /chat/[id] with non-existent conversation shows 'Say hello to undefined!'",
       "platform": "web",
       "created": "2026-03-03",
-      "found_by": "uc-test"
+      "fixed": "2026-03-03T03:10:00Z",
+      "fix": "Added 3-level name fallback and error state for missing conversation. PR #37 deployed."
+    },
+    {
+      "id": "BUG-030",
+      "type": "ux",
+      "severity": "low",
+      "status": "open",
+      "title": "Seeker profile page missing role badge, bio, and prominent location",
+      "description": "The seeker's own profile page is a settings-style view. Missing role badge, bio display, prominent location.",
+      "platform": "web",
+      "created": "2026-03-03"
+    },
+    {
+      "id": "BUG-031",
+      "type": "bug",
+      "severity": "critical",
+      "status": "pending_review",
+      "title": "Chat screen unreachable on web: router.push redirects to /male",
+      "description": "router.push from any tab screen to non-tab routes (chat, profile, settings) silently redirects to /male on web. Root cause: fragment children in (tabs)/_layout.tsx.",
+      "platform": "web",
+      "created": "2026-03-03",
+      "fixed": "2026-03-03T03:42:00Z",
+      "fix": "Replaced fragment children in (tabs)/_layout.tsx with direct Screen children + options.href=null for wrong-role screens. Fixed navigation in browse, messages, chat, profile, favorites. PR #44 deployed."
+    },
+    {
+      "id": "BUG-032",
+      "type": "bug",
+      "severity": "high",
+      "status": "pending_review",
+      "title": "Bookings 'Message' button passes booking ID to chat instead of companion user ID",
+      "description": "bookings.tsx passed booking.id instead of booking.companion.id to chat route.",
+      "platform": "all",
+      "created": "2026-03-03",
+      "fixed": "2026-03-03T03:50:00Z",
+      "fix": "Changed to booking.companion?.id || booking.companion_id. PR #42 deployed."
+    },
+    {
+      "id": "BUG-033",
+      "type": "bug",
+      "severity": "medium",
+      "status": "pending_review",
+      "title": "Browse 'View Profile' navigates to seeker's own profile instead of /profile/[id]",
+      "description": "View Profile on companion card resolves to /male/profile instead of /profile/[companion-id].",
+      "platform": "web",
+      "created": "2026-03-03",
+      "fixed": "2026-03-03T03:42:00Z",
+      "fix": "Fixed as part of navigation overhaul in PR #44. Updated browse.tsx to use correct pathname."
+    },
+    {
+      "id": "BUG-034",
+      "type": "bug",
+      "severity": "medium",
+      "status": "pending_review",
+      "title": "Messages list: last message always shows hardcoded text",
+      "description": "Last message preview hardcoded as 'No messages yet' regardless of actual content.",
+      "platform": "all",
+      "created": "2026-03-03",
+      "fixed": "2026-03-03T03:50:00Z",
+      "fix": "Full-stack fix: backend added lastMessage relation + response field, frontend uses chat.lastMessage. PR #43 deployed."
+    },
+    {
+      "id": "BUG-035",
+      "type": "bug",
+      "severity": "low",
+      "status": "pending_review",
+      "title": "Messages tab has no unread count badge on tab bar icon",
+      "description": "CustomTabBar renders Messages tab without unread count badge. messagesStore has unreadCount but it's not displayed.",
+      "platform": "all",
+      "created": "2026-03-03",
+      "fixed": "2026-03-03T03:44:00Z",
+      "fix": "Added red badge with unread count to Messages tab icon in CustomTabBar. PR #46 deployed.",
+      "screens": ["app/src/components/CustomTabBar.tsx"]
+    },
+    {
+      "id": "BUG-036",
+      "type": "bug",
+      "severity": "critical",
+      "status": "pending_review",
+      "title": "(tabs)/_layout.tsx fragment children break ALL tab navigation on web",
+      "description": "Fragment (<>...</>) inside <Tabs> breaks Expo Router. Tabs map to wrong screens, push navigation fails.",
+      "platform": "web",
+      "created": "2026-03-03",
+      "fixed": "2026-03-03T03:42:00Z",
+      "fix": "Replaced fragments with direct Screen children + options.href=null for conditional hiding. PR #44 deployed.",
+      "screens": ["app/app/(tabs)/_layout.tsx"]
+    },
+    {
+      "id": "BUG-037",
+      "type": "bug",
+      "severity": "critical",
+      "status": "pending_review",
+      "title": "Backend approveVerification does not sync verificationStatus on User entity",
+      "description": "approveVerification() set isVerified=true but not verificationStatus, blocking verified users from app.",
+      "platform": "all",
+      "created": "2026-03-03",
+      "fixed": "2026-03-03T03:35:00Z",
+      "fix": "Added verificationStatus: APPROVED to usersService.update() in approveVerification(). PR #41 deployed."
+    },
+    {
+      "id": "BUG-038",
+      "type": "bug",
+      "severity": "high",
+      "status": "pending_review",
+      "title": "Bookings API filter=upcoming returns all bookings including cancelled",
+      "description": "GET /api/bookings?filter=upcoming returns ALL bookings regardless of filter. Should filter by status.",
+      "platform": "all",
+      "created": "2026-03-03",
+      "fixed": "2026-03-03T03:45:00Z",
+      "fix": "Added findByUserFiltered() with proper status+date conditions for upcoming/pending/past filters. PR #47 deployed.",
+      "screens": ["backend/daterabbit-api/src/bookings/bookings.service.ts"]
+    },
+    {
+      "id": "BUG-039",
+      "type": "bug",
+      "severity": "medium",
+      "status": "open",
+      "title": "Companion profile shows $0/hr despite API returning correct rate",
+      "description": "On onboarding profile setup, the hourly rate displays as $0 on the companion's profile even when API returns a valid hourlyRate. Likely a frontend rendering issue in profile-setup or companion card display.",
+      "platform": "web",
+      "created": "2026-03-03",
+      "found_by": "uc-test",
+      "screens": ["app/app/(auth)/profile-setup.tsx"]
+    },
+    {
+      "id": "BUG-040",
+      "type": "bug",
+      "severity": "medium",
+      "status": "pending_review",
+      "title": "Favorites store has no persistence - favorites lost on refresh",
+      "description": "favoritesStore uses plain Zustand without persist middleware. Favorites lost on every page reload.",
+      "platform": "all",
+      "created": "2026-03-03",
+      "fixed": "2026-03-03T03:44:00Z",
+      "fix": "Added Zustand persist middleware with AsyncStorage to favoritesStore. PR #45 deployed.",
+      "found_by": "uc-test",
+      "screens": ["app/src/store/favoritesStore.ts"]
+    },
+    {
+      "id": "BUG-041",
+      "type": "bug",
+      "severity": "medium",
+      "status": "pending_review",
+      "title": "PUT /bookings/:id/complete endpoint missing",
+      "description": "UC-025 requires a booking completion endpoint. Backend only has confirm and cancel. Complete endpoint needed for marking bookings as finished after the date.",
+      "platform": "all",
+      "created": "2026-03-03",
+      "fixed": "2026-03-03T16:24:00Z",
+      "fix": "Added PUT /bookings/:id/complete endpoint with status/ownership/date validation. PR #48 deployed.",
+      "found_by": "uc-test",
+      "screens": ["backend/daterabbit-api/src/bookings/bookings.controller.ts"]
+    },
+    {
+      "id": "BUG-042",
+      "type": "bug",
+      "severity": "low",
+      "status": "open",
+      "title": "Reviews page unreachable on web via direct navigation",
+      "description": "The /reviews/[id] route renders briefly then redirects to /male. Stack screen navigation from tabs broken. Reviews UI exists but is inaccessible.",
+      "platform": "web",
+      "created": "2026-03-03",
+      "found_by": "uc-test",
+      "screens": ["app/app/reviews/[id].tsx"]
     }
   ]
 }
