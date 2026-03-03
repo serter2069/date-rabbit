@@ -44,12 +44,34 @@ jobs:
           npm ci
           npm run build
 
+      - name: Build admin panel (Next.js)
+        run: |
+          cd admin
+          npm ci
+          NEXT_PUBLIC_API_URL=https://daterabbit.smartlaunchhub.com/api npm run build
+
       - name: Deploy frontend
         run: |
           rsync -rlD --delete \
             --exclude 'api' \
             --exclude 'uploads' \
             app/dist/ /var/www/daterabbit/
+
+      - name: Deploy admin panel
+        run: |
+          mkdir -p /var/www/daterabbit-admin
+          rsync -rlD --delete \
+            --exclude 'node_modules' \
+            --exclude '.env.local' \
+            --exclude '.git' \
+            admin/ /var/www/daterabbit-admin/
+          cd /var/www/daterabbit-admin
+          npm ci --production
+          if [ ! -f /var/www/daterabbit-admin/.env.local ]; then
+            echo "NEXT_PUBLIC_API_URL=https://daterabbit.smartlaunchhub.com/api" > /var/www/daterabbit-admin/.env.local
+          fi
+          sudo pm2 restart daterabbit-admin || sudo pm2 start npm --name daterabbit-admin -- start -- -p 3005
+          sudo chown -R www-data:www-data /var/www/daterabbit-admin/
 
       - name: Create backend .env if missing
         run: |
@@ -143,6 +165,7 @@ jobs:
           echo ""
           echo "=== Verification ==="
           curl -s -o /dev/null -w "Backend direct (3004): %{http_code}\n" http://localhost:3004/api/payments/earnings || true
+          curl -s -o /dev/null -w "Admin direct (3005):   %{http_code}\n" http://localhost:3005/ || true
           curl -s -o /dev/null -w "Nginx HTTPS (443):     %{http_code}\n" --resolve "daterabbit.smartlaunchhub.com:443:127.0.0.1" -k https://daterabbit.smartlaunchhub.com/api/payments/earnings || true
 
       - name: Verify deployment
@@ -153,11 +176,13 @@ jobs:
           cat /var/www/daterabbit/version.json 2>&1 || echo "no version.json"
           echo "=== PM2 status ==="
           sudo pm2 show daterabbit 2>&1 | grep -E "(status|restarts|uptime)" || true
+          sudo pm2 show daterabbit-admin 2>&1 | grep -E "(status|restarts|uptime)" || true
           echo "=== PM2 error logs (last 5) ==="
           sudo pm2 logs daterabbit --nostream --lines 5 --err 2>&1 || true
+          sudo pm2 logs daterabbit-admin --nostream --lines 5 --err 2>&1 || true
           echo "=== API smoke test (direct backend) ==="
           curl -s -o /dev/null -w "GET /api/payments/earnings: %{http_code}\n" http://localhost:3004/api/payments/earnings || true
-          curl -s -o /dev/null -w "POST /api/webhooks/stripe: %{http_code}\n" -X POST http://localhost:3004/api/webhooks/stripe || true
+          curl -s -o /dev/null -w "GET /admin (Next.js):       %{http_code}\n" http://localhost:3005/ || true
           echo "=== Nginx config files ==="
           ls -la /etc/nginx/sites-enabled/ 2>/dev/null | grep -i date || echo "No daterabbit in sites-enabled"
 
@@ -202,12 +227,34 @@ jobs:
           npm ci
           npm run build
 
+      - name: Build admin panel (Next.js)
+        run: |
+          cd admin
+          npm ci
+          NEXT_PUBLIC_API_URL=https://daterabbit.smartlaunchhub.com/api npm run build
+
       - name: Deploy frontend
         run: |
           rsync -rlD --delete \
             --exclude 'api' \
             --exclude 'uploads' \
             app/dist/ /var/www/daterabbit/
+
+      - name: Deploy admin panel
+        run: |
+          mkdir -p /var/www/daterabbit-admin
+          rsync -rlD --delete \
+            --exclude 'node_modules' \
+            --exclude '.env.local' \
+            --exclude '.git' \
+            admin/ /var/www/daterabbit-admin/
+          cd /var/www/daterabbit-admin
+          npm ci --production
+          if [ ! -f /var/www/daterabbit-admin/.env.local ]; then
+            echo "NEXT_PUBLIC_API_URL=https://daterabbit.smartlaunchhub.com/api" > /var/www/daterabbit-admin/.env.local
+          fi
+          sudo pm2 restart daterabbit-admin || sudo pm2 start npm --name daterabbit-admin -- start -- -p 3005
+          sudo chown -R www-data:www-data /var/www/daterabbit-admin/
 
       - name: Create backend .env if missing
         run: |
@@ -283,6 +330,7 @@ jobs:
           echo ""
           echo "=== Verification ==="
           curl -s -o /dev/null -w "Backend direct (3004): %{http_code}\n" http://localhost:3004/api/payments/earnings || true
+          curl -s -o /dev/null -w "Admin direct (3005):   %{http_code}\n" http://localhost:3005/ || true
           curl -s -o /dev/null -w "Nginx HTTPS (443):     %{http_code}\n" --resolve "daterabbit.smartlaunchhub.com:443:127.0.0.1" -k https://daterabbit.smartlaunchhub.com/api/payments/earnings || true
 
       - name: Verify deployment
@@ -293,10 +341,12 @@ jobs:
           cat /var/www/daterabbit/version.json 2>&1 || echo "no version.json"
           echo "=== PM2 status ==="
           sudo pm2 show daterabbit 2>&1 | grep -E "(status|restarts|uptime)" || true
+          sudo pm2 show daterabbit-admin 2>&1 | grep -E "(status|restarts|uptime)" || true
           echo "=== PM2 error logs (last 5) ==="
           sudo pm2 logs daterabbit --nostream --lines 5 --err 2>&1 || true
-          echo "=== API smoke test (direct backend) ==="
+          sudo pm2 logs daterabbit-admin --nostream --lines 5 --err 2>&1 || true
+          echo "=== API smoke test ==="
           curl -s -o /dev/null -w "GET /api/payments/earnings: %{http_code}\n" http://localhost:3004/api/payments/earnings || true
-          curl -s -o /dev/null -w "POST /api/webhooks/stripe: %{http_code}\n" -X POST http://localhost:3004/api/webhooks/stripe || true
+          curl -s -o /dev/null -w "GET /admin (Next.js):       %{http_code}\n" http://localhost:3005/ || true
           echo "=== Nginx config files ==="
           ls -la /etc/nginx/sites-enabled/ 2>/dev/null | grep -i date || echo "No daterabbit in sites-enabled"
