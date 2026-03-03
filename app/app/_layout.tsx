@@ -1,4 +1,4 @@
-import { Stack } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Platform, View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useAuthStore } from '../src/store/authStore';
@@ -9,14 +9,65 @@ import {
   SpaceGrotesk_600SemiBold,
   SpaceGrotesk_700Bold,
 } from '@expo-google-fonts/space-grotesk';
+import { useEffect } from 'react';
 import { colors } from '../src/constants/theme';
 import { StripeProvider } from '../src/components/StripeProvider';
 
-export default function RootLayout() {
+function NavigationGuard() {
   const { isAuthenticated, hasSeenOnboarding, user } = useAuthStore();
-  const needsVerification = isAuthenticated && user?.verificationStatus !== 'approved';
-  const isSeeker = user?.role === 'seeker';
+  const router = useRouter();
+  const segments = useSegments();
 
+  useEffect(() => {
+    const currentSegment = segments[0];
+    const needsVerification = isAuthenticated && user?.verificationStatus !== 'approved';
+    const isSeeker = user?.role === 'seeker';
+
+    if (!hasSeenOnboarding) {
+      // Show onboarding intro slides
+      if (currentSegment !== 'onboarding') {
+        router.replace('/onboarding');
+      }
+      return;
+    }
+
+    if (!isAuthenticated) {
+      // Not logged in — redirect to auth
+      const inAuthGroup = currentSegment === '(auth)';
+      if (!inAuthGroup) {
+        router.replace('/(auth)/welcome');
+      }
+      return;
+    }
+
+    if (needsVerification) {
+      // Authenticated but not yet verified — send to verification flow
+      if (isSeeker) {
+        const inSeekerVerify = currentSegment === '(seeker-verify)';
+        if (!inSeekerVerify) {
+          router.replace('/(seeker-verify)/intro');
+        }
+      } else {
+        const inCompOnboard = currentSegment === '(comp-onboard)';
+        if (!inCompOnboard) {
+          router.replace('/(comp-onboard)/step1');
+        }
+      }
+      return;
+    }
+
+    // Fully authenticated and verified
+    const inTabsGroup = currentSegment === '(tabs)';
+    if (!inTabsGroup) {
+      const isCompanion = user?.role === 'companion';
+      router.replace(isCompanion ? '/(tabs)/female' : '/(tabs)/male');
+    }
+  }, [isAuthenticated, hasSeenOnboarding, user, segments, router]);
+
+  return null;
+}
+
+export default function RootLayout() {
   // Load Neo-Brutalism font
   const [fontsLoaded] = useFonts({
     SpaceGrotesk_400Regular,
@@ -52,20 +103,10 @@ export default function RootLayout() {
           }
         }}
       >
-        {!hasSeenOnboarding ? (
-          <Stack.Screen name="onboarding" />
-        ) : !isAuthenticated ? (
-          <Stack.Screen name="(auth)" />
-        ) : needsVerification ? (
-          isSeeker ? (
-            <Stack.Screen name="(seeker-verify)" />
-          ) : (
-            <Stack.Screen name="(comp-onboard)" />
-          )
-        ) : (
-          <Stack.Screen name="(tabs)" />
-        )}
         <Stack.Screen name="index" />
+        <Stack.Screen name="onboarding" />
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(tabs)" />
         <Stack.Screen name="(seeker-verify)" />
         <Stack.Screen name="(comp-onboard)" />
         <Stack.Screen name="booking/[id]" />
@@ -83,6 +124,7 @@ export default function RootLayout() {
         <Stack.Screen name="terms" />
         <Stack.Screen name="privacy" />
       </Stack>
+      <NavigationGuard />
     </StripeProvider>
   );
 }
