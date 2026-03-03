@@ -55,24 +55,25 @@ jobs:
           rsync -rlD --delete \
             --exclude 'api' \
             --exclude 'uploads' \
+            --exclude 'admin-panel' \
             app/dist/ /var/www/daterabbit/
 
       - name: Deploy admin panel
         run: |
-          mkdir -p /var/www/daterabbit-admin
-          sudo chown -R github-runner:www-data /var/www/daterabbit-admin
+          # Deploy admin into subdirectory of existing /var/www/daterabbit (runner already owns it)
+          mkdir -p /var/www/daterabbit/admin-panel
           rsync -rlD --delete \
             --exclude 'node_modules' \
             --exclude '.env.local' \
             --exclude '.git' \
-            admin/ /var/www/daterabbit-admin/
-          cd /var/www/daterabbit-admin
+            admin/ /var/www/daterabbit/admin-panel/
+          cd /var/www/daterabbit/admin-panel
           npm ci --production
-          if [ ! -f /var/www/daterabbit-admin/.env.local ]; then
-            echo "NEXT_PUBLIC_API_URL=https://daterabbit.smartlaunchhub.com/api" > /var/www/daterabbit-admin/.env.local
+          if [ ! -f /var/www/daterabbit/admin-panel/.env.local ]; then
+            echo "NEXT_PUBLIC_API_URL=https://daterabbit.smartlaunchhub.com/api" > /var/www/daterabbit/admin-panel/.env.local
           fi
           sudo pm2 restart daterabbit-admin || sudo pm2 start npm --name daterabbit-admin -- start -- -p 3005
-          sudo chown -R www-data:www-data /var/www/daterabbit-admin/
+          sudo chown -R www-data:www-data /var/www/daterabbit/
 
       - name: Create backend .env if missing
         run: |
@@ -239,24 +240,25 @@ jobs:
           rsync -rlD --delete \
             --exclude 'api' \
             --exclude 'uploads' \
+            --exclude 'admin-panel' \
             app/dist/ /var/www/daterabbit/
 
       - name: Deploy admin panel
         run: |
-          mkdir -p /var/www/daterabbit-admin
-          sudo chown -R github-runner:www-data /var/www/daterabbit-admin
+          # Deploy admin into subdirectory of existing /var/www/daterabbit (runner already owns it)
+          mkdir -p /var/www/daterabbit/admin-panel
           rsync -rlD --delete \
             --exclude 'node_modules' \
             --exclude '.env.local' \
             --exclude '.git' \
-            admin/ /var/www/daterabbit-admin/
-          cd /var/www/daterabbit-admin
+            admin/ /var/www/daterabbit/admin-panel/
+          cd /var/www/daterabbit/admin-panel
           npm ci --production
-          if [ ! -f /var/www/daterabbit-admin/.env.local ]; then
-            echo "NEXT_PUBLIC_API_URL=https://daterabbit.smartlaunchhub.com/api" > /var/www/daterabbit-admin/.env.local
+          if [ ! -f /var/www/daterabbit/admin-panel/.env.local ]; then
+            echo "NEXT_PUBLIC_API_URL=https://daterabbit.smartlaunchhub.com/api" > /var/www/daterabbit/admin-panel/.env.local
           fi
           sudo pm2 restart daterabbit-admin || sudo pm2 start npm --name daterabbit-admin -- start -- -p 3005
-          sudo chown -R www-data:www-data /var/www/daterabbit-admin/
+          sudo chown -R www-data:www-data /var/www/daterabbit/
 
       - name: Create backend .env if missing
         run: |
