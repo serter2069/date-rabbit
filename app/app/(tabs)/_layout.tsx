@@ -32,7 +32,7 @@ export default function TabsLayout() {
   }
 
   if (!isAuthenticated || !user) {
-    return <Redirect href="/(auth)/welcome" />;
+    return <Redirect href="/(auth)/welcome?redirect=1" />;
   }
 
   const isCompanion = user.role === 'companion';
