@@ -32,10 +32,7 @@ export default function MessagesScreen() {
   };
 
   const handleOpenChat = (chat: Chat) => {
-    router.push({
-      pathname: '/chat/[id]',
-      params: { id: chat.otherUser.id, name: chat.otherUser.name },
-    });
+    router.push(`/chat/${chat.otherUser.id}`);
   };
 
   if (isLoading && chats.length === 0) {

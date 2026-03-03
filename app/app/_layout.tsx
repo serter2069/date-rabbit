@@ -52,20 +52,10 @@ export default function RootLayout() {
           }
         }}
       >
-        {!hasSeenOnboarding ? (
-          <Stack.Screen name="onboarding" />
-        ) : !isAuthenticated ? (
-          <Stack.Screen name="(auth)" />
-        ) : needsVerification ? (
-          isSeeker ? (
-            <Stack.Screen name="(seeker-verify)" />
-          ) : (
-            <Stack.Screen name="(comp-onboard)" />
-          )
-        ) : (
-          <Stack.Screen name="(tabs)" />
-        )}
         <Stack.Screen name="index" />
+        <Stack.Screen name="onboarding" />
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(tabs)" />
         <Stack.Screen name="(seeker-verify)" />
         <Stack.Screen name="(comp-onboard)" />
         <Stack.Screen name="booking/[id]" />

@@ -190,17 +190,11 @@ export default function ProfileViewScreen() {
   };
 
   const handleBookDate = () => {
-    router.push({
-      pathname: '/booking/[id]',
-      params: { id: profile.id },
-    });
+    router.push(`/booking/${profile.id}`);
   };
 
   const handleMessage = () => {
-    router.push({
-      pathname: '/chat/[id]',
-      params: { id: profile.id, name: profile.name },
-    });
+    router.push(`/chat/${profile.id}`);
   };
 
   const nextPhoto = () => {
@@ -390,7 +384,7 @@ export default function ProfileViewScreen() {
           <Card style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>Reviews</Text>
-              <TouchableOpacity onPress={() => router.push({ pathname: '/reviews/[id]', params: { id: profile.id } })}>
+              <TouchableOpacity onPress={() => router.push(`/reviews/${profile.id}`)}>
                 <Text style={[styles.seeAll, { color: colors.primary }]}>See All</Text>
               </TouchableOpacity>
             </View>

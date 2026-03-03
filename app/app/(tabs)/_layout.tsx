@@ -1,5 +1,5 @@
 import { Tabs, Redirect } from 'expo-router';
-import { View, ActivityIndicator, StyleSheet, Platform } from 'react-native';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useAuthStore } from '../../src/store/authStore';
 import { colors } from '../../src/constants/theme';
 import { useEffect, useState } from 'react';
@@ -44,33 +44,48 @@ export default function TabsLayout() {
       }}
       tabBar={(props) => <CustomTabBar role={isCompanion ? 'companion' : 'seeker'} />}
     >
-      {isCompanion ? (
-        <>
-          <Tabs.Screen name="female/index" />
-          <Tabs.Screen name="female/requests" />
-          <Tabs.Screen name="female/calendar" />
-          <Tabs.Screen name="female/earnings" />
-          <Tabs.Screen name="female/profile" />
-          <Tabs.Screen name="male/index" options={{ href: null }} />
-          <Tabs.Screen name="male/browse" options={{ href: null }} />
-          <Tabs.Screen name="male/bookings" options={{ href: null }} />
-          <Tabs.Screen name="male/messages" options={{ href: null }} />
-          <Tabs.Screen name="male/profile" options={{ href: null }} />
-        </>
-      ) : (
-        <>
-          <Tabs.Screen name="male/index" />
-          <Tabs.Screen name="male/browse" />
-          <Tabs.Screen name="male/bookings" />
-          <Tabs.Screen name="male/messages" />
-          <Tabs.Screen name="male/profile" />
-          <Tabs.Screen name="female/index" options={{ href: null }} />
-          <Tabs.Screen name="female/requests" options={{ href: null }} />
-          <Tabs.Screen name="female/calendar" options={{ href: null }} />
-          <Tabs.Screen name="female/earnings" options={{ href: null }} />
-          <Tabs.Screen name="female/profile" options={{ href: null }} />
-        </>
-      )}
+      {/* Female / companion screens — hidden for seekers */}
+      <Tabs.Screen
+        name="female/index"
+        options={isCompanion ? undefined : { href: null }}
+      />
+      <Tabs.Screen
+        name="female/requests"
+        options={isCompanion ? undefined : { href: null }}
+      />
+      <Tabs.Screen
+        name="female/calendar"
+        options={isCompanion ? undefined : { href: null }}
+      />
+      <Tabs.Screen
+        name="female/earnings"
+        options={isCompanion ? undefined : { href: null }}
+      />
+      <Tabs.Screen
+        name="female/profile"
+        options={isCompanion ? undefined : { href: null }}
+      />
+      {/* Male / seeker screens — hidden for companions */}
+      <Tabs.Screen
+        name="male/index"
+        options={isCompanion ? { href: null } : undefined}
+      />
+      <Tabs.Screen
+        name="male/browse"
+        options={isCompanion ? { href: null } : undefined}
+      />
+      <Tabs.Screen
+        name="male/bookings"
+        options={isCompanion ? { href: null } : undefined}
+      />
+      <Tabs.Screen
+        name="male/messages"
+        options={isCompanion ? { href: null } : undefined}
+      />
+      <Tabs.Screen
+        name="male/profile"
+        options={isCompanion ? { href: null } : undefined}
+      />
     </Tabs>
   );
 }
