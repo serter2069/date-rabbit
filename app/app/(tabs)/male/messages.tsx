@@ -91,7 +91,7 @@ export default function MessagesScreen() {
                     ]}
                     numberOfLines={1}
                   >
-                    {'No messages yet'}
+                    {chat.lastMessage || 'No messages yet'}
                   </Text>
                   {(chat.unreadCount || 0) > 0 && (
                     <View style={[styles.unreadBadge, { backgroundColor: colors.primary }]}>

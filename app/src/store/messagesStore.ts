@@ -75,6 +75,7 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
           chat.otherUser.id === otherUserId
             ? {
                 ...chat,
+                lastMessage: content,
                 lastMessageAt: newMessage.createdAt,
               }
             : chat
