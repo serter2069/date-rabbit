@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: spacing.sm,
     alignItems: 'center',
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.sm,
     minHeight: 44,
     justifyContent: 'center',
   },
@@ -341,7 +341,7 @@ const styles = StyleSheet.create({
   statusBadge: {
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
-    borderRadius: borderRadius.full,
+    borderRadius: borderRadius.sm,
     marginTop: spacing.xs,
   },
   statusText: {
