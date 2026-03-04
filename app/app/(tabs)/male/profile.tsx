@@ -8,7 +8,7 @@ import { Card } from '../../../src/components/Card';
 import { UserImage } from '../../../src/components/UserImage';
 import { Button } from '../../../src/components/Button';
 import { Icon } from '../../../src/components/Icon';
-import { useTheme, spacing, typography, borderRadius } from '../../../src/constants/theme';
+import { useTheme, spacing, typography, borderRadius, shadows } from '../../../src/constants/theme';
 
 export default function MaleProfileScreen() {
   const insets = useSafeAreaInsets();
@@ -75,6 +75,7 @@ export default function MaleProfileScreen() {
           onPress={() => router.push('/settings/edit-profile')}
           variant="outline"
           fullWidth
+          style={shadows.md}
           testID="profile-edit-btn"
         />
       </Card>
