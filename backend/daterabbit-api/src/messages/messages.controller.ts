@@ -32,6 +32,13 @@ export class MessagesController {
     return { count };
   }
 
+  // Explicit route declared before @Get(':userId') wildcard to prevent route collision
+  @Get('unread')
+  async getUnreadMessages(@Request() req) {
+    const count = await this.messagesService.getUnreadCount(req.user.id);
+    return { unread: count };
+  }
+
   @Get(':userId')
   async getMessages(
     @Param('userId') otherUserId: string,
