@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../../src/store/authStore';
+import { useBookingsStore } from '../../../src/store/bookingsStore';
 import { Card } from '../../../src/components/Card';
 import { UserImage } from '../../../src/components/UserImage';
 import { Button } from '../../../src/components/Button';
@@ -13,15 +14,23 @@ export default function MaleProfileScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const { user, logout } = useAuthStore();
+  const { bookings, fetchMyBookings } = useBookingsStore();
+
+  useEffect(() => {
+    fetchMyBookings('past');
+  }, []);
+
+  // Compute stats from past bookings fetched from the API
+  const stats = useMemo(() => {
+    const pastBookings = bookings.filter((b) => b.status === 'completed');
+    const totalDates = pastBookings.length;
+    const totalSpent = pastBookings.reduce((sum, b) => sum + (b.total ?? 0), 0);
+    return { totalDates, totalSpent };
+  }, [bookings]);
 
   const handleLogout = () => {
     logout();
     router.replace('/(auth)/welcome');
-  };
-
-  const stats = {
-    totalDates: 8,
-    totalSpent: 1850,
   };
 
   return (
@@ -79,7 +88,7 @@ export default function MaleProfileScreen() {
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
           <MenuItem icon="receipt" label="Transaction History" colors={colors} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <MenuItem icon="bell" label="Notifications" colors={colors} />
+          <MenuItem icon="bell" label="Notifications" onPress={() => router.push('/settings/notifications')} colors={colors} />
         </Card>
       </View>
 
