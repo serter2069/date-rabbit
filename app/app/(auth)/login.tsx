@@ -48,26 +48,7 @@ export default function LoginScreen() {
     const result = await startAuth(email.trim().toLowerCase());
 
     if (!result.success) {
-      const { setUser, setOnboardingSeen } = useAuthStore.getState();
-
-      const demoUser = {
-        id: 'demo-' + Date.now(),
-        email: email.trim().toLowerCase(),
-        name: email.split('@')[0],
-        role: 'seeker' as 'seeker' | 'companion',
-        age: 28,
-        location: 'New York',
-        bio: '',
-        photos: [] as { id: string; url: string; order: number; isPrimary: boolean }[],
-        rating: 5.0,
-        reviewCount: 0,
-        isVerified: false,
-        createdAt: new Date().toISOString(),
-      };
-
-      setUser(demoUser);
-      setOnboardingSeen();
-      router.replace('/male');
+      setEmailError(result.error || 'Failed to send code. Please try again.');
       return;
     }
   };
