@@ -8,6 +8,7 @@ import {
   ScrollView,
 } from 'react-native';
 import Slider from '@react-native-community/slider';
+import { X, Star } from 'lucide-react-native';
 import { Button } from './Button';
 import { colors, spacing, typography, borderRadius } from '../constants/theme';
 
@@ -88,7 +89,7 @@ export function FilterModal({
       <View style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.closeButton} testID="filter-close-btn">
-            <Text style={styles.closeIcon}>✕</Text>
+            <X size={20} color={colors.text} strokeWidth={2} />
           </TouchableOpacity>
           <Text style={styles.title} testID="filter-modal-title">Filters</Text>
           <TouchableOpacity onPress={handleReset} testID="filter-reset-btn">
@@ -163,7 +164,10 @@ export function FilterModal({
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Minimum Rating</Text>
-              <Text style={styles.valueLabel}>⭐ {filters.minRating.toFixed(1)}+</Text>
+              <View style={styles.ratingLabel}>
+                <Star size={14} color={colors.primary} fill={colors.primary} strokeWidth={1} />
+                <Text style={styles.valueLabel}> {filters.minRating.toFixed(1)}+</Text>
+              </View>
             </View>
             <Slider
               style={styles.slider}
@@ -310,9 +314,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  closeIcon: {
-    fontSize: 20,
-    color: colors.text,
+  ratingLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   title: {
     fontSize: typography.sizes.lg,
