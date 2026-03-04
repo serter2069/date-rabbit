@@ -9,6 +9,7 @@ import {
   Platform,
   Alert,
 } from 'react-native';
+import { Camera, X, Plus } from 'lucide-react-native';
 import { colors, spacing, typography, borderRadius, borderWidth } from '../constants/theme';
 import { showConfirm } from '../utils/alert';
 
@@ -74,14 +75,14 @@ export function PhotoUpload({
         {photos.map((uri, index) => (
           <View key={uri} style={styles.photoWrapper}>
             <View style={styles.photoPlaceholder}>
-              <Text style={styles.photoPlaceholderText}>📷</Text>
+              <Camera size={32} color={colors.textSecondary} strokeWidth={1.5} />
               <Text style={styles.photoIndex}>{index + 1}</Text>
             </View>
             <TouchableOpacity
               style={styles.removeButton}
               onPress={() => handleRemove(uri)}
             >
-              <Text style={styles.removeButtonText}>✕</Text>
+              <X size={12} color={colors.white} strokeWidth={2.5} />
             </TouchableOpacity>
             {index === 0 && (
               <View style={styles.mainBadge}>
@@ -101,7 +102,7 @@ export function PhotoUpload({
               <ActivityIndicator color={colors.primary} />
             ) : (
               <>
-                <Text style={styles.addIcon}>+</Text>
+                <Plus size={32} color={colors.primary} strokeWidth={1.5} />
                 <Text style={styles.addText}>Add Photo</Text>
               </>
             )}
@@ -156,9 +157,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  photoPlaceholderText: {
-    fontSize: 32,
-  },
   photoIndex: {
     position: 'absolute',
     bottom: spacing.sm,
@@ -179,11 +177,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.error,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  removeButtonText: {
-    color: colors.white,
-    fontSize: 12,
-    fontWeight: '600',
   },
   mainBadge: {
     position: 'absolute',
@@ -209,11 +202,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: colors.surface,
-  },
-  addIcon: {
-    fontSize: 32,
-    color: colors.primary,
-    marginBottom: spacing.xs,
   },
   addText: {
     fontSize: typography.sizes.xs,

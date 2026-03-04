@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Image, Text, StyleSheet } from 'react-native';
+import { Check } from 'lucide-react-native';
 import { colors, borderRadius, borderWidth } from '../constants/theme';
 
 interface AvatarProps {
@@ -28,7 +29,7 @@ export function Avatar({ uri, name, size = 48, verified = false }: AvatarProps) 
       )}
       {verified && (
         <View style={[styles.badge, { right: 0, bottom: 0 }]}>
-          <Text style={styles.badgeText}>✓</Text>
+          <Check size={10} color={colors.white} strokeWidth={3} />
         </View>
       )}
     </View>
@@ -66,9 +67,5 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.white,
   },
-  badgeText: {
-    color: colors.white,
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
 });
+
