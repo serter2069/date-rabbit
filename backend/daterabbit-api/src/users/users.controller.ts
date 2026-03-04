@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Delete, Body, UseGuards, Request, Param, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Put, Delete, Body, UseGuards, Request, Param, BadRequestException, ParseUUIDPipe } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -60,7 +60,7 @@ export class UsersController {
   }
 
   @Get(':id')
-  async getUserById(@Param('id') id: string) {
+  async getUserById(@Param('id', ParseUUIDPipe) id: string) {
     const user = await this.usersService.findById(id);
     if (!user) {
       return { error: 'User not found' };
