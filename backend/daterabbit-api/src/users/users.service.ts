@@ -104,6 +104,10 @@ export class UsersService {
       case 'rating':
         query.orderBy('user.rating', 'DESC');
         break;
+      case 'new':
+        // Show newest companions first (recently joined)
+        query.orderBy('user.createdAt', 'DESC');
+        break;
       default:
         query.orderBy('user.createdAt', 'DESC');
     }
