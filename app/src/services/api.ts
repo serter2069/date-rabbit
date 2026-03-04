@@ -162,7 +162,7 @@ export interface SearchCompanionsParams {
   minRating?: number;
   ageMin?: number;
   ageMax?: number;
-  sortBy?: 'recommended' | 'price_low' | 'price_high' | 'rating' | 'distance';
+  sortBy?: 'recommended' | 'price_low' | 'price_high' | 'rating' | 'distance' | 'new';
   latitude?: number;
   longitude?: number;
   search?: string;

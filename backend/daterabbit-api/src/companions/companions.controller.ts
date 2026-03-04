@@ -17,7 +17,17 @@ export class CompanionsController {
     @Query('search') search?: string,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
+    @Query('page') page?: string,
   ) {
+    const parsedLimit = limit ? parseInt(limit) : 20;
+    // Support both page-based and offset-based pagination.
+    // page takes precedence over offset when both are provided.
+    const parsedOffset = page
+      ? (parseInt(page) - 1) * parsedLimit
+      : offset
+        ? parseInt(offset)
+        : 0;
+
     const { companions, total } = await this.usersService.getCompanions({
       priceMin: priceMin ? parseFloat(priceMin) : undefined,
       priceMax: priceMax ? parseFloat(priceMax) : undefined,
@@ -27,9 +37,11 @@ export class CompanionsController {
       ageMax: ageMax ? parseInt(ageMax) : undefined,
       sortBy,
       search,
-      limit: limit ? parseInt(limit) : 20,
-      offset: offset ? parseInt(offset) : 0,
+      limit: parsedLimit,
+      offset: parsedOffset,
     });
+
+    const currentPage = page ? parseInt(page) : Math.floor(parsedOffset / parsedLimit) + 1;
 
     return {
       companions: companions.map((c) => ({
@@ -45,6 +57,8 @@ export class CompanionsController {
         isVerified: c.isVerified || false,
       })),
       total,
+      page: currentPage,
+      totalPages: Math.ceil(total / parsedLimit),
     };
   }
 

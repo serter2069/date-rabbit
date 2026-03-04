@@ -73,7 +73,7 @@ export default function BrowseScreen() {
   // Fetch companions when location or filters change
   const fetchCompanions = useCallback(async () => {
     try {
-      const sortByMap: Record<string, 'recommended' | 'price_low' | 'price_high' | 'rating' | 'distance'> = {
+      const sortByMap: Record<string, 'recommended' | 'price_low' | 'price_high' | 'rating' | 'distance' | 'new'> = {
         'recommended': 'recommended',
         'price_low': 'price_low',
         'price_high': 'price_high',
@@ -81,13 +81,16 @@ export default function BrowseScreen() {
         'distance': 'distance',
       };
 
-      let sortBy = sortByMap[appliedFilters.sortBy] || 'recommended';
+      let sortBy: 'recommended' | 'price_low' | 'price_high' | 'rating' | 'distance' | 'new' =
+        sortByMap[appliedFilters.sortBy] || 'recommended';
 
       // Quick filter overrides
       if (activeFilter === 'Nearby' && userLocation) {
         sortBy = 'distance';
       } else if (activeFilter === 'Top Rated') {
         sortBy = 'rating';
+      } else if (activeFilter === 'New') {
+        sortBy = 'new';
       }
 
       const response = await companionsApi.search({
