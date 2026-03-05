@@ -48,8 +48,18 @@ export default function MaleProfileScreen() {
             showVerified={user?.isVerified}
           />
           <View style={styles.profileInfo}>
+            <View style={styles.badgeRow}>
+              <View style={[styles.roleBadge, { backgroundColor: colors.badge.purple.bg, borderColor: colors.badge.purple.border }]}>
+                <Text style={[styles.roleBadgeText, { color: colors.badge.purple.text }]}>SEEKER</Text>
+              </View>
+            </View>
             <Text style={[styles.profileName, { color: colors.text }]}>{user?.name}, {user?.age}</Text>
-            <Text style={[styles.profileLocation, { color: colors.textSecondary }]}>{user?.location}</Text>
+            {user?.location ? (
+              <View style={styles.locationRow}>
+                <Icon name="map-pin" size={13} color={colors.primary} />
+                <Text style={[styles.profileLocation, { color: colors.text }]}> {user.location}</Text>
+              </View>
+            ) : null}
             <View style={styles.ratingRow}>
               <Icon name="star" size={14} color={colors.accent} />
               <Text style={[styles.ratingValue, { color: colors.text }]}> {user?.rating}</Text>
@@ -57,6 +67,12 @@ export default function MaleProfileScreen() {
             </View>
           </View>
         </View>
+
+        {user?.bio ? (
+          <View style={[styles.bioBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <Text style={[styles.bioText, { color: colors.text }]}>{user.bio}</Text>
+          </View>
+        ) : null}
 
         <View style={[styles.statsRow, { backgroundColor: colors.surface }]}>
           <View style={styles.statItem}>
@@ -176,14 +192,44 @@ const styles = StyleSheet.create({
     marginLeft: spacing.md,
     justifyContent: 'center',
   },
+  badgeRow: {
+    flexDirection: 'row',
+    marginBottom: spacing.xs,
+  },
+  roleBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+    borderRadius: borderRadius.sm,
+    borderWidth: 2,
+  },
+  roleBadgeText: {
+    fontFamily: typography.fonts.heading,
+    fontSize: typography.sizes.xs,
+    letterSpacing: 1,
+  },
   profileName: {
     fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.lg,
   },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 3,
+  },
   profileLocation: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.sm,
+  },
+  bioBox: {
+    borderWidth: 2,
+    borderRadius: borderRadius.sm,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+  bioText: {
     fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
-    marginTop: 2,
+    lineHeight: 20,
   },
   ratingRow: {
     flexDirection: 'row',
