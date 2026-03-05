@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "updated": "2026-03-03T16:25:00Z",
+  "updated": "2026-03-05",
   "bugs": [
     {
       "id": "BUG-BOOKINGS-001",
@@ -320,7 +320,9 @@
       "id": "BUG-039",
       "type": "bug",
       "severity": "medium",
-      "status": "open",
+      "status": "pending_review",
+      "fixed": "2026-03-04T23:10:00Z",
+      "fix": "Added await to completeOnboarding, fixed null guard in companions controller, added ?? 0 fallback in UI. PR #59.",
       "title": "Companion profile shows $0/hr despite API returning correct rate",
       "description": "On onboarding profile setup, the hourly rate displays as $0 on the companion's profile even when API returns a valid hourlyRate. Likely a frontend rendering issue in profile-setup or companion card display.",
       "platform": "web",
@@ -361,14 +363,14 @@
       "type": "bug",
       "severity": "low",
       "status": "pending_review",
+      "fixed": "2026-03-04T23:00:00Z",
+      "fix": "Added NON_TAB_AUTH_ROUTES whitelist to NavigationGuard. PR #58.",
       "title": "Reviews page unreachable on web via direct navigation",
       "description": "The /reviews/[id] route renders briefly then redirects to /male. Stack screen navigation from tabs broken. Reviews UI exists but is inaccessible.",
       "platform": "web",
       "created": "2026-03-03",
-      "fixed": "2026-03-04T23:30:00Z",
-      "fix": "Added NON_TAB_AUTH_ROUTES constant in _layout.tsx NavigationGuard listing all authenticated non-tab routes (booking, chat, profile, reviews, payment, stripe, favorites, settings). Guard now skips redirect when currentSegment is in this list.",
       "found_by": "uc-test",
-      "screens": ["app/app/reviews/[id].tsx", "app/app/_layout.tsx"]
+      "screens": ["app/app/reviews/[id].tsx"]
     },
     {
       "id": "BUG-043",
@@ -490,6 +492,19 @@
       "created": "2026-03-04",
       "found_by": "uc-test",
       "screens": ["app/src/components/FilterModal.tsx"]
+    },
+    {
+      "id": "BUG-052",
+      "type": "ux",
+      "severity": "medium",
+      "status": "open",
+      "title": "Cancelled future bookings appear in Past tab instead of Upcoming",
+      "description": "The past filter in bookings.service.ts includes ALL cancelled bookings regardless of dateTime. A booking cancelled for a future date (e.g. May 2026) appears in Past tab. 4 of 6 past bookings in test data have future dates but cancelled status.",
+      "platform": "backend",
+      "screens": ["backend/daterabbit-api/src/bookings/bookings.service.ts"],
+      "steps_to_reproduce": ["1. Create a booking for a future date", "2. Cancel the booking", "3. Go to Bookings tab -> Past", "4. See the cancelled future booking listed in Past"],
+      "created": "2026-03-05",
+      "found_by": "uc-test"
     }
   ]
 }

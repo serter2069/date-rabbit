@@ -173,6 +173,7 @@ export const useAuthStore = create<AuthState>()(
                 authStep: 'authenticated',
                 isAuthenticated: true,
                 hasCompletedOnboarding: true,
+                hasSeenOnboarding: true,
                 isLoading: false,
                 pendingEmail: null,
               });
