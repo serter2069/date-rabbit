@@ -262,7 +262,7 @@ export default function BrowseScreen() {
                   </View>
                 </View>
                 <View style={[styles.rateBox, { backgroundColor: colors.primary + '15' }]}>
-                  <Text style={[styles.rateValue, { color: colors.primary }]}>${companion.hourlyRate}</Text>
+                  <Text style={[styles.rateValue, { color: colors.primary }]}>${companion.hourlyRate ?? 0}</Text>
                   <Text style={[styles.rateLabel, { color: colors.textSecondary }]}>/hr</Text>
                 </View>
               </View>

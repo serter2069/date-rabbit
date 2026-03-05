@@ -16,6 +16,18 @@ import { StripeProvider } from '../src/components/StripeProvider';
 // Public routes accessible without authentication
 const PUBLIC_ROUTES = ['terms', 'privacy', 'onboarding', '(auth)'];
 
+// Authenticated non-tab routes — accessible to fully verified users outside (tabs)
+const NON_TAB_AUTH_ROUTES = [
+  'booking',
+  'chat',
+  'profile',
+  'reviews',
+  'payment',
+  'stripe',
+  'favorites',
+  'settings',
+];
+
 function NavigationGuard() {
   const { isAuthenticated, hasSeenOnboarding, user } = useAuthStore();
   const router = useRouter();
@@ -81,7 +93,8 @@ function NavigationGuard() {
 
     // Fully authenticated and verified
     const inTabsGroup = currentSegment === '(tabs)';
-    if (!inTabsGroup) {
+    const inNonTabAuthRoute = NON_TAB_AUTH_ROUTES.includes(currentSegment);
+    if (!inTabsGroup && !inNonTabAuthRoute) {
       const isCompanion = user?.role === 'companion';
       router.replace(isCompanion ? '/(tabs)/female' : '/(tabs)/male');
     }

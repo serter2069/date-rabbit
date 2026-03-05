@@ -67,14 +67,16 @@ export class BookingsService {
 
     switch (filter) {
       case 'upcoming':
-        // Confirmed/paid bookings with a future date
+        // Confirmed/paid bookings with a future date + cancelled bookings with future dates
         seekerWhere = [
           { seekerId: userId, status: BookingStatus.CONFIRMED, dateTime: MoreThanOrEqual(now) },
           { seekerId: userId, status: BookingStatus.PAID, dateTime: MoreThanOrEqual(now) },
+          { seekerId: userId, status: BookingStatus.CANCELLED, dateTime: MoreThanOrEqual(now) },
         ];
         companionWhere = [
           { companionId: userId, status: BookingStatus.CONFIRMED, dateTime: MoreThanOrEqual(now) },
           { companionId: userId, status: BookingStatus.PAID, dateTime: MoreThanOrEqual(now) },
+          { companionId: userId, status: BookingStatus.CANCELLED, dateTime: MoreThanOrEqual(now) },
         ];
         break;
 
@@ -84,16 +86,16 @@ export class BookingsService {
         break;
 
       case 'past':
-        // Completed/cancelled bookings OR any booking with a past date
+        // Completed/cancelled bookings with past dates OR confirmed/paid bookings with past dates
         seekerWhere = [
           { seekerId: userId, status: BookingStatus.COMPLETED },
-          { seekerId: userId, status: BookingStatus.CANCELLED },
+          { seekerId: userId, status: BookingStatus.CANCELLED, dateTime: LessThan(now) },
           { seekerId: userId, dateTime: LessThan(now), status: BookingStatus.CONFIRMED },
           { seekerId: userId, dateTime: LessThan(now), status: BookingStatus.PAID },
         ];
         companionWhere = [
           { companionId: userId, status: BookingStatus.COMPLETED },
-          { companionId: userId, status: BookingStatus.CANCELLED },
+          { companionId: userId, status: BookingStatus.CANCELLED, dateTime: LessThan(now) },
           { companionId: userId, dateTime: LessThan(now), status: BookingStatus.CONFIRMED },
           { companionId: userId, dateTime: LessThan(now), status: BookingStatus.PAID },
         ];
