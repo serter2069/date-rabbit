@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.xs,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
-    borderRadius: borderRadius.full,
+    borderRadius: borderRadius.sm,
   },
   messageRow: {
     flexDirection: 'row',
