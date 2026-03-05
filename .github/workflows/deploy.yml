@@ -214,31 +214,6 @@ jobs:
           echo "=== Nginx config files ==="
           ls -la /etc/nginx/sites-enabled/ 2>/dev/null | grep -i date || echo "No daterabbit in sites-enabled"
 
-      - name: Setup database backup cron
-        run: |
-          # Create backup directory
-          sudo mkdir -p /var/backups/daterabbit
-          sudo chown postgres:postgres /var/backups/daterabbit
-          # Create backup script
-          cat > /tmp/daterabbit-backup.sh << 'BEOF'
-          #!/bin/bash
-          BACKUP_DIR="/var/backups/daterabbit"
-          DATE=$(date +%Y%m%d_%H%M%S)
-          sudo -u postgres pg_dump daterabbit | gzip > "$BACKUP_DIR/daterabbit_${DATE}.gz"
-          # Keep only last 7 days of backups
-          find "$BACKUP_DIR" -name "daterabbit_*.gz" -mtime +7 -delete
-          echo "Backup completed: daterabbit_${DATE}.gz"
-          BEOF
-          sudo mv /tmp/daterabbit-backup.sh /usr/local/bin/daterabbit-backup.sh
-          sudo chmod +x /usr/local/bin/daterabbit-backup.sh
-          # Add cron job if not exists
-          if ! sudo crontab -l 2>/dev/null | grep -q daterabbit-backup; then
-            (sudo crontab -l 2>/dev/null; echo "0 3 * * * /usr/local/bin/daterabbit-backup.sh >> /var/log/daterabbit-backup.log 2>&1") | sudo crontab -
-            echo "Cron job added: daily backup at 3 AM"
-          else
-            echo "Backup cron already exists"
-          fi
-
       - name: Run seed script
         if: github.event.inputs.seed == 'yes'
         run: |
