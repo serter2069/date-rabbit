@@ -806,7 +806,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
-    borderRadius: borderRadius.full,
+    borderRadius: borderRadius.sm,
   },
   verified: {
     fontFamily: typography.fonts.bodySemiBold,
@@ -892,7 +892,7 @@ const styles = StyleSheet.create({
   tag: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    borderRadius: borderRadius.full,
+    borderRadius: borderRadius.sm,
   },
   tagText: {
     fontFamily: typography.fonts.body,
