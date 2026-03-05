@@ -330,7 +330,7 @@ export default function ProfileViewScreen() {
                 <Text style={[styles.statLabel, { color: colors.textSecondary }]}>({profile.reviewCount} reviews)</Text>
               </View>
               <View style={[styles.rateBadge, { backgroundColor: colors.primary + '15' }]}>
-                <Text style={[styles.rateValue, { color: colors.primary }]}>${profile.hourlyRate}</Text>
+                <Text style={[styles.rateValue, { color: colors.primary }]}>${profile.hourlyRate ?? 0}</Text>
                 <Text style={[styles.rateLabel, { color: colors.primary }]}>/hour</Text>
               </View>
             </View>
@@ -424,7 +424,7 @@ export default function ProfileViewScreen() {
           testID="profile-view-message-btn"
         />
         <Button
-          title={`Book Date • $${profile.hourlyRate}/hr`}
+          title={`Book Date • $${profile.hourlyRate ?? 0}/hr`}
           onPress={handleBookDate}
           style={styles.bookButton}
           testID="profile-view-book-btn"
