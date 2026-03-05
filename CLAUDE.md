@@ -2,17 +2,14 @@
 
 ## 🔐 Тестовая авторизация
 
-**DEV режим (DEV_AUTH=true в backend/.env):**
+**Staging: DEV_AUTH=false** -- OTP отправляется на email через Brevo.
 
-| Сценарий | Email | OTP код |
-|----------|-------|---------|
-| Существующий/Новый | `test@daterabbit.com` | `000000` (6 цифр) |
+**Локальная разработка: DEV_AUTH=true** -- OTP всегда `000000`, email НЕ отправляется.
 
-При `DEV_AUTH=true` — OTP всегда `000000`, email НЕ отправляется.
-
-**URLs для тестирования (см. `.ai/context.json`):**
-- Production: `https://daterabbit.smartlaunchhub.com`
-- Local: `http://localhost:8081` (app), `http://localhost:3001/api` (API)
+**URLs:**
+- Staging: `https://daterabbit.smartlaunchhub.com`
+- API: `https://daterabbit-api.smartlaunchhub.com/api`
+- Local: `http://localhost:8081` (app), `http://localhost:3004/api` (API)
 
 ---
 
