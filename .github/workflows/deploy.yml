@@ -82,19 +82,20 @@ jobs:
           if [ ! -f /var/www/daterabbit/api/.env ]; then
             cat > /var/www/daterabbit/api/.env << 'ENVEOF'
           PORT=3004
-          NODE_ENV=development
+          NODE_ENV=staging
           DEV_AUTH=true
           DB_HOST=localhost
           DB_PORT=5432
           DB_USERNAME=daterabbit
           DB_PASSWORD=daterabbit
           DB_NAME=daterabbit
-          JWT_SECRET=daterabbit-dev-jwt-secret-change-in-prod
+          JWT_SECRET=placeholder
           STRIPE_SECRET_KEY=
           STRIPE_WEBHOOK_SECRET=
+          BREVO_API_KEY=
           APP_URL=https://daterabbit.smartlaunchhub.com
           ENVEOF
-            echo ".env created with defaults (add Stripe keys manually!)"
+            echo ".env created with defaults"
           else
             echo ".env already exists"
           fi
@@ -135,6 +136,30 @@ jobs:
             echo "ERROR: .env not found at $ENV_FILE"
             exit 1
           fi
+
+      - name: Update env vars from secrets
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+        run: |
+          ENV_FILE="/var/www/daterabbit/api/.env"
+          # Update JWT_SECRET
+          if [ -n "$JWT_SECRET" ]; then
+            if grep -q "^JWT_SECRET=" "$ENV_FILE"; then
+              sed -i "s|^JWT_SECRET=.*|JWT_SECRET=${JWT_SECRET}|" "$ENV_FILE"
+            else
+              echo "JWT_SECRET=${JWT_SECRET}" >> "$ENV_FILE"
+            fi
+          fi
+          # Update BREVO_API_KEY
+          if [ -n "$BREVO_API_KEY" ]; then
+            if grep -q "^BREVO_API_KEY=" "$ENV_FILE"; then
+              sed -i "s|^BREVO_API_KEY=.*|BREVO_API_KEY=${BREVO_API_KEY}|" "$ENV_FILE"
+            else
+              echo "BREVO_API_KEY=${BREVO_API_KEY}" >> "$ENV_FILE"
+            fi
+          fi
+          echo "Env vars updated from secrets"
 
       - name: Restart backend
         run: |
@@ -188,6 +213,31 @@ jobs:
           curl -s -o /dev/null -w "GET /admin (Next.js):       %{http_code}\n" http://localhost:3005/ || true
           echo "=== Nginx config files ==="
           ls -la /etc/nginx/sites-enabled/ 2>/dev/null | grep -i date || echo "No daterabbit in sites-enabled"
+
+      - name: Setup database backup cron
+        run: |
+          # Create backup directory
+          sudo mkdir -p /var/backups/daterabbit
+          sudo chown postgres:postgres /var/backups/daterabbit
+          # Create backup script
+          cat > /tmp/daterabbit-backup.sh << 'BEOF'
+          #!/bin/bash
+          BACKUP_DIR="/var/backups/daterabbit"
+          DATE=$(date +%Y%m%d_%H%M%S)
+          sudo -u postgres pg_dump daterabbit | gzip > "$BACKUP_DIR/daterabbit_${DATE}.gz"
+          # Keep only last 7 days of backups
+          find "$BACKUP_DIR" -name "daterabbit_*.gz" -mtime +7 -delete
+          echo "Backup completed: daterabbit_${DATE}.gz"
+          BEOF
+          sudo mv /tmp/daterabbit-backup.sh /usr/local/bin/daterabbit-backup.sh
+          sudo chmod +x /usr/local/bin/daterabbit-backup.sh
+          # Add cron job if not exists
+          if ! sudo crontab -l 2>/dev/null | grep -q daterabbit-backup; then
+            (sudo crontab -l 2>/dev/null; echo "0 3 * * * /usr/local/bin/daterabbit-backup.sh >> /var/log/daterabbit-backup.log 2>&1") | sudo crontab -
+            echo "Cron job added: daily backup at 3 AM"
+          else
+            echo "Backup cron already exists"
+          fi
 
       - name: Run seed script
         if: github.event.inputs.seed == 'yes'
@@ -262,11 +312,27 @@ jobs:
           sudo pm2 restart daterabbit-admin || sudo pm2 start npm --name daterabbit-admin -- start -- -p 3005
           sudo chown -R www-data:www-data /var/www/daterabbit/
 
-      - name: Create backend .env if missing
+      - name: Verify backend .env exists
         run: |
           if [ ! -f /var/www/daterabbit/api/.env ]; then
-            echo "ERROR: Production .env must be pre-configured!"
-            exit 1
+            cat > /var/www/daterabbit/api/.env << 'ENVEOF'
+          PORT=3004
+          NODE_ENV=production
+          DEV_AUTH=false
+          DB_HOST=localhost
+          DB_PORT=5432
+          DB_USERNAME=daterabbit
+          DB_PASSWORD=daterabbit
+          DB_NAME=daterabbit
+          JWT_SECRET=placeholder
+          STRIPE_SECRET_KEY=
+          STRIPE_WEBHOOK_SECRET=
+          BREVO_API_KEY=
+          APP_URL=https://daterabbit.smartlaunchhub.com
+          ENVEOF
+            echo ".env created — secrets will be injected next"
+          else
+            echo ".env already exists"
           fi
 
       - name: Deploy backend
@@ -303,6 +369,33 @@ jobs:
             echo "ERROR: .env not found at $ENV_FILE"
             exit 1
           fi
+
+      - name: Update env vars from secrets
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+        run: |
+          ENV_FILE="/var/www/daterabbit/api/.env"
+          # Force production settings
+          sed -i "s|^NODE_ENV=.*|NODE_ENV=production|" "$ENV_FILE"
+          sed -i "s|^DEV_AUTH=.*|DEV_AUTH=false|" "$ENV_FILE"
+          # Update JWT_SECRET
+          if [ -n "$JWT_SECRET" ]; then
+            if grep -q "^JWT_SECRET=" "$ENV_FILE"; then
+              sed -i "s|^JWT_SECRET=.*|JWT_SECRET=${JWT_SECRET}|" "$ENV_FILE"
+            else
+              echo "JWT_SECRET=${JWT_SECRET}" >> "$ENV_FILE"
+            fi
+          fi
+          # Update BREVO_API_KEY
+          if [ -n "$BREVO_API_KEY" ]; then
+            if grep -q "^BREVO_API_KEY=" "$ENV_FILE"; then
+              sed -i "s|^BREVO_API_KEY=.*|BREVO_API_KEY=${BREVO_API_KEY}|" "$ENV_FILE"
+            else
+              echo "BREVO_API_KEY=${BREVO_API_KEY}" >> "$ENV_FILE"
+            fi
+          fi
+          echo "Production env vars updated"
 
       - name: Restart backend
         run: |
