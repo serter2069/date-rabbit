@@ -4,23 +4,19 @@ import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
 import { UsersService } from '../users/users.service';
 import { User, UserRole } from '../users/entities/user.entity';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class AuthService {
-  private brevoApiKey: string;
-  private senderEmail: string;
-
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
     private configService: ConfigService,
-  ) {
-    this.brevoApiKey = this.configService.get('BREVO_API_KEY') || '';
-    this.senderEmail = this.configService.get('BREVO_SENDER_EMAIL') || 'noreply@diagrams.love';
-  }
+    private emailService: EmailService,
+  ) {}
 
   generateOtp(): string {
-    // DEV режим: фиксированный код для быстрого тестирования
+    // DEV mode: fixed code for quick testing
     if (this.configService.get('DEV_AUTH') === 'true') {
       return '000000';
     }
@@ -44,44 +40,13 @@ export class AuthService {
 
     await this.usersService.setOtp(user.id, otp, expiresAt);
 
-    // DEV режим: пропускаем отправку email
+    // DEV mode: skip email sending
     if (this.configService.get('DEV_AUTH') === 'true') {
-      console.log(`🔧 DEV MODE: OTP для ${email} → 000000 (email не отправляется)`);
+      console.log(`DEV MODE: OTP for ${email} -> 000000 (email not sent)`);
       return { success: true, isNewUser };
     }
 
-    // Send email via Brevo API
-    try {
-      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
-        method: 'POST',
-        headers: {
-          'accept': 'application/json',
-          'api-key': this.brevoApiKey,
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify({
-          sender: { email: this.senderEmail, name: 'DateRabbit' },
-          to: [{ email }],
-          subject: 'Your DateRabbit Verification Code',
-          htmlContent: `
-            <div style="font-family: 'Space Grotesk', Arial, sans-serif; max-width: 400px; margin: 0 auto; padding: 24px; background: #F4F0EA; border: 3px solid #000; border-radius: 12px;">
-              <h2 style="color: #FF2A5F; font-weight: 700; text-transform: uppercase; margin-bottom: 16px;">DateRabbit</h2>
-              <p style="color: #000; font-size: 16px;">Your verification code is:</p>
-              <h1 style="font-size: 36px; letter-spacing: 8px; color: #000; font-weight: 700; background: #fff; border: 3px solid #000; border-radius: 8px; padding: 16px; text-align: center; margin: 16px 0;">${otp}</h1>
-              <p style="color: #666; font-size: 14px;">This code expires in 10 minutes.</p>
-            </div>
-          `,
-        }),
-      });
-      if (response.ok) {
-        console.log(`OTP sent to ${email}`);
-      } else {
-        console.error('Brevo API error:', await response.text());
-      }
-    } catch (error) {
-      console.error('Failed to send email:', error);
-      // Continue anyway for development
-    }
+    await this.emailService.sendOtp(email, otp);
 
     return { success: true, isNewUser };
   }

@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThanOrEqual, LessThan } from 'typeorm';
 import { Booking, BookingStatus, ActivityType } from './entities/booking.entity';
 import { UsersService } from '../users/users.service';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class BookingsService {
@@ -10,6 +11,7 @@ export class BookingsService {
     @InjectRepository(Booking)
     private bookingsRepository: Repository<Booking>,
     private usersService: UsersService,
+    private emailService: EmailService,
   ) {}
 
   async create(data: {
@@ -130,6 +132,48 @@ export class BookingsService {
     }
     await this.bookingsRepository.update(id, update);
     return this.findById(id);
+  }
+
+  async confirm(id: string): Promise<Booking | null> {
+    const booking = await this.updateStatus(id, BookingStatus.CONFIRMED);
+    if (!booking) return null;
+
+    // Send confirmation emails to both parties (fire-and-forget)
+    const emailData = {
+      dateTime: booking.dateTime,
+      duration: booking.duration,
+      activity: booking.activity,
+      location: booking.location,
+      totalPrice: booking.totalPrice,
+    };
+
+    if (booking.seeker?.email) {
+      this.emailService
+        .sendBookingConfirmedToSeeker({
+          seekerEmail: booking.seeker.email,
+          seekerName: booking.seeker.name || 'there',
+          companionName: booking.companion?.name || 'your companion',
+          ...emailData,
+        })
+        .catch(() => {
+          // Email errors must not break the booking confirmation
+        });
+    }
+
+    if (booking.companion?.email) {
+      this.emailService
+        .sendBookingConfirmedToCompanion({
+          companionEmail: booking.companion.email,
+          companionName: booking.companion.name || 'there',
+          seekerName: booking.seeker?.name || 'your guest',
+          ...emailData,
+        })
+        .catch(() => {
+          // Email errors must not break the booking confirmation
+        });
+    }
+
+    return booking;
   }
 
   async getUpcoming(userId: string): Promise<Booking[]> {
