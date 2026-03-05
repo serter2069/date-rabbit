@@ -128,7 +128,7 @@ export class BookingsController {
         HttpStatus.BAD_REQUEST,
       );
     }
-    const updated = await this.bookingsService.updateStatus(id, BookingStatus.CONFIRMED);
+    const updated = await this.bookingsService.confirm(id);
     return this.formatBooking(updated);
   }
 
