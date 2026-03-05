@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { usePathname, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -39,6 +40,14 @@ export function CustomTabBar({ role }: CustomTabBarProps) {
   const router = useRouter();
   const tabs = role === 'companion' ? companionTabs : seekerTabs;
   const unreadCount = useMessagesStore((s) => s.unreadCount);
+  const refreshUnreadCount = useMessagesStore((s) => s.refreshUnreadCount);
+
+  // Poll unread count every 30 seconds for badge updates
+  useEffect(() => {
+    refreshUnreadCount();
+    const interval = setInterval(refreshUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const isActive = (path: string) => {
     if (path === '/male' || path === '/female') {

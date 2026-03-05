@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { UserImage } from '../../../src/components/UserImage';
 import { EmptyState } from '../../../src/components/EmptyState';
@@ -13,9 +13,20 @@ export default function MessagesScreen() {
   const { colors } = useTheme();
   const { chats, isLoading, fetchChats } = useMessagesStore();
 
-  useEffect(() => {
-    fetchChats();
-  }, []);
+  // Poll conversations every 10 seconds while screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      // Initial fetch (with loading spinner)
+      fetchChats();
+
+      // Poll every 10s silently (no loading spinner)
+      const interval = setInterval(() => {
+        fetchChats(true);
+      }, 10000);
+
+      return () => clearInterval(interval);
+    }, [])
+  );
 
   const formatTime = (dateStr: string) => {
     const now = new Date();
