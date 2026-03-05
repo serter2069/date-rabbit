@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Delete, Body, UseGuards, Request, Param, BadRequestException, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, UseGuards, Request, Param, BadRequestException, ParseUUIDPipe } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -57,6 +57,52 @@ export class UsersController {
   async deleteAccount(@Request() req) {
     await this.usersService.deactivateAccount(req.user.id);
     return { success: true, message: 'Account deactivated' };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('blocked')
+  async getBlockedUsers(@Request() req) {
+    const blocked = await this.usersService.getBlockedUsers(req.user.id);
+    return blocked.map((b) => ({
+      id: b.blocked.id,
+      name: b.blocked.name,
+      blockedAt: b.createdAt,
+    }));
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/block')
+  async blockUser(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Request() req,
+    @Body() body: { reason?: string },
+  ) {
+    await this.usersService.blockUser(req.user.id, id, body?.reason);
+    return { success: true };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id/block')
+  async unblockUser(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Request() req,
+  ) {
+    await this.usersService.unblockUser(req.user.id, id);
+    return { success: true };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/report')
+  async reportUser(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Request() req,
+    @Body() body: { reason: string; description?: string },
+  ) {
+    if (!body?.reason) {
+      throw new BadRequestException('Reason is required');
+    }
+    await this.usersService.reportUser(req.user.id, id, body.reason, body.description);
+    return { success: true, message: 'Report submitted successfully' };
   }
 
   @Get(':id')

@@ -1,12 +1,15 @@
-import { Controller, Get, Query, Param, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Query, Param, NotFoundException, UseGuards, Request } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
+import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 
 @Controller('companions')
 export class CompanionsController {
   constructor(private usersService: UsersService) {}
 
+  @UseGuards(OptionalJwtAuthGuard)
   @Get()
   async searchCompanions(
+    @Request() req,
     @Query('priceMin') priceMin?: string,
     @Query('priceMax') priceMax?: string,
     @Query('maxDistance') maxDistance?: string,
@@ -28,6 +31,12 @@ export class CompanionsController {
         ? parseInt(offset)
         : 0;
 
+    // Exclude blocked users if the requester is authenticated
+    let excludeUserIds: string[] | undefined;
+    if (req.user?.id) {
+      excludeUserIds = await this.usersService.getBlockedUserIds(req.user.id);
+    }
+
     const { companions, total } = await this.usersService.getCompanions({
       priceMin: priceMin ? parseFloat(priceMin) : undefined,
       priceMax: priceMax ? parseFloat(priceMax) : undefined,
@@ -39,6 +48,7 @@ export class CompanionsController {
       search,
       limit: parsedLimit,
       offset: parsedOffset,
+      excludeUserIds,
     });
 
     const currentPage = page ? parseInt(page) : Math.floor(parsedOffset / parsedLimit) + 1;
