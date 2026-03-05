@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { useLocalSearchParams, router } from 'expo-router';
+import { useLocalSearchParams, router, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { UserImage } from '../../src/components/UserImage';
 import { Icon } from '../../src/components/Icon';
@@ -37,10 +37,20 @@ export default function ChatScreen() {
   // Resolve companion name: prefer URL param, fall back to chat data, then a safe default
   const companionName = name || chat?.otherUser?.name || 'this person';
 
-  useEffect(() => {
-    // Fetch messages — backend auto-marks as read on GET
-    fetchMessages(otherUserId);
-  }, [otherUserId]);
+  // Poll messages every 5 seconds while screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      // Initial fetch (with loading spinner)
+      fetchMessages(otherUserId);
+
+      // Poll every 5s silently (no loading spinner)
+      const interval = setInterval(() => {
+        fetchMessages(otherUserId, 1, true);
+      }, 5000);
+
+      return () => clearInterval(interval);
+    }, [otherUserId])
+  );
 
   useEffect(() => {
     // Scroll to bottom when messages change
