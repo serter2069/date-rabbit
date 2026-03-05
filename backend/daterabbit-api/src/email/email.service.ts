@@ -17,7 +17,7 @@ export class EmailService {
   constructor(private configService: ConfigService) {
     this.brevoApiKey = this.configService.get<string>('BREVO_API_KEY') || '';
     this.senderEmail =
-      this.configService.get<string>('BREVO_SENDER_EMAIL') || 'noreply@daterabbit.com';
+      this.configService.get<string>('BREVO_SENDER_EMAIL') || 'noreply@diagrams.love';
   }
 
   async sendEmail(options: SendEmailOptions): Promise<boolean> {

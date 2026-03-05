@@ -167,9 +167,9 @@ jobs:
           fi
           # Set sender email for Brevo
           if grep -q "^BREVO_SENDER_EMAIL=" "$ENV_FILE"; then
-            sed -i "s|^BREVO_SENDER_EMAIL=.*|BREVO_SENDER_EMAIL=noreply@smartlaunchhub.com|" "$ENV_FILE"
+            sed -i "s|^BREVO_SENDER_EMAIL=.*|BREVO_SENDER_EMAIL=noreply@diagrams.love|" "$ENV_FILE"
           else
-            echo "BREVO_SENDER_EMAIL=noreply@smartlaunchhub.com" >> "$ENV_FILE"
+            echo "BREVO_SENDER_EMAIL=noreply@diagrams.love" >> "$ENV_FILE"
           fi
           echo "Env vars updated from secrets"
 
