@@ -155,10 +155,12 @@ export default function RootLayout() {
         <Stack.Screen name="stripe/return" />
         <Stack.Screen name="stripe/refresh" />
         <Stack.Screen name="favorites/index" />
+        <Stack.Screen name="settings/index" />
         <Stack.Screen name="settings/edit-profile" />
         <Stack.Screen name="settings/notifications" />
         <Stack.Screen name="settings/verification" />
         <Stack.Screen name="settings/delete-account" />
+        <Stack.Screen name="settings/payment-methods" />
       </Stack>
       <NavigationGuard />
     </StripeProvider>
