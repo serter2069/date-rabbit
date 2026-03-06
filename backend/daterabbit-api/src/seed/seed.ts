@@ -6,6 +6,7 @@ import { User, UserRole, UserVerificationStatus } from '../users/entities/user.e
 import { Booking, BookingStatus, ActivityType } from '../bookings/entities/booking.entity';
 import { Message, Conversation } from '../messages/entities/message.entity';
 import { Verification } from '../verification/entities/verification.entity';
+import { Review } from '../reviews/entities/review.entity';
 
 // Load .env — try backend root first, then project root
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
@@ -18,7 +19,7 @@ const AppDataSource = new DataSource({
   username: process.env.DB_USERNAME || 'postgres',
   password: process.env.DB_PASSWORD || 'postgres',
   database: process.env.DB_NAME || 'daterabbit',
-  entities: [User, Booking, Message, Conversation, Verification],
+  entities: [User, Booking, Message, Conversation, Verification, Review],
   synchronize: false,
   logging: false,
 });
@@ -521,6 +522,9 @@ async function seed() {
         `DELETE FROM conversations WHERE "user1Id" IN (${ids}) OR "user2Id" IN (${ids})`,
       );
       await queryRunner.query(
+        `DELETE FROM reviews WHERE "reviewerId" IN (${ids}) OR "revieweeId" IN (${ids})`,
+      );
+      await queryRunner.query(
         `DELETE FROM bookings WHERE "seekerId" IN (${ids}) OR "companionId" IN (${ids})`,
       );
       await queryRunner.query(`DELETE FROM verifications WHERE "userId" IN (${ids})`);
@@ -771,7 +775,54 @@ async function seed() {
     console.log(`  Created ${bookings.length} bookings.\n`);
 
     // -----------------------------------------------------------------------
-    // 5. Create conversations and messages
+    // 5. Create reviews for completed bookings
+    // -----------------------------------------------------------------------
+    console.log('Creating reviews for completed bookings...');
+
+    const reviewRepo = AppDataSource.getRepository(Review);
+    const completedBookings = bookings.filter((b) => b.status === BookingStatus.COMPLETED);
+
+    const reviewComments = [
+      'Wonderful evening! The conversation was engaging and the restaurant choice was perfect. Would definitely book again.',
+      'Had an amazing time. Very easy to talk to and genuinely interesting. Highly recommend!',
+      'Great company for the evening. Knowledgeable, funny, and made me feel completely at ease.',
+      'Absolutely lovely experience. Felt like catching up with an old friend. Five stars!',
+      'Fantastic date night. The venue suggestions were spot-on and we never ran out of things to talk about.',
+      'Really enjoyable evening. Warm, genuine, and full of great stories. Looking forward to next time.',
+    ];
+
+    let reviewCount = 0;
+
+    for (const booking of completedBookings) {
+      // Seeker reviews companion
+      const seekerReview = Object.assign(new Review(), {
+        reviewerId: booking.seekerId,
+        revieweeId: booking.companionId,
+        bookingId: booking.id,
+        rating: randomBetween(4, 5),
+        comment: reviewComments[reviewCount % reviewComments.length],
+        createdAt: new Date(booking.dateTime.getTime() + 24 * 60 * 60 * 1000),
+      });
+      await reviewRepo.save(seekerReview);
+      reviewCount++;
+
+      // Companion reviews seeker
+      const companionReview = Object.assign(new Review(), {
+        reviewerId: booking.companionId,
+        revieweeId: booking.seekerId,
+        bookingId: booking.id,
+        rating: randomBetween(4, 5),
+        comment: reviewComments[reviewCount % reviewComments.length],
+        createdAt: new Date(booking.dateTime.getTime() + 48 * 60 * 60 * 1000),
+      });
+      await reviewRepo.save(companionReview);
+      reviewCount++;
+    }
+
+    console.log(`  Created ${reviewCount} reviews.\n`);
+
+    // -----------------------------------------------------------------------
+    // 6. Create conversations and messages
     // -----------------------------------------------------------------------
     console.log('Creating conversations with messages...');
 
@@ -837,6 +888,7 @@ async function seed() {
     console.log('='.repeat(50));
     console.log(`  Companions:    ${companions.length}`);
     console.log(`  Seekers:       ${seekers.length}`);
+    console.log(`  Reviews:       ${reviewCount}`);
     console.log(`  Bookings:      ${bookings.length}`);
     console.log(`    Pending:     ${pendingCount}`);
     console.log(`    Confirmed:   ${confirmedCount}`);

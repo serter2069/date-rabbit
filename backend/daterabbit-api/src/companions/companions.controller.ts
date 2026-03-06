@@ -1,9 +1,13 @@
 import { Controller, Get, Query, Param, NotFoundException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
+import { ReviewsService } from '../reviews/reviews.service';
 
 @Controller('companions')
 export class CompanionsController {
-  constructor(private usersService: UsersService) {}
+  constructor(
+    private usersService: UsersService,
+    private reviewsService: ReviewsService,
+  ) {}
 
   @Get()
   async searchCompanions(
@@ -72,6 +76,45 @@ export class CompanionsController {
       rating: user.rating ? Number(user.rating) : 5.0,
       reviewCount: user.reviewCount || 0,
       isVerified: user.isVerified || false,
+    };
+  }
+
+  @Get(':id/reviews')
+  async getCompanionReviews(
+    @Param('id') id: string,
+    @Query('page') page = 1,
+    @Query('limit') limit = 20,
+  ) {
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(id)) {
+      throw new NotFoundException('Companion not found');
+    }
+
+    const user = await this.usersService.findById(id);
+    if (!user || user.role !== 'companion') {
+      throw new NotFoundException('Companion not found');
+    }
+
+    const { reviews, total } = await this.reviewsService.getReviewsForUser(
+      id,
+      +page,
+      +limit,
+    );
+
+    return {
+      reviews: reviews.map((r) => ({
+        id: r.id,
+        rating: r.rating,
+        comment: r.comment,
+        reviewer: r.reviewer
+          ? { id: r.reviewer.id, name: r.reviewer.name }
+          : undefined,
+        createdAt: r.createdAt,
+      })),
+      total,
+      page: +page,
+      totalPages: Math.ceil(total / +limit),
     };
   }
 }
