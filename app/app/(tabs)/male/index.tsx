@@ -95,7 +95,7 @@ export default function MaleDashboard() {
                   verified={companion.verified}
                 />
                 <Text style={styles.companionName}>
-                  {companion.name}, {companion.age}
+                  {companion.name}{companion.age ? `, ${companion.age}` : ''}
                 </Text>
                 <View style={styles.ratingRow}>
                   <Icon name="star" size={14} color={colors.warning} />

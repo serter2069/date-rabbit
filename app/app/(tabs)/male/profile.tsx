@@ -39,7 +39,7 @@ export default function MaleProfileScreen() {
             showVerified={user?.isVerified}
           />
           <View style={styles.profileInfo}>
-            <Text style={[styles.profileName, { color: colors.text }]}>{user?.name}, {user?.age}</Text>
+            <Text style={[styles.profileName, { color: colors.text }]}>{user?.name}{user?.age ? `, ${user.age}` : ''}</Text>
             <Text style={[styles.profileLocation, { color: colors.textSecondary }]}>{user?.location}</Text>
             <View style={styles.ratingRow}>
               <Icon name="star" size={14} color={colors.accent} />

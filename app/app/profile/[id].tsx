@@ -316,7 +316,7 @@ export default function ProfileViewScreen() {
         <View style={[styles.content, { backgroundColor: colors.background }]}>
           <View style={styles.header}>
             <View style={styles.nameRow}>
-              <Text style={[styles.name, { color: colors.text }]}>{profile.name}, {profile.age}</Text>
+              <Text style={[styles.name, { color: colors.text }]}>{profile.name}{profile.age ? `, ${profile.age}` : ''}</Text>
               {profile.verified && (
                 <View style={[styles.verifiedBadge, { backgroundColor: colors.success + '15' }]}>
                   <Icon name="check-circle" size={14} color={colors.success} />

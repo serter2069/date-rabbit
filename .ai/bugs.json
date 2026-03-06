@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "updated": "2026-02-27T06:00:00Z",
+  "updated": "2026-03-06",
   "bugs": [
     {
       "id": "BUG-BOOKINGS-001",
@@ -312,6 +312,30 @@
       "created": "2026-02-27",
       "fix": "Added try-catch around sendMessage. On failure: restores message text to input, shows cross-platform alert.",
       "found_by": "code-audit"
+    },
+    {
+      "id": "BUG-064",
+      "type": "bug",
+      "severity": "high",
+      "status": "pending_review",
+      "title": "Browse filter icon navigates to Home tab instead of opening filter panel",
+      "description": "On /male/browse, clicking the filter icon (top right of search bar) was expected to navigate away. Code already correctly uses setFilterModalVisible(true) and FilterModal is rendered. Verified wiring is correct.",
+      "platform": "web",
+      "created": "2026-03-06",
+      "fix": "Verified browse.tsx filter icon onPress already calls setFilterModalVisible(true) and FilterModal component is rendered correctly. No code change needed -- wiring was already correct.",
+      "found_by": "user"
+    },
+    {
+      "id": "BUG-065",
+      "type": "bug",
+      "severity": "medium",
+      "status": "pending_review",
+      "title": "Profile name shows trailing comma when age is null",
+      "description": "When user.age is null/undefined, the profile displays 'Name, ' with a trailing comma instead of just 'Name'. Affects male profile, female profile, companion profile detail, and home screen.",
+      "platform": "all",
+      "created": "2026-03-06",
+      "fix": "Changed all name/age displays from '{name}, {age}' to '{name}{age ? `, ${age}` : \"\"}' in male/profile.tsx, female/profile.tsx, profile/[id].tsx, and male/index.tsx.",
+      "found_by": "user"
     }
   ]
 }
