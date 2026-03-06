@@ -1,5 +1,17 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  RefreshControl,
+  Platform,
+  useWindowDimensions,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
+} from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../../src/store/authStore';
@@ -12,10 +24,17 @@ import { EmptyState } from '../../../src/components/EmptyState';
 import { useTheme, spacing, typography, borderRadius, PAGE_PADDING } from '../../../src/constants/theme';
 import { bookingsApi, companionsApi, Booking, CompanionListItem } from '../../../src/services/api';
 
+// Breakpoint for switching between mobile scroll and web grid
+const WEB_GRID_BREAKPOINT = 768;
+const CARD_WIDTH = 130;
+const CARD_GAP = spacing.md;
+
 export default function MaleDashboard() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const { user } = useAuthStore();
+  const { width: screenWidth } = useWindowDimensions();
+  const isWideScreen = Platform.OS === 'web' && screenWidth >= WEB_GRID_BREAKPOINT;
 
   // Data state
   const [upcomingBookings, setUpcomingBookings] = useState<Booking[]>([]);
@@ -210,39 +229,10 @@ export default function MaleDashboard() {
               </View>
             </View>
           </Card>
+        ) : isWideScreen ? (
+          <CompanionsGrid companions={featuredCompanions} colors={colors} />
         ) : (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View style={styles.companionsRow}>
-              {featuredCompanions.map((companion) => (
-                <TouchableOpacity
-                  key={companion.id}
-                  activeOpacity={0.8}
-                  onPress={() => router.push({ pathname: '/profile/[id]', params: { id: companion.id } })}
-                >
-                  <Card variant="elevated" shadow="sm" style={styles.companionCard}>
-                    <UserImage
-                      name={companion.name}
-                      uri={companion.primaryPhoto}
-                      size={72}
-                      showVerified={companion.isVerified}
-                    />
-                    <Text style={[styles.companionName, { color: colors.text }]}>
-                      {companion.name}{companion.age ? `, ${companion.age}` : ''}
-                    </Text>
-                    <View style={styles.ratingRow}>
-                      <Icon name="star" size={14} color={colors.warning} />
-                      <Text style={[styles.companionRating, { color: colors.textSecondary }]}>
-                        {Number(companion.rating).toFixed(1)}
-                      </Text>
-                    </View>
-                    <View style={[styles.rateTag, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
-                      <Text style={[styles.companionRate, { color: colors.text }]}>${companion.hourlyRate}/hr</Text>
-                    </View>
-                  </Card>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </ScrollView>
+          <CompanionsCarousel companions={featuredCompanions} colors={colors} />
         )}
       </View>
 
@@ -271,6 +261,96 @@ export default function MaleDashboard() {
         </Card>
       </View>
     </ScrollView>
+  );
+}
+
+// Web: responsive grid that wraps cards naturally
+function CompanionsGrid({ companions, colors }: { companions: CompanionListItem[]; colors: any }) {
+  return (
+    <View style={styles.companionsGrid}>
+      {companions.map((companion) => (
+        <CompanionCardItem key={companion.id} companion={companion} colors={colors} />
+      ))}
+    </View>
+  );
+}
+
+// Mobile: horizontal scroll with snap, partial peek, and pagination dots
+function CompanionsCarousel({ companions, colors }: { companions: CompanionListItem[]; colors: any }) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  const onScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const offsetX = event.nativeEvent.contentOffset.x;
+    const index = Math.round(offsetX / (CARD_WIDTH + CARD_GAP));
+    setActiveIndex(Math.min(Math.max(index, 0), companions.length - 1));
+  }, [companions.length]);
+
+  return (
+    <View>
+      <ScrollView
+        ref={scrollViewRef}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        snapToInterval={CARD_WIDTH + CARD_GAP}
+        decelerationRate="fast"
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+        contentContainerStyle={styles.carouselContent}
+      >
+        {companions.map((companion) => (
+          <CompanionCardItem key={companion.id} companion={companion} colors={colors} />
+        ))}
+        {/* Peek spacer: ensures last card can scroll fully into view */}
+        <View style={{ width: spacing.lg }} />
+      </ScrollView>
+
+      {/* Pagination dots */}
+      {companions.length > 1 && (
+        <View style={styles.paginationDots}>
+          {companions.map((_, index) => (
+            <View
+              key={index}
+              style={[
+                styles.dot,
+                { backgroundColor: colors.borderLight, borderColor: colors.border },
+                index === activeIndex && [styles.dotActive, { backgroundColor: colors.primary, borderColor: colors.text }],
+              ]}
+            />
+          ))}
+        </View>
+      )}
+    </View>
+  );
+}
+
+function CompanionCardItem({ companion, colors }: { companion: CompanionListItem; colors: any }) {
+  return (
+    <TouchableOpacity
+      activeOpacity={0.8}
+      onPress={() => router.push({ pathname: '/profile/[id]', params: { id: companion.id } })}
+    >
+      <Card variant="elevated" shadow="sm" style={styles.companionCard}>
+        <UserImage
+          name={companion.name}
+          uri={companion.primaryPhoto}
+          size={72}
+          showVerified={companion.isVerified}
+        />
+        <Text style={[styles.companionName, { color: colors.text }]}>
+          {companion.name}{companion.age ? `, ${companion.age}` : ''}
+        </Text>
+        <View style={styles.ratingRow}>
+          <Icon name="star" size={14} color={colors.warning} />
+          <Text style={[styles.companionRating, { color: colors.textSecondary }]}>
+            {Number(companion.rating).toFixed(1)}
+          </Text>
+        </View>
+        <View style={[styles.rateTag, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
+          <Text style={[styles.companionRate, { color: colors.text }]}>${companion.hourlyRate}/hr</Text>
+        </View>
+      </Card>
+    </TouchableOpacity>
   );
 }
 
@@ -413,13 +493,38 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     marginTop: 2,
   },
-  companionsRow: {
+  // Web: responsive grid layout showing all cards
+  companionsGrid: {
     flexDirection: 'row',
-    gap: spacing.md,
+    flexWrap: 'wrap',
+    gap: CARD_GAP,
+  },
+  // Mobile: horizontal carousel
+  carouselContent: {
     paddingRight: spacing.lg,
+    gap: CARD_GAP,
+  },
+  // Pagination dots for mobile carousel
+  paginationDots: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: spacing.md,
+    gap: spacing.xs,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    borderWidth: 1.5,
+  },
+  dotActive: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
   },
   companionCard: {
-    width: 130,
+    width: CARD_WIDTH,
     alignItems: 'center',
     paddingVertical: spacing.lg,
     paddingHorizontal: spacing.md,
