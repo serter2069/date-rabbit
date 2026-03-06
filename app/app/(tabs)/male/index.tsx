@@ -79,7 +79,7 @@ export default function MaleDashboard() {
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Featured Companions</Text>
-          <TouchableOpacity style={styles.seeAllBtn}>
+          <TouchableOpacity style={styles.seeAllBtn} onPress={() => router.push('/male/browse')}>
             <Text style={styles.seeAll}>See All</Text>
             <Icon name="chevron-right" size={16} color={colors.secondary} />
           </TouchableOpacity>
