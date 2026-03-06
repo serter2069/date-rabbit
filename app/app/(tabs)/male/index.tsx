@@ -119,7 +119,7 @@ export default function MaleDashboard() {
 
       {/* Search */}
       <TouchableOpacity
-        style={[styles.searchBox, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}
+        style={[styles.searchBox, { backgroundColor: colors.surface, borderColor: colors.black }]}
         activeOpacity={0.8}
         onPress={() => router.push('/(tabs)/male/browse')}
       >
@@ -330,11 +330,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    borderRadius: borderRadius.xl,
+    borderRadius: borderRadius.sm,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md + 2,
     marginBottom: spacing.xl,
-    borderWidth: 1,
+    borderWidth: 3,
   },
   searchText: {
     fontFamily: typography.fonts.body,

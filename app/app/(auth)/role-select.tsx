@@ -91,17 +91,20 @@ const styles = StyleSheet.create({
     minHeight: 44,
   },
   backText: {
+    fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.md,
   },
   content: {
     flex: 1,
   },
   title: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.xxl,
     fontWeight: '700',
     marginBottom: spacing.sm,
   },
   subtitle: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.md,
     marginBottom: spacing.xl,
   },
@@ -131,11 +134,13 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   roleTitle: {
+    fontFamily: typography.fonts.headingMedium,
     fontSize: typography.sizes.lg,
     fontWeight: '600',
     marginBottom: spacing.xs,
   },
   roleDescription: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     lineHeight: 20,
   },
@@ -148,10 +153,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   badgeText: {
+    fontFamily: typography.fonts.headingMedium,
     fontSize: typography.sizes.sm,
     fontWeight: '600',
   },
   note: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     textAlign: 'center',
   },
