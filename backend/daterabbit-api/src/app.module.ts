@@ -11,6 +11,7 @@ import { MessagesModule } from './messages/messages.module';
 import { VerificationModule } from './verification/verification.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { PaymentsModule } from './payments/payments.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { PaymentsModule } from './payments/payments.module';
     VerificationModule,
     ReviewsModule,
     PaymentsModule,
+    AdminModule,
   ],
   providers: [
     {

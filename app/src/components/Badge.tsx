@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: borderRadius.full,
+    borderRadius: borderRadius.sm,
     borderWidth: borderWidth.thin,
     borderColor: colors.black,
     alignSelf: 'flex-start',

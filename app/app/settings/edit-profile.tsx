@@ -59,6 +59,18 @@ export default function EditProfileScreen() {
       return;
     }
 
+    if (formData.hourlyRate) {
+      const rate = parseInt(formData.hourlyRate, 10);
+      if (isNaN(rate) || rate <= 0) {
+        showAlert('Invalid Rate', 'Hourly rate must be greater than 0');
+        return;
+      }
+      if (rate >= 10000) {
+        showAlert('Invalid Rate', 'Hourly rate must be less than $10,000');
+        return;
+      }
+    }
+
     setLoading(true);
     try {
       // TODO: Photo upload will be handled separately via the API
@@ -67,7 +79,7 @@ export default function EditProfileScreen() {
         name: formData.name,
         bio: formData.bio,
         location: formData.location,
-        hourlyRate: formData.hourlyRate ? parseInt(formData.hourlyRate) : undefined,
+        hourlyRate: formData.hourlyRate ? parseInt(formData.hourlyRate, 10) : undefined,
       });
       router.back();
     } catch {

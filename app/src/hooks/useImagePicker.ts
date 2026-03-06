@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import * as ImagePicker from 'expo-image-picker';
-import { Alert, Platform } from 'react-native';
+import { Platform } from 'react-native';
+import { showAlert } from '../utils/alert';
 
 interface UseImagePickerOptions {
   allowsMultipleSelection?: boolean;
@@ -36,20 +37,18 @@ export function useImagePicker(options: UseImagePickerOptions = {}): UseImagePic
     if (type === 'library') {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert(
+        showAlert(
           'Permission Required',
-          'Please allow access to your photo library to upload photos.',
-          [{ text: 'OK' }]
+          'Please allow access to your photo library to upload photos.'
         );
         return false;
       }
     } else {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert(
+        showAlert(
           'Permission Required',
-          'Please allow camera access to take photos.',
-          [{ text: 'OK' }]
+          'Please allow camera access to take photos.'
         );
         return false;
       }
@@ -78,7 +77,7 @@ export function useImagePicker(options: UseImagePickerOptions = {}): UseImagePic
         const imagesToAdd = newImages.slice(0, availableSlots);
 
         if (newImages.length > availableSlots) {
-          Alert.alert(
+          showAlert(
             'Limit Reached',
             `You can only add ${maxImages} photos. Some photos were not added.`
           );
@@ -89,7 +88,7 @@ export function useImagePicker(options: UseImagePickerOptions = {}): UseImagePic
       }
     } catch (error) {
       console.error('Error picking images:', error);
-      Alert.alert('Error', 'Failed to pick images. Please try again.');
+      showAlert('Error', 'Failed to pick images. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -98,7 +97,7 @@ export function useImagePicker(options: UseImagePickerOptions = {}): UseImagePic
 
   const takePhoto = useCallback(async (): Promise<string | null> => {
     if (images.length >= maxImages) {
-      Alert.alert('Limit Reached', `You can only add ${maxImages} photos.`);
+      showAlert('Limit Reached', `You can only add ${maxImages} photos.`);
       return null;
     }
 
@@ -120,7 +119,7 @@ export function useImagePicker(options: UseImagePickerOptions = {}): UseImagePic
       }
     } catch (error) {
       console.error('Error taking photo:', error);
-      Alert.alert('Error', 'Failed to take photo. Please try again.');
+      showAlert('Error', 'Failed to take photo. Please try again.');
     } finally {
       setLoading(false);
     }

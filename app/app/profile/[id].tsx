@@ -5,14 +5,16 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Dimensions,
+  useWindowDimensions,
   Modal,
   TextInput,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
+import { Image } from 'expo-image';
 import { Button } from '../../src/components/Button';
 import { showAlert, showConfirm } from '../../src/utils/alert';
 import { Card } from '../../src/components/Card';
@@ -22,7 +24,8 @@ import { useTheme, spacing, typography, borderRadius, colors } from '../../src/c
 import { useFavoritesStore } from '../../src/store/favoritesStore';
 import { usersApi, companionsApi, CompanionDetail } from '../../src/services/api';
 
-const { width } = Dimensions.get('window');
+// Max width for photo container — prevents giant hero on wide screens
+const MAX_PHOTO_WIDTH = 430;
 
 interface ProfileData {
   id: string;
@@ -64,6 +67,8 @@ export default function ProfileViewScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const { width: windowWidth } = useWindowDimensions();
+  const photoWidth = Platform.OS === 'web' ? Math.min(windowWidth, MAX_PHOTO_WIDTH) : windowWidth;
   
   const [profile, setProfile] = useState<ProfileData>(defaultProfile);
   const [isLoading, setIsLoading] = useState(true);
@@ -190,17 +195,11 @@ export default function ProfileViewScreen() {
   };
 
   const handleBookDate = () => {
-    router.push({
-      pathname: '/booking/[id]',
-      params: { id: profile.id },
-    });
+    router.push(`/booking/${profile.id}`);
   };
 
   const handleMessage = () => {
-    router.push({
-      pathname: '/chat/[id]',
-      params: { id: profile.id, name: profile.name },
-    });
+    router.push(`/chat/${profile.id}`);
   };
 
   const nextPhoto = () => {
@@ -239,17 +238,19 @@ export default function ProfileViewScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Photo Gallery */}
-        <View style={styles.photoContainer}>
+        <View style={[styles.photoContainer, { width: photoWidth, height: photoWidth * 1.1, alignSelf: 'center' }]}>
           {profile.photos.length > 0 ? (
             <TouchableOpacity
               activeOpacity={0.9}
               onPress={() => setPhotoModalVisible(true)}
               style={styles.photoWrapper}
             >
-              <View style={[styles.photo, { backgroundColor: colors.surface }]}>
-                <UserImage name={profile.name} size={120} />
-                <Text style={[styles.photoText, { color: colors.text }]}>{profile.name}</Text>
-              </View>
+              <Image
+                source={{ uri: profile.photos[currentPhotoIndex]?.url }}
+                style={styles.heroImage}
+                contentFit="cover"
+                transition={250}
+              />
 
               {/* Photo navigation dots */}
               <View style={styles.photoDots}>
@@ -336,7 +337,7 @@ export default function ProfileViewScreen() {
                 <Text style={[styles.statLabel, { color: colors.textSecondary }]}>({profile.reviewCount} reviews)</Text>
               </View>
               <View style={[styles.rateBadge, { backgroundColor: colors.primary + '15' }]}>
-                <Text style={[styles.rateValue, { color: colors.primary }]}>${profile.hourlyRate}</Text>
+                <Text style={[styles.rateValue, { color: colors.primary }]}>${profile.hourlyRate ?? 0}</Text>
                 <Text style={[styles.rateLabel, { color: colors.primary }]}>/hour</Text>
               </View>
             </View>
@@ -390,7 +391,7 @@ export default function ProfileViewScreen() {
           <Card style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>Reviews</Text>
-              <TouchableOpacity onPress={() => router.push({ pathname: '/reviews/[id]', params: { id: profile.id } })}>
+              <TouchableOpacity onPress={() => router.push(`/reviews/${profile.id}`)}>
                 <Text style={[styles.seeAll, { color: colors.primary }]}>See All</Text>
               </TouchableOpacity>
             </View>
@@ -430,7 +431,7 @@ export default function ProfileViewScreen() {
           testID="profile-view-message-btn"
         />
         <Button
-          title={`Book Date • $${profile.hourlyRate}/hr`}
+          title={`Book Date • $${profile.hourlyRate ?? 0}/hr`}
           onPress={handleBookDate}
           style={styles.bookButton}
           testID="profile-view-book-btn"
@@ -559,8 +560,17 @@ export default function ProfileViewScreen() {
           >
             <Icon name="x" size={24} color={colors.white} />
           </TouchableOpacity>
-          <View style={[styles.modalPhoto, { backgroundColor: colors.surface }]}>
-            <UserImage name={profile.name} size={200} />
+          <View style={[styles.modalPhoto, { width: photoWidth - spacing.xl * 2, height: photoWidth - spacing.xl * 2, backgroundColor: colors.surface }]}>
+            {profile.photos[currentPhotoIndex]?.url ? (
+              <Image
+                source={{ uri: profile.photos[currentPhotoIndex].url }}
+                style={styles.modalImage}
+                contentFit="contain"
+                transition={250}
+              />
+            ) : (
+              <UserImage name={profile.name} size={200} />
+            )}
             <Text style={[styles.modalPhotoText, { color: colors.textSecondary }]}>
               Photo {currentPhotoIndex + 1} of {profile.photos.length}
             </Text>
@@ -592,12 +602,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   photoContainer: {
-    width: width,
-    height: width * 1.1,
     position: 'relative',
   },
   photoWrapper: {
     flex: 1,
+  },
+  heroImage: {
+    width: '100%',
+    height: '100%',
   },
   photo: {
     flex: 1,
@@ -812,7 +824,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
-    borderRadius: borderRadius.full,
+    borderRadius: borderRadius.sm,
   },
   verified: {
     fontFamily: typography.fonts.bodySemiBold,
@@ -898,7 +910,7 @@ const styles = StyleSheet.create({
   tag: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    borderRadius: borderRadius.full,
+    borderRadius: borderRadius.sm,
   },
   tagText: {
     fontFamily: typography.fonts.body,
@@ -984,11 +996,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalPhoto: {
-    width: width - spacing.xl * 2,
-    height: width - spacing.xl * 2,
     borderRadius: borderRadius.lg,
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
+  },
+  modalImage: {
+    width: '100%',
+    height: '100%',
   },
   modalPhotoText: {
     fontFamily: typography.fonts.body,

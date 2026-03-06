@@ -54,21 +54,25 @@ export default function ProfileSetupScreen() {
     setStep('details');
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     if (!bio.trim()) {
       showAlert('Required', 'Please write something about yourself');
       return;
     }
 
     if (role === 'companion') {
-      const rate = parseInt(hourlyRate);
-      if (isNaN(rate) || rate < 1) {
-        showAlert('Required', 'Please enter your hourly rate');
+      const rate = parseInt(hourlyRate, 10);
+      if (isNaN(rate) || rate <= 0) {
+        showAlert('Required', 'Please enter your hourly rate (must be greater than 0)');
+        return;
+      }
+      if (rate >= 10000) {
+        showAlert('Invalid Rate', 'Hourly rate must be less than $10,000');
         return;
       }
     }
 
-    completeOnboarding({
+    const result = await completeOnboarding({
       name: name.trim(),
       age: parseInt(age),
       role: role!,
@@ -77,6 +81,11 @@ export default function ProfileSetupScreen() {
       location: location.trim(),
       hourlyRate: role === 'companion' ? parseInt(hourlyRate) : undefined,
     });
+
+    if (!result.success) {
+      showAlert('Error', result.error || 'Failed to complete setup. Please try again.');
+      return;
+    }
 
     // Navigate to correct tabs based on role
     // In Expo Router, /male is equivalent to /male/index when index.tsx exists

@@ -537,8 +537,16 @@ async function seed() {
     const userRepo = AppDataSource.getRepository(User);
     const companions: User[] = [];
 
-    for (const c of companionSeeds) {
-      const avatarSeed = c.name.replace(/\s+/g, '');
+  // Real portrait photos from randomuser.me (women, indices 1-99)
+  // These are stable URLs that return real-looking face photos
+  const companionPhotoIndices = [5, 12, 19, 26, 33, 40, 47, 54, 61, 68, 75, 82, 89, 9, 16, 22, 29, 36, 43, 50];
+
+    for (let ci = 0; ci < companionSeeds.length; ci++) {
+      const c = companionSeeds[ci];
+      const photoIdx = companionPhotoIndices[ci] || (ci + 1);
+      const primaryPhotoUrl = `https://randomuser.me/api/portraits/women/${photoIdx}.jpg`;
+      const secondaryPhotoUrl = `https://randomuser.me/api/portraits/women/${photoIdx === 1 ? 99 : photoIdx - 1}.jpg`;
+
       const user = Object.assign(new User(), {
         email: c.email,
         name: c.name,
@@ -549,13 +557,13 @@ async function seed() {
         photos: [
           {
             id: crypto.randomUUID(),
-            url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed}`,
+            url: primaryPhotoUrl,
             order: 0,
             isPrimary: true,
           },
           {
             id: crypto.randomUUID(),
-            url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed}Alt`,
+            url: secondaryPhotoUrl,
             order: 1,
             isPrimary: false,
           },
@@ -581,8 +589,13 @@ async function seed() {
 
     const seekers: User[] = [];
 
-    for (const s of seekerSeeds) {
-      const avatarSeed = s.name.replace(/['\s]+/g, '');
+  // Real portrait photos from randomuser.me for seekers (men)
+  const seekerPhotoIndices = [15, 28, 42, 57, 71];
+
+    for (let si = 0; si < seekerSeeds.length; si++) {
+      const s = seekerSeeds[si];
+      const seekerPhotoIdx = seekerPhotoIndices[si] || (si + 10);
+
       const user = Object.assign(new User(), {
         email: s.email,
         name: s.name,
@@ -592,7 +605,7 @@ async function seed() {
         photos: [
           {
             id: crypto.randomUUID(),
-            url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed}Seeker`,
+            url: `https://randomuser.me/api/portraits/men/${seekerPhotoIdx}.jpg`,
             order: 0,
             isPrimary: true,
           },

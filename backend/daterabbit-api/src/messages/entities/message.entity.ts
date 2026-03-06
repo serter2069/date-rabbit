@@ -59,6 +59,10 @@ export class Conversation {
   @Column({ nullable: true })
   lastMessageId: string;
 
+  @ManyToOne(() => Message, { nullable: true, eager: false })
+  @JoinColumn({ name: 'lastMessageId' })
+  lastMessage: Message;
+
   @Column({ nullable: true })
   lastMessageAt: Date;
 

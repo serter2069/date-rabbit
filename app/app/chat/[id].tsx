@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { useLocalSearchParams, router } from 'expo-router';
+import { useLocalSearchParams, router, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { UserImage } from '../../src/components/UserImage';
 import { Icon } from '../../src/components/Icon';
@@ -34,10 +34,23 @@ export default function ChatScreen() {
   const chatMessages = getMessages(otherUserId);
   const chat = chats.find(c => c.otherUser.id === otherUserId);
 
-  useEffect(() => {
-    // Fetch messages — backend auto-marks as read on GET
-    fetchMessages(otherUserId);
-  }, [otherUserId]);
+  // Resolve companion name: prefer URL param, fall back to chat data, then a safe default
+  const companionName = name || chat?.otherUser?.name || 'this person';
+
+  // Poll messages every 5 seconds while screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      // Initial fetch (with loading spinner)
+      fetchMessages(otherUserId);
+
+      // Poll every 5s silently (no loading spinner)
+      const interval = setInterval(() => {
+        fetchMessages(otherUserId, 1, true);
+      }, 5000);
+
+      return () => clearInterval(interval);
+    }, [otherUserId])
+  );
 
   useEffect(() => {
     // Scroll to bottom when messages change
@@ -99,6 +112,26 @@ export default function ChatScreen() {
     return groups;
   }, {} as Record<string, typeof chatMessages>);
 
+  // Show error state when no valid conversation ID is provided
+  if (!otherUserId) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={[styles.header, { paddingTop: insets.top + spacing.sm, backgroundColor: colors.white, borderBottomColor: colors.border }]}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton} testID="chat-back-btn">
+            <Icon name="arrow-left" size={24} color={colors.text} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.emptyContainer}>
+          <EmptyState
+            icon="alert-circle"
+            title="Conversation not found"
+            description="This conversation does not exist or may have been removed."
+          />
+        </View>
+      </View>
+    );
+  }
+
   return (
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: colors.background }]}
@@ -113,18 +146,18 @@ export default function ChatScreen() {
 
         <TouchableOpacity
           style={styles.headerProfile}
-          onPress={() => router.push({ pathname: '/profile/[id]', params: { id: id || '' } })}
+          onPress={() => router.push(`/profile/${id || ''}`)}
         >
-          <UserImage name={name || 'User'} size={40} />
+          <UserImage name={companionName} size={40} />
           <View style={styles.headerInfo}>
-            <Text style={[styles.headerName, { color: colors.text }]}>{name || 'User'}</Text>
+            <Text style={[styles.headerName, { color: colors.text }]}>{companionName}</Text>
             <Text style={[styles.headerStatus, { color: colors.textSecondary }]}>Tap to view profile</Text>
           </View>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.bookButton, { backgroundColor: colors.primary }]}
-          onPress={() => router.push({ pathname: '/booking/[id]', params: { id: id || '' } })}
+          onPress={() => router.push(`/booking/${id || ''}`)}
           testID="chat-book-btn"
         >
           <Text style={[styles.bookButtonText, { color: colors.white }]}>Book</Text>
@@ -143,7 +176,7 @@ export default function ChatScreen() {
             <EmptyState
               icon="message-circle"
               title="Start the conversation"
-              description={`Say hello to ${name}! Be respectful and have a great conversation.`}
+              description={`Say hello to ${companionName}! Be respectful and have a great conversation.`}
             />
           </View>
         ) : (
@@ -171,7 +204,7 @@ export default function ChatScreen() {
                     ]}
                   >
                     {!isMine && showAvatar && (
-                      <UserImage name={name || 'User'} size={32} />
+                      <UserImage name={companionName} size={32} />
                     )}
                     {!isMine && !showAvatar && (
                       <View style={{ width: 32 }} />
@@ -307,7 +340,7 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.xs,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
-    borderRadius: borderRadius.full,
+    borderRadius: borderRadius.sm,
   },
   messageRow: {
     flexDirection: 'row',

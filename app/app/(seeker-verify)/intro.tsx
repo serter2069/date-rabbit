@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accent,
     borderWidth: 2,
     borderColor: colors.black,
-    borderRadius: borderRadius.full,
+    borderRadius: borderRadius.sm,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
     alignSelf: 'center',
