@@ -116,18 +116,6 @@ export const usersApi = {
       body: data,
     }),
 
-  updateLocation: (latitude: number, longitude: number) =>
-    apiRequest<{ success: boolean }>('/users/me/location', {
-      method: 'PATCH',
-      body: { latitude, longitude },
-    }),
-
-  savePushToken: (pushToken: string) =>
-    apiRequest<{ success: boolean }>('/users/me/push-token', {
-      method: 'POST',
-      body: { pushToken },
-    }),
-
   blockUser: (userId: string, reason?: string) =>
     apiRequest<{ success: boolean }>(`/users/${userId}/block`, {
       method: 'POST',
@@ -174,7 +162,7 @@ export interface SearchCompanionsParams {
   minRating?: number;
   ageMin?: number;
   ageMax?: number;
-  sortBy?: 'recommended' | 'price_low' | 'price_high' | 'rating' | 'distance';
+  sortBy?: 'recommended' | 'price_low' | 'price_high' | 'rating' | 'distance' | 'new';
   latitude?: number;
   longitude?: number;
   search?: string;
@@ -288,8 +276,27 @@ export const bookingsApi = {
       body: data,
     }),
 
-  getById: (id: string) =>
-    apiRequest<Booking>(`/bookings/${id}`),
+  getById: async (id: string) => {
+    const b = await apiRequest<any>(`/bookings/${id}`);
+    // Normalize companion to always have safe defaults, even if API returns undefined or {}
+    const rawCompanion = b.companion ?? {};
+    return {
+      ...b,
+      date: b.date ?? b.dateTime,
+      total: typeof b.total === 'number' ? b.total : parseFloat(b.totalPrice ?? b.total ?? '0'),
+      subtotal: typeof b.subtotal === 'number' ? b.subtotal : parseFloat(b.subtotal ?? '0'),
+      platformFee: typeof b.platformFee === 'number' ? b.platformFee : parseFloat(b.platformFee ?? '0'),
+      hourlyRate: typeof b.hourlyRate === 'number' ? b.hourlyRate : parseFloat(b.hourlyRate ?? rawCompanion.hourlyRate ?? '0'),
+      companionEarnings: typeof b.companionEarnings === 'number' ? b.companionEarnings : parseFloat(b.companionEarnings ?? '0'),
+      isPaid: b.isPaid ?? false,
+      companion: {
+        id: rawCompanion.id ?? '',
+        name: rawCompanion.name ?? '',
+        rating: rawCompanion.rating ?? 0,
+        photo: rawCompanion.photo ?? rawCompanion.photos?.[0]?.url ?? null,
+      },
+    } as Booking;
+  },
 
   getMyBookings: async (filter: 'all' | 'pending' | 'upcoming' | 'past' = 'all', page = 1) => {
     const response = await apiRequest<
@@ -302,20 +309,26 @@ export const bookingsApi = {
       : [...(response.asSeeker || []), ...(response.asCompanion || [])];
 
     // Normalize field names (API may send dateTime/totalPrice instead of date/total)
-    const bookings = raw.map((b: any) => ({
-      ...b,
-      date: b.date ?? b.dateTime,
-      total: typeof b.total === 'number' ? b.total : parseFloat(b.totalPrice ?? b.total ?? '0'),
-      subtotal: typeof b.subtotal === 'number' ? b.subtotal : parseFloat(b.subtotal ?? '0'),
-      platformFee: typeof b.platformFee === 'number' ? b.platformFee : parseFloat(b.platformFee ?? '0'),
-      hourlyRate: typeof b.hourlyRate === 'number' ? b.hourlyRate : parseFloat(b.hourlyRate ?? b.companion?.hourlyRate ?? '0'),
-      companionEarnings: typeof b.companionEarnings === 'number' ? b.companionEarnings : parseFloat(b.companionEarnings ?? '0'),
-      isPaid: b.isPaid ?? false,
-      companion: {
-        ...b.companion,
-        photo: b.companion?.photo ?? b.companion?.photos?.[0]?.url,
-      },
-    }));
+    // companion is always normalized to a safe object with defaults so callers never crash
+    const bookings = raw.map((b: any) => {
+      const rawCompanion = b.companion ?? {};
+      return {
+        ...b,
+        date: b.date ?? b.dateTime,
+        total: typeof b.total === 'number' ? b.total : parseFloat(b.totalPrice ?? b.total ?? '0'),
+        subtotal: typeof b.subtotal === 'number' ? b.subtotal : parseFloat(b.subtotal ?? '0'),
+        platformFee: typeof b.platformFee === 'number' ? b.platformFee : parseFloat(b.platformFee ?? '0'),
+        hourlyRate: typeof b.hourlyRate === 'number' ? b.hourlyRate : parseFloat(b.hourlyRate ?? rawCompanion.hourlyRate ?? '0'),
+        companionEarnings: typeof b.companionEarnings === 'number' ? b.companionEarnings : parseFloat(b.companionEarnings ?? '0'),
+        isPaid: b.isPaid ?? false,
+        companion: {
+          id: rawCompanion.id ?? '',
+          name: rawCompanion.name ?? '',
+          rating: rawCompanion.rating ?? 0,
+          photo: rawCompanion.photo ?? rawCompanion.photos?.[0]?.url ?? null,
+        },
+      };
+    });
 
     return { bookings, total: 'bookings' in response ? (response as any).total : bookings.length };
   },
@@ -360,6 +373,7 @@ export interface Chat {
     name: string;
     photos?: any[];
   };
+  lastMessage?: string | null;
   lastMessageAt?: string;
   unreadCount?: number;
 }
@@ -448,46 +462,6 @@ export const paymentsApi = {
         createdAt: string;
       }[];
     }>(`/payments/payouts/history?limit=${limit}`),
-};
-
-// Media API
-export const mediaApi = {
-  uploadPhoto: async (uri: string): Promise<{ id: string; url: string }> => {
-    const token = await getToken();
-    const formData = new FormData();
-
-    // Get file extension
-    const extension = uri.split('.').pop() || 'jpg';
-    const type = `image/${extension === 'jpg' ? 'jpeg' : extension}`;
-
-    formData.append('photo', {
-      uri,
-      type,
-      name: `photo.${extension}`,
-    } as unknown as Blob);
-
-    const response = await fetch(`${API_BASE_URL}/media/photos`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'multipart/form-data',
-      },
-      body: formData,
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new ApiError(data.message || 'Upload failed', response.status);
-    }
-
-    return data;
-  },
-
-  deletePhoto: (id: string) =>
-    apiRequest<{ success: boolean }>(`/media/photos/${id}`, {
-      method: 'DELETE',
-    }),
 };
 
 // Calendar API

@@ -5,12 +5,12 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
-  Alert,
   Platform,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Icon } from '../Icon';
 import { colors, spacing, borderRadius, typography, touchTargets, shadows } from '../../constants/theme';
+import { showAlert } from '../../utils/alert';
 
 interface SelfieCaptureProps {
   imageUri?: string;
@@ -23,10 +23,9 @@ export function SelfieCapture({ imageUri, onImageCaptured, error }: SelfieCaptur
     if (Platform.OS !== 'web') {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert(
+        showAlert(
           'Camera Permission Required',
-          'Please allow camera access in settings to take a selfie.',
-          [{ text: 'OK' }]
+          'Please allow camera access in settings to take a selfie.'
         );
         return;
       }

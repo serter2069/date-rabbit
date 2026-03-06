@@ -168,7 +168,7 @@ export default function BookingScreen() {
         {/* Companion Info */}
         <Card style={styles.companionCard}>
           <View style={styles.companionInfo}>
-            <UserImage name={companion?.name ?? ''} size={56} />
+            <UserImage uri={companion?.photos?.[0]?.url ?? companion?.primaryPhoto} name={companion?.name ?? ''} size={56} />
             <View style={styles.companionDetails}>
               <Text style={[styles.companionName, { color: colors.text }]}>{companion?.name}</Text>
               <Text style={[styles.companionRate, { color: colors.primary }]}>${companion?.hourlyRate}/hour</Text>

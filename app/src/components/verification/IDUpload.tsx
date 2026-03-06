@@ -5,12 +5,12 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
-  Alert,
   Platform,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Icon } from '../Icon';
 import { colors, spacing, borderRadius, typography, touchTargets, shadows } from '../../constants/theme';
+import { showAlert } from '../../utils/alert';
 
 interface IDUploadProps {
   imageUri?: string;
@@ -24,20 +24,18 @@ export function IDUpload({ imageUri, onImageSelected, error }: IDUploadProps) {
       if (type === 'camera') {
         const { status } = await ImagePicker.requestCameraPermissionsAsync();
         if (status !== 'granted') {
-          Alert.alert(
+          showAlert(
             'Camera Permission Required',
-            'Please allow camera access in settings to take a photo of your ID.',
-            [{ text: 'OK' }]
+            'Please allow camera access in settings to take a photo of your ID.'
           );
           return false;
         }
       } else {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
-          Alert.alert(
+          showAlert(
             'Gallery Permission Required',
-            'Please allow photo library access to select your ID.',
-            [{ text: 'OK' }]
+            'Please allow photo library access to select your ID.'
           );
           return false;
         }

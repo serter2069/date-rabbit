@@ -195,10 +195,7 @@ function RequestCard({ request, type, colors, onAccept, onDecline, formatDate }:
         <View style={styles.actions}>
           <Button
             title="Message"
-            onPress={() => router.push({
-              pathname: '/chat/[id]',
-              params: { id: request.seeker.id, name: request.seeker.name },
-            })}
+            onPress={() => router.push(`/chat/${request.seeker.id}`)}
             variant="outline"
             size="sm"
             style={{ flex: 1 }}

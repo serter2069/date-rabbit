@@ -57,6 +57,7 @@ interface AuthState {
   setOnboardingSeen: () => void;
   refreshUser: () => Promise<void>;
   initialize: () => Promise<void>;
+  setPendingEmail: (email: string) => void;
 }
 
 // Convert API user to local User type
@@ -157,33 +158,39 @@ export const useAuthStore = create<AuthState>()(
           // Save the token
           await setToken(result.token);
 
-          if (result.isNewUser) {
-            // New user - needs onboarding
-            set({
-              authStep: 'onboarding',
-              isLoading: false,
-            });
-          } else {
-            // Existing user - fetch their profile
-            try {
-              const apiUser = await usersApi.getMe();
+          // Fetch user profile to determine if onboarding is needed
+          try {
+            const apiUser = await usersApi.getMe();
+            const needsOnboarding = !apiUser.age;
+
+            if (needsOnboarding) {
+              // New/incomplete user - needs onboarding
+              set({
+                user: mapApiUserToUser(apiUser),
+                authStep: 'onboarding',
+                isLoading: false,
+              });
+            } else {
+              // Complete user - go to dashboard
               set({
                 user: mapApiUserToUser(apiUser),
                 authStep: 'authenticated',
                 isAuthenticated: true,
                 hasCompletedOnboarding: true,
+                hasSeenOnboarding: true,
                 isLoading: false,
                 pendingEmail: null,
               });
-            } catch {
-              // Could not fetch profile, but we have token
-              set({
-                authStep: 'authenticated',
-                isAuthenticated: true,
-                hasCompletedOnboarding: true,
-                isLoading: false,
-              });
             }
+          } catch {
+            // Could not fetch profile, but we have token - assume existing user
+            set({
+              authStep: 'authenticated',
+              isAuthenticated: true,
+              hasCompletedOnboarding: true,
+              hasSeenOnboarding: true,
+              isLoading: false,
+            });
           }
           return { success: true };
         } catch (err) {
@@ -305,6 +312,8 @@ export const useAuthStore = create<AuthState>()(
       clearError: () => set({ error: null }),
 
       setOnboardingSeen: () => set({ hasSeenOnboarding: true }),
+
+      setPendingEmail: (email) => set({ pendingEmail: email }),
     }),
     {
       name: 'auth-storage',

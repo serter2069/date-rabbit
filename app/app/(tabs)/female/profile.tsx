@@ -74,11 +74,11 @@ export default function FemaleProfileScreen() {
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Settings</Text>
         <Card>
-          <MenuItem icon="bell" label="Notifications" colors={colors} />
+          <MenuItem icon="bell" label="Notifications" onPress={() => router.push('/settings/notifications')} colors={colors} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <MenuItem icon="lock" label="Privacy" colors={colors} />
+          <MenuItem icon="lock" label="Privacy" onPress={() => router.push('/privacy')} colors={colors} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <MenuItem icon="credit-card" label="Payment Settings" colors={colors} />
+          <MenuItem icon="credit-card" label="Payment Settings" onPress={() => router.push('/settings/payment-methods')} colors={colors} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
           <MenuItem icon="calendar" label="Availability" colors={colors} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
@@ -88,9 +88,9 @@ export default function FemaleProfileScreen() {
 
       <View style={styles.section}>
         <Card>
-          <MenuItem icon="file-text" label="Terms of Service" colors={colors} />
+          <MenuItem icon="file-text" label="Terms of Service" onPress={() => router.push('/terms')} colors={colors} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <MenuItem icon="shield" label="Privacy Policy" colors={colors} />
+          <MenuItem icon="shield" label="Privacy Policy" onPress={() => router.push('/privacy')} colors={colors} />
         </Card>
       </View>
 
@@ -108,9 +108,9 @@ export default function FemaleProfileScreen() {
   );
 }
 
-function MenuItem({ icon, label, colors }: { icon: string; label: string; colors: any }) {
+function MenuItem({ icon, label, onPress, colors }: { icon: string; label: string; onPress?: () => void; colors: any }) {
   return (
-    <TouchableOpacity style={styles.menuItem}>
+    <TouchableOpacity style={styles.menuItem} onPress={onPress}>
       <View style={[styles.menuIconContainer, { backgroundColor: colors.primary + '15' }]}>
         <Icon name={icon} size={18} color={colors.primary} />
       </View>

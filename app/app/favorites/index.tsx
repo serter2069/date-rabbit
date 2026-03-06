@@ -128,14 +128,14 @@ export default function FavoritesScreen() {
                 <View style={styles.actions}>
                   <Button
                     title="View Profile"
-                    onPress={() => router.push({ pathname: '/profile/[id]', params: { id: companion.id } })}
+                    onPress={() => router.push(`/profile/${companion.id}`)}
                     variant="outline"
                     size="sm"
                     style={{ flex: 1 }}
                   />
                   <Button
                     title="Book Date"
-                    onPress={() => router.push({ pathname: '/booking/[id]', params: { id: companion.id } })}
+                    onPress={() => router.push(`/booking/${companion.id}`)}
                     size="sm"
                     style={{ flex: 1 }}
                   />

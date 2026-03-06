@@ -1,13 +1,19 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { User, UserRole } from './entities/user.entity';
+import { BlockedUser } from './entities/blocked-user.entity';
+import { UserReport } from './entities/user-report.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    @InjectRepository(BlockedUser)
+    private blockedUsersRepository: Repository<BlockedUser>,
+    @InjectRepository(UserReport)
+    private userReportsRepository: Repository<UserReport>,
   ) {}
 
   async findByEmail(email: string): Promise<User | null> {
@@ -16,6 +22,11 @@ export class UsersService {
 
   async findById(id: string): Promise<User | null> {
     return this.usersRepository.findOne({ where: { id } });
+  }
+
+  // Find user including soft-deleted ones (used by JWT strategy to detect deactivated accounts)
+  async findByIdWithDeleted(id: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { id }, withDeleted: true });
   }
 
   async create(data: Partial<User>): Promise<User> {
@@ -42,6 +53,14 @@ export class UsersService {
     } as any);
   }
 
+  async deactivateAccount(userId: string): Promise<void> {
+    // Soft delete: set isActive=false and deletedAt timestamp via TypeORM softDelete
+    await this.usersRepository.update(userId, {
+      isActive: false,
+    });
+    await this.usersRepository.softDelete(userId);
+  }
+
   async getCompanions(filters: {
     priceMin?: number;
     priceMax?: number;
@@ -53,11 +72,16 @@ export class UsersService {
     search?: string;
     limit?: number;
     offset?: number;
+    excludeUserIds?: string[];
   }): Promise<{ companions: User[]; total: number }> {
     const query = this.usersRepository
       .createQueryBuilder('user')
       .where('user.role = :role', { role: UserRole.COMPANION })
       .andWhere('user.isActive = true');
+
+    if (filters.excludeUserIds && filters.excludeUserIds.length > 0) {
+      query.andWhere('user.id NOT IN (:...excludeIds)', { excludeIds: filters.excludeUserIds });
+    }
 
     if (filters.priceMin) {
       query.andWhere('user.hourlyRate >= :priceMin', { priceMin: filters.priceMin });
@@ -91,6 +115,10 @@ export class UsersService {
       case 'rating':
         query.orderBy('user.rating', 'DESC');
         break;
+      case 'new':
+        // Show newest companions first (recently joined)
+        query.orderBy('user.createdAt', 'DESC');
+        break;
       default:
         query.orderBy('user.createdAt', 'DESC');
     }
@@ -102,5 +130,70 @@ export class UsersService {
       .getMany();
 
     return { companions, total };
+  }
+
+  // --- Block / Unblock ---
+
+  async blockUser(blockerId: string, blockedId: string, reason?: string): Promise<void> {
+    if (blockerId === blockedId) {
+      throw new BadRequestException('You cannot block yourself');
+    }
+
+    const existing = await this.blockedUsersRepository.findOne({
+      where: { blockerId, blockedId },
+    });
+    if (existing) {
+      throw new ConflictException('User is already blocked');
+    }
+
+    const blocked = this.blockedUsersRepository.create({
+      blockerId,
+      blockedId,
+      reason,
+    });
+    await this.blockedUsersRepository.save(blocked);
+  }
+
+  async unblockUser(blockerId: string, blockedId: string): Promise<void> {
+    await this.blockedUsersRepository.delete({ blockerId, blockedId });
+  }
+
+  async getBlockedUsers(userId: string): Promise<BlockedUser[]> {
+    return this.blockedUsersRepository.find({
+      where: { blockerId: userId },
+      relations: ['blocked'],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async getBlockedUserIds(userId: string): Promise<string[]> {
+    const blocked = await this.blockedUsersRepository.find({
+      where: { blockerId: userId },
+      select: ['blockedId'],
+    });
+    return blocked.map((b) => b.blockedId);
+  }
+
+  async isBlocked(userId: string, targetId: string): Promise<boolean> {
+    const count = await this.blockedUsersRepository.count({
+      where: { blockerId: userId, blockedId: targetId },
+    });
+    return count > 0;
+  }
+
+  // --- Report ---
+
+  async reportUser(reporterId: string, reportedId: string, reason: string, description?: string): Promise<UserReport> {
+    if (reporterId === reportedId) {
+      throw new BadRequestException('You cannot report yourself');
+    }
+
+    const report = this.userReportsRepository.create({
+      reporterId,
+      reportedId,
+      reason,
+      description,
+    });
+    return this.userReportsRepository.save(report);
   }
 }

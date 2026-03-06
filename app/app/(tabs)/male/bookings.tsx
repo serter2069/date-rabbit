@@ -39,9 +39,10 @@ export default function BookingsScreen() {
   }, [activeTab]);
 
   const handleCancelBooking = useCallback((booking: Booking) => {
+    const companionName = booking.companion?.name || 'this companion';
     showConfirm(
       'Cancel Booking',
-      `Are you sure you want to cancel your date with ${booking.companion.name}?`,
+      `Are you sure you want to cancel your date with ${companionName}?`,
       async () => {
         const result = await cancelBooking(booking.id, 'Cancelled by user');
         if (result.success) {
@@ -154,7 +155,11 @@ interface BookingCardProps {
 }
 
 function BookingCard({ booking, type, colors, onCancel, formatDate }: BookingCardProps) {
-  const companion = booking.companion || { name: 'Unknown', photo: null, rating: 0 };
+  // Guard against undefined companion OR empty object {} produced by normalization
+  const rawCompanion = booking.companion;
+  const companion = (rawCompanion && rawCompanion.name)
+    ? rawCompanion
+    : { name: 'Unknown', photo: null, rating: 0 };
   
   const getStatusStyle = (status: string) => {
     switch (status) {
@@ -210,7 +215,10 @@ function BookingCard({ booking, type, colors, onCancel, formatDate }: BookingCar
           )}
           <Button
             title="Message"
-            onPress={() => router.push(`/chat/${booking.id}`)}
+            onPress={() => router.push({
+              pathname: `/chat/${booking.companion?.id || booking.companion_id}`,
+              params: { name: booking.companion?.name }
+            })}
             variant="outline"
             size="sm"
             style={{ flex: 1 }}
@@ -284,7 +292,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: spacing.sm,
     alignItems: 'center',
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.sm,
     minHeight: 44,
     justifyContent: 'center',
   },
@@ -333,7 +341,7 @@ const styles = StyleSheet.create({
   statusBadge: {
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
-    borderRadius: borderRadius.full,
+    borderRadius: borderRadius.sm,
     marginTop: spacing.xs,
   },
   statusText: {
