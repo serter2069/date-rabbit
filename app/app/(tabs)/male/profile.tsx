@@ -112,7 +112,7 @@ export default function MaleProfileScreen() {
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Preferences</Text>
         <Card>
-          <MenuItem icon="map-pin" label="Location" value="San Francisco" colors={colors} />
+          <MenuItem icon="map-pin" label="Location" value={user?.location || 'Not set'} colors={colors} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
           <MenuItem icon="cake" label="Age Range" value="25-35" colors={colors} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
