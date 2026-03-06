@@ -28,6 +28,9 @@ export default function MaleProfileScreen() {
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.md }]}>
       <View style={styles.header}>
         <Text style={[styles.title, { color: colors.text }]}>Profile</Text>
+        <TouchableOpacity onPress={() => router.push('/settings')} style={styles.settingsButton}>
+          <Icon name="settings" size={24} color={colors.text} />
+        </TouchableOpacity>
       </View>
 
       <Card style={styles.profileCard}>
@@ -75,11 +78,11 @@ export default function MaleProfileScreen() {
         <Card>
           <MenuItem icon="heart" label="Favorites" onPress={() => router.push('/favorites')} colors={colors} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <MenuItem icon="credit-card" label="Payment Methods" colors={colors} />
+          <MenuItem icon="credit-card" label="Payment Methods" onPress={() => router.push('/settings/payment-methods')} colors={colors} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
           <MenuItem icon="receipt" label="Transaction History" colors={colors} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <MenuItem icon="bell" label="Notifications" colors={colors} />
+          <MenuItem icon="bell" label="Notifications" onPress={() => router.push('/settings/notifications')} colors={colors} />
         </Card>
       </View>
 
@@ -107,9 +110,9 @@ export default function MaleProfileScreen() {
 
       <View style={styles.section}>
         <Card>
-          <MenuItem icon="file-text" label="Terms of Service" colors={colors} />
+          <MenuItem icon="file-text" label="Terms of Service" onPress={() => router.push('/terms')} colors={colors} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <MenuItem icon="shield" label="Privacy Policy" colors={colors} />
+          <MenuItem icon="shield" label="Privacy Policy" onPress={() => router.push('/privacy')} colors={colors} />
         </Card>
       </View>
 
@@ -148,7 +151,16 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: spacing.lg,
+  },
+  settingsButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
     fontFamily: typography.fonts.heading,
