@@ -59,7 +59,7 @@ export class MessagesService {
         { user1Id: userId },
         { user2Id: userId },
       ],
-      relations: ['user1', 'user2'],
+      relations: ['user1', 'user2', 'lastMessage'],
       order: { lastMessageAt: 'DESC' },
     });
   }

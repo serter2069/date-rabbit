@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
     backgroundColor: colors.surface,
-    borderRadius: borderRadius.full,
+    borderRadius: borderRadius.sm,
     marginBottom: spacing.xl,
   },
   pollingText: {

@@ -1,12 +1,15 @@
-import { Controller, Get, Query, Param, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Query, Param, NotFoundException, UseGuards, Request } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
+import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 
 @Controller('companions')
 export class CompanionsController {
   constructor(private usersService: UsersService) {}
 
+  @UseGuards(OptionalJwtAuthGuard)
   @Get()
   async searchCompanions(
+    @Request() req,
     @Query('priceMin') priceMin?: string,
     @Query('priceMax') priceMax?: string,
     @Query('maxDistance') maxDistance?: string,
@@ -17,7 +20,23 @@ export class CompanionsController {
     @Query('search') search?: string,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
+    @Query('page') page?: string,
   ) {
+    const parsedLimit = limit ? parseInt(limit) : 20;
+    // Support both page-based and offset-based pagination.
+    // page takes precedence over offset when both are provided.
+    const parsedOffset = page
+      ? (parseInt(page) - 1) * parsedLimit
+      : offset
+        ? parseInt(offset)
+        : 0;
+
+    // Exclude blocked users if the requester is authenticated
+    let excludeUserIds: string[] | undefined;
+    if (req.user?.id) {
+      excludeUserIds = await this.usersService.getBlockedUserIds(req.user.id);
+    }
+
     const { companions, total } = await this.usersService.getCompanions({
       priceMin: priceMin ? parseFloat(priceMin) : undefined,
       priceMax: priceMax ? parseFloat(priceMax) : undefined,
@@ -27,9 +46,12 @@ export class CompanionsController {
       ageMax: ageMax ? parseInt(ageMax) : undefined,
       sortBy,
       search,
-      limit: limit ? parseInt(limit) : 20,
-      offset: offset ? parseInt(offset) : 0,
+      limit: parsedLimit,
+      offset: parsedOffset,
+      excludeUserIds,
     });
+
+    const currentPage = page ? parseInt(page) : Math.floor(parsedOffset / parsedLimit) + 1;
 
     return {
       companions: companions.map((c) => ({
@@ -39,12 +61,14 @@ export class CompanionsController {
         location: c.location,
         bio: c.bio,
         primaryPhoto: c.photos?.[0]?.url || null,
-        hourlyRate: c.hourlyRate ? Number(c.hourlyRate) : null,
+        hourlyRate: c.hourlyRate != null ? Number(c.hourlyRate) : 0,
         rating: c.rating ? Number(c.rating) : 5.0,
         reviewCount: c.reviewCount || 0,
         isVerified: c.isVerified || false,
       })),
       total,
+      page: currentPage,
+      totalPages: Math.ceil(total / parsedLimit),
     };
   }
 
@@ -68,7 +92,7 @@ export class CompanionsController {
       location: user.location,
       bio: user.bio,
       photos: user.photos || [],
-      hourlyRate: user.hourlyRate ? Number(user.hourlyRate) : null,
+      hourlyRate: user.hourlyRate != null ? Number(user.hourlyRate) : 0,
       rating: user.rating ? Number(user.rating) : 5.0,
       reviewCount: user.reviewCount || 0,
       isVerified: user.isVerified || false,

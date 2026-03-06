@@ -7,6 +7,13 @@ import { UserRole } from '../users/entities/user.entity';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
+  // Alias for admin panel compatibility
+  @Post('send-otp')
+  @Throttle({ default: { limit: 20, ttl: 3600000 } })
+  async sendOtp(@Body() body: { email: string }) {
+    return this.startAuth(body);
+  }
+
   @Post('start')
   @Throttle({ default: { limit: 20, ttl: 3600000 } }) // 20 emails per hour
   async startAuth(@Body() body: { email: string }) {
@@ -25,6 +32,13 @@ export class AuthController {
 
     const result = await this.authService.startAuth(email);
     return result;
+  }
+
+  // Alias for admin panel compatibility
+  @Post('verify-otp')
+  @Throttle({ default: { limit: 10, ttl: 600000 } })
+  async verifyOtpAlias(@Body() body: { email: string; code: string }) {
+    return this.verifyOtp(body);
   }
 
   @Post('verify')

@@ -73,7 +73,7 @@ export default function BrowseScreen() {
   // Fetch companions when location or filters change
   const fetchCompanions = useCallback(async () => {
     try {
-      const sortByMap: Record<string, 'recommended' | 'price_low' | 'price_high' | 'rating' | 'distance'> = {
+      const sortByMap: Record<string, 'recommended' | 'price_low' | 'price_high' | 'rating' | 'distance' | 'new'> = {
         'recommended': 'recommended',
         'price_low': 'price_low',
         'price_high': 'price_high',
@@ -81,13 +81,16 @@ export default function BrowseScreen() {
         'distance': 'distance',
       };
 
-      let sortBy = sortByMap[appliedFilters.sortBy] || 'recommended';
+      let sortBy: 'recommended' | 'price_low' | 'price_high' | 'rating' | 'distance' | 'new' =
+        sortByMap[appliedFilters.sortBy] || 'recommended';
 
       // Quick filter overrides
       if (activeFilter === 'Nearby' && userLocation) {
         sortBy = 'distance';
       } else if (activeFilter === 'Top Rated') {
         sortBy = 'rating';
+      } else if (activeFilter === 'New') {
+        sortBy = 'new';
       }
 
       const response = await companionsApi.search({
@@ -158,7 +161,7 @@ export default function BrowseScreen() {
       </View>
 
       <View style={styles.searchContainer}>
-        <View style={[styles.searchBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[styles.searchBox, { backgroundColor: colors.surface }]}>
           <Icon name="search" size={18} color={colors.textSecondary} />
           <TextInput
             style={[styles.searchInput, { color: colors.text }]}
@@ -170,7 +173,7 @@ export default function BrowseScreen() {
           />
         </View>
         <TouchableOpacity
-          style={[styles.filterButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+          style={[styles.filterButton, { backgroundColor: colors.surface }]}
           onPress={() => setFilterModalVisible(true)}
           testID="browse-filter-btn"
         >
@@ -195,7 +198,7 @@ export default function BrowseScreen() {
             style={[
               styles.filterChip,
               { backgroundColor: colors.surface },
-              activeFilter === filter && { backgroundColor: colors.primary },
+              activeFilter === filter && [styles.filterChipActive, { backgroundColor: colors.primary }],
             ]}
             onPress={() => setActiveFilter(filter)}
           >
@@ -259,7 +262,7 @@ export default function BrowseScreen() {
                   </View>
                 </View>
                 <View style={[styles.rateBox, { backgroundColor: colors.primary + '15' }]}>
-                  <Text style={[styles.rateValue, { color: colors.primary }]}>${companion.hourlyRate}</Text>
+                  <Text style={[styles.rateValue, { color: colors.primary }]}>${companion.hourlyRate ?? 0}</Text>
                   <Text style={[styles.rateLabel, { color: colors.textSecondary }]}>/hr</Text>
                 </View>
               </View>
@@ -278,7 +281,7 @@ export default function BrowseScreen() {
               <View style={styles.actions}>
                 <Button
                   title="View Profile"
-                  onPress={() => router.push({ pathname: '/profile/[id]', params: { id: companion.id } })}
+                  onPress={() => router.push(`/profile/${companion.id}`)}
                   variant="outline"
                   size="md"
                   style={styles.actionButton}
@@ -286,7 +289,7 @@ export default function BrowseScreen() {
                 />
                 <Button
                   title="Book Date"
-                  onPress={() => router.push({ pathname: '/booking/[id]', params: { id: companion.id } })}
+                  onPress={() => router.push(`/booking/${companion.id}`)}
                   size="md"
                   style={styles.actionButton}
                   testID={`browse-book-date-${companion.id}`}
@@ -341,7 +344,9 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
-    borderRadius: borderRadius.full,
+    borderRadius: borderRadius.sm,
+    borderWidth: 2,
+    borderColor: '#000000',
     marginBottom: spacing.md,
     gap: spacing.xs,
   },
@@ -360,29 +365,45 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: borderRadius.xl,
+    borderRadius: borderRadius.sm,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    borderWidth: 1,
+    borderWidth: 2,
+    borderColor: '#000000',
     gap: spacing.sm,
+    // Neo-Brutalism offset shadow
+    shadowColor: '#000000',
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 3,
   },
   filterButton: {
-    width: 44,
-    height: 44,
-    borderRadius: borderRadius.lg,
+    width: 46,
+    height: 46,
+    borderRadius: borderRadius.sm,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
+    borderWidth: 2,
+    borderColor: '#000000',
+    // Neo-Brutalism offset shadow
+    shadowColor: '#000000',
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 3,
   },
   filterBadge: {
     position: 'absolute',
-    top: -4,
-    right: -4,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
+    top: -6,
+    right: -6,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#000000',
   },
   filterBadgeText: {
     fontFamily: typography.fonts.heading,
@@ -396,19 +417,33 @@ const styles = StyleSheet.create({
     padding: 0,
   },
   filtersScroll: {
-    maxHeight: 50,
+    maxHeight: 56,
   },
   filtersContent: {
     paddingHorizontal: spacing.lg,
     gap: spacing.sm,
+    alignItems: 'center',
   },
   filterChip: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.full,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 8,
+    borderRadius: borderRadius.sm,
+    borderWidth: 2,
+    borderColor: '#000000',
+    // Inactive chip: subtle shadow
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  filterChipActive: {
+    // Active chip: stronger offset shadow
+    shadowOffset: { width: 3, height: 3 },
+    elevation: 3,
   },
   filterText: {
-    fontFamily: typography.fonts.bodyMedium,
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.sm,
   },
   scrollView: {
@@ -456,7 +491,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.sm,
+    borderWidth: 2,
+    borderColor: '#000000',
+    shadowColor: '#000000',
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
   },
   rateValue: {
     fontFamily: typography.fonts.heading,
