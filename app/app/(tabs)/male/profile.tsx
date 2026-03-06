@@ -56,7 +56,7 @@ export default function MaleProfileScreen() {
                 <Text style={[styles.roleBadgeText, { color: colors.badge.purple.text }]}>SEEKER</Text>
               </View>
             </View>
-            <Text style={[styles.profileName, { color: colors.text }]}>{user?.name}, {user?.age}</Text>
+            <Text style={[styles.profileName, { color: colors.text }]}>{user?.name}{user?.age ? `, ${user.age}` : ''}</Text>
             {user?.location ? (
               <View style={styles.locationRow}>
                 <Icon name="map-pin" size={13} color={colors.primary} />
