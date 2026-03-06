@@ -149,6 +149,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   title: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.xxl,
     fontWeight: '700',
     color: colors.text,
@@ -156,6 +157,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   description: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.md,
     color: colors.textSecondary,
     textAlign: 'center',
