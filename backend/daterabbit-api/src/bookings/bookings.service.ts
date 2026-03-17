@@ -275,7 +275,7 @@ export class BookingsService {
       update.activeDateStartedAt = now;
     }
     await this.bookingsRepository.update(bookingId, update);
-    return this.findById(bookingId);
+    return (await this.findById(bookingId))!;
   }
 
   async companionCheckin(bookingId: string, companionId: string, lat?: number, lon?: number): Promise<Booking> {
@@ -292,7 +292,7 @@ export class BookingsService {
       update.activeDateStartedAt = now;
     }
     await this.bookingsRepository.update(bookingId, update);
-    return this.findById(bookingId);
+    return (await this.findById(bookingId))!;
   }
 
   async triggerSOS(bookingId: string, userId: string, lat?: number, lon?: number): Promise<Booking> {
@@ -305,7 +305,7 @@ export class BookingsService {
       sosTriggeredAt: new Date(),
       sosTriggeredBy: userId,
     });
-    return this.findById(bookingId);
+    return (await this.findById(bookingId))!;
   }
 
   async endEarly(bookingId: string, userId: string): Promise<Booking> {
@@ -328,7 +328,7 @@ export class BookingsService {
       activeDateEndedAt: now,
       actualDurationHours: actualHours,
     });
-    return this.findById(bookingId);
+    return (await this.findById(bookingId))!;
   }
 
   async handleNoShow(bookingId: string, reason: 'seeker' | 'companion'): Promise<Booking> {
@@ -337,7 +337,7 @@ export class BookingsService {
       noShowReason: reason,
       cancellationReason: `No-show: ${reason} did not check in`,
     });
-    return this.findById(bookingId);
+    return (await this.findById(bookingId))!;
   }
 
   async getActiveDateBooking(userId: string): Promise<Booking | null> {
