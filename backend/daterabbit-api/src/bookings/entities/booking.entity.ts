@@ -13,6 +13,7 @@ export enum BookingStatus {
   PENDING = 'pending',
   CONFIRMED = 'confirmed',
   PAID = 'paid',
+  ACTIVE = 'active',
   CANCELLED = 'cancelled',
   COMPLETED = 'completed',
 }
@@ -72,6 +73,30 @@ export class Booking {
 
   @Column({ type: 'text', nullable: true })
   cancellationReason: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  seekerCheckinAt: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  companionCheckinAt: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  activeDateStartedAt: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  activeDateEndedAt: Date;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  actualDurationHours: number;
+
+  @Column({ type: 'timestamp', nullable: true })
+  sosTriggeredAt: Date;
+
+  @Column({ nullable: true })
+  sosTriggeredBy: string;
+
+  @Column({ type: 'text', nullable: true })
+  noShowReason: string;
 
   @CreateDateColumn()
   createdAt: Date;
