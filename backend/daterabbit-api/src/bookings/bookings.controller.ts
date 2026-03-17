@@ -105,6 +105,13 @@ export class BookingsController {
     return requests.map((b) => this.formatBooking(b));
   }
 
+  @Get('active')
+  async getActiveDateBooking(@Request() req) {
+    const booking = await this.bookingsService.getActiveDateBooking(req.user.id);
+    if (!booking) return null;
+    return this.formatBooking(booking);
+  }
+
   @Get(':id')
   async getBooking(@Param('id') id: string, @Request() req) {
     const booking = await this.bookingsService.findById(id);
@@ -169,13 +176,6 @@ export class BookingsController {
     return this.formatBooking(updated);
   }
 
-  @Get('active')
-  async getActiveDateBooking(@Request() req) {
-    const booking = await this.bookingsService.getActiveDateBooking(req.user.id);
-    if (!booking) return null;
-    return this.formatBooking(booking);
-  }
-
   @Post(':id/checkin')
   async seekerCheckin(@Param('id') id: string, @Request() req, @Body() body: { lat?: number; lon?: number }) {
     const booking = await this.bookingsService.seekerCheckin(id, req.user.id, body.lat, body.lon);
@@ -217,6 +217,7 @@ export class BookingsController {
       activeDateEndedAt: booking.activeDateEndedAt || undefined,
       actualDurationHours: booking.actualDurationHours || undefined,
       sosTriggeredAt: booking.sosTriggeredAt || undefined,
+      sosTriggeredBy: booking.sosTriggeredBy || undefined,
       noShowReason: booking.noShowReason || undefined,
       seeker: booking.seeker ? {
         id: booking.seeker.id,
