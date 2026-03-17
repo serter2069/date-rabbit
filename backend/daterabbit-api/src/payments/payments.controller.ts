@@ -77,6 +77,11 @@ export class PaymentsController {
   @Post('payouts/create')
   @UseGuards(JwtAuthGuard)
   async createPayout(@Request() req, @Body() body: { amount?: number }) {
+    if (body.amount !== undefined) {
+      if (typeof body.amount !== 'number' || body.amount <= 0) {
+        throw new HttpException('Amount must be a positive number', HttpStatus.BAD_REQUEST);
+      }
+    }
     return this.paymentsService.createPayout(req.user.id, body.amount);
   }
 

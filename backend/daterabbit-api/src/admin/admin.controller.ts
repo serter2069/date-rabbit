@@ -1,12 +1,15 @@
 import {
   Controller,
   Get,
+  Post,
+  Delete,
   Patch,
   Put,
   Param,
   Body,
   Query,
   UseGuards,
+  Request,
   ParseIntPipe,
   DefaultValuePipe,
 } from '@nestjs/common';
@@ -18,9 +21,44 @@ import { AdminService } from './admin.service';
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
+  // #696 - admin identity
+  @Get('me')
+  getMe(@Request() req) {
+    return req.user;
+  }
+
   @Get('stats')
   getStats() {
     return this.adminService.getStats();
+  }
+
+  // #700 - revenue
+  @Get('revenue')
+  getRevenue() {
+    return this.adminService.getRevenue();
+  }
+
+  // #700 - transactions
+  @Get('transactions')
+  getTransactions(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+  ) {
+    return this.adminService.getTransactions(page, Math.min(limit, 100));
+  }
+
+  // #701 - reviews
+  @Get('reviews')
+  getReviews(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+  ) {
+    return this.adminService.getReviews(page, Math.min(limit, 100));
+  }
+
+  @Delete('reviews/:id')
+  deleteReview(@Param('id') id: string) {
+    return this.adminService.deleteReview(id);
   }
 
   @Get('users')
@@ -45,6 +83,27 @@ export class AdminController {
     return this.adminService.updateUser(id, body);
   }
 
+  // #697 - ban/unban
+  @Post('users/:id/ban')
+  banUser(@Param('id') id: string) {
+    return this.adminService.banUser(id);
+  }
+
+  @Post('users/:id/unban')
+  unbanUser(@Param('id') id: string) {
+    return this.adminService.unbanUser(id);
+  }
+
+  // #698 - user bookings
+  @Get('users/:userId/bookings')
+  getUserBookings(
+    @Param('userId') userId: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+  ) {
+    return this.adminService.getUserBookings(userId, page, Math.min(limit, 100));
+  }
+
   @Get('bookings')
   getBookings(
     @Query('status') status?: string,
@@ -57,6 +116,15 @@ export class AdminController {
   @Get('bookings/:id')
   getBookingById(@Param('id') id: string) {
     return this.adminService.getBookingById(id);
+  }
+
+  // #699 - cancel booking
+  @Post('bookings/:id/cancel')
+  cancelBooking(
+    @Param('id') id: string,
+    @Body() body: { reason?: string },
+  ) {
+    return this.adminService.cancelBooking(id, body.reason);
   }
 
   @Get('verifications')

@@ -8,11 +8,12 @@ import { AdminGuard } from './admin.guard';
 import { User } from '../users/entities/user.entity';
 import { Booking } from '../bookings/entities/booking.entity';
 import { Verification } from '../verification/entities/verification.entity';
+import { Review } from '../reviews/entities/review.entity';
 import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Booking, Verification]),
+    TypeOrmModule.forFeature([User, Booking, Verification, Review]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
