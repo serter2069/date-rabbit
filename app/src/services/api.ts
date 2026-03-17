@@ -346,7 +346,7 @@ export const bookingsApi = {
 
   complete: (id: string) =>
     apiRequest<Booking>(`/bookings/${id}/complete`, {
-      method: 'POST',
+      method: 'PUT',
     }),
 
   createReview: (id: string, rating: number, comment?: string) =>
@@ -508,7 +508,7 @@ export const verificationApi = {
     const formData = new FormData();
     const extension = uri.split('.').pop() || 'jpg';
     const type = `image/${extension === 'jpg' ? 'jpeg' : extension}`;
-    formData.append('photo', {
+    formData.append('file', {
       uri,
       type,
       name: `id-photo.${extension}`,
@@ -533,7 +533,7 @@ export const verificationApi = {
     const formData = new FormData();
     const extension = uri.split('.').pop() || 'jpg';
     const type = `image/${extension === 'jpg' ? 'jpeg' : extension}`;
-    formData.append('photo', {
+    formData.append('file', {
       uri,
       type,
       name: `selfie.${extension}`,
@@ -558,7 +558,7 @@ export const verificationApi = {
     const formData = new FormData();
     const extension = uri.split('.').pop() || 'mp4';
     const type = `video/${extension}`;
-    formData.append('video', {
+    formData.append('file', {
       uri,
       type,
       name: `video.${extension}`,
