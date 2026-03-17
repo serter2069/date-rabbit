@@ -11,6 +11,13 @@ on:
         default: ''
 
 jobs:
+
+      - name: Cleanup node_modules
+        if: always()
+        run: |
+          find . -type d -name "node_modules" -exec rm -rf {} + 2>/dev/null || true
+          echo "Cleanup done — runner disk freed"
+
   deploy-staging:
     name: Deploy → Staging
     if: github.ref == 'refs/heads/development'
@@ -233,6 +240,13 @@ jobs:
           cd backend/daterabbit-api
           npx ts-node src/seed/seed.ts 2>&1
 
+
+      - name: Cleanup node_modules
+        if: always()
+        run: |
+          find . -type d -name "node_modules" -exec rm -rf {} + 2>/dev/null || true
+          echo "Cleanup done — runner disk freed"
+
   deploy-production:
     name: Deploy → Production
     if: github.ref == 'refs/heads/main'
@@ -436,3 +450,10 @@ jobs:
           curl -s -o /dev/null -w "GET /admin (Next.js):       %{http_code}\n" http://localhost:3005/ || true
           echo "=== Nginx config files ==="
           ls -la /etc/nginx/sites-enabled/ 2>/dev/null | grep -i date || echo "No daterabbit in sites-enabled"
+
+
+      - name: Cleanup node_modules
+        if: always()
+        run: |
+          find . -type d -name "node_modules" -exec rm -rf {} + 2>/dev/null || true
+          echo "Cleanup done — runner disk freed"
