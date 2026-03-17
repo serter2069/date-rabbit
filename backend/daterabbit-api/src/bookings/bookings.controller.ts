@@ -1,12 +1,16 @@
 import { Controller, Get, Post, Put, Body, Param, Query, UseGuards, Request, HttpException, HttpStatus } from '@nestjs/common';
 import { BookingsService } from './bookings.service';
+import { PaymentsService } from '../payments/payments.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { BookingStatus, ActivityType } from './entities/booking.entity';
 
 @Controller('bookings')
 @UseGuards(JwtAuthGuard)
 export class BookingsController {
-  constructor(private bookingsService: BookingsService) {}
+  constructor(
+    private bookingsService: BookingsService,
+    private paymentsService: PaymentsService,
+  ) {}
 
   @Post()
   async createBooking(
@@ -148,12 +152,20 @@ export class BookingsController {
       throw new HttpException('Cannot cancel a completed booking', HttpStatus.BAD_REQUEST);
     }
     const updated = await this.bookingsService.updateStatus(id, BookingStatus.CANCELLED, body.reason);
+    // Release Stripe hold or refund (fire-and-forget, don't fail the cancel if Stripe fails)
+    this.paymentsService.cancelPaymentHold(id).catch(err =>
+      console.error('Stripe cancel error for booking', id, err),
+    );
     return this.formatBooking(updated);
   }
 
   @Put(':id/complete')
   async completeBooking(@Param('id') id: string, @Request() req) {
     const updated = await this.bookingsService.complete(id, req.user.id);
+    // Capture the Stripe hold (fire-and-forget)
+    this.paymentsService.capturePayment(id).catch(err =>
+      console.error('Stripe capture error for booking', id, err),
+    );
     return this.formatBooking(updated);
   }
 
