@@ -169,6 +169,37 @@ export class BookingsController {
     return this.formatBooking(updated);
   }
 
+  @Get('active')
+  async getActiveDateBooking(@Request() req) {
+    const booking = await this.bookingsService.getActiveDateBooking(req.user.id);
+    if (!booking) return null;
+    return this.formatBooking(booking);
+  }
+
+  @Post(':id/checkin')
+  async seekerCheckin(@Param('id') id: string, @Request() req, @Body() body: { lat?: number; lon?: number }) {
+    const booking = await this.bookingsService.seekerCheckin(id, req.user.id, body.lat, body.lon);
+    return this.formatBooking(booking);
+  }
+
+  @Post(':id/companion-checkin')
+  async companionCheckin(@Param('id') id: string, @Request() req, @Body() body: { lat?: number; lon?: number }) {
+    const booking = await this.bookingsService.companionCheckin(id, req.user.id, body.lat, body.lon);
+    return this.formatBooking(booking);
+  }
+
+  @Post(':id/sos')
+  async triggerSOS(@Param('id') id: string, @Request() req, @Body() body: { lat?: number; lon?: number }) {
+    const booking = await this.bookingsService.triggerSOS(id, req.user.id, body.lat, body.lon);
+    return this.formatBooking(booking);
+  }
+
+  @Post(':id/end-early')
+  async endEarly(@Param('id') id: string, @Request() req) {
+    const booking = await this.bookingsService.endEarly(id, req.user.id);
+    return this.formatBooking(booking);
+  }
+
   private formatBooking(booking: any) {
     return {
       id: booking.id,
@@ -180,6 +211,13 @@ export class BookingsController {
       totalPrice: booking.totalPrice,
       status: booking.status,
       cancellationReason: booking.cancellationReason || undefined,
+      seekerCheckinAt: booking.seekerCheckinAt || undefined,
+      companionCheckinAt: booking.companionCheckinAt || undefined,
+      activeDateStartedAt: booking.activeDateStartedAt || undefined,
+      activeDateEndedAt: booking.activeDateEndedAt || undefined,
+      actualDurationHours: booking.actualDurationHours || undefined,
+      sosTriggeredAt: booking.sosTriggeredAt || undefined,
+      noShowReason: booking.noShowReason || undefined,
       seeker: booking.seeker ? {
         id: booking.seeker.id,
         name: booking.seeker.name,

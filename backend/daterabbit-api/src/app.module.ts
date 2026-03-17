@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
@@ -47,6 +48,7 @@ import { AdminModule } from './admin/admin.module';
         logging: configService.get('NODE_ENV') === 'development',
       }),
     }),
+    ScheduleModule.forRoot(),
     AuthModule,
     UsersModule,
     CompanionsModule,

@@ -260,4 +260,93 @@ export class BookingsService {
     }
     return updated;
   }
+
+  async seekerCheckin(bookingId: string, seekerId: string, lat?: number, lon?: number): Promise<Booking> {
+    const booking = await this.findById(bookingId);
+    if (!booking) throw new HttpException('Booking not found', HttpStatus.NOT_FOUND);
+    if (booking.seekerId !== seekerId) throw new HttpException('Unauthorized', HttpStatus.FORBIDDEN);
+    if (booking.status !== BookingStatus.CONFIRMED && booking.status !== BookingStatus.PAID) {
+      throw new HttpException('Booking is not in a confirmable state', HttpStatus.BAD_REQUEST);
+    }
+    const now = new Date();
+    const update: Partial<Booking> = { seekerCheckinAt: now };
+    if (booking.companionCheckinAt) {
+      update.status = BookingStatus.ACTIVE;
+      update.activeDateStartedAt = now;
+    }
+    await this.bookingsRepository.update(bookingId, update);
+    return this.findById(bookingId);
+  }
+
+  async companionCheckin(bookingId: string, companionId: string, lat?: number, lon?: number): Promise<Booking> {
+    const booking = await this.findById(bookingId);
+    if (!booking) throw new HttpException('Booking not found', HttpStatus.NOT_FOUND);
+    if (booking.companionId !== companionId) throw new HttpException('Unauthorized', HttpStatus.FORBIDDEN);
+    if (booking.status !== BookingStatus.CONFIRMED && booking.status !== BookingStatus.PAID) {
+      throw new HttpException('Booking is not in a confirmable state', HttpStatus.BAD_REQUEST);
+    }
+    const now = new Date();
+    const update: Partial<Booking> = { companionCheckinAt: now };
+    if (booking.seekerCheckinAt) {
+      update.status = BookingStatus.ACTIVE;
+      update.activeDateStartedAt = now;
+    }
+    await this.bookingsRepository.update(bookingId, update);
+    return this.findById(bookingId);
+  }
+
+  async triggerSOS(bookingId: string, userId: string, lat?: number, lon?: number): Promise<Booking> {
+    const booking = await this.findById(bookingId);
+    if (!booking) throw new HttpException('Booking not found', HttpStatus.NOT_FOUND);
+    if (booking.seekerId !== userId && booking.companionId !== userId) {
+      throw new HttpException('Unauthorized', HttpStatus.FORBIDDEN);
+    }
+    await this.bookingsRepository.update(bookingId, {
+      sosTriggeredAt: new Date(),
+      sosTriggeredBy: userId,
+    });
+    return this.findById(bookingId);
+  }
+
+  async endEarly(bookingId: string, userId: string): Promise<Booking> {
+    const booking = await this.findById(bookingId);
+    if (!booking) throw new HttpException('Booking not found', HttpStatus.NOT_FOUND);
+    if (booking.seekerId !== userId && booking.companionId !== userId) {
+      throw new HttpException('Unauthorized', HttpStatus.FORBIDDEN);
+    }
+    if (booking.status !== BookingStatus.ACTIVE && booking.status !== BookingStatus.CONFIRMED && booking.status !== BookingStatus.PAID) {
+      throw new HttpException('Cannot end this booking early', HttpStatus.BAD_REQUEST);
+    }
+    const now = new Date();
+    let actualHours = booking.duration;
+    if (booking.activeDateStartedAt) {
+      actualHours = Math.max(0.25, (now.getTime() - new Date(booking.activeDateStartedAt).getTime()) / 3600000);
+      actualHours = Math.round(actualHours * 4) / 4; // round to nearest 15 min
+    }
+    await this.bookingsRepository.update(bookingId, {
+      status: BookingStatus.COMPLETED,
+      activeDateEndedAt: now,
+      actualDurationHours: actualHours,
+    });
+    return this.findById(bookingId);
+  }
+
+  async handleNoShow(bookingId: string, reason: 'seeker' | 'companion'): Promise<Booking> {
+    await this.bookingsRepository.update(bookingId, {
+      status: BookingStatus.CANCELLED,
+      noShowReason: reason,
+      cancellationReason: `No-show: ${reason} did not check in`,
+    });
+    return this.findById(bookingId);
+  }
+
+  async getActiveDateBooking(userId: string): Promise<Booking | null> {
+    return this.bookingsRepository.findOne({
+      where: [
+        { seekerId: userId, status: BookingStatus.ACTIVE },
+        { companionId: userId, status: BookingStatus.ACTIVE },
+      ],
+      relations: ['seeker', 'companion'],
+    });
+  }
 }
