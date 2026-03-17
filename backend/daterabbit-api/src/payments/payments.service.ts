@@ -118,6 +118,7 @@ export class PaymentsService {
     const paymentIntent = await this.stripe.paymentIntents.create({
       amount,
       currency: 'usd',
+      capture_method: 'manual',
       application_fee_amount: platformFee,
       transfer_data: {
         destination: companion.stripeAccountId,
@@ -134,6 +135,39 @@ export class PaymentsService {
     });
 
     return { clientSecret: paymentIntent.client_secret! };
+  }
+
+  // --- Capture / Cancel (escrow) ---
+
+  async capturePayment(bookingId: string): Promise<void> {
+    const booking = await this.bookingsRepo.findOne({ where: { id: bookingId } });
+    if (!booking?.paymentIntentId) return;
+    this.ensureStripe();
+    try {
+      await this.stripe.paymentIntents.capture(booking.paymentIntentId);
+    } catch (err: any) {
+      // already captured or cancelled — log but don't throw
+      console.error('Stripe capture error:', err.message);
+    }
+  }
+
+  async cancelPaymentHold(bookingId: string): Promise<void> {
+    const booking = await this.bookingsRepo.findOne({ where: { id: bookingId } });
+    if (!booking?.paymentIntentId) return;
+    this.ensureStripe();
+    try {
+      const pi = await this.stripe.paymentIntents.retrieve(booking.paymentIntentId);
+      if (pi.status === 'requires_capture') {
+        // Cancel the hold (no charge)
+        await this.stripe.paymentIntents.cancel(booking.paymentIntentId);
+      } else if (pi.status === 'succeeded') {
+        // Already captured — create refund
+        await this.stripe.refunds.create({ payment_intent: booking.paymentIntentId });
+      }
+      // other statuses (canceled, etc.) — do nothing
+    } catch (err: any) {
+      console.error('Stripe cancel/refund error:', err.message);
+    }
   }
 
   // --- Earnings ---

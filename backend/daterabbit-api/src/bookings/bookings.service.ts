@@ -27,6 +27,31 @@ export class BookingsService {
     if (!companion) {
       throw new HttpException('Companion not found', HttpStatus.NOT_FOUND);
     }
+
+    // Check for overlapping bookings for this companion (race condition guard)
+    const bookingStart = new Date(data.dateTime);
+    const bookingEnd = new Date(bookingStart.getTime() + data.duration * 60 * 60 * 1000);
+
+    const existing = await this.bookingsRepository
+      .createQueryBuilder('b')
+      .where('b.companionId = :companionId', { companionId: data.companionId })
+      .andWhere('b.status IN (:...statuses)', {
+        statuses: [BookingStatus.PENDING, BookingStatus.CONFIRMED, BookingStatus.PAID],
+      })
+      .andWhere('b.dateTime < :end', { end: bookingEnd })
+      .andWhere(
+        "b.dateTime + (b.duration * interval '1 hour') > :start",
+        { start: bookingStart },
+      )
+      .getOne();
+
+    if (existing) {
+      throw new HttpException(
+        'Companion already has a booking at that time',
+        HttpStatus.CONFLICT,
+      );
+    }
+
     const totalPrice = (companion.hourlyRate || 100) * data.duration;
 
     const booking = this.bookingsRepository.create({
