@@ -5,6 +5,7 @@ import { User } from '../users/entities/user.entity';
 import { Booking, BookingStatus } from '../bookings/entities/booking.entity';
 import { Verification, VerificationStatus } from '../verification/entities/verification.entity';
 import { Review } from '../reviews/entities/review.entity';
+import { PlatformSettings } from './entities/platform-settings.entity';
 
 @Injectable()
 export class AdminService {
@@ -17,6 +18,8 @@ export class AdminService {
     private verificationsRepo: Repository<Verification>,
     @InjectRepository(Review)
     private reviewsRepo: Repository<Review>,
+    @InjectRepository(PlatformSettings)
+    private settingsRepo: Repository<PlatformSettings>,
   ) {}
 
   async getStats() {
@@ -323,5 +326,72 @@ export class AdminService {
     });
 
     return { success: true };
+  }
+
+  // #702 - platform settings
+  private async getOrCreateSettings(): Promise<PlatformSettings> {
+    let settings = await this.settingsRepo.findOne({ where: {} });
+    if (!settings) {
+      settings = this.settingsRepo.create({});
+      await this.settingsRepo.save(settings);
+    }
+    return settings;
+  }
+
+  async getSettings() {
+    const settings = await this.getOrCreateSettings();
+    return {
+      commissionRate: parseFloat(String(settings.commissionRate)),
+      minHourlyRate: parseFloat(String(settings.minHourlyRate)),
+      maxHourlyRate: parseFloat(String(settings.maxHourlyRate)),
+      requireVerification: settings.requireVerification,
+      requirePhotoForCompanion: settings.requirePhotoForCompanion,
+      minimumAge: settings.minimumAge,
+    };
+  }
+
+  async updateSettings(data: Partial<{
+    commissionRate: number;
+    minHourlyRate: number;
+    maxHourlyRate: number;
+    requireVerification: boolean;
+    requirePhotoForCompanion: boolean;
+    minimumAge: number;
+  }>) {
+    const settings = await this.getOrCreateSettings();
+
+    if (data.commissionRate !== undefined) {
+      if (data.commissionRate < 0 || data.commissionRate > 100) {
+        throw new BadRequestException('Commission rate must be between 0 and 100');
+      }
+      settings.commissionRate = data.commissionRate;
+    }
+    if (data.minHourlyRate !== undefined) {
+      if (data.minHourlyRate < 0) {
+        throw new BadRequestException('Min hourly rate cannot be negative');
+      }
+      settings.minHourlyRate = data.minHourlyRate;
+    }
+    if (data.maxHourlyRate !== undefined) {
+      if (data.maxHourlyRate < 0) {
+        throw new BadRequestException('Max hourly rate cannot be negative');
+      }
+      settings.maxHourlyRate = data.maxHourlyRate;
+    }
+    if (data.requireVerification !== undefined) {
+      settings.requireVerification = data.requireVerification;
+    }
+    if (data.requirePhotoForCompanion !== undefined) {
+      settings.requirePhotoForCompanion = data.requirePhotoForCompanion;
+    }
+    if (data.minimumAge !== undefined) {
+      if (data.minimumAge < 18) {
+        throw new BadRequestException('Minimum age cannot be less than 18');
+      }
+      settings.minimumAge = data.minimumAge;
+    }
+
+    await this.settingsRepo.save(settings);
+    return this.getSettings();
   }
 }
