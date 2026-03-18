@@ -152,6 +152,19 @@ export const usersApi = {
       method: 'POST',
       body: { reason, description },
     }),
+
+  getFavorites: () =>
+    apiRequest<{ favorites: string[] }>('/users/favorites'),
+
+  addFavorite: (companionId: string) =>
+    apiRequest<{ success: boolean }>(`/users/favorites/${companionId}`, {
+      method: 'POST',
+    }),
+
+  removeFavorite: (companionId: string) =>
+    apiRequest<{ success: boolean }>(`/users/favorites/${companionId}`, {
+      method: 'DELETE',
+    }),
 };
 
 // Companions API

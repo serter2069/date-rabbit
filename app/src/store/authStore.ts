@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { User, UserRole, VerificationStatus } from '../types';
 import { authApi, usersApi, setToken, getToken, ApiError, User as ApiUser } from '../services/api';
+import { useFavoritesStore } from './favoritesStore';
 
 type AuthStep = 'idle' | 'email' | 'otp' | 'onboarding' | 'authenticated';
 
@@ -109,6 +110,8 @@ export const useAuthStore = create<AuthState>()(
               hasCompletedOnboarding: true,
               authStep: 'authenticated',
             });
+            // Sync favorites from server after successful auth
+            useFavoritesStore.getState().syncFromServer();
           } catch {
             // Token invalid, clear it
             await setToken(null);
@@ -181,6 +184,8 @@ export const useAuthStore = create<AuthState>()(
                 isLoading: false,
                 pendingEmail: null,
               });
+              // Sync favorites from server after login
+              useFavoritesStore.getState().syncFromServer();
             }
           } catch {
             // Could not fetch profile, but we have token - assume existing user
@@ -191,6 +196,8 @@ export const useAuthStore = create<AuthState>()(
               hasSeenOnboarding: true,
               isLoading: false,
             });
+            // Sync favorites from server
+            useFavoritesStore.getState().syncFromServer();
           }
           return { success: true };
         } catch (err) {
@@ -241,6 +248,9 @@ export const useAuthStore = create<AuthState>()(
             pendingEmail: null,
             isLoading: false,
           });
+
+          // Sync favorites from server after registration
+          useFavoritesStore.getState().syncFromServer();
 
           return { success: true };
         } catch (err) {
