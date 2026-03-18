@@ -98,6 +98,27 @@ export class Booking {
   @Column({ type: 'text', nullable: true })
   noShowReason: string;
 
+  @Column({ type: 'jsonb', nullable: true })
+  datePlan: Record<string, any>;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  extendRequestedHours: number;
+
+  @Column({ type: 'timestamp', nullable: true })
+  extendRequestedAt: Date;
+
+  @Column({ type: 'boolean', nullable: true })
+  extendApproved: boolean;
+
+  @Column({ type: 'timestamp', nullable: true })
+  safetyCheckinAt: Date;
+
+  @Column({ type: 'text', nullable: true })
+  reportIssueText: string;
+
+  @Column({ nullable: true })
+  reportIssueType: string;
+
   @CreateDateColumn()
   createdAt: Date;
 
