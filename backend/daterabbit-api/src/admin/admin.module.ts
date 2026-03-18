@@ -9,11 +9,12 @@ import { User } from '../users/entities/user.entity';
 import { Booking } from '../bookings/entities/booking.entity';
 import { Verification } from '../verification/entities/verification.entity';
 import { Review } from '../reviews/entities/review.entity';
+import { PlatformSettings } from './entities/platform-settings.entity';
 import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Booking, Verification, Review]),
+    TypeOrmModule.forFeature([User, Booking, Verification, Review, PlatformSettings]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

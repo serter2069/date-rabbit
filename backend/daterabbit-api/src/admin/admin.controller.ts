@@ -148,4 +148,24 @@ export class AdminController {
   ) {
     return this.adminService.rejectVerification(id, body.reason);
   }
+
+  // #702 - platform settings
+  @Get('settings')
+  getSettings() {
+    return this.adminService.getSettings();
+  }
+
+  @Patch('settings')
+  updateSettings(
+    @Body() body: {
+      commissionRate?: number;
+      minHourlyRate?: number;
+      maxHourlyRate?: number;
+      requireVerification?: boolean;
+      requirePhotoForCompanion?: boolean;
+      minimumAge?: number;
+    },
+  ) {
+    return this.adminService.updateSettings(body);
+  }
 }
