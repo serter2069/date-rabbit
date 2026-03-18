@@ -2,6 +2,7 @@ import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThanOrEqual, LessThan } from 'typeorm';
 import { Booking, BookingStatus, ActivityType } from './entities/booking.entity';
+import { DatePhoto } from './entities/date-photo.entity';
 import { UsersService } from '../users/users.service';
 import { EmailService } from '../email/email.service';
 
@@ -10,6 +11,8 @@ export class BookingsService {
   constructor(
     @InjectRepository(Booking)
     private bookingsRepository: Repository<Booking>,
+    @InjectRepository(DatePhoto)
+    private datePhotosRepository: Repository<DatePhoto>,
     private usersService: UsersService,
     private emailService: EmailService,
   ) {}
@@ -268,6 +271,10 @@ export class BookingsService {
     if (booking.status !== BookingStatus.CONFIRMED && booking.status !== BookingStatus.PAID) {
       throw new HttpException('Booking is not in a confirmable state', HttpStatus.BAD_REQUEST);
     }
+    // Group 2: Log geo coordinates for future distance validation
+    if (lat !== undefined && lon !== undefined) {
+      console.log(`[GEO] Seeker checkin booking=${bookingId} lat=${lat} lon=${lon}`);
+    }
     const now = new Date();
     const update: Partial<Booking> = { seekerCheckinAt: now };
     if (booking.companionCheckinAt) {
@@ -284,6 +291,10 @@ export class BookingsService {
     if (booking.companionId !== companionId) throw new HttpException('Unauthorized', HttpStatus.FORBIDDEN);
     if (booking.status !== BookingStatus.CONFIRMED && booking.status !== BookingStatus.PAID) {
       throw new HttpException('Booking is not in a confirmable state', HttpStatus.BAD_REQUEST);
+    }
+    // Group 2: Log geo coordinates for future distance validation
+    if (lat !== undefined && lon !== undefined) {
+      console.log(`[GEO] Companion checkin booking=${bookingId} lat=${lat} lon=${lon}`);
     }
     const now = new Date();
     const update: Partial<Booking> = { companionCheckinAt: now };
@@ -348,5 +359,137 @@ export class BookingsService {
       ],
       relations: ['seeker', 'companion'],
     });
+  }
+
+  // --- Group 1: Safety check-in ---
+
+  async safetyCheckin(bookingId: string, userId: string): Promise<Booking> {
+    const booking = await this.findById(bookingId);
+    if (!booking) throw new HttpException('Booking not found', HttpStatus.NOT_FOUND);
+    if (booking.seekerId !== userId && booking.companionId !== userId) {
+      throw new HttpException('Unauthorized', HttpStatus.FORBIDDEN);
+    }
+    if (booking.status !== BookingStatus.ACTIVE) {
+      throw new HttpException('Booking is not active', HttpStatus.BAD_REQUEST);
+    }
+    await this.bookingsRepository.update(bookingId, { safetyCheckinAt: new Date() });
+    return this.findById(bookingId) as Promise<Booking>;
+  }
+
+  // --- Group 1: Photos ---
+
+  async addPhoto(bookingId: string, userId: string, url: string): Promise<DatePhoto> {
+    const booking = await this.findById(bookingId);
+    if (!booking) throw new HttpException('Booking not found', HttpStatus.NOT_FOUND);
+    if (booking.seekerId !== userId && booking.companionId !== userId) {
+      throw new HttpException('Unauthorized', HttpStatus.FORBIDDEN);
+    }
+    const photo = this.datePhotosRepository.create({
+      bookingId,
+      url,
+      uploadedBy: userId,
+    });
+    return this.datePhotosRepository.save(photo);
+  }
+
+  async getPhotos(bookingId: string, userId: string): Promise<DatePhoto[]> {
+    const booking = await this.findById(bookingId);
+    if (!booking) throw new HttpException('Booking not found', HttpStatus.NOT_FOUND);
+    if (booking.seekerId !== userId && booking.companionId !== userId) {
+      throw new HttpException('Unauthorized', HttpStatus.FORBIDDEN);
+    }
+    return this.datePhotosRepository.find({
+      where: { bookingId },
+      order: { createdAt: 'ASC' },
+    });
+  }
+
+  // --- Group 1: Date plan ---
+
+  async getDatePlan(bookingId: string, userId: string): Promise<Record<string, any> | null> {
+    const booking = await this.findById(bookingId);
+    if (!booking) throw new HttpException('Booking not found', HttpStatus.NOT_FOUND);
+    if (booking.seekerId !== userId && booking.companionId !== userId) {
+      throw new HttpException('Unauthorized', HttpStatus.FORBIDDEN);
+    }
+    return booking.datePlan || null;
+  }
+
+  async updateDatePlan(bookingId: string, userId: string, plan: Record<string, any>): Promise<Booking> {
+    const booking = await this.findById(bookingId);
+    if (!booking) throw new HttpException('Booking not found', HttpStatus.NOT_FOUND);
+    if (booking.seekerId !== userId) {
+      throw new HttpException('Only seeker can update the date plan', HttpStatus.FORBIDDEN);
+    }
+    if (booking.status === BookingStatus.COMPLETED || booking.status === BookingStatus.CANCELLED) {
+      throw new HttpException('Cannot update plan for a finished booking', HttpStatus.BAD_REQUEST);
+    }
+    await this.bookingsRepository.update(bookingId, { datePlan: plan });
+    return this.findById(bookingId) as Promise<Booking>;
+  }
+
+  // --- Group 1: Report issue ---
+
+  async reportIssue(
+    bookingId: string,
+    userId: string,
+    issueType: string,
+    issueText: string,
+  ): Promise<Booking> {
+    const booking = await this.findById(bookingId);
+    if (!booking) throw new HttpException('Booking not found', HttpStatus.NOT_FOUND);
+    if (booking.seekerId !== userId && booking.companionId !== userId) {
+      throw new HttpException('Unauthorized', HttpStatus.FORBIDDEN);
+    }
+    await this.bookingsRepository.update(bookingId, {
+      reportIssueType: issueType,
+      reportIssueText: issueText,
+    });
+    return this.findById(bookingId) as Promise<Booking>;
+  }
+
+  // --- Group 1: Extend request ---
+
+  async requestExtend(bookingId: string, userId: string, hours: number): Promise<Booking> {
+    const booking = await this.findById(bookingId);
+    if (!booking) throw new HttpException('Booking not found', HttpStatus.NOT_FOUND);
+    if (booking.seekerId !== userId) {
+      throw new HttpException('Only seeker can request extension', HttpStatus.FORBIDDEN);
+    }
+    if (booking.status !== BookingStatus.ACTIVE) {
+      throw new HttpException('Can only extend an active date', HttpStatus.BAD_REQUEST);
+    }
+    if (hours <= 0 || hours > 8) {
+      throw new HttpException('Extension hours must be between 0 and 8', HttpStatus.BAD_REQUEST);
+    }
+    await this.bookingsRepository.update(bookingId, {
+      extendRequestedHours: hours,
+      extendRequestedAt: new Date(),
+      extendApproved: undefined,
+    });
+    return this.findById(bookingId) as Promise<Booking>;
+  }
+
+  // --- Group 2: Extend response (companion accept/reject) ---
+
+  async respondExtend(bookingId: string, companionId: string, approved: boolean): Promise<Booking> {
+    const booking = await this.findById(bookingId);
+    if (!booking) throw new HttpException('Booking not found', HttpStatus.NOT_FOUND);
+    if (booking.companionId !== companionId) {
+      throw new HttpException('Only companion can respond to extension', HttpStatus.FORBIDDEN);
+    }
+    if (!booking.extendRequestedAt || booking.extendApproved !== null && booking.extendApproved !== undefined) {
+      throw new HttpException('No pending extension request', HttpStatus.BAD_REQUEST);
+    }
+    const update: Partial<Booking> = { extendApproved: approved };
+    if (approved && booking.extendRequestedHours) {
+      update.duration = booking.duration + booking.extendRequestedHours;
+      // Recalculate total price
+      const companion = await this.usersService.findById(companionId);
+      const hourlyRate = companion?.hourlyRate || 100;
+      update.totalPrice = booking.totalPrice + booking.extendRequestedHours * hourlyRate;
+    }
+    await this.bookingsRepository.update(bookingId, update);
+    return this.findById(bookingId) as Promise<Booking>;
   }
 }

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Booking } from './entities/booking.entity';
+import { DatePhoto } from './entities/date-photo.entity';
 import { BookingsService } from './bookings.service';
 import { BookingsController } from './bookings.controller';
 import { BookingsCron } from './bookings.cron';
@@ -9,7 +10,7 @@ import { EmailModule } from '../email/email.module';
 import { PaymentsModule } from '../payments/payments.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Booking]), UsersModule, EmailModule, PaymentsModule],
+  imports: [TypeOrmModule.forFeature([Booking, DatePhoto]), UsersModule, EmailModule, PaymentsModule],
   providers: [BookingsService, BookingsCron],
   controllers: [BookingsController],
   exports: [BookingsService],

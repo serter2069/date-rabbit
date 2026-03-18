@@ -105,6 +105,13 @@ export class BookingsController {
     return requests.map((b) => this.formatBooking(b));
   }
 
+  @Get('active')
+  async getActiveDateBooking(@Request() req) {
+    const booking = await this.bookingsService.getActiveDateBooking(req.user.id);
+    if (!booking) return null;
+    return this.formatBooking(booking);
+  }
+
   @Get(':id')
   async getBooking(@Param('id') id: string, @Request() req) {
     const booking = await this.bookingsService.findById(id);
@@ -169,13 +176,6 @@ export class BookingsController {
     return this.formatBooking(updated);
   }
 
-  @Get('active')
-  async getActiveDateBooking(@Request() req) {
-    const booking = await this.bookingsService.getActiveDateBooking(req.user.id);
-    if (!booking) return null;
-    return this.formatBooking(booking);
-  }
-
   @Post(':id/checkin')
   async seekerCheckin(@Param('id') id: string, @Request() req, @Body() body: { lat?: number; lon?: number }) {
     const booking = await this.bookingsService.seekerCheckin(id, req.user.id, body.lat, body.lon);
@@ -200,6 +200,105 @@ export class BookingsController {
     return this.formatBooking(booking);
   }
 
+  // --- Group 1: Safety check-in ---
+
+  @Post(':id/safety-checkin')
+  async safetyCheckin(@Param('id') id: string, @Request() req) {
+    const booking = await this.bookingsService.safetyCheckin(id, req.user.id);
+    return this.formatBooking(booking);
+  }
+
+  // --- Group 1: Photos ---
+
+  @Post(':id/photos')
+  async uploadPhoto(
+    @Param('id') id: string,
+    @Request() req,
+    @Body() body: { url: string },
+  ) {
+    if (!body.url) {
+      throw new HttpException('Photo URL is required', HttpStatus.BAD_REQUEST);
+    }
+    return this.bookingsService.addPhoto(id, req.user.id, body.url);
+  }
+
+  @Get(':id/photos')
+  async getPhotos(@Param('id') id: string, @Request() req) {
+    return this.bookingsService.getPhotos(id, req.user.id);
+  }
+
+  // --- Group 1: Date plan ---
+
+  @Get(':id/plan')
+  async getDatePlan(@Param('id') id: string, @Request() req) {
+    return this.bookingsService.getDatePlan(id, req.user.id);
+  }
+
+  @Put(':id/plan')
+  async updateDatePlan(
+    @Param('id') id: string,
+    @Request() req,
+    @Body() body: { plan: Record<string, any> },
+  ) {
+    if (!body.plan) {
+      throw new HttpException('Plan data is required', HttpStatus.BAD_REQUEST);
+    }
+    const booking = await this.bookingsService.updateDatePlan(id, req.user.id, body.plan);
+    return this.formatBooking(booking);
+  }
+
+  // --- Group 1: Report issue ---
+
+  @Post(':id/report-issue')
+  async reportIssue(
+    @Param('id') id: string,
+    @Request() req,
+    @Body() body: { type: string; text: string },
+  ) {
+    if (!body.type || !body.text) {
+      throw new HttpException('Issue type and text are required', HttpStatus.BAD_REQUEST);
+    }
+    const validTypes = ['safety', 'behavior', 'scam', 'other'];
+    if (!validTypes.includes(body.type)) {
+      throw new HttpException(
+        `Invalid issue type. Must be one of: ${validTypes.join(', ')}`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    const booking = await this.bookingsService.reportIssue(id, req.user.id, body.type, body.text);
+    return this.formatBooking(booking);
+  }
+
+  // --- Group 1: Extend request ---
+
+  @Post(':id/extend-request')
+  async extendRequest(
+    @Param('id') id: string,
+    @Request() req,
+    @Body() body: { hours: number },
+  ) {
+    if (!body.hours || typeof body.hours !== 'number') {
+      throw new HttpException('Hours is required and must be a number', HttpStatus.BAD_REQUEST);
+    }
+    const booking = await this.bookingsService.requestExtend(id, req.user.id, body.hours);
+    return this.formatBooking(booking);
+  }
+
+  // --- Group 2: Extend response ---
+
+  @Put(':id/extend-response')
+  async extendResponse(
+    @Param('id') id: string,
+    @Request() req,
+    @Body() body: { approved: boolean },
+  ) {
+    if (typeof body.approved !== 'boolean') {
+      throw new HttpException('approved (boolean) is required', HttpStatus.BAD_REQUEST);
+    }
+    const booking = await this.bookingsService.respondExtend(id, req.user.id, body.approved);
+    return this.formatBooking(booking);
+  }
+
   private formatBooking(booking: any) {
     return {
       id: booking.id,
@@ -218,6 +317,13 @@ export class BookingsController {
       actualDurationHours: booking.actualDurationHours || undefined,
       sosTriggeredAt: booking.sosTriggeredAt || undefined,
       noShowReason: booking.noShowReason || undefined,
+      datePlan: booking.datePlan || undefined,
+      safetyCheckinAt: booking.safetyCheckinAt || undefined,
+      extendRequestedHours: booking.extendRequestedHours || undefined,
+      extendRequestedAt: booking.extendRequestedAt || undefined,
+      extendApproved: booking.extendApproved !== null && booking.extendApproved !== undefined ? booking.extendApproved : undefined,
+      reportIssueType: booking.reportIssueType || undefined,
+      reportIssueText: booking.reportIssueText || undefined,
       seeker: booking.seeker ? {
         id: booking.seeker.id,
         name: booking.seeker.name,
