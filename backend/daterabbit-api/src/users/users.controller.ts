@@ -60,6 +60,33 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('favorites')
+  async getFavorites(@Request() req) {
+    const favorites = await this.usersService.getFavorites(req.user.id);
+    return { favorites };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('favorites/:companionId')
+  async addFavorite(
+    @Request() req,
+    @Param('companionId', ParseUUIDPipe) companionId: string,
+  ) {
+    await this.usersService.addFavorite(req.user.id, companionId);
+    return { success: true };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('favorites/:companionId')
+  async removeFavorite(
+    @Request() req,
+    @Param('companionId', ParseUUIDPipe) companionId: string,
+  ) {
+    await this.usersService.removeFavorite(req.user.id, companionId);
+    return { success: true };
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('blocked')
   async getBlockedUsers(@Request() req) {
     const blocked = await this.usersService.getBlockedUsers(req.user.id);

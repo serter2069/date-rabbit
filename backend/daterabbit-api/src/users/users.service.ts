@@ -4,6 +4,7 @@ import { Repository, In } from 'typeorm';
 import { User, UserRole } from './entities/user.entity';
 import { BlockedUser } from './entities/blocked-user.entity';
 import { UserReport } from './entities/user-report.entity';
+import { Favorite } from './entities/favorite.entity';
 
 @Injectable()
 export class UsersService {
@@ -14,6 +15,8 @@ export class UsersService {
     private blockedUsersRepository: Repository<BlockedUser>,
     @InjectRepository(UserReport)
     private userReportsRepository: Repository<UserReport>,
+    @InjectRepository(Favorite)
+    private favoritesRepository: Repository<Favorite>,
   ) {}
 
   async findByEmail(email: string): Promise<User | null> {
@@ -195,5 +198,36 @@ export class UsersService {
       description,
     });
     return this.userReportsRepository.save(report);
+  }
+
+  // --- Favorites ---
+
+  async getFavorites(userId: string): Promise<string[]> {
+    const favorites = await this.favoritesRepository.find({
+      where: { userId },
+      select: ['companionId'],
+      order: { createdAt: 'DESC' },
+    });
+    return favorites.map((f) => f.companionId);
+  }
+
+  async addFavorite(userId: string, companionId: string): Promise<void> {
+    if (userId === companionId) {
+      throw new BadRequestException('You cannot favorite yourself');
+    }
+
+    const existing = await this.favoritesRepository.findOne({
+      where: { userId, companionId },
+    });
+    if (existing) {
+      return; // Already favorited, idempotent
+    }
+
+    const favorite = this.favoritesRepository.create({ userId, companionId });
+    await this.favoritesRepository.save(favorite);
+  }
+
+  async removeFavorite(userId: string, companionId: string): Promise<void> {
+    await this.favoritesRepository.delete({ userId, companionId });
   }
 }
