@@ -14,7 +14,7 @@ import { colors } from '../src/constants/theme';
 import { StripeProvider } from '../src/components/StripeProvider';
 
 // Public routes accessible without authentication
-const PUBLIC_ROUTES = ['terms', 'privacy', 'onboarding', '(auth)'];
+const PUBLIC_ROUTES = ['terms', 'privacy', 'onboarding', '(auth)', '+not-found'];
 
 // Authenticated non-tab routes — accessible to fully verified users outside (tabs)
 const NON_TAB_AUTH_ROUTES = [
@@ -163,6 +163,7 @@ export default function RootLayout() {
         <Stack.Screen name="settings/delete-account" />
         <Stack.Screen name="settings/payment-methods" />
         <Stack.Screen name="date" />
+        <Stack.Screen name="+not-found" />
       </Stack>
       <NavigationGuard />
     </StripeProvider>
