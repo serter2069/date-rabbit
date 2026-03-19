@@ -352,6 +352,25 @@ export class BookingsController {
     return this.formatBooking(booking);
   }
 
+  // --- UC-061: Selfie verification ---
+
+  @Post(':id/verify-selfie')
+  async submitSelfie(
+    @Param('id') id: string,
+    @Request() req,
+    @Body() body: { photoUrl: string },
+  ) {
+    if (!body.photoUrl) {
+      throw new HttpException('photoUrl is required', HttpStatus.BAD_REQUEST);
+    }
+    return this.bookingsService.submitSelfie(id, req.user.id, body.photoUrl);
+  }
+
+  @Get(':id/verify-selfie')
+  async getSelfieStatus(@Param('id') id: string, @Request() req) {
+    return this.bookingsService.getSelfieStatus(id, req.user.id);
+  }
+
   // --- Group 2: Extend response ---
 
   @Put(':id/extend-response')
@@ -393,6 +412,7 @@ export class BookingsController {
       extendApproved: booking.extendApproved !== null && booking.extendApproved !== undefined ? booking.extendApproved : undefined,
       reportIssueType: booking.reportIssueType || undefined,
       reportIssueText: booking.reportIssueText || undefined,
+      selfieVerified: booking.selfieVerified || false,
       seeker: booking.seeker ? {
         id: booking.seeker.id,
         name: booking.seeker.name,
