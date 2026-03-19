@@ -74,7 +74,7 @@ jobs:
             echo "NEXT_PUBLIC_API_URL=https://daterabbit.smartlaunchhub.com/api" > /var/www/daterabbit/admin-panel/.env.local
           fi
           sudo pm2 restart daterabbit-admin || sudo pm2 start npm --name daterabbit-admin -- start -- -p 3005
-          sudo chown -R www-data:www-data /var/www/daterabbit/
+          sudo chown -R www-data:www-data /var/www/daterabbit/ 2>/dev/null || true
 
       - name: Create backend .env if missing
         run: |
@@ -177,7 +177,7 @@ jobs:
         run: |
           cd /var/www/daterabbit/api
           sudo pm2 restart daterabbit || sudo pm2 start dist/main.js --name daterabbit
-          sudo chown -R www-data:www-data /var/www/daterabbit/
+          sudo chown -R www-data:www-data /var/www/daterabbit/ 2>/dev/null || true
 
       - name: Deploy nginx config
         run: |
@@ -304,7 +304,7 @@ jobs:
             echo "NEXT_PUBLIC_API_URL=https://daterabbit.smartlaunchhub.com/api" > /var/www/daterabbit/admin-panel/.env.local
           fi
           sudo pm2 restart daterabbit-admin || sudo pm2 start npm --name daterabbit-admin -- start -- -p 3005
-          sudo chown -R www-data:www-data /var/www/daterabbit/
+          sudo chown -R www-data:www-data /var/www/daterabbit/ 2>/dev/null || true
 
       - name: Verify backend .env exists
         run: |
@@ -395,7 +395,7 @@ jobs:
         run: |
           cd /var/www/daterabbit/api
           sudo pm2 restart daterabbit || sudo pm2 start dist/main.js --name daterabbit
-          sudo chown -R www-data:www-data /var/www/daterabbit/
+          sudo chown -R www-data:www-data /var/www/daterabbit/ 2>/dev/null || true
 
       - name: Deploy nginx config
         run: |
