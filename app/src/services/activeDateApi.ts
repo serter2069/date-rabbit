@@ -28,6 +28,17 @@ export const activeDateApi = {
   getBookingById: (id: string) =>
     apiRequest<ActiveBooking>(`/bookings/${id}`),
 
+  startDate: (bookingId: string) =>
+    apiRequest<ActiveBooking>(`/bookings/${bookingId}/start-date`, {
+      method: 'POST',
+    }),
+
+  extendDate: (bookingId: string, additionalHours: number) =>
+    apiRequest<ActiveBooking>(`/bookings/${bookingId}/extend`, {
+      method: 'POST',
+      body: { additionalHours },
+    }),
+
   seekerCheckin: (bookingId: string, coords?: { lat: number; lon: number }) =>
     apiRequest<ActiveBooking>(`/bookings/${bookingId}/checkin`, {
       method: 'POST',
@@ -80,12 +91,12 @@ export const activeDateApi = {
 
   savePlan: (bookingId: string, places: { name: string; address: string; time?: string }[]) =>
     apiRequest<{ ok: boolean }>(`/bookings/${bookingId}/plan`, {
-      method: 'PUT',
+      method: 'POST',
       body: { places },
     }),
 
   reportIssue: (bookingId: string, type: string, description: string) =>
-    apiRequest<{ ok: boolean }>(`/bookings/${bookingId}/report-issue`, {
+    apiRequest<{ ok: boolean }>(`/bookings/${bookingId}/report`, {
       method: 'POST',
       body: { type, description },
     }),

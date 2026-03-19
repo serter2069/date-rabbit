@@ -169,6 +169,7 @@ function BookingCard({ booking, type, colors, onCancel, formatDate }: BookingCar
       case 'cancelled': return { bg: colors.error + '20', text: colors.error };
       case 'completed': return { bg: colors.primary + '20', text: colors.primary };
       case 'paid': return { bg: colors.success + '20', text: colors.success };
+      case 'active': return { bg: colors.accent + '20', text: colors.accent };
       default: return { bg: colors.warning + '20', text: colors.warning };
     }
   };
@@ -208,10 +209,18 @@ function BookingCard({ booking, type, colors, onCancel, formatDate }: BookingCar
             />
           )}
           {booking.isPaid && (
-            <View style={[styles.paidBadge, { backgroundColor: colors.success + '20' }]}>
-              <Icon name="check-circle" size={14} color={colors.success} />
-              <Text style={[styles.paidText, { color: colors.success }]}>Paid</Text>
-            </View>
+            <>
+              <View style={[styles.paidBadge, { backgroundColor: colors.success + '20' }]}>
+                <Icon name="check-circle" size={14} color={colors.success} />
+                <Text style={[styles.paidText, { color: colors.success }]}>Paid</Text>
+              </View>
+              <Button
+                title="Start Date"
+                onPress={() => router.push(`/date/checkin/${booking.id}`)}
+                size="sm"
+                style={{ flex: 1 }}
+              />
+            </>
           )}
           <Button
             title="Message"
@@ -233,6 +242,17 @@ function BookingCard({ booking, type, colors, onCancel, formatDate }: BookingCar
               textStyle={{ color: colors.error }}
             />
           )}
+        </View>
+      )}
+
+      {booking.status === 'active' && (
+        <View style={styles.actions}>
+          <Button
+            title="Resume Date"
+            onPress={() => router.push(`/date/active/${booking.id}`)}
+            size="sm"
+            style={{ flex: 1 }}
+          />
         </View>
       )}
 
