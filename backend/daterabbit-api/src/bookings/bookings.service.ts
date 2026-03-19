@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThanOrEqual, LessThan } from 'typeorm';
 import { Booking, BookingStatus, ActivityType } from './entities/booking.entity';
 import { DatePhoto } from './entities/date-photo.entity';
+import { SelfieVerification } from './entities/selfie-verification.entity';
 import { UsersService } from '../users/users.service';
 import { EmailService } from '../email/email.service';
 
@@ -13,6 +14,8 @@ export class BookingsService {
     private bookingsRepository: Repository<Booking>,
     @InjectRepository(DatePhoto)
     private datePhotosRepository: Repository<DatePhoto>,
+    @InjectRepository(SelfieVerification)
+    private selfieVerificationsRepository: Repository<SelfieVerification>,
     private usersService: UsersService,
     private emailService: EmailService,
   ) {}
@@ -501,5 +504,92 @@ export class BookingsService {
       where: { seekerId, companionId },
     });
     return count > 0;
+  }
+
+  // --- UC-061: Selfie verification ---
+
+  async submitSelfie(bookingId: string, userId: string, photoUrl: string): Promise<SelfieVerification> {
+    const booking = await this.findById(bookingId);
+    if (!booking) throw new HttpException('Booking not found', HttpStatus.NOT_FOUND);
+    if (booking.seekerId !== userId && booking.companionId !== userId) {
+      throw new HttpException('Unauthorized', HttpStatus.FORBIDDEN);
+    }
+    if (booking.status !== BookingStatus.CONFIRMED && booking.status !== BookingStatus.PAID) {
+      throw new HttpException('Selfie verification is only available for confirmed/paid bookings', HttpStatus.BAD_REQUEST);
+    }
+
+    // Check if user already submitted a selfie for this booking
+    const existing = await this.selfieVerificationsRepository.findOne({
+      where: { bookingId, userId },
+    });
+    if (existing) {
+      // Update existing selfie
+      await this.selfieVerificationsRepository.update(existing.id, {
+        photoUrl,
+        verified: true,
+      });
+      await this.checkBothSelfiesSubmitted(bookingId);
+      return (await this.selfieVerificationsRepository.findOne({ where: { id: existing.id } }))!;
+    }
+
+    // Create new selfie verification record (MVP: auto-verified on upload)
+    const selfie = this.selfieVerificationsRepository.create({
+      bookingId,
+      userId,
+      photoUrl,
+      verified: true, // MVP: no AI face matching, auto-verify on upload
+    });
+    const saved = await this.selfieVerificationsRepository.save(selfie);
+
+    // Check if both participants have submitted selfies
+    await this.checkBothSelfiesSubmitted(bookingId);
+
+    return saved;
+  }
+
+  async getSelfieStatus(bookingId: string, userId: string): Promise<{
+    selfieVerified: boolean;
+    seeker: { submitted: boolean; photoUrl?: string; verifiedAt?: Date } | null;
+    companion: { submitted: boolean; photoUrl?: string; verifiedAt?: Date } | null;
+  }> {
+    const booking = await this.findById(bookingId);
+    if (!booking) throw new HttpException('Booking not found', HttpStatus.NOT_FOUND);
+    if (booking.seekerId !== userId && booking.companionId !== userId) {
+      throw new HttpException('Unauthorized', HttpStatus.FORBIDDEN);
+    }
+
+    const selfies = await this.selfieVerificationsRepository.find({
+      where: { bookingId },
+    });
+
+    const seekerSelfie = selfies.find(s => s.userId === booking.seekerId);
+    const companionSelfie = selfies.find(s => s.userId === booking.companionId);
+
+    return {
+      selfieVerified: booking.selfieVerified,
+      seeker: seekerSelfie ? {
+        submitted: true,
+        photoUrl: seekerSelfie.photoUrl,
+        verifiedAt: seekerSelfie.createdAt,
+      } : { submitted: false },
+      companion: companionSelfie ? {
+        submitted: true,
+        photoUrl: companionSelfie.photoUrl,
+        verifiedAt: companionSelfie.createdAt,
+      } : { submitted: false },
+    };
+  }
+
+  private async checkBothSelfiesSubmitted(bookingId: string): Promise<void> {
+    const booking = await this.findById(bookingId);
+    if (!booking) return;
+
+    const count = await this.selfieVerificationsRepository.count({
+      where: { bookingId, verified: true },
+    });
+
+    if (count >= 2 && !booking.selfieVerified) {
+      await this.bookingsRepository.update(bookingId, { selfieVerified: true });
+    }
   }
 }

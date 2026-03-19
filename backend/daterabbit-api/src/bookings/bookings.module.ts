@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Booking } from './entities/booking.entity';
 import { DatePhoto } from './entities/date-photo.entity';
+import { SelfieVerification } from './entities/selfie-verification.entity';
 import { BookingsService } from './bookings.service';
 import { BookingsController } from './bookings.controller';
 import { BookingsCron } from './bookings.cron';
@@ -11,7 +12,7 @@ import { PaymentsModule } from '../payments/payments.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Booking, DatePhoto]), UsersModule, EmailModule, PaymentsModule, NotificationsModule],
+  imports: [TypeOrmModule.forFeature([Booking, DatePhoto, SelfieVerification]), UsersModule, EmailModule, PaymentsModule, NotificationsModule],
   providers: [BookingsService, BookingsCron],
   controllers: [BookingsController],
   exports: [BookingsService],

@@ -119,6 +119,9 @@ export class Booking {
   @Column({ nullable: true })
   reportIssueType: string;
 
+  @Column({ type: 'boolean', default: false })
+  selfieVerified: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
 
