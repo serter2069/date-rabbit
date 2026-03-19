@@ -143,7 +143,6 @@ export default function SettingsScreen() {
           textStyle={{ color: colors.error }}
         />
 
-        <Text style={[styles.version, { color: colors.textSecondary }]}>DateRabbit v1.0.0</Text>
       </ScrollView>
     </View>
   );
@@ -215,12 +214,5 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-  },
-  version: {
-    fontFamily: typography.fonts.body,
-    textAlign: 'center',
-    fontSize: typography.sizes.sm,
-    marginTop: spacing.lg,
-    marginBottom: spacing.xxl,
   },
 });
