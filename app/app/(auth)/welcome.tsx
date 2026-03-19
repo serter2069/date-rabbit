@@ -4,7 +4,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Button } from '../../src/components/Button';
-import { Badge } from '../../src/components/Badge';
+// Badge removed -- "Premium dating marketplace" didn't match the color scheme
 import { Icon } from '../../src/components/Icon';
 import { colors, spacing, typography, borderRadius, PAGE_PADDING } from '../../src/constants/theme';
 
@@ -53,8 +53,6 @@ export default function WelcomeScreen() {
 
         {/* Hero */}
         <View style={styles.hero}>
-          <Badge text="Premium dating marketplace" variant="gradient" size="md" />
-
           <Text style={styles.headline}>
             Real dates.{'\n'}
             <Text style={styles.headlineHighlight}>Your terms.</Text>
@@ -257,9 +255,9 @@ const styles = StyleSheet.create({
 
   // Hero
   hero: {
-    flex: 1,
+    flexShrink: 1,
     justifyContent: 'center',
-    paddingVertical: spacing.xl,
+    paddingVertical: spacing.lg,
   },
   headline: {
     fontFamily: typography.fonts.heading,
@@ -329,8 +327,9 @@ const styles = StyleSheet.create({
 
   // Actions
   actions: {
-    marginTop: 'auto',
+    marginTop: spacing.lg,
     gap: spacing.md,
+    paddingBottom: spacing.md,
   },
   signinLink: {
     fontFamily: typography.fonts.body,
