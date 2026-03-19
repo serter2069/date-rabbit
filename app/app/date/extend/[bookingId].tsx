@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { activeDateApi } from '../../../src/services/activeDateApi';
-import { apiRequest } from '../../../src/services/api';
 
 const HOURS_OPTIONS = [1, 2, 3];
 
@@ -15,10 +14,7 @@ export default function ExtendDateScreen() {
   const handleSend = async () => {
     setSending(true);
     try {
-      await apiRequest(`/bookings/${bookingId}/extend-request`, {
-        method: 'POST',
-        body: { additionalHours: selected },
-      });
+      await activeDateApi.extendDate(bookingId, selected);
       setSent(true);
     } catch (e: any) {
       Alert.alert('Error', e.message || 'Failed to send request');

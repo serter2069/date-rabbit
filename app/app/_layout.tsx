@@ -26,6 +26,7 @@ const NON_TAB_AUTH_ROUTES = [
   'stripe',
   'favorites',
   'settings',
+  'date',
 ];
 
 function NavigationGuard() {
@@ -161,6 +162,7 @@ export default function RootLayout() {
         <Stack.Screen name="settings/verification" />
         <Stack.Screen name="settings/delete-account" />
         <Stack.Screen name="settings/payment-methods" />
+        <Stack.Screen name="date" />
       </Stack>
       <NavigationGuard />
     </StripeProvider>

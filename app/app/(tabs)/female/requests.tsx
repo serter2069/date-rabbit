@@ -200,9 +200,29 @@ function RequestCard({ request, type, colors, onAccept, onDecline, formatDate }:
             size="sm"
             style={{ flex: 1 }}
           />
+          {request.isPaid ? (
+            <Button
+              title="Start Date"
+              onPress={() => router.push(`/date/companion-checkin/${request.id}`)}
+              size="sm"
+              style={{ flex: 1 }}
+            />
+          ) : (
+            <Button
+              title="View Details"
+              onPress={() => router.push(`/booking/${request.id}`)}
+              size="sm"
+              style={{ flex: 1 }}
+            />
+          )}
+        </View>
+      )}
+
+      {request.status === 'active' && (
+        <View style={styles.actions}>
           <Button
-            title="View Details"
-            onPress={() => router.push(`/booking/${request.id}`)}
+            title="Resume Date"
+            onPress={() => router.push(`/date/active/${request.id}`)}
             size="sm"
             style={{ flex: 1 }}
           />
