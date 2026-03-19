@@ -14,6 +14,7 @@ import { ReviewsModule } from './reviews/reviews.module';
 import { PaymentsModule } from './payments/payments.module';
 import { AdminModule } from './admin/admin.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { CalendarModule } from './calendar/calendar.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     PaymentsModule,
     AdminModule,
     NotificationsModule,
+    CalendarModule,
   ],
   providers: [
     {
