@@ -13,6 +13,7 @@ import { VerificationModule } from './verification/verification.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { PaymentsModule } from './payments/payments.module';
 import { AdminModule } from './admin/admin.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { AdminModule } from './admin/admin.module';
     ReviewsModule,
     PaymentsModule,
     AdminModule,
+    NotificationsModule,
   ],
   providers: [
     {

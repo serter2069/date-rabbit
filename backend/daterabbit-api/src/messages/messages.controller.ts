@@ -81,6 +81,17 @@ export class MessagesController {
     }));
   }
 
+  /**
+   * UC-037: Get pre-chat status (how many messages can be sent before booking).
+   */
+  @Get(':userId/pre-chat')
+  async getPreChatStatus(
+    @Param('userId') companionId: string,
+    @Request() req,
+  ) {
+    return this.messagesService.getPreChatStatus(req.user.id, companionId);
+  }
+
   @Post(':userId')
   async sendMessage(
     @Param('userId') receiverId: string,
@@ -101,6 +112,15 @@ export class MessagesController {
     ]);
     if (blockedByMe || blockedByThem) {
       throw new HttpException('Cannot send message to this user', HttpStatus.FORBIDDEN);
+    }
+
+    // UC-037: Enforce pre-chat message limit
+    const preChatStatus = await this.messagesService.getPreChatStatus(req.user.id, receiverId);
+    if (!preChatStatus.allowed) {
+      throw new HttpException(
+        `Pre-chat limit reached (${preChatStatus.limit} messages). Create a booking to continue chatting.`,
+        HttpStatus.FORBIDDEN,
+      );
     }
 
     const message = await this.messagesService.sendMessage(

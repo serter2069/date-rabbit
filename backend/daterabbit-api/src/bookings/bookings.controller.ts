@@ -3,6 +3,8 @@ import { BookingsService } from './bookings.service';
 import { PaymentsService } from '../payments/payments.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { BookingStatus, ActivityType } from './entities/booking.entity';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '../notifications/entities/notification.entity';
 
 @Controller('bookings')
 @UseGuards(JwtAuthGuard)
@@ -10,6 +12,7 @@ export class BookingsController {
   constructor(
     private bookingsService: BookingsService,
     private paymentsService: PaymentsService,
+    private notificationsService: NotificationsService,
   ) {}
 
   @Post()
@@ -112,6 +115,38 @@ export class BookingsController {
     return this.formatBooking(booking);
   }
 
+  /**
+   * UC-050: Get booking status for request_sent polling screen.
+   * Returns status, companion info, and elapsed time since request was sent.
+   */
+  @Get(':id/status')
+  async getBookingStatus(@Param('id') id: string, @Request() req) {
+    const booking = await this.bookingsService.findById(id);
+    if (!booking) {
+      throw new HttpException('Booking not found', HttpStatus.NOT_FOUND);
+    }
+    if (booking.seekerId !== req.user.id && booking.companionId !== req.user.id) {
+      throw new HttpException('Unauthorized', HttpStatus.FORBIDDEN);
+    }
+
+    const now = new Date();
+    const createdAt = new Date(booking.createdAt);
+    const elapsedSeconds = Math.floor((now.getTime() - createdAt.getTime()) / 1000);
+
+    return {
+      id: booking.id,
+      status: booking.status,
+      elapsedSeconds,
+      createdAt: booking.createdAt,
+      companion: booking.companion ? {
+        id: booking.companion.id,
+        name: booking.companion.name,
+        photos: booking.companion.photos,
+      } : undefined,
+      cancellationReason: booking.cancellationReason || undefined,
+    };
+  }
+
   @Get(':id')
   async getBooking(@Param('id') id: string, @Request() req) {
     const booking = await this.bookingsService.findById(id);
@@ -163,6 +198,39 @@ export class BookingsController {
     this.paymentsService.cancelPaymentHold(id).catch(err =>
       console.error('Stripe cancel error for booking', id, err),
     );
+
+    // UC-051: Notify the other party about cancellation
+    const isCompanionCancelling = booking.companionId === req.user.id;
+    if (isCompanionCancelling) {
+      // Companion declined -> notify seeker
+      await this.notificationsService.create({
+        userId: booking.seekerId,
+        type: NotificationType.BOOKING_DECLINED,
+        title: 'Booking Declined',
+        body: `${booking.companion?.name || 'The companion'} has declined your booking request.${body.reason ? ` Reason: ${body.reason}` : ''}`,
+        data: {
+          bookingId: booking.id,
+          companionId: booking.companionId,
+          companionName: booking.companion?.name,
+          reason: body.reason,
+        },
+      });
+    } else {
+      // Seeker cancelled -> notify companion
+      await this.notificationsService.create({
+        userId: booking.companionId,
+        type: NotificationType.BOOKING_CANCELLED,
+        title: 'Booking Cancelled',
+        body: `${booking.seeker?.name || 'The seeker'} has cancelled the booking.${body.reason ? ` Reason: ${body.reason}` : ''}`,
+        data: {
+          bookingId: booking.id,
+          seekerId: booking.seekerId,
+          seekerName: booking.seeker?.name,
+          reason: body.reason,
+        },
+      });
+    }
+
     return this.formatBooking(updated);
   }
 
