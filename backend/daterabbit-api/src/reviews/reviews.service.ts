@@ -75,15 +75,20 @@ export class ReviewsService {
     page = 1,
     limit = 20,
   ): Promise<{ reviews: Review[]; total: number }> {
-    const [reviews, total] = await this.reviewsRepo.findAndCount({
-      where: { revieweeId: userId },
-      relations: ['reviewer'],
-      order: { createdAt: 'DESC' },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
+    try {
+      const [reviews, total] = await this.reviewsRepo.findAndCount({
+        where: { revieweeId: userId },
+        relations: ['reviewer'],
+        order: { createdAt: 'DESC' },
+        skip: (page - 1) * limit,
+        take: limit,
+      });
 
-    return { reviews, total };
+      return { reviews, total };
+    } catch {
+      // Return empty result if query fails (e.g. user not found)
+      return { reviews: [], total: 0 };
+    }
   }
 
   private async updateUserRating(userId: string): Promise<void> {

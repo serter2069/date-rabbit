@@ -7,6 +7,7 @@ import {
   Query,
   UseGuards,
   Request,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { ReviewsService } from './reviews.service';
 import { CreateReviewDto } from './dto/create-review.dto';
@@ -20,7 +21,7 @@ export class ReviewsController {
   @UseGuards(JwtAuthGuard)
   async createReview(
     @Request() req,
-    @Param('bookingId') bookingId: string,
+    @Param('bookingId', new ParseUUIDPipe()) bookingId: string,
     @Body() dto: CreateReviewDto,
   ) {
     const review = await this.reviewsService.createReview(
@@ -40,7 +41,7 @@ export class ReviewsController {
 
   @Get('users/:userId')
   async getReviewsForUser(
-    @Param('userId') userId: string,
+    @Param('userId', new ParseUUIDPipe()) userId: string,
     @Query('page') page = 1,
     @Query('limit') limit = 20,
   ) {
