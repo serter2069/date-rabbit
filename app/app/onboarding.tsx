@@ -48,26 +48,24 @@ const slides: SlideItem[] = [
 
 export default function OnboardingScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const { setOnboardingSeen, user } = useAuthStore();
+  const { setOnboardingSeen } = useAuthStore();
 
   const handleNext = () => {
     if (currentIndex < slides.length - 1) {
-      setCurrentIndex(currentIndex + 1);
+      setCurrentIndex(prev => prev + 1);
     } else {
-      handleGetStarted();
+      completeOnboarding();
     }
   };
 
-  const handleGetStarted = () => {
+  const completeOnboarding = () => {
     setOnboardingSeen();
-    // User is already authenticated at this point, go to main app based on role
-    // In Expo Router, /male is equivalent to /male/index when index.tsx exists
-    const isCompanion = user?.role === 'companion';
-    router.replace(isCompanion ? '/female' : '/male');
+    // Navigate to auth welcome (login) page after onboarding
+    router.replace('/(auth)/welcome');
   };
 
   const handleSkip = () => {
-    handleGetStarted();
+    completeOnboarding();
   };
 
   const currentSlide = slides[currentIndex];
