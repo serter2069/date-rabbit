@@ -21,6 +21,7 @@ import { UserImage } from '../../../src/components/UserImage';
 import { Badge } from '../../../src/components/Badge';
 import { Icon } from '../../../src/components/Icon';
 import { EmptyState } from '../../../src/components/EmptyState';
+import { VerificationBanner } from '../../../src/components/VerificationBanner';
 import { useTheme, spacing, typography, borderRadius, PAGE_PADDING } from '../../../src/constants/theme';
 import { bookingsApi, companionsApi, Booking, CompanionListItem } from '../../../src/services/api';
 
@@ -135,6 +136,9 @@ export default function MaleDashboard() {
           verified={user?.isVerified}
         />
       </View>
+
+      {/* Verification reminder */}
+      <VerificationBanner />
 
       {/* Search */}
       <TouchableOpacity

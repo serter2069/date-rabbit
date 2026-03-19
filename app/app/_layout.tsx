@@ -16,17 +16,21 @@ import { StripeProvider } from '../src/components/StripeProvider';
 // Public routes accessible without authentication
 const PUBLIC_ROUTES = ['terms', 'privacy', 'onboarding', '(auth)', '+not-found'];
 
-// Authenticated non-tab routes — accessible to fully verified users outside (tabs)
+// Authenticated non-tab routes — accessible to all authenticated users (verified or not)
 const NON_TAB_AUTH_ROUTES = [
-  'booking',
   'chat',
   'profile',
   'reviews',
-  'payment',
-  'stripe',
   'favorites',
   'settings',
   'date',
+];
+
+// Routes that REQUIRE verification — unverified users get redirected to verification prompt
+const VERIFICATION_REQUIRED_ROUTES = [
+  'booking',
+  'payment',
+  'stripe',
 ];
 
 function NavigationGuard() {
@@ -43,17 +47,9 @@ function NavigationGuard() {
     if (PUBLIC_ROUTES.includes(currentSegment)) {
       // Only redirect from onboarding/auth if already authenticated
       if (currentSegment === '(auth)' && isAuthenticated) {
-        // Authenticated user on auth page — redirect to app
-        if (needsVerification) {
-          if (isSeeker) {
-            router.replace('/(seeker-verify)/intro');
-          } else {
-            router.replace('/(comp-onboard)/step1');
-          }
-        } else {
-          const isCompanion = user?.role === 'companion';
-          router.replace(isCompanion ? '/(tabs)/female' : '/(tabs)/male');
-        }
+        // Authenticated user on auth page — redirect to main app
+        const isCompanion = user?.role === 'companion';
+        router.replace(isCompanion ? '/(tabs)/female' : '/(tabs)/male');
       }
       // terms, privacy — always accessible, never redirect
       return;
@@ -77,17 +73,31 @@ function NavigationGuard() {
     }
 
     if (needsVerification) {
-      // Authenticated but not yet verified — send to verification flow
-      if (isSeeker) {
-        const inSeekerVerify = currentSegment === '(seeker-verify)';
-        if (!inSeekerVerify) {
+      // Unverified users CAN still be in verification flow
+      const inSeekerVerify = currentSegment === '(seeker-verify)';
+      const inCompOnboard = currentSegment === '(comp-onboard)';
+
+      // If user is already in a verification flow, let them stay
+      if (inSeekerVerify || inCompOnboard) {
+        return;
+      }
+
+      // Block verification-required routes — redirect to verification prompt
+      if (VERIFICATION_REQUIRED_ROUTES.includes(currentSegment)) {
+        if (isSeeker) {
           router.replace('/(seeker-verify)/intro');
-        }
-      } else {
-        const inCompOnboard = currentSegment === '(comp-onboard)';
-        if (!inCompOnboard) {
+        } else {
           router.replace('/(comp-onboard)/step1');
         }
+        return;
+      }
+
+      // Allow unverified users to browse tabs and non-tab auth routes
+      const inTabsGroup = currentSegment === '(tabs)';
+      const inNonTabAuthRoute = NON_TAB_AUTH_ROUTES.includes(currentSegment);
+      if (!inTabsGroup && !inNonTabAuthRoute) {
+        const isCompanion = user?.role === 'companion';
+        router.replace(isCompanion ? '/(tabs)/female' : '/(tabs)/male');
       }
       return;
     }
@@ -95,7 +105,8 @@ function NavigationGuard() {
     // Fully authenticated and verified
     const inTabsGroup = currentSegment === '(tabs)';
     const inNonTabAuthRoute = NON_TAB_AUTH_ROUTES.includes(currentSegment);
-    if (!inTabsGroup && !inNonTabAuthRoute) {
+    const inVerificationRequiredRoute = VERIFICATION_REQUIRED_ROUTES.includes(currentSegment);
+    if (!inTabsGroup && !inNonTabAuthRoute && !inVerificationRequiredRoute) {
       const isCompanion = user?.role === 'companion';
       router.replace(isCompanion ? '/(tabs)/female' : '/(tabs)/male');
     }

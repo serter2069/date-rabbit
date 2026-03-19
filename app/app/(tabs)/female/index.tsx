@@ -7,6 +7,7 @@ import { Card } from '../../../src/components/Card';
 import { Avatar } from '../../../src/components/Avatar';
 import { Badge } from '../../../src/components/Badge';
 import { Icon } from '../../../src/components/Icon';
+import { VerificationBanner } from '../../../src/components/VerificationBanner';
 import { colors, spacing, typography, borderRadius, shadows, PAGE_PADDING } from '../../../src/constants/theme';
 
 export default function FemaleDashboard() {
@@ -42,6 +43,9 @@ export default function FemaleDashboard() {
           verified={user?.isVerified}
         />
       </View>
+
+      {/* Verification reminder */}
+      <VerificationBanner />
 
       {/* Stats Grid */}
       <View style={styles.statsGrid}>

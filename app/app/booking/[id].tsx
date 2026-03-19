@@ -18,6 +18,7 @@ import { useTheme, spacing, typography, borderRadius } from '../../src/constants
 import { useBookingsStore } from '../../src/store/bookingsStore';
 import { companionsApi, CompanionDetail } from '../../src/services/api';
 import { showAlert } from '../../src/utils/alert';
+import { useVerificationGate } from '../../src/hooks/useVerificationGate';
 
 // Activity IDs aligned with backend ActivityType enum
 const activities = [
@@ -68,6 +69,7 @@ export default function BookingScreen() {
   const { colors } = useTheme();
 
   const { createBooking } = useBookingsStore();
+  const { requireVerification } = useVerificationGate();
 
   const availableDates = generateDates();
 
@@ -99,6 +101,8 @@ export default function BookingScreen() {
   const isValid = selectedActivity && selectedDate && selectedTime && location.length > 0;
 
   const handleSubmit = async () => {
+    if (requireVerification()) return;
+
     if (!isValid || !companion) {
       showAlert('Missing Information', 'Please fill in all required fields.');
       return;

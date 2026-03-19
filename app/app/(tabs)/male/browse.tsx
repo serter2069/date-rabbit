@@ -11,6 +11,7 @@ import { EmptyState } from '../../../src/components/EmptyState';
 import { FilterModal, FilterOptions } from '../../../src/components/FilterModal';
 import { useTheme, spacing, typography, borderRadius } from '../../../src/constants/theme';
 import { companionsApi, CompanionListItem } from '../../../src/services/api';
+import { useVerificationGate } from '../../../src/hooks/useVerificationGate';
 
 const quickFilters = ['All', 'Nearby', 'Top Rated', 'New'];
 
@@ -26,6 +27,7 @@ const defaultFilterOptions: FilterOptions = {
 export default function BrowseScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const { requireVerification } = useVerificationGate();
   const [activeFilter, setActiveFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterModalVisible, setFilterModalVisible] = useState(false);
@@ -289,7 +291,10 @@ export default function BrowseScreen() {
                 />
                 <Button
                   title="Book Date"
-                  onPress={() => router.push(`/booking/${companion.id}`)}
+                  onPress={() => {
+                    if (requireVerification()) return;
+                    router.push(`/booking/${companion.id}`);
+                  }}
                   size="md"
                   style={styles.actionButton}
                   testID={`browse-book-date-${companion.id}`}
