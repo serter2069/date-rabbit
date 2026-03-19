@@ -492,4 +492,14 @@ export class BookingsService {
     await this.bookingsRepository.update(bookingId, update);
     return this.findById(bookingId) as Promise<Booking>;
   }
+
+  /**
+   * Check if any booking exists between a seeker and companion (any status).
+   */
+  async hasAnyBooking(seekerId: string, companionId: string): Promise<boolean> {
+    const count = await this.bookingsRepository.count({
+      where: { seekerId, companionId },
+    });
+    return count > 0;
+  }
 }
