@@ -22,6 +22,7 @@ import { Icon } from '../../src/components/Icon';
 import { UserImage } from '../../src/components/UserImage';
 import { useTheme, spacing, typography, borderRadius, colors } from '../../src/constants/theme';
 import { useFavoritesStore } from '../../src/store/favoritesStore';
+import { useVerificationGate } from '../../src/hooks/useVerificationGate';
 import { usersApi, companionsApi, CompanionDetail } from '../../src/services/api';
 
 // Max width for photo container — prevents giant hero on wide screens
@@ -68,8 +69,9 @@ export default function ProfileViewScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const { width: windowWidth } = useWindowDimensions();
+  const { requireVerification } = useVerificationGate();
   const photoWidth = Platform.OS === 'web' ? Math.min(windowWidth, MAX_PHOTO_WIDTH) : windowWidth;
-  
+
   const [profile, setProfile] = useState<ProfileData>(defaultProfile);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -195,6 +197,7 @@ export default function ProfileViewScreen() {
   };
 
   const handleBookDate = () => {
+    if (requireVerification()) return;
     router.push(`/booking/${profile.id}`);
   };
 
