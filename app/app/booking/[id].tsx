@@ -138,11 +138,12 @@ export default function BookingScreen() {
       return;
     }
 
-    showAlert(
-      'Request Sent!',
-      `Your date request has been sent to ${companion.name}. You'll be notified when they respond.`,
-      () => router.replace('/(tabs)/male/bookings'),
-    );
+    // Navigate to request-sent screen with polling
+    if (result.booking?.id) {
+      router.replace(`/booking/request-sent/${result.booking.id}`);
+    } else {
+      router.replace('/(tabs)/male/bookings');
+    }
   };
 
   if (isLoadingCompanion) {
