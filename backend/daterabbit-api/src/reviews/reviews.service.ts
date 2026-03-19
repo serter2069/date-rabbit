@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Review } from './entities/review.entity';
 import { Booking, BookingStatus } from '../bookings/entities/booking.entity';
 import { User } from '../users/entities/user.entity';
+import { sanitizeText } from '../common/sanitize';
 
 @Injectable()
 export class ReviewsService {
@@ -58,7 +59,7 @@ export class ReviewsService {
       revieweeId,
       bookingId,
       rating,
-      comment,
+      comment: comment ? sanitizeText(comment) : comment,
     });
 
     const saved = await this.reviewsRepo.save(review);

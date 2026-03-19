@@ -6,6 +6,7 @@ import { DatePhoto } from './entities/date-photo.entity';
 import { SelfieVerification } from './entities/selfie-verification.entity';
 import { UsersService } from '../users/users.service';
 import { EmailService } from '../email/email.service';
+import { sanitizeText } from '../common/sanitize';
 
 @Injectable()
 export class BookingsService {
@@ -62,6 +63,8 @@ export class BookingsService {
 
     const booking = this.bookingsRepository.create({
       ...data,
+      notes: data.notes ? sanitizeText(data.notes) : data.notes,
+      location: data.location ? sanitizeText(data.location) : data.location,
       totalPrice,
       status: BookingStatus.PENDING,
     });
@@ -159,7 +162,7 @@ export class BookingsService {
   async updateStatus(id: string, status: BookingStatus, reason?: string): Promise<Booking | null> {
     const update: Partial<Booking> = { status };
     if (reason) {
-      update.cancellationReason = reason;
+      update.cancellationReason = sanitizeText(reason);
     }
     await this.bookingsRepository.update(id, update);
     return this.findById(id);
@@ -445,8 +448,8 @@ export class BookingsService {
       throw new HttpException('Unauthorized', HttpStatus.FORBIDDEN);
     }
     await this.bookingsRepository.update(bookingId, {
-      reportIssueType: issueType,
-      reportIssueText: issueText,
+      reportIssueType: sanitizeText(issueType),
+      reportIssueText: sanitizeText(issueText),
     });
     return this.findById(bookingId) as Promise<Booking>;
   }

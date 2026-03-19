@@ -5,6 +5,7 @@ import { User, UserRole } from './entities/user.entity';
 import { BlockedUser } from './entities/blocked-user.entity';
 import { UserReport } from './entities/user-report.entity';
 import { Favorite } from './entities/favorite.entity';
+import { sanitizeText } from '../common/sanitize';
 
 @Injectable()
 export class UsersService {
@@ -152,7 +153,7 @@ export class UsersService {
     const blocked = this.blockedUsersRepository.create({
       blockerId,
       blockedId,
-      reason,
+      reason: reason ? sanitizeText(reason) : reason,
     });
     await this.blockedUsersRepository.save(blocked);
   }
@@ -194,8 +195,8 @@ export class UsersService {
     const report = this.userReportsRepository.create({
       reporterId,
       reportedId,
-      reason,
-      description,
+      reason: sanitizeText(reason),
+      description: description ? sanitizeText(description) : description,
     });
     return this.userReportsRepository.save(report);
   }

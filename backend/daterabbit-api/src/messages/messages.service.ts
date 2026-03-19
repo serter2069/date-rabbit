@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Message, Conversation } from './entities/message.entity';
 import { BookingsService } from '../bookings/bookings.service';
+import { sanitizeText } from '../common/sanitize';
 
 // Max messages a seeker can send to a companion before booking
 const PRE_CHAT_LIMIT = 3;
@@ -44,7 +45,7 @@ export class MessagesService {
     const message = this.messagesRepository.create({
       senderId,
       receiverId,
-      content,
+      content: sanitizeText(content),
     });
 
     const saved = await this.messagesRepository.save(message);
