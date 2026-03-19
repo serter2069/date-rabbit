@@ -75,7 +75,7 @@ export default function ActiveDateScreen() {
 
   const actions = [
     { label: 'Extend Time', color: '#4DF0FF', route: `/date/extend/${bookingId}` },
-    { label: 'End Early', color: '#FFE600', onPress: handleEndEarly },
+    { label: 'End Early', color: '#FF5A85', onPress: handleEndEarly },
     { label: 'Date Plan', color: '#fff', route: `/date/plan/${bookingId}` },
     { label: 'Photos', color: '#fff', route: `/date/photos/${bookingId}` },
     { label: 'Report Issue', color: '#fff', route: `/date/report/${bookingId}` },
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 4, height: 4 }, shadowColor: '#FF2A5F', shadowOpacity: 1, shadowRadius: 0,
   },
   timerCardLow: { backgroundColor: '#FF2A5F' },
-  timerText: { fontSize: 64, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#FFE600', letterSpacing: 4 },
+  timerText: { fontSize: 64, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#FF5A85', letterSpacing: 4 },
   timerTextLow: { color: '#fff' },
   timerLabel: { fontSize: 12, fontFamily: 'SpaceGrotesk-Bold', color: '#fff', marginTop: 8, letterSpacing: 2 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },

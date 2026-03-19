@@ -16,10 +16,10 @@ export const colors = {
   accentDark: '#00D4E8',
   accentLight: '#80F4FF',
 
-  // Secondary — Yellow highlight
-  secondary: '#FFE600',
-  secondaryDark: '#E6CF00',
-  secondaryLight: '#FFF04D',
+  // Secondary — Brand pink accent
+  secondary: '#FF2A5F',
+  secondaryDark: '#E0224F',
+  secondaryLight: '#FF5A85',
 
   // Neutrals — Warm beige base
   background: '#F4F0EA',
@@ -68,7 +68,7 @@ export const colors = {
 
   // Booking status colors
   booking: {
-    pending: '#FFE600',
+    pending: '#FF5A85',
     confirmed: '#4CAF50',
     active: '#4DF0FF',
     completed: '#999999',
@@ -124,7 +124,6 @@ export const borderWidth = {
 // Neo-Brutalism accent backgrounds
 export const brutalist = {
   cyan: '#4DF0FF',
-  yellow: '#FFE600',
   pink: '#FF2A5F',
   black: '#000000',
   beige: '#F4F0EA',

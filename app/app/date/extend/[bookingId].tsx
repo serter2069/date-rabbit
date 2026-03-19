@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
   button: { backgroundColor: '#FF2A5F', borderWidth: 2, borderColor: '#000', paddingVertical: 18, alignItems: 'center', shadowOffset: { width: 4, height: 4 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
   buttonDisabled: { opacity: 0.6 },
   buttonText: { fontSize: 20, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#fff' },
-  sentCard: { backgroundColor: '#FFE600', borderWidth: 2, borderColor: '#000', padding: 24, alignItems: 'center', shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
+  sentCard: { backgroundColor: '#FF5A85', borderWidth: 2, borderColor: '#000', padding: 24, alignItems: 'center', shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
   sentText: { fontSize: 22, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
   sentSubtext: { fontSize: 14, color: '#000', marginTop: 8, textAlign: 'center' },
   backBtn: { marginTop: 24, alignItems: 'center', padding: 12 },

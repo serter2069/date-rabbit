@@ -52,8 +52,8 @@ export default function MaleProfileScreen() {
           />
           <View style={styles.profileInfo}>
             <View style={styles.badgeRow}>
-              <View style={[styles.roleBadge, { backgroundColor: colors.badge.purple.bg, borderColor: colors.badge.purple.border }]}>
-                <Text style={[styles.roleBadgeText, { color: colors.badge.purple.text }]}>SEEKER</Text>
+              <View style={[styles.roleBadge, { backgroundColor: colors.badge.pink.bg, borderColor: colors.badge.pink.border }]}>
+                <Text style={[styles.roleBadgeText, { color: colors.badge.pink.text }]}>SEEKER</Text>
               </View>
             </View>
             <Text style={[styles.profileName, { color: colors.text }]}>{user?.name}{user?.age ? `, ${user.age}` : ''}</Text>
@@ -151,7 +151,6 @@ export default function MaleProfileScreen() {
         testID="profile-signout-btn"
       />
 
-      <Text style={[styles.version, { color: colors.textSecondary }]}>DateRabbit v1.0.0</Text>
     </ScrollView>
   );
 }
@@ -313,12 +312,5 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-  },
-  version: {
-    fontFamily: typography.fonts.body,
-    textAlign: 'center',
-    fontSize: typography.sizes.sm,
-    marginTop: spacing.lg,
-    marginBottom: spacing.xxl,
   },
 });

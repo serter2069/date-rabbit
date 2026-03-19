@@ -57,7 +57,7 @@ export default function SafetyCheckinScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F4F0EA', padding: 24, paddingTop: 60 },
-  card: { backgroundColor: '#FFE600', borderWidth: 2, borderColor: '#000', padding: 24, marginBottom: 40, shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
+  card: { backgroundColor: '#FF5A85', borderWidth: 2, borderColor: '#000', padding: 24, marginBottom: 40, shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
   title: { fontSize: 28, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000', marginBottom: 12 },
   subtitle: { fontSize: 18, color: '#000', lineHeight: 28 },
   okBtn: { backgroundColor: '#00CC66', borderWidth: 2, borderColor: '#000', paddingVertical: 28, alignItems: 'center', marginBottom: 16, shadowOffset: { width: 4, height: 4 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },

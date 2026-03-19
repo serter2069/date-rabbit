@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
   starsRow: { flexDirection: 'row', marginBottom: 32, gap: 8 },
   starBtn: { padding: 4 },
   star: { fontSize: 48, color: '#ccc' },
-  starFilled: { color: '#FFE600' },
+  starFilled: { color: '#FF2A5F' },
   textarea: { borderWidth: 2, borderColor: '#000', backgroundColor: '#fff', padding: 16, fontSize: 16, minHeight: 140, marginBottom: 32 },
   submitBtn: { backgroundColor: '#FF2A5F', borderWidth: 2, borderColor: '#000', paddingVertical: 18, alignItems: 'center', shadowOffset: { width: 4, height: 4 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
   submitBtnText: { fontSize: 18, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#fff' },
