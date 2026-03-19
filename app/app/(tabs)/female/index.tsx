@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
   seeAll: {
     fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.sm,
-    color: colors.secondary,
+    color: colors.primary,
   },
   requestItem: {
     flexDirection: 'row',

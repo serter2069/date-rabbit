@@ -162,6 +162,13 @@ export default function MaleDashboard() {
                 </Text>
               </View>
             </View>
+            <TouchableOpacity
+              style={[styles.ctaButton, { backgroundColor: colors.primary, borderColor: colors.border }]}
+              activeOpacity={0.8}
+              onPress={() => router.push('/(tabs)/male/browse')}
+            >
+              <Text style={[styles.ctaButtonText, { color: colors.textInverse }]}>Browse Companions</Text>
+            </TouchableOpacity>
           </Card>
         ) : (
           upcomingBookings.map((booking) => (
@@ -249,17 +256,6 @@ export default function MaleDashboard() {
         </View>
       </View>
 
-      {/* How it Works */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.text }]}>How it Works</Text>
-        <Card variant="default" shadow="sm">
-          <StepItem number={1} title="Browse" description="Find verified companions" colors={colors} />
-          <View style={[styles.divider, { backgroundColor: colors.divider }]} />
-          <StepItem number={2} title="Book" description="Send a date request" colors={colors} />
-          <View style={[styles.divider, { backgroundColor: colors.divider }]} />
-          <StepItem number={3} title="Meet" description="Enjoy your premium experience" colors={colors} />
-        </Card>
-      </View>
     </ScrollView>
   );
 }
@@ -369,19 +365,6 @@ function ActivityCard({ icon, label, colors }: { icon: string; label: string; co
   );
 }
 
-function StepItem({ number, title, description, colors }: { number: number; title: string; description: string; colors: any }) {
-  return (
-    <View style={styles.stepItem}>
-      <View style={[styles.stepNumber, { backgroundColor: colors.primary, borderColor: colors.border }]}>
-        <Text style={[styles.stepNumberText, { color: colors.white }]}>{number}</Text>
-      </View>
-      <View style={styles.stepInfo}>
-        <Text style={[styles.stepTitle, { color: colors.text }]}>{title}</Text>
-        <Text style={[styles.stepDescription, { color: colors.textMuted }]}>{description}</Text>
-      </View>
-    </View>
-  );
-}
 
 const styles = StyleSheet.create({
   container: {
@@ -581,38 +564,15 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     marginBottom: 2,
   },
-  stepItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: spacing.sm,
-  },
-  stepNumber: {
-    width: 32,
-    height: 32,
+  ctaButton: {
+    marginTop: spacing.md,
+    paddingVertical: spacing.sm + 4,
     borderRadius: borderRadius.sm,
+    borderWidth: 3,
     alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
   },
-  stepNumberText: {
+  ctaButtonText: {
     fontFamily: typography.fonts.bodySemiBold,
-    fontSize: typography.sizes.md,
-  },
-  stepInfo: {
-    flex: 1,
-    marginLeft: spacing.md,
-  },
-  stepTitle: {
-    fontFamily: typography.fonts.bodySemiBold,
-    fontSize: typography.sizes.md,
-  },
-  stepDescription: {
-    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
-    marginTop: 2,
-  },
-  divider: {
-    height: 1,
-    marginVertical: spacing.sm,
   },
 });

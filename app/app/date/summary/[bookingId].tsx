@@ -90,7 +90,7 @@ export default function DateSummaryScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F4F0EA' },
   content: { padding: 24, paddingTop: 40 },
-  banner: { backgroundColor: '#FFE600', borderWidth: 2, borderColor: '#000', padding: 20, alignItems: 'center', marginBottom: 32, shadowOffset: { width: 4, height: 4 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
+  banner: { backgroundColor: '#FF5A85', borderWidth: 2, borderColor: '#000', padding: 20, alignItems: 'center', marginBottom: 32, shadowOffset: { width: 4, height: 4 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
   bannerText: { fontSize: 32, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
   card: { backgroundColor: '#fff', borderWidth: 2, borderColor: '#000', marginBottom: 32, shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
   row: { flexDirection: 'row', justifyContent: 'space-between', padding: 16 },

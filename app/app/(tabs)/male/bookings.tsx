@@ -128,6 +128,8 @@ export default function BookingsScreen() {
             icon="calendar"
             title={`No ${activeTab} bookings`}
             description={getEmptyDescription()}
+            actionLabel="Browse Companions"
+            onAction={() => router.push('/(tabs)/male/browse')}
           />
         ) : (
           bookings.map((booking) => (

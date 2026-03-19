@@ -86,7 +86,7 @@ export function Badge({
           style={[
             styles.text,
             sizeStyles.text,
-            { color: colors.secondary },
+            { color: colors.primary },
             textStyle,
           ]}
         >
