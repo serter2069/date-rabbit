@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Platform, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, Platform, ScrollView, Alert, TouchableOpacity } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -98,20 +98,13 @@ export default function WelcomeScreen() {
 
         {/* Footer */}
         <View style={styles.footer}>
-          <Text
-            style={styles.footerLink}
-            onPress={() => router.push('/terms')}
-          >
-            Terms
-          </Text>
-          <Text
-            style={styles.footerLink}
-            onPress={() => router.push('/privacy')}
-          >
-            Privacy
-          </Text>
-          <Text
-            style={styles.footerLink}
+          <TouchableOpacity onPress={() => router.push('/terms')}>
+            <Text style={styles.footerLink}>Terms</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/privacy')}>
+            <Text style={styles.footerLink}>Privacy</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
             onPress={() => {
               if (Platform.OS === 'web') {
                 window.alert('Safety information coming soon.');
@@ -119,9 +112,10 @@ export default function WelcomeScreen() {
                 Alert.alert('Safety', 'Safety information coming soon.');
               }
             }}
+            testID="welcome-safety-link"
           >
-            Safety
-          </Text>
+            <Text style={styles.footerLink}>Safety</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </View>
@@ -297,5 +291,6 @@ const styles = StyleSheet.create({
     fontFamily: typography.fonts.body,
     fontSize: typography.sizes.xs,
     color: colors.textLight,
-  },
+    ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
+  } as any,
 });

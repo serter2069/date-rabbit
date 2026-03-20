@@ -22,22 +22,31 @@ export default function Root({ children }: { children: React.ReactNode }) {
 }
 
 const webStyles = `
-html, body, #root {
+html, body {
   height: 100%;
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
 }
 
 body {
-  margin: 0;
-  padding: 0;
   overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: touch;
 }
 
-/* Ensure Expo Router screen containers allow scrolling */
+/* Ensure Expo Router screen containers fill height for ScrollView */
 #root > div {
   display: flex;
   flex-direction: column;
-  min-height: 100%;
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
 }
 `;

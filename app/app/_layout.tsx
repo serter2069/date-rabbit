@@ -148,6 +148,7 @@ export default function RootLayout() {
               marginLeft: 'auto',
               marginRight: 'auto',
               height: '100%',
+              overflow: 'hidden',
             } as any : {}),
           }
         }}
