@@ -102,7 +102,7 @@ export class AuthService {
     const isValid = user.otpCode.length === code.length &&
       crypto.timingSafeEqual(Buffer.from(user.otpCode), Buffer.from(code));
     if (!isValid) {
-      // Track failed attempt
+      // Track failed attempt for rate limiting
       const current = this.otpAttempts.get(email) || { count: 0, lockedUntil: 0 };
       current.count++;
       if (current.count >= this.MAX_OTP_ATTEMPTS) {
@@ -111,8 +111,7 @@ export class AuthService {
       }
       this.otpAttempts.set(email, current);
 
-      // Invalidate OTP after failed attempt to prevent brute-force
-      await this.usersService.clearOtp(user.id);
+      // Don't clear OTP on failed attempt -- let users retry until 10-min TTL expires
       return { success: false, error: 'Invalid OTP' };
     }
 
