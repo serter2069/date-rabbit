@@ -335,9 +335,17 @@ export default function ProfileViewScreen() {
 
             <View style={styles.statsRow}>
               <View style={styles.stat}>
-                <Icon name="star" size={16} color={colors.accent} />
-                <Text style={[styles.statValue, { color: colors.text }]}> {profile.rating}</Text>
-                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>({profile.reviewCount} reviews)</Text>
+                {profile.reviewCount > 0 ? (
+                  <>
+                    <Icon name="star" size={16} color={colors.accent} />
+                    <Text style={[styles.statValue, { color: colors.text }]}> {profile.rating}</Text>
+                    <Text style={[styles.statLabel, { color: colors.textSecondary }]}>({profile.reviewCount} reviews)</Text>
+                  </>
+                ) : (
+                  <View style={[styles.newBadge, { backgroundColor: colors.primary + '15' }]}>
+                    <Text style={[styles.newBadgeText, { color: colors.primary }]}>New</Text>
+                  </View>
+                )}
               </View>
               <View style={[styles.rateBadge, { backgroundColor: colors.primary + '15' }]}>
                 <Text style={[styles.rateValue, { color: colors.primary }]}>${profile.hourlyRate ?? 0}</Text>
@@ -862,6 +870,15 @@ const styles = StyleSheet.create({
     fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     marginLeft: spacing.xs,
+  },
+  newBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: borderRadius.xs,
+  },
+  newBadgeText: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.sm,
   },
   rateBadge: {
     flexDirection: 'row',
