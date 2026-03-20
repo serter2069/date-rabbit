@@ -64,9 +64,15 @@ export default function MaleProfileScreen() {
               </View>
             ) : null}
             <View style={styles.ratingRow}>
-              <Icon name="star" size={14} color={colors.accent} />
-              <Text style={[styles.ratingValue, { color: colors.text }]}> {user?.rating}</Text>
-              <Text style={[styles.reviewCount, { color: colors.textSecondary }]}>({user?.reviewCount} reviews)</Text>
+              {(user?.reviewCount ?? 0) > 0 ? (
+                <>
+                  <Icon name="star" size={14} color={colors.accent} />
+                  <Text style={[styles.ratingValue, { color: colors.text }]}> {user?.rating}</Text>
+                  <Text style={[styles.reviewCount, { color: colors.textSecondary }]}>({user?.reviewCount} reviews)</Text>
+                </>
+              ) : (
+                <Text style={[styles.reviewCount, { color: colors.textSecondary }]}>No reviews yet</Text>
+              )}
             </View>
           </View>
         </View>

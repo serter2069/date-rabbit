@@ -37,9 +37,15 @@ export default function FemaleProfileScreen() {
             <Text style={[styles.profileName, { color: colors.text }]}>{user?.name}{user?.age ? `, ${user.age}` : ''}</Text>
             <Text style={[styles.profileLocation, { color: colors.textSecondary }]}>{user?.location}</Text>
             <View style={styles.ratingRow}>
-              <Icon name="star" size={14} color={colors.accent} />
-              <Text style={[styles.ratingValue, { color: colors.text }]}> {user?.rating}</Text>
-              <Text style={[styles.reviewCount, { color: colors.textSecondary }]}>({user?.reviewCount} reviews)</Text>
+              {(user?.reviewCount ?? 0) > 0 ? (
+                <>
+                  <Icon name="star" size={14} color={colors.accent} />
+                  <Text style={[styles.ratingValue, { color: colors.text }]}> {user?.rating}</Text>
+                  <Text style={[styles.reviewCount, { color: colors.textSecondary }]}>({user?.reviewCount} reviews)</Text>
+                </>
+              ) : (
+                <Text style={[styles.reviewCount, { color: colors.textSecondary }]}>No reviews yet</Text>
+              )}
             </View>
           </View>
         </View>

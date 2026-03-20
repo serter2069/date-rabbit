@@ -18,7 +18,7 @@ export default function FemaleDashboard() {
     pendingRequests: 3,
     upcomingDates: 2,
     thisWeekEarnings: 450,
-    rating: 4.9,
+    rating: (user?.reviewCount ?? 0) > 0 ? user?.rating ?? '-' : 'New',
   };
 
   return (

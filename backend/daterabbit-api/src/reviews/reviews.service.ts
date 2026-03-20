@@ -100,7 +100,7 @@ export class ReviewsService {
       .getRawOne();
 
     await this.usersRepo.update(userId, {
-      rating: parseFloat(result.avg) || 5.0,
+      rating: parseFloat(result.avg) || 0,
       reviewCount: parseInt(result.count) || 0,
     });
   }
