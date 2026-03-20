@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Delete, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Body, Param, UseGuards, Request, ParseUUIDPipe } from '@nestjs/common';
 import { CalendarService } from './calendar.service';
 import { CreateBlockedDateDto } from './dto/create-blocked-date.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -19,7 +19,7 @@ export class CalendarController {
   }
 
   @Delete('block/:id')
-  async removeBlock(@Param('id') id: string, @Request() req) {
+  async removeBlock(@Param('id', ParseUUIDPipe) id: string, @Request() req) {
     await this.calendarService.removeBlock(req.user.id, id);
     return { success: true };
   }

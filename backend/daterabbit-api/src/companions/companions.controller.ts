@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Param, NotFoundException, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Query, Param, NotFoundException, UseGuards, Request, ParseUUIDPipe } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -70,13 +70,7 @@ export class CompanionsController {
   }
 
   @Get(':id')
-  async getCompanion(@Param('id') id: string) {
-    // Validate UUID format
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(id)) {
-      throw new NotFoundException('Companion not found');
-    }
-
+  async getCompanion(@Param('id', ParseUUIDPipe) id: string) {
     const user = await this.usersService.findById(id);
     if (!user || user.role !== 'companion') {
       throw new NotFoundException('Companion not found');

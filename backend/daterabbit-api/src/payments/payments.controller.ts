@@ -11,6 +11,7 @@ import {
   Req,
   HttpException,
   HttpStatus,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import type { Request as ExpressRequest } from 'express';
 import { SkipThrottle } from '@nestjs/throttler';
@@ -41,7 +42,7 @@ export class PaymentsController {
   @UseGuards(JwtAuthGuard)
   async createPaymentIntent(
     @Request() req,
-    @Param('bookingId') bookingId: string,
+    @Param('bookingId', ParseUUIDPipe) bookingId: string,
   ) {
     return this.paymentsService.createPaymentIntent(req.user.id, bookingId);
   }
