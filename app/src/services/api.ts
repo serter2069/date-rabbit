@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Verification, VerificationReference } from '../types';
 
 const API_BASE_URL = 'https://daterabbit-api.smartlaunchhub.com/api';
+const API_TIMEOUT_MS = 10_000; // 10 seconds
 
 // Token management
 let authToken: string | null = null;
@@ -58,7 +59,7 @@ export async function apiRequest<T>(
 
   // 10-second timeout to prevent infinite loading states
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000);
+  const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
 
   let response: Response;
   try {
@@ -73,6 +74,7 @@ export async function apiRequest<T>(
     if (err.name === 'AbortError') {
       throw new ApiError('Request timed out. Please try again.', 408);
     }
+    // Network error (no connection, DNS failure, etc.)
     throw new ApiError('Network error. Please check your connection.', 0);
   }
   clearTimeout(timeoutId);
