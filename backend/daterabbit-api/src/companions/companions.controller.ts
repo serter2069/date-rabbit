@@ -1,12 +1,12 @@
 import { Controller, Get, Query, Param, NotFoundException, UseGuards, Request } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
-import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('companions')
 export class CompanionsController {
   constructor(private usersService: UsersService) {}
 
-  @UseGuards(OptionalJwtAuthGuard)
   @Get()
   async searchCompanions(
     @Request() req,
@@ -31,11 +31,8 @@ export class CompanionsController {
         ? parseInt(offset)
         : 0;
 
-    // Exclude blocked users if the requester is authenticated
-    let excludeUserIds: string[] | undefined;
-    if (req.user?.id) {
-      excludeUserIds = await this.usersService.getBlockedUserIds(req.user.id);
-    }
+    // Exclude blocked users (req.user is guaranteed by JwtAuthGuard)
+    const excludeUserIds = await this.usersService.getBlockedUserIds(req.user.id);
 
     const { companions, total } = await this.usersService.getCompanions({
       priceMin: priceMin ? parseFloat(priceMin) : undefined,
