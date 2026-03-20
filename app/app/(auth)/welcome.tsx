@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Linking, Platform, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Platform, ScrollView, Alert } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -40,9 +40,6 @@ export default function WelcomeScreen() {
             </LinearGradient>
             <Text style={styles.logoText}>DateRabbit</Text>
           </View>
-          <View style={styles.langBtn}>
-            <Text style={styles.langBtnText}>EN</Text>
-          </View>
         </View>
 
         {showRedirectMessage && (
@@ -69,12 +66,6 @@ export default function WelcomeScreen() {
             <ValueItem text="24/7 safety & support team" />
           </View>
 
-          {/* Stats */}
-          <View style={styles.statsRow}>
-            <Stat number="2K+" label="Companions" />
-            <Stat number="15K+" label="Bookings" />
-            <Stat number="4.9" label="Rating" />
-          </View>
         </View>
 
         {/* Actions */}
@@ -121,7 +112,13 @@ export default function WelcomeScreen() {
           </Text>
           <Text
             style={styles.footerLink}
-            onPress={() => openLink('https://daterabbit.com/safety')}
+            onPress={() => {
+              if (Platform.OS === 'web') {
+                window.alert('Safety information coming soon.');
+              } else {
+                Alert.alert('Safety', 'Safety information coming soon.');
+              }
+            }}
           >
             Safety
           </Text>
@@ -129,14 +126,6 @@ export default function WelcomeScreen() {
       </ScrollView>
     </View>
   );
-}
-
-function openLink(url: string) {
-  if (Platform.OS === 'web') {
-    window.open(url, '_blank');
-  } else {
-    Linking.openURL(url);
-  }
 }
 
 function ValueItem({ text }: { text: string }) {
@@ -153,15 +142,6 @@ function ValueItem({ text }: { text: string }) {
   );
 }
 
-function Stat({ number, label }: { number: string; label: string }) {
-  return (
-    <View style={styles.stat}>
-      <Text style={styles.statNumber}>{number}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -173,6 +153,7 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: PAGE_PADDING,
     flexGrow: 1,
+    justifyContent: 'center',
   },
 
   // Decorative blobs
@@ -224,19 +205,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: colors.text,
   },
-  langBtn: {
-    backgroundColor: colors.surface,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: borderRadius.sm,
-    borderWidth: 2,
-    borderColor: colors.border,
-  },
-  langBtnText: {
-    fontFamily: typography.fonts.bodyMedium,
-    fontSize: typography.sizes.xs,
-    color: colors.textMuted,
-  },
 
   // Redirect banner
   redirectBanner: {
@@ -255,8 +223,6 @@ const styles = StyleSheet.create({
 
   // Hero
   hero: {
-    flexShrink: 1,
-    justifyContent: 'center',
     paddingVertical: spacing.lg,
   },
   headline: {
@@ -301,29 +267,6 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
 
-  // Stats
-  statsRow: {
-    flexDirection: 'row',
-    gap: spacing.xl + spacing.sm,
-    paddingTop: spacing.lg,
-    borderTopWidth: 1,
-    borderTopColor: colors.divider,
-  },
-  stat: {
-    gap: spacing.xs,
-  },
-  statNumber: {
-    fontFamily: typography.fonts.heading,
-    fontSize: 24,
-    color: colors.text,
-  },
-  statLabel: {
-    fontFamily: typography.fonts.body,
-    fontSize: typography.sizes.xs,
-    color: colors.textLight,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
 
   // Actions
   actions: {
