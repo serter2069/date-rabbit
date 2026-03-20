@@ -65,12 +65,8 @@ export function Input({
   };
 
   const animatedBorderStyle = useAnimatedStyle(() => {
-    const borderColor = error
-      ? colors.error
-      : colors.black;
-
+    // Note: focus animation reserved for future use
     return {
-      borderColor,
       borderWidth: borderWidth.normal,
     };
   });
@@ -112,6 +108,7 @@ export function Input({
           variant === 'filled' && styles.inputContainerFilled,
           disabled && styles.inputContainerDisabled,
           animatedBorderStyle,
+          error ? { borderColor: colors.error } : { borderColor: colors.black },
         ]}
       >
         {leftIcon && <View style={styles.leftIcon}>{leftIcon}</View>}
