@@ -379,6 +379,7 @@ function ActivityCard({ icon, label, colors }: { icon: string; label: string; co
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    ...(Platform.OS === 'web' ? { overflow: 'auto' as any } : {}),
   },
   content: {
     paddingHorizontal: PAGE_PADDING,
