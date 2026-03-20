@@ -146,9 +146,10 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: PAGE_PADDING,
-    flexGrow: 1,
-    // justifyContent: 'center' breaks scrolling on web — when content
-    // exceeds viewport, the top gets clipped. Use paddingTop instead.
+    // flexGrow: 1 breaks scrolling on web — the container stretches to
+    // fill the viewport and ScrollView thinks content fits, so it won't
+    // scroll. Only use flexGrow on native where it works correctly.
+    ...(Platform.OS === 'web' ? {} : { flexGrow: 1 }),
     paddingTop: spacing.xl,
   },
 
