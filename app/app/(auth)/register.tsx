@@ -10,6 +10,50 @@ import {
   Modal,
   FlatList,
 } from 'react-native';
+
+// Web-only: native <select> for birth year (RN Modal doesn't work well on web)
+const WebYearSelect = Platform.OS === 'web'
+  ? ({ value, years, onChange, hasError }: {
+      value: string;
+      years: number[];
+      onChange: (val: string) => void;
+      hasError: boolean;
+    }) => {
+      const selectStyle = {
+        width: '100%' as const,
+        height: 52,
+        border: `1px solid ${hasError ? colors.error : colors.border}`,
+        borderRadius: 12,
+        backgroundColor: colors.surface,
+        paddingLeft: 16,
+        paddingRight: 16,
+        fontSize: 16,
+        color: value ? colors.text : colors.textLight,
+        fontFamily: typography.fonts.body,
+        appearance: 'none' as const,
+        WebkitAppearance: 'none' as const,
+        backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%23999%27 stroke-width=%272%27%3e%3cpolyline points=%276 9 12 15 18 9%27/%3e%3c/svg%3e")',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'right 12px center',
+        backgroundSize: '20px',
+        cursor: 'pointer' as const,
+        outline: 'none',
+      };
+      return (
+        // @ts-ignore - web-only DOM element
+        <select
+          value={value}
+          onChange={(e: any) => onChange(e.target.value)}
+          style={selectStyle}
+        >
+          <option value="">Select</option>
+          {years.map((year: number) => (
+            <option key={year} value={year.toString()}>{year}</option>
+          ))}
+        </select>
+      );
+    }
+  : null;
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../src/store/authStore';
@@ -67,7 +111,7 @@ export default function RegisterScreen() {
     } else {
       const year = parseInt(formData.birthYear);
       const currentYear = new Date().getFullYear();
-      if (isNaN(year) || year < 1900 || year > currentYear - 18) {
+      if (isNaN(year) || year < MIN_YEAR || year > currentYear - 18) {
         newErrors.birthYear = 'You must be at least 18 years old';
       }
     }
@@ -232,25 +276,34 @@ export default function RegisterScreen() {
           <View style={styles.row}>
             <View style={styles.halfWidth}>
               <Text style={styles.pickerLabel}>Birth Year</Text>
-              <TouchableOpacity
-                style={[
-                  styles.yearPickerTrigger,
-                  errors.birthYear ? styles.yearPickerTriggerError : null,
-                ]}
-                onPress={() => setYearPickerVisible(true)}
-                activeOpacity={0.7}
-              >
-                <Icon name="calendar" size={20} color={colors.textLight} />
-                <Text
+              {Platform.OS === 'web' && WebYearSelect ? (
+                <WebYearSelect
+                  value={formData.birthYear}
+                  years={BIRTH_YEARS}
+                  onChange={(val) => updateField('birthYear', val)}
+                  hasError={!!errors.birthYear}
+                />
+              ) : (
+                <TouchableOpacity
                   style={[
-                    styles.yearPickerText,
-                    !formData.birthYear && styles.yearPickerPlaceholder,
+                    styles.yearPickerTrigger,
+                    errors.birthYear ? styles.yearPickerTriggerError : null,
                   ]}
+                  onPress={() => setYearPickerVisible(true)}
+                  activeOpacity={0.7}
                 >
-                  {formData.birthYear || 'Select'}
-                </Text>
-                <Icon name="arrow-down" size={16} color={colors.textLight} />
-              </TouchableOpacity>
+                  <Icon name="calendar" size={20} color={colors.textLight} />
+                  <Text
+                    style={[
+                      styles.yearPickerText,
+                      !formData.birthYear && styles.yearPickerPlaceholder,
+                    ]}
+                  >
+                    {formData.birthYear || 'Select'}
+                  </Text>
+                  <Icon name="arrow-down" size={16} color={colors.textLight} />
+                </TouchableOpacity>
+              )}
               {errors.birthYear ? (
                 <Text style={styles.yearPickerError}>{errors.birthYear}</Text>
               ) : null}
@@ -302,55 +355,57 @@ export default function RegisterScreen() {
         </Text>
       </ScrollView>
 
-      {/* Birth Year Picker Modal */}
-      <Modal
-        visible={yearPickerVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setYearPickerVisible(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setYearPickerVisible(false)}
+      {/* Birth Year Picker Modal (native only -- web uses <select>) */}
+      {Platform.OS !== 'web' && (
+        <Modal
+          visible={yearPickerVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setYearPickerVisible(false)}
         >
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Birth Year</Text>
-              <TouchableOpacity onPress={() => setYearPickerVisible(false)}>
-                <Icon name="x" size={24} color={colors.text} />
-              </TouchableOpacity>
-            </View>
-            <FlatList
-              data={BIRTH_YEARS}
-              keyExtractor={(item) => item.toString()}
-              style={styles.yearList}
-              showsVerticalScrollIndicator={false}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[
-                    styles.yearItem,
-                    formData.birthYear === item.toString() && styles.yearItemSelected,
-                  ]}
-                  onPress={() => {
-                    updateField('birthYear', item.toString());
-                    setYearPickerVisible(false);
-                  }}
-                >
-                  <Text
-                    style={[
-                      styles.yearItemText,
-                      formData.birthYear === item.toString() && styles.yearItemTextSelected,
-                    ]}
-                  >
-                    {item}
-                  </Text>
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setYearPickerVisible(false)}
+          >
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Birth Year</Text>
+                <TouchableOpacity onPress={() => setYearPickerVisible(false)}>
+                  <Icon name="x" size={24} color={colors.text} />
                 </TouchableOpacity>
-              )}
-            />
-          </View>
-        </TouchableOpacity>
-      </Modal>
+              </View>
+              <FlatList
+                data={BIRTH_YEARS}
+                keyExtractor={(item) => item.toString()}
+                style={styles.yearList}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={[
+                      styles.yearItem,
+                      formData.birthYear === item.toString() && styles.yearItemSelected,
+                    ]}
+                    onPress={() => {
+                      updateField('birthYear', item.toString());
+                      setYearPickerVisible(false);
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.yearItemText,
+                        formData.birthYear === item.toString() && styles.yearItemTextSelected,
+                      ]}
+                    >
+                      {item}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              />
+            </View>
+          </TouchableOpacity>
+        </Modal>
+      )}
     </KeyboardAvoidingView>
   );
 }
