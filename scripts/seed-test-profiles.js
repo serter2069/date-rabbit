@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Seed script: Create realistic companion profiles with attractive photos
- * Uses randomuser.me for portrait photos
+ * Uses i.pravatar.cc for portrait photos
  * Target: https://daterabbit-api.smartlaunchhub.com/api
  *
  * In DEV_AUTH mode, OTP is always 000000 for any email
@@ -10,7 +10,7 @@
 const API_BASE = 'https://daterabbit-api.smartlaunchhub.com/api';
 
 // Realistic companion profiles to seed
-// Photos from randomuser.me (portrait indices 1-99 for women)
+// Photos from i.pravatar.cc (portrait indices 1-70)
 const COMPANIONS = [
   {
     email: 'isabella.romano@seed.daterabbit.com',
@@ -259,7 +259,7 @@ function generateUUID() {
 }
 
 function buildPhotos(photoIndex) {
-  const url = `https://randomuser.me/api/portraits/women/${photoIndex}.jpg`;
+  const url = `https://i.pravatar.cc/400?img=${photoIndex}`;
   return [
     {
       id: generateUUID(),

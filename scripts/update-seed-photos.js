@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Update existing seed companion profiles to use real randomuser.me portrait photos
+ * Update existing seed companion profiles to use i.pravatar.cc portrait photos
  * Replaces dicebear SVG avatars with real face photos
  *
  * Run after rate limit resets (20 /start calls per hour limit)
@@ -9,7 +9,7 @@
 
 const API_BASE = 'https://daterabbit-api.smartlaunchhub.com/api';
 
-// Photo assignments: companion email -> photo index on randomuser.me/api/portraits/women/N.jpg
+// Photo assignments: companion email -> photo index on i.pravatar.cc/400?img=N
 const COMPANION_PHOTO_UPDATES = [
   { email: 'sophia.chen@seed.daterabbit.com',      name: 'Sophia Chen',      photoIndex: 5 },
   { email: 'isabella.romano@seed.daterabbit.com',  name: 'Isabella Romano',  photoIndex: 12 },
@@ -126,8 +126,8 @@ async function updateCompanionPhoto(companion) {
   }
 
   const token = authResult.token;
-  const primaryUrl = `https://randomuser.me/api/portraits/women/${companion.photoIndex}.jpg`;
-  const secondaryUrl = `https://randomuser.me/api/portraits/women/${companion.photoIndex === 1 ? 99 : companion.photoIndex - 1}.jpg`;
+  const primaryUrl = `https://i.pravatar.cc/400?img=${companion.photoIndex}`;
+  const secondaryUrl = `https://i.pravatar.cc/400?img=${companion.photoIndex === 1 ? 70 : companion.photoIndex - 1}`;
 
   const photos = [
     { id: generateUUID(), url: primaryUrl, order: 0, isPrimary: true },

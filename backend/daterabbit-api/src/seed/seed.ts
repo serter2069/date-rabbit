@@ -537,15 +537,15 @@ async function seed() {
     const userRepo = AppDataSource.getRepository(User);
     const companions: User[] = [];
 
-  // Real portrait photos from randomuser.me (women, indices 1-99)
-  // These are stable URLs that return real-looking face photos
-  const companionPhotoIndices = [5, 12, 19, 26, 33, 40, 47, 54, 61, 68, 75, 82, 89, 9, 16, 22, 29, 36, 43, 50];
+  // Portrait photos from i.pravatar.cc (reliable placeholder service)
+  // Format: https://i.pravatar.cc/400?img=N (N = 1-70)
+  const companionPhotoIndices = [1, 5, 9, 10, 16, 20, 21, 23, 25, 26, 28, 29, 31, 32, 36, 38, 39, 41, 43, 45];
 
     for (let ci = 0; ci < companionSeeds.length; ci++) {
       const c = companionSeeds[ci];
       const photoIdx = companionPhotoIndices[ci] || (ci + 1);
-      const primaryPhotoUrl = `https://randomuser.me/api/portraits/women/${photoIdx}.jpg`;
-      const secondaryPhotoUrl = `https://randomuser.me/api/portraits/women/${photoIdx === 1 ? 99 : photoIdx - 1}.jpg`;
+      const primaryPhotoUrl = `https://i.pravatar.cc/400?img=${photoIdx}`;
+      const secondaryPhotoUrl = `https://i.pravatar.cc/400?img=${photoIdx === 1 ? 70 : photoIdx - 1}`;
 
       const user = Object.assign(new User(), {
         email: c.email,
@@ -589,8 +589,8 @@ async function seed() {
 
     const seekers: User[] = [];
 
-  // Real portrait photos from randomuser.me for seekers (men)
-  const seekerPhotoIndices = [15, 28, 42, 57, 71];
+  // Portrait photos from i.pravatar.cc for seekers (men)
+  const seekerPhotoIndices = [3, 7, 11, 14, 33];
 
     for (let si = 0; si < seekerSeeds.length; si++) {
       const s = seekerSeeds[si];
@@ -605,7 +605,7 @@ async function seed() {
         photos: [
           {
             id: crypto.randomUUID(),
-            url: `https://randomuser.me/api/portraits/men/${seekerPhotoIdx}.jpg`,
+            url: `https://i.pravatar.cc/400?img=${seekerPhotoIdx}`,
             order: 0,
             isPrimary: true,
           },
