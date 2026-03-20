@@ -39,7 +39,8 @@ function WebPaymentForm({ clientSecret, amount, onSuccess, onError }: StripePaym
 
   const publishableKey =
     Constants.expoConfig?.extra?.stripePublishableKey ||
-    'pk_test_51T5TlyPIXSgCWIzOHEKqYS4Pqjt8VNkMlPx2aZ6MIqJQf1UWTEJvEdcSfrLj9z3qRzG49fQrF0FxEGqaNLNpSIX00Hb8bFncl';
+    process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ||
+    '';
 
   const stripePromise = loadStripe(publishableKey);
 
