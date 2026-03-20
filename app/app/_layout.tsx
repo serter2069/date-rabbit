@@ -147,7 +147,8 @@ export default function RootLayout() {
               minWidth: 320,
               marginLeft: 'auto',
               marginRight: 'auto',
-            } : {}),
+              height: '100%',
+            } as any : {}),
           }
         }}
       >
