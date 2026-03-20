@@ -73,7 +73,7 @@ export default function WelcomeScreen() {
           <Button
             title="Find Companions"
             label="Looking for a date?"
-            onPress={() => router.push({ pathname: '/(auth)/register', params: { role: 'seeker' } })}
+            onPress={() => router.push({ pathname: '/(auth)/login', params: { role: 'seeker' } })}
             variant="primary"
             fullWidth
             size="lg"
