@@ -11,7 +11,9 @@ import { EmptyState } from '../../../src/components/EmptyState';
 import { FilterModal, FilterOptions } from '../../../src/components/FilterModal';
 import { useTheme, spacing, typography, borderRadius } from '../../../src/constants/theme';
 import { companionsApi, CompanionListItem } from '../../../src/services/api';
+import { showAlert } from '../../../src/utils/alert';
 import { useVerificationGate } from '../../../src/hooks/useVerificationGate';
+import { useAuthStore } from '../../../src/store/authStore';
 
 const quickFilters = ['All', 'Nearby', 'Top Rated', 'New'];
 
@@ -28,6 +30,7 @@ export default function BrowseScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const { requireVerification } = useVerificationGate();
+  const { isAuthenticated } = useAuthStore();
   const [activeFilter, setActiveFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterModalVisible, setFilterModalVisible] = useState(false);
@@ -300,6 +303,11 @@ export default function BrowseScreen() {
                 <Button
                   title="Book Date"
                   onPress={() => {
+                    if (!isAuthenticated) {
+                      showAlert('Sign In Required', 'Please sign in to book a date.');
+                      router.push('/(auth)/welcome');
+                      return;
+                    }
                     if (requireVerification()) return;
                     router.push(`/booking/${companion.id}`);
                   }}

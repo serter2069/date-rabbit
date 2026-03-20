@@ -23,6 +23,7 @@ import { UserImage } from '../../src/components/UserImage';
 import { useTheme, spacing, typography, borderRadius, colors } from '../../src/constants/theme';
 import { useFavoritesStore } from '../../src/store/favoritesStore';
 import { useVerificationGate } from '../../src/hooks/useVerificationGate';
+import { useAuthStore } from '../../src/store/authStore';
 import { usersApi, companionsApi, CompanionDetail } from '../../src/services/api';
 
 // Max width for photo container — prevents giant hero on wide screens
@@ -70,6 +71,7 @@ export default function ProfileViewScreen() {
   const { colors } = useTheme();
   const { width: windowWidth } = useWindowDimensions();
   const { requireVerification } = useVerificationGate();
+  const { isAuthenticated } = useAuthStore();
   const photoWidth = Platform.OS === 'web' ? Math.min(windowWidth, MAX_PHOTO_WIDTH) : windowWidth;
 
   const [profile, setProfile] = useState<ProfileData>(defaultProfile);
@@ -197,6 +199,11 @@ export default function ProfileViewScreen() {
   };
 
   const handleBookDate = () => {
+    if (!isAuthenticated) {
+      showAlert('Sign In Required', 'Please sign in to book a date.');
+      router.push('/(auth)/welcome');
+      return;
+    }
     if (requireVerification()) return;
     router.push(`/booking/${profile.id}`);
   };
@@ -608,6 +615,7 @@ export default function ProfileViewScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    ...(Platform.OS === 'web' ? { position: 'relative' as any } : {}),
   },
   scrollView: {
     flex: 1,
