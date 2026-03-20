@@ -11,6 +11,7 @@ import {
   UseGuards,
   Request,
   ParseIntPipe,
+  ParseUUIDPipe,
   DefaultValuePipe,
 } from '@nestjs/common';
 import { AdminGuard } from './admin.guard';
@@ -57,7 +58,7 @@ export class AdminController {
   }
 
   @Delete('reviews/:id')
-  deleteReview(@Param('id') id: string) {
+  deleteReview(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminService.deleteReview(id);
   }
 
@@ -71,13 +72,13 @@ export class AdminController {
   }
 
   @Get('users/:id')
-  getUserById(@Param('id') id: string) {
+  getUserById(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminService.getUserById(id);
   }
 
   @Patch('users/:id')
   updateUser(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() body: { isActive?: boolean; isAdmin?: boolean },
   ) {
     return this.adminService.updateUser(id, body);
@@ -85,19 +86,19 @@ export class AdminController {
 
   // #697 - ban/unban
   @Post('users/:id/ban')
-  banUser(@Param('id') id: string) {
+  banUser(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminService.banUser(id);
   }
 
   @Post('users/:id/unban')
-  unbanUser(@Param('id') id: string) {
+  unbanUser(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminService.unbanUser(id);
   }
 
   // #698 - user bookings
   @Get('users/:userId/bookings')
   getUserBookings(
-    @Param('userId') userId: string,
+    @Param('userId', ParseUUIDPipe) userId: string,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
   ) {
@@ -114,14 +115,14 @@ export class AdminController {
   }
 
   @Get('bookings/:id')
-  getBookingById(@Param('id') id: string) {
+  getBookingById(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminService.getBookingById(id);
   }
 
   // #699 - cancel booking
   @Post('bookings/:id/cancel')
   cancelBooking(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() body: { reason?: string },
   ) {
     return this.adminService.cancelBooking(id, body.reason);
@@ -137,13 +138,13 @@ export class AdminController {
   }
 
   @Put('verifications/:id/approve')
-  approveVerification(@Param('id') id: string) {
+  approveVerification(@Param('id', ParseUUIDPipe) id: string) {
     return this.adminService.approveVerification(id);
   }
 
   @Put('verifications/:id/reject')
   rejectVerification(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() body: { reason?: string },
   ) {
     return this.adminService.rejectVerification(id, body.reason);

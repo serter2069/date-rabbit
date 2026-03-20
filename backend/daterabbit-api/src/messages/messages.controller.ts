@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Query, UseGuards, Request, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, UseGuards, Request, HttpException, HttpStatus, ParseUUIDPipe } from '@nestjs/common';
 import { MessagesService } from './messages.service';
 import { UsersService } from '../users/users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -56,7 +56,7 @@ export class MessagesController {
 
   @Get(':userId')
   async getMessages(
-    @Param('userId') otherUserId: string,
+    @Param('userId', ParseUUIDPipe) otherUserId: string,
     @Request() req,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
@@ -86,7 +86,7 @@ export class MessagesController {
    */
   @Get(':userId/pre-chat')
   async getPreChatStatus(
-    @Param('userId') companionId: string,
+    @Param('userId', ParseUUIDPipe) companionId: string,
     @Request() req,
   ) {
     return this.messagesService.getPreChatStatus(req.user.id, companionId);
@@ -94,7 +94,7 @@ export class MessagesController {
 
   @Post(':userId')
   async sendMessage(
-    @Param('userId') receiverId: string,
+    @Param('userId', ParseUUIDPipe) receiverId: string,
     @Request() req,
     @Body() body: { content: string },
   ) {

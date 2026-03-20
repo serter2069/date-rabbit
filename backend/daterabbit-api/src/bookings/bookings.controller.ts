@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Body, Param, Query, UseGuards, Request, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Put, Body, Param, Query, UseGuards, Request, HttpException, HttpStatus, ParseUUIDPipe } from '@nestjs/common';
 import { BookingsService } from './bookings.service';
 import { PaymentsService } from '../payments/payments.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -120,7 +120,7 @@ export class BookingsController {
    * Returns status, companion info, and elapsed time since request was sent.
    */
   @Get(':id/status')
-  async getBookingStatus(@Param('id') id: string, @Request() req) {
+  async getBookingStatus(@Param('id', ParseUUIDPipe) id: string, @Request() req) {
     const booking = await this.bookingsService.findById(id);
     if (!booking) {
       throw new HttpException('Booking not found', HttpStatus.NOT_FOUND);
@@ -148,7 +148,7 @@ export class BookingsController {
   }
 
   @Get(':id')
-  async getBooking(@Param('id') id: string, @Request() req) {
+  async getBooking(@Param('id', ParseUUIDPipe) id: string, @Request() req) {
     const booking = await this.bookingsService.findById(id);
     if (!booking) {
       throw new HttpException('Booking not found', HttpStatus.NOT_FOUND);
@@ -160,7 +160,7 @@ export class BookingsController {
   }
 
   @Put(':id/confirm')
-  async confirmBooking(@Param('id') id: string, @Request() req) {
+  async confirmBooking(@Param('id', ParseUUIDPipe) id: string, @Request() req) {
     const booking = await this.bookingsService.findById(id);
     if (!booking) {
       throw new HttpException('Booking not found', HttpStatus.NOT_FOUND);
@@ -179,7 +179,7 @@ export class BookingsController {
   }
 
   @Put(':id/cancel')
-  async cancelBooking(@Param('id') id: string, @Request() req, @Body() body: { reason?: string }) {
+  async cancelBooking(@Param('id', ParseUUIDPipe) id: string, @Request() req, @Body() body: { reason?: string }) {
     const booking = await this.bookingsService.findById(id);
     if (!booking) {
       throw new HttpException('Booking not found', HttpStatus.NOT_FOUND);
@@ -235,7 +235,7 @@ export class BookingsController {
   }
 
   @Put(':id/complete')
-  async completeBooking(@Param('id') id: string, @Request() req) {
+  async completeBooking(@Param('id', ParseUUIDPipe) id: string, @Request() req) {
     const updated = await this.bookingsService.complete(id, req.user.id);
     // Capture the Stripe hold (fire-and-forget)
     this.paymentsService.capturePayment(id).catch(err =>
@@ -245,25 +245,25 @@ export class BookingsController {
   }
 
   @Post(':id/checkin')
-  async seekerCheckin(@Param('id') id: string, @Request() req, @Body() body: { lat?: number; lon?: number }) {
+  async seekerCheckin(@Param('id', ParseUUIDPipe) id: string, @Request() req, @Body() body: { lat?: number; lon?: number }) {
     const booking = await this.bookingsService.seekerCheckin(id, req.user.id, body.lat, body.lon);
     return this.formatBooking(booking);
   }
 
   @Post(':id/companion-checkin')
-  async companionCheckin(@Param('id') id: string, @Request() req, @Body() body: { lat?: number; lon?: number }) {
+  async companionCheckin(@Param('id', ParseUUIDPipe) id: string, @Request() req, @Body() body: { lat?: number; lon?: number }) {
     const booking = await this.bookingsService.companionCheckin(id, req.user.id, body.lat, body.lon);
     return this.formatBooking(booking);
   }
 
   @Post(':id/sos')
-  async triggerSOS(@Param('id') id: string, @Request() req, @Body() body: { lat?: number; lon?: number }) {
+  async triggerSOS(@Param('id', ParseUUIDPipe) id: string, @Request() req, @Body() body: { lat?: number; lon?: number }) {
     const booking = await this.bookingsService.triggerSOS(id, req.user.id, body.lat, body.lon);
     return this.formatBooking(booking);
   }
 
   @Post(':id/end-early')
-  async endEarly(@Param('id') id: string, @Request() req) {
+  async endEarly(@Param('id', ParseUUIDPipe) id: string, @Request() req) {
     const booking = await this.bookingsService.endEarly(id, req.user.id);
     return this.formatBooking(booking);
   }
@@ -271,7 +271,7 @@ export class BookingsController {
   // --- Group 1: Safety check-in ---
 
   @Post(':id/safety-checkin')
-  async safetyCheckin(@Param('id') id: string, @Request() req) {
+  async safetyCheckin(@Param('id', ParseUUIDPipe) id: string, @Request() req) {
     const booking = await this.bookingsService.safetyCheckin(id, req.user.id);
     return this.formatBooking(booking);
   }
@@ -280,7 +280,7 @@ export class BookingsController {
 
   @Post(':id/photos')
   async uploadPhoto(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Request() req,
     @Body() body: { url: string },
   ) {
@@ -291,20 +291,20 @@ export class BookingsController {
   }
 
   @Get(':id/photos')
-  async getPhotos(@Param('id') id: string, @Request() req) {
+  async getPhotos(@Param('id', ParseUUIDPipe) id: string, @Request() req) {
     return this.bookingsService.getPhotos(id, req.user.id);
   }
 
   // --- Group 1: Date plan ---
 
   @Get(':id/plan')
-  async getDatePlan(@Param('id') id: string, @Request() req) {
+  async getDatePlan(@Param('id', ParseUUIDPipe) id: string, @Request() req) {
     return this.bookingsService.getDatePlan(id, req.user.id);
   }
 
   @Put(':id/plan')
   async updateDatePlan(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Request() req,
     @Body() body: { plan: Record<string, any> },
   ) {
@@ -319,7 +319,7 @@ export class BookingsController {
 
   @Post(':id/report-issue')
   async reportIssue(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Request() req,
     @Body() body: { type: string; text: string },
   ) {
@@ -341,7 +341,7 @@ export class BookingsController {
 
   @Post(':id/extend-request')
   async extendRequest(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Request() req,
     @Body() body: { hours: number },
   ) {
@@ -356,7 +356,7 @@ export class BookingsController {
 
   @Post(':id/verify-selfie')
   async submitSelfie(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Request() req,
     @Body() body: { photoUrl: string },
   ) {
@@ -367,7 +367,7 @@ export class BookingsController {
   }
 
   @Get(':id/verify-selfie')
-  async getSelfieStatus(@Param('id') id: string, @Request() req) {
+  async getSelfieStatus(@Param('id', ParseUUIDPipe) id: string, @Request() req) {
     return this.bookingsService.getSelfieStatus(id, req.user.id);
   }
 
@@ -375,7 +375,7 @@ export class BookingsController {
 
   @Put(':id/extend-response')
   async extendResponse(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Request() req,
     @Body() body: { approved: boolean },
   ) {

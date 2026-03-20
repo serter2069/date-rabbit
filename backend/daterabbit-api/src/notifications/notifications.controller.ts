@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Param, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Put, Param, Query, UseGuards, Request, ParseUUIDPipe } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -37,7 +37,7 @@ export class NotificationsController {
   }
 
   @Put(':id/read')
-  async markAsRead(@Param('id') id: string, @Request() req) {
+  async markAsRead(@Param('id', ParseUUIDPipe) id: string, @Request() req) {
     await this.notificationsService.markAsRead(id, req.user.id);
     return { success: true };
   }
