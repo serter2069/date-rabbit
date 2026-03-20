@@ -7,6 +7,8 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Modal,
+  FlatList,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -14,8 +16,16 @@ import { useAuthStore } from '../../src/store/authStore';
 import { Button } from '../../src/components/Button';
 import { Input } from '../../src/components/Input';
 import { Icon } from '../../src/components/Icon';
-import { colors, spacing, typography, borderRadius, PAGE_PADDING } from '../../src/constants/theme';
+import { colors, spacing, typography, borderRadius, borderWidth, shadows, PAGE_PADDING } from '../../src/constants/theme';
 import type { UserRole } from '../../src/types';
+
+const CURRENT_YEAR = new Date().getFullYear();
+const MIN_YEAR = 1950;
+const MAX_YEAR = CURRENT_YEAR - 18;
+const BIRTH_YEARS = Array.from(
+  { length: MAX_YEAR - MIN_YEAR + 1 },
+  (_, i) => MAX_YEAR - i,
+);
 
 export default function RegisterScreen() {
   const insets = useSafeAreaInsets();
@@ -32,6 +42,7 @@ export default function RegisterScreen() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showFormError, setShowFormError] = useState(false);
+  const [yearPickerVisible, setYearPickerVisible] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
   const isFemale = role === 'companion';
@@ -220,16 +231,29 @@ export default function RegisterScreen() {
 
           <View style={styles.row}>
             <View style={styles.halfWidth}>
-              <Input
-                label="Birth Year"
-                placeholder="1995"
-                value={formData.birthYear}
-                onChangeText={(v) => updateField('birthYear', v)}
-                error={errors.birthYear}
-                keyboardType="number-pad"
-                maxLength={4}
-                leftIcon={<Icon name="calendar" size={20} color={colors.textLight} />}
-              />
+              <Text style={styles.pickerLabel}>Birth Year</Text>
+              <TouchableOpacity
+                style={[
+                  styles.yearPickerTrigger,
+                  errors.birthYear ? styles.yearPickerTriggerError : null,
+                ]}
+                onPress={() => setYearPickerVisible(true)}
+                activeOpacity={0.7}
+              >
+                <Icon name="calendar" size={20} color={colors.textLight} />
+                <Text
+                  style={[
+                    styles.yearPickerText,
+                    !formData.birthYear && styles.yearPickerPlaceholder,
+                  ]}
+                >
+                  {formData.birthYear || 'Select'}
+                </Text>
+                <Icon name="arrow-down" size={16} color={colors.textLight} />
+              </TouchableOpacity>
+              {errors.birthYear ? (
+                <Text style={styles.yearPickerError}>{errors.birthYear}</Text>
+              ) : null}
             </View>
 
             <View style={styles.halfWidth}>
@@ -253,7 +277,7 @@ export default function RegisterScreen() {
                 onChangeText={(v) => updateField('hourlyRate', v)}
                 error={errors.hourlyRate}
                 keyboardType="number-pad"
-                hint="You can change this later. Platform fee is 15%."
+                hint="You can change this later"
                 leftIcon={<Icon name="dollar" size={20} color={colors.textLight} />}
               />
             </View>
@@ -277,6 +301,56 @@ export default function RegisterScreen() {
           <Text style={styles.termsLink} onPress={() => router.push('/privacy')}>Privacy Policy</Text>
         </Text>
       </ScrollView>
+
+      {/* Birth Year Picker Modal */}
+      <Modal
+        visible={yearPickerVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setYearPickerVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setYearPickerVisible(false)}
+        >
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Birth Year</Text>
+              <TouchableOpacity onPress={() => setYearPickerVisible(false)}>
+                <Icon name="x" size={24} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={BIRTH_YEARS}
+              keyExtractor={(item) => item.toString()}
+              style={styles.yearList}
+              showsVerticalScrollIndicator={false}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[
+                    styles.yearItem,
+                    formData.birthYear === item.toString() && styles.yearItemSelected,
+                  ]}
+                  onPress={() => {
+                    updateField('birthYear', item.toString());
+                    setYearPickerVisible(false);
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.yearItemText,
+                      formData.birthYear === item.toString() && styles.yearItemTextSelected,
+                    ]}
+                  >
+                    {item}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -356,5 +430,99 @@ const styles = StyleSheet.create({
   termsLink: {
     fontFamily: typography.fonts.bodyMedium,
     color: colors.secondary,
+  },
+  // Year picker trigger
+  pickerLabel: {
+    fontFamily: typography.fonts.heading,
+    fontSize: typography.sizes.xs,
+    color: colors.text,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: spacing.xs,
+  },
+  yearPickerTrigger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderWidth: borderWidth.normal,
+    borderColor: colors.border,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.md,
+    height: 52,
+    gap: spacing.sm,
+    ...shadows.sm,
+  },
+  yearPickerTriggerError: {
+    borderColor: colors.error,
+  },
+  yearPickerText: {
+    flex: 1,
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.md,
+    color: colors.text,
+  },
+  yearPickerPlaceholder: {
+    color: colors.textLight,
+  },
+  yearPickerError: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.xs,
+    color: colors.error,
+    marginTop: spacing.xs,
+  },
+  // Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.lg,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 360,
+    maxHeight: 420,
+    backgroundColor: colors.surface,
+    borderWidth: borderWidth.normal,
+    borderColor: colors.border,
+    borderRadius: borderRadius.lg,
+    ...shadows.lg,
+    overflow: 'hidden',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    borderBottomWidth: borderWidth.thin,
+    borderBottomColor: colors.border,
+  },
+  modalTitle: {
+    fontFamily: typography.fonts.heading,
+    fontSize: typography.sizes.lg,
+    color: colors.text,
+  },
+  yearList: {
+    maxHeight: 360,
+  },
+  yearItem: {
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+  },
+  yearItemSelected: {
+    backgroundColor: colors.primary,
+  },
+  yearItemText: {
+    fontFamily: typography.fonts.bodyMedium,
+    fontSize: typography.sizes.md,
+    color: colors.text,
+    textAlign: 'center',
+  },
+  yearItemTextSelected: {
+    color: colors.textInverse,
+    fontFamily: typography.fonts.heading,
   },
 });
