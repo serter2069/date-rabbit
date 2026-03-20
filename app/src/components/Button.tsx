@@ -135,7 +135,7 @@ export function Button({
           onPress={handlePress}
           disabled={disabled || loading}
           activeOpacity={0.85}
-          style={[styles.gradientWrapper, fullWidth && styles.fullWidth]}
+          style={[styles.gradientWrapper, fullWidth && styles.fullWidth, style]}
         >
           <LinearGradient
             colors={gradientColors}
@@ -156,7 +156,7 @@ export function Button({
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         disabled={disabled || loading}
-        style={[styles.gradientWrapper, fullWidth && styles.fullWidth, animatedStyle]}
+        style={[styles.gradientWrapper, fullWidth && styles.fullWidth, style, animatedStyle]}
       >
         <LinearGradient
           colors={gradientColors}
