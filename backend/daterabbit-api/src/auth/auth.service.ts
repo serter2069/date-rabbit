@@ -62,7 +62,14 @@ export class AuthService {
       return { success: true, isNewUser };
     }
 
-    await this.emailService.sendOtp(email, otp);
+    const emailSent = await this.emailService.sendOtp(email, otp);
+
+    if (!emailSent) {
+      throw new HttpException(
+        'Failed to send verification email. Please try again later.',
+        HttpStatus.SERVICE_UNAVAILABLE,
+      );
+    }
 
     return { success: true, isNewUser };
   }
