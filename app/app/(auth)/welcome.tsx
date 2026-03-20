@@ -147,7 +147,9 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: PAGE_PADDING,
     flexGrow: 1,
-    justifyContent: 'center',
+    // justifyContent: 'center' breaks scrolling on web — when content
+    // exceeds viewport, the top gets clipped. Use paddingTop instead.
+    paddingTop: spacing.xl,
   },
 
   // Decorative blobs

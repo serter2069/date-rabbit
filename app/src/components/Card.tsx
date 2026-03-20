@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, StyleProp, ViewStyle, Pressable } from 'react-native';
+import { View, StyleSheet, StyleProp, ViewStyle, Pressable, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, borderRadius, spacing, shadows, borderWidth } from '../constants/theme';
 
@@ -89,7 +89,10 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.sm,
     borderWidth: borderWidth.normal,
     borderColor: colors.black,
-    overflow: 'hidden',
+    // overflow:'hidden' on web creates a stacking context that can block
+    // pointer events on nested TouchableOpacity/Pressable children (buttons).
+    // On native it's needed for borderRadius clipping of images.
+    ...(Platform.OS === 'web' ? {} : { overflow: 'hidden' as const }),
   },
   outlined: {
     borderWidth: borderWidth.normal,
