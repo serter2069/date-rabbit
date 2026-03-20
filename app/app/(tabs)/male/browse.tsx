@@ -429,7 +429,8 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: typography.sizes.md,
     padding: 0,
-  },
+    outlineStyle: 'none',
+  } as any,
   filtersScroll: {
     maxHeight: 56,
   },
