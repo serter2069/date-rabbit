@@ -405,6 +405,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 1,
     shadowRadius: 0,
     elevation: 3,
+    zIndex: 2,
   },
   filterBadge: {
     position: 'absolute',
