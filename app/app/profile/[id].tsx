@@ -133,7 +133,7 @@ export default function ProfileViewScreen() {
           languages: data.languages || ['English'],
           availability: 'Contact for availability',
           responseTime: 'Varies',
-          reviews: [],
+          reviews: (data as any).reviews || [],
         });
       } catch (err: any) {
         console.error('Failed to fetch profile:', err);
@@ -359,22 +359,26 @@ export default function ProfileViewScreen() {
           </View>
 
           {/* Bio */}
-          <Card style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>About</Text>
-            <Text style={[styles.bio, { color: colors.textSecondary }]}>{profile.bio}</Text>
-          </Card>
+          {profile.bio ? (
+            <Card style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>About</Text>
+              <Text style={[styles.bio, { color: colors.textSecondary }]}>{profile.bio}</Text>
+            </Card>
+          ) : null}
 
           {/* Interests */}
-          <Card style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Interests</Text>
-            <View style={styles.tagsContainer}>
-              {profile.interests.map((interest: string) => (
-                <View key={interest} style={[styles.tag, { backgroundColor: colors.surface }]}>
-                  <Text style={[styles.tagText, { color: colors.text }]}>{interest}</Text>
-                </View>
-              ))}
-            </View>
-          </Card>
+          {profile.interests && profile.interests.length > 0 ? (
+            <Card style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Interests</Text>
+              <View style={styles.tagsContainer}>
+                {profile.interests.map((interest: string) => (
+                  <View key={interest} style={[styles.tag, { backgroundColor: colors.surface }]}>
+                    <Text style={[styles.tagText, { color: colors.text }]}>{interest}</Text>
+                  </View>
+                ))}
+              </View>
+            </Card>
+          ) : null}
 
           {/* Details */}
           <Card style={styles.section}>
@@ -403,33 +407,41 @@ export default function ProfileViewScreen() {
           </Card>
 
           {/* Reviews */}
-          <Card style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Reviews</Text>
-              <TouchableOpacity onPress={() => router.push(`/reviews/${profile.id}`)}>
-                <Text style={[styles.seeAll, { color: colors.primary }]}>See All</Text>
-              </TouchableOpacity>
-            </View>
-            {profile.reviews.slice(0, 3).map((review: any) => (
-              <View key={review.id} style={[styles.review, { borderBottomColor: colors.border }]}>
-                <View style={styles.reviewHeader}>
-                  <Text style={[styles.reviewName, { color: colors.text }]}>{review.name}</Text>
-                  <View style={styles.reviewRating}>
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Icon
-                        key={star}
-                        name="star"
-                        size={12}
-                        color={star <= review.rating ? colors.accent : colors.border}
-                      />
-                    ))}
-                  </View>
-                </View>
-                <Text style={[styles.reviewText, { color: colors.textSecondary }]}>"{review.text}"</Text>
-                <Text style={[styles.reviewDate, { color: colors.textSecondary }]}>{review.date}</Text>
+          {(profile.reviews.length > 0 || profile.reviewCount > 0) ? (
+            <Card style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Reviews ({profile.reviewCount})</Text>
+                <TouchableOpacity onPress={() => router.push(`/reviews/${profile.id}`)}>
+                  <Text style={[styles.seeAll, { color: colors.primary }]}>See All</Text>
+                </TouchableOpacity>
               </View>
-            ))}
-          </Card>
+              {profile.reviews.length > 0 ? (
+                profile.reviews.slice(0, 3).map((review: any) => (
+                  <View key={review.id} style={[styles.review, { borderBottomColor: colors.border }]}>
+                    <View style={styles.reviewHeader}>
+                      <Text style={[styles.reviewName, { color: colors.text }]}>{review.name}</Text>
+                      <View style={styles.reviewRating}>
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Icon
+                            key={star}
+                            name="star"
+                            size={12}
+                            color={star <= review.rating ? colors.accent : colors.border}
+                          />
+                        ))}
+                      </View>
+                    </View>
+                    {review.text ? (
+                      <Text style={[styles.reviewText, { color: colors.textSecondary }]}>"{review.text}"</Text>
+                    ) : null}
+                    <Text style={[styles.reviewDate, { color: colors.textSecondary }]}>{review.date}</Text>
+                  </View>
+                ))
+              ) : (
+                <Text style={[styles.bio, { color: colors.textSecondary }]}>No reviews yet. Be the first!</Text>
+              )}
+            </Card>
+          ) : null}
 
           {/* Spacer for bottom buttons */}
           <View style={{ height: 100 }} />
