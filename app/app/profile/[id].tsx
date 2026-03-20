@@ -22,7 +22,6 @@ import { Icon } from '../../src/components/Icon';
 import { UserImage } from '../../src/components/UserImage';
 import { useTheme, spacing, typography, borderRadius, colors } from '../../src/constants/theme';
 import { useFavoritesStore } from '../../src/store/favoritesStore';
-import { useVerificationGate } from '../../src/hooks/useVerificationGate';
 import { useAuthStore } from '../../src/store/authStore';
 import { usersApi, companionsApi, CompanionDetail } from '../../src/services/api';
 
@@ -70,7 +69,6 @@ export default function ProfileViewScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const { width: windowWidth } = useWindowDimensions();
-  const { requireVerification } = useVerificationGate();
   const { isAuthenticated } = useAuthStore();
   const photoWidth = Platform.OS === 'web' ? Math.min(windowWidth, MAX_PHOTO_WIDTH) : windowWidth;
 
@@ -204,7 +202,6 @@ export default function ProfileViewScreen() {
       router.push('/(auth)/welcome');
       return;
     }
-    if (requireVerification()) return;
     router.push(`/booking/${profile.id}`);
   };
 
