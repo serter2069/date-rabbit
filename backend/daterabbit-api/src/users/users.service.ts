@@ -120,10 +120,11 @@ export class UsersService {
         query.orderBy('user.rating', 'DESC');
         break;
       case 'new': {
-        // Show companions who joined in the last 30 days, newest first
+        // "New" = recently joined AND few reviews (genuinely new to the platform)
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         query.andWhere('user.createdAt >= :thirtyDaysAgo', { thirtyDaysAgo });
+        query.andWhere('user.reviewCount < :newReviewThreshold', { newReviewThreshold: 5 });
         query.orderBy('user.createdAt', 'DESC');
         break;
       }
