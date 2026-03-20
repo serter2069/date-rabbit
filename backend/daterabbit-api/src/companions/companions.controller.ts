@@ -62,7 +62,7 @@ export class CompanionsController {
         shortBio: c.bio ? c.bio.substring(0, 100) : null,
         primaryPhoto: c.photos?.[0]?.url || null,
         hourlyRate: c.hourlyRate != null ? Number(c.hourlyRate) : 0,
-        rating: c.rating ? Number(c.rating) : 5.0,
+        rating: c.rating ? Number(c.rating) : null,
         reviewCount: c.reviewCount || 0,
         isVerified: c.isVerified || false,
       })),
@@ -93,7 +93,7 @@ export class CompanionsController {
       bio: user.bio,
       photos: user.photos || [],
       hourlyRate: user.hourlyRate != null ? Number(user.hourlyRate) : 0,
-      rating: user.rating ? Number(user.rating) : 5.0,
+      rating: user.rating ? Number(user.rating) : null,
       reviewCount: user.reviewCount || 0,
       isVerified: user.isVerified || false,
     };

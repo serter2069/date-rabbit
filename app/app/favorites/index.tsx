@@ -103,9 +103,17 @@ export default function FavoritesScreen() {
                       <Text style={[styles.cardLocation, { color: colors.textSecondary }]}> {companion.location || 'Location hidden'}</Text>
                     </View>
                     <View style={styles.ratingRow}>
-                      <Icon name="star" size={14} color={colors.accent} />
-                      <Text style={[styles.rating, { color: colors.text }]}> {companion.rating.toFixed(1)}</Text>
-                      <Text style={[styles.reviews, { color: colors.textSecondary }]}>({companion.reviewCount} reviews)</Text>
+                      {companion.reviewCount > 0 ? (
+                        <>
+                          <Icon name="star" size={14} color={colors.accent} />
+                          <Text style={[styles.rating, { color: colors.text }]}> {Number(companion.rating).toFixed(1)}</Text>
+                          <Text style={[styles.reviews, { color: colors.textSecondary }]}>({companion.reviewCount} reviews)</Text>
+                        </>
+                      ) : (
+                        <View style={[styles.newBadge, { backgroundColor: colors.primary + '15' }]}>
+                          <Text style={[styles.newBadgeText, { color: colors.primary }]}>New</Text>
+                        </View>
+                      )}
                     </View>
                   </View>
                   <TouchableOpacity
@@ -231,6 +239,15 @@ const styles = StyleSheet.create({
   reviews: {
     fontSize: typography.sizes.sm,
     marginLeft: spacing.xs,
+  },
+  newBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: borderRadius.xs,
+  },
+  newBadgeText: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.xs,
   },
   heartButton: {
     padding: spacing.sm,

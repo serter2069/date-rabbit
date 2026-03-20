@@ -49,7 +49,7 @@ export class User {
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
   hourlyRate: number;
 
-  @Column({ type: 'decimal', precision: 2, scale: 1, default: 5.0 })
+  @Column({ type: 'decimal', precision: 2, scale: 1, default: 0, nullable: true })
   rating: number;
 
   @Column({ default: 0 })

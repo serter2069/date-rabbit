@@ -51,7 +51,7 @@ const defaultProfile: ProfileData = {
   name: 'Profile',
   age: 25,
   location: 'New York',
-  rating: 4.5,
+  rating: 0,
   reviewCount: 0,
   hourlyRate: 100,
   bio: 'No bio available',

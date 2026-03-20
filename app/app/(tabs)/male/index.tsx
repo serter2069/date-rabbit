@@ -341,10 +341,16 @@ function CompanionCardItem({ companion, colors }: { companion: CompanionListItem
           {companion.name}{companion.age ? `, ${companion.age}` : ''}
         </Text>
         <View style={styles.ratingRow}>
-          <Icon name="star" size={14} color={colors.warning} />
-          <Text style={[styles.companionRating, { color: colors.textSecondary }]}>
-            {Number(companion.rating).toFixed(1)}
-          </Text>
+          {companion.reviewCount > 0 ? (
+            <>
+              <Icon name="star" size={14} color={colors.warning} />
+              <Text style={[styles.companionRating, { color: colors.textSecondary }]}>
+                {Number(companion.rating).toFixed(1)}
+              </Text>
+            </>
+          ) : (
+            <Text style={[styles.newBadgeText, { color: colors.primary }]}>New</Text>
+          )}
         </View>
         <View style={[styles.rateTag, { backgroundColor: colors.secondary, borderColor: colors.border }]}>
           <Text style={[styles.companionRate, { color: colors.text }]}>${companion.hourlyRate}/hr</Text>
@@ -531,6 +537,10 @@ const styles = StyleSheet.create({
   companionRating: {
     fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.sm,
+  },
+  newBadgeText: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.xs,
   },
   rateTag: {
     paddingHorizontal: spacing.md,
