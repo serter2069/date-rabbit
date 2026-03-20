@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
 import { Image } from 'expo-image';
 import { Icon } from './Icon';
@@ -25,6 +25,11 @@ export function UserImage({
 }: UserImageProps) {
   const { colors, spacing } = useTheme();
   const [hasError, setHasError] = useState(false);
+
+  // Reset error state when URI changes (e.g., after filter toggle re-fetch)
+  useEffect(() => {
+    setHasError(false);
+  }, [uri]);
 
   const actualBorderRadius = borderRadius ?? size / 2;
 
