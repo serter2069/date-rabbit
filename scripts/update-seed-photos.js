@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Update existing seed companion profiles to use i.pravatar.cc portrait photos
- * Replaces dicebear SVG avatars with real face photos
+ * Update existing seed companion profiles to use Unsplash portrait photos
+ * Replaces placeholder avatars with real face photos
  *
  * Run after rate limit resets (20 /start calls per hour limit)
  * Uses batching: 9 users per batch with 11-minute waits between batches
@@ -9,40 +9,40 @@
 
 const API_BASE = 'https://daterabbit-api.smartlaunchhub.com/api';
 
-// Photo assignments: companion email -> photo index on i.pravatar.cc/400?img=N
+// Photo assignments: companion email -> Unsplash portrait URLs
 const COMPANION_PHOTO_UPDATES = [
-  { email: 'sophia.chen@seed.daterabbit.com',      name: 'Sophia Chen',      photoIndex: 5 },
-  { email: 'isabella.romano@seed.daterabbit.com',  name: 'Isabella Romano',  photoIndex: 12 },
-  { email: 'mia.thompson@seed.daterabbit.com',     name: 'Mia Thompson',     photoIndex: 19 },
-  { email: 'ava.williams@seed.daterabbit.com',     name: 'Ava Williams',     photoIndex: 26 },
-  { email: 'emma.davis@seed.daterabbit.com',       name: 'Emma Davis',       photoIndex: 33 },
-  { email: 'olivia.martinez@seed.daterabbit.com',  name: 'Olivia Martinez',  photoIndex: 40 },
-  { email: 'charlotte.lee@seed.daterabbit.com',    name: 'Charlotte Lee',    photoIndex: 47 },
-  { email: 'luna.vasquez@seed.daterabbit.com',     name: 'Luna Vasquez',     photoIndex: 54 },
-  { email: 'zoe.anderson@seed.daterabbit.com',     name: 'Zoe Anderson',     photoIndex: 61 },
-  { email: 'natalie.kim@seed.daterabbit.com',      name: 'Natalie Kim',      photoIndex: 68 },
-  { email: 'chloe.johnson@seed.daterabbit.com',    name: 'Chloe Johnson',    photoIndex: 75 },
-  { email: 'aria.patel@seed.daterabbit.com',       name: 'Aria Patel',       photoIndex: 82 },
-  { email: 'grace.wilson@seed.daterabbit.com',     name: 'Grace Wilson',     photoIndex: 89 },
-  { email: 'lily.taylor@seed.daterabbit.com',      name: 'Lily Taylor',      photoIndex: 9 },
-  { email: 'harper.brown@seed.daterabbit.com',     name: 'Harper Brown',     photoIndex: 16 },
-  { email: 'scarlett.nguyen@seed.daterabbit.com',  name: 'Scarlett Nguyen',  photoIndex: 22 },
-  { email: 'maya.robinson@seed.daterabbit.com',    name: 'Maya Robinson',    photoIndex: 29 },
-  { email: 'stella.garcia@seed.daterabbit.com',    name: 'Stella Garcia',    photoIndex: 36 },
-  { email: 'penelope.clarke@seed.daterabbit.com',  name: 'Penelope Clarke',  photoIndex: 43 },
-  { email: 'victoria.scott@seed.daterabbit.com',   name: 'Victoria Scott',   photoIndex: 50 },
+  { email: 'sophia.chen@seed.daterabbit.com',      name: 'Sophia Chen',      photoUrl: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400&h=400&fit=crop&crop=face' },
+  { email: 'isabella.romano@seed.daterabbit.com',  name: 'Isabella Romano',  photoUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop&crop=face' },
+  { email: 'mia.thompson@seed.daterabbit.com',     name: 'Mia Thompson',     photoUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&h=400&fit=crop&crop=face' },
+  { email: 'ava.williams@seed.daterabbit.com',     name: 'Ava Williams',     photoUrl: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&h=400&fit=crop&crop=face' },
+  { email: 'emma.davis@seed.daterabbit.com',       name: 'Emma Davis',       photoUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=face' },
+  { email: 'olivia.martinez@seed.daterabbit.com',  name: 'Olivia Martinez',  photoUrl: 'https://images.unsplash.com/photo-1524638431109-93d95c968f03?w=400&h=400&fit=crop&crop=face' },
+  { email: 'charlotte.lee@seed.daterabbit.com',    name: 'Charlotte Lee',    photoUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face' },
+  { email: 'luna.vasquez@seed.daterabbit.com',     name: 'Luna Vasquez',     photoUrl: 'https://images.unsplash.com/photo-1464863979621-258859e62245?w=400&h=400&fit=crop&crop=face' },
+  { email: 'zoe.anderson@seed.daterabbit.com',     name: 'Zoe Anderson',     photoUrl: 'https://images.unsplash.com/photo-1496440737103-cd596325d314?w=400&h=400&fit=crop&crop=face' },
+  { email: 'natalie.kim@seed.daterabbit.com',      name: 'Natalie Kim',      photoUrl: 'https://images.unsplash.com/photo-1515023115894-bacee3643854?w=400&h=400&fit=crop&crop=face' },
+  { email: 'chloe.johnson@seed.daterabbit.com',    name: 'Chloe Johnson',    photoUrl: 'https://images.unsplash.com/photo-1519699047748-de8e457a634e?w=400&h=400&fit=crop&crop=face' },
+  { email: 'aria.patel@seed.daterabbit.com',       name: 'Aria Patel',       photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face' },
+  { email: 'grace.wilson@seed.daterabbit.com',     name: 'Grace Wilson',     photoUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=400&fit=crop&crop=face' },
+  { email: 'lily.taylor@seed.daterabbit.com',      name: 'Lily Taylor',      photoUrl: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400&h=400&fit=crop&crop=face' },
+  { email: 'harper.brown@seed.daterabbit.com',     name: 'Harper Brown',     photoUrl: 'https://images.unsplash.com/photo-1548142813-c348350df52b?w=400&h=400&fit=crop&crop=face' },
+  { email: 'scarlett.nguyen@seed.daterabbit.com',  name: 'Scarlett Nguyen',  photoUrl: 'https://images.unsplash.com/photo-1516726817505-f5ed825624d8?w=400&h=400&fit=crop&crop=face' },
+  { email: 'maya.robinson@seed.daterabbit.com',    name: 'Maya Robinson',    photoUrl: 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=400&h=400&fit=crop&crop=face' },
+  { email: 'stella.garcia@seed.daterabbit.com',    name: 'Stella Garcia',    photoUrl: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=400&h=400&fit=crop&crop=face' },
+  { email: 'penelope.clarke@seed.daterabbit.com',  name: 'Penelope Clarke',  photoUrl: 'https://images.unsplash.com/photo-1514315384763-ba401779410f?w=400&h=400&fit=crop&crop=face' },
+  { email: 'victoria.scott@seed.daterabbit.com',   name: 'Victoria Scott',   photoUrl: 'https://images.unsplash.com/photo-1534751516642-a1af1ef26a56?w=400&h=400&fit=crop&crop=face' },
 ];
 
-// Additional new companions from seed-test-profiles (remaining ones not yet updated)
+// Additional new companions from seed-test-profiles
 const NEW_COMPANION_UPDATES = [
-  { email: 'jade.nakamura@seed.daterabbit.com',    name: 'Jade Nakamura',    photoIndex: 52 },
-  { email: 'maya.okonkwo@seed.daterabbit.com',     name: 'Maya Okonkwo',     photoIndex: 62 },
-  { email: 'anya.kozlov@seed.daterabbit.com',      name: 'Anya Kozlov',      photoIndex: 7 },
-  { email: 'valentina.reyes@seed.daterabbit.com',  name: 'Valentina Reyes',  photoIndex: 21 },
-  { email: 'diana.sterling@seed.daterabbit.com',   name: 'Diana Sterling',   photoIndex: 35 },
-  { email: 'freya.anderson@seed.daterabbit.com',   name: 'Freya Anderson',   photoIndex: 41 },
-  { email: 'priya.sharma@seed.daterabbit.com',     name: 'Priya Sharma',     photoIndex: 48 },
-  { email: 'lucia.fontana@seed.daterabbit.com',    name: 'Lucia Fontana',    photoIndex: 55 },
+  { email: 'jade.nakamura@seed.daterabbit.com',    name: 'Jade Nakamura',    photoUrl: 'https://images.unsplash.com/photo-1527203561188-dae1bc1a60a1?w=400&h=400&fit=crop&crop=face' },
+  { email: 'maya.okonkwo@seed.daterabbit.com',     name: 'Maya Okonkwo',     photoUrl: 'https://images.unsplash.com/photo-1523264653568-3cafe1e40e67?w=400&h=400&fit=crop&crop=face' },
+  { email: 'anya.kozlov@seed.daterabbit.com',      name: 'Anya Kozlov',      photoUrl: 'https://images.unsplash.com/photo-1502685104144-0e3e4c9ae73a?w=400&h=400&fit=crop&crop=face' },
+  { email: 'valentina.reyes@seed.daterabbit.com',  name: 'Valentina Reyes',  photoUrl: 'https://images.unsplash.com/photo-1479936343636-73cdc5aae0c3?w=400&h=400&fit=crop&crop=face' },
+  { email: 'diana.sterling@seed.daterabbit.com',   name: 'Diana Sterling',   photoUrl: 'https://images.unsplash.com/photo-1491349174775-aaafddd81942?w=400&h=400&fit=crop&crop=face' },
+  { email: 'freya.anderson@seed.daterabbit.com',   name: 'Freya Anderson',   photoUrl: 'https://images.unsplash.com/photo-1488716820095-cbe80883c496?w=400&h=400&fit=crop&crop=face' },
+  { email: 'priya.sharma@seed.daterabbit.com',     name: 'Priya Sharma',     photoUrl: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&h=400&fit=crop&crop=face' },
+  { email: 'lucia.fontana@seed.daterabbit.com',    name: 'Lucia Fontana',    photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop&crop=face' },
 ];
 
 // All updates to process
@@ -126,8 +126,8 @@ async function updateCompanionPhoto(companion) {
   }
 
   const token = authResult.token;
-  const primaryUrl = `https://i.pravatar.cc/400?img=${companion.photoIndex}`;
-  const secondaryUrl = `https://i.pravatar.cc/400?img=${companion.photoIndex === 1 ? 70 : companion.photoIndex - 1}`;
+  const primaryUrl = companion.photoUrl;
+  const secondaryUrl = companion.photoUrl.replace(/photo-[^?]+/, 'photo-1524504388940-b1c1722653e1'); // fallback secondary
 
   const photos = [
     { id: generateUUID(), url: primaryUrl, order: 0, isPrimary: true },
