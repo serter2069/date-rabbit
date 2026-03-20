@@ -75,8 +75,13 @@ export default function BrowseScreen() {
     })();
   }, []);
 
+  // Track fetch generation to prevent stale responses from overwriting fresh data
+  const fetchGeneration = React.useRef(0);
+
   // Fetch companions when location or filters change
   const fetchCompanions = useCallback(async () => {
+    const generation = ++fetchGeneration.current;
+
     try {
       const sortByMap: Record<string, 'recommended' | 'price_low' | 'price_high' | 'rating' | 'distance' | 'new'> = {
         'recommended': 'recommended',
@@ -111,10 +116,16 @@ export default function BrowseScreen() {
         search: searchQuery.trim() || undefined,
       });
 
-      setCompanions(response.companions);
+      // Only update state if this is still the latest fetch (prevents stale overwrites)
+      if (generation === fetchGeneration.current) {
+        setCompanions(response.companions);
+      }
     } catch (err) {
-      console.error('Failed to fetch companions:', err);
-      setCompanions([]);
+      // Only handle error if this is still the latest fetch
+      if (generation === fetchGeneration.current) {
+        console.error('Failed to fetch companions:', err);
+        // Keep existing companions on error instead of wiping the list
+      }
     }
   }, [appliedFilters, activeFilter, userLocation, searchQuery]);
 
@@ -240,7 +251,7 @@ export default function BrowseScreen() {
           />
         ) : (
           filteredCompanions.map((companion) => (
-            <Card key={companion.id} style={styles.companionCard}>
+            <Card key={`${companion.id}-${activeFilter}`} style={styles.companionCard}>
               <View style={styles.cardHeader}>
                 <UserImage
                   name={companion.name}

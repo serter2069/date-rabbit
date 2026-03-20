@@ -25,10 +25,12 @@ export function UserImage({
 }: UserImageProps) {
   const { colors, spacing } = useTheme();
   const [hasError, setHasError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   // Reset error state when URI changes (e.g., after filter toggle re-fetch)
   useEffect(() => {
     setHasError(false);
+    setRetryCount(0);
   }, [uri]);
 
   const actualBorderRadius = borderRadius ?? size / 2;
@@ -98,12 +100,20 @@ export function UserImage({
         </View>
       ) : (
         <Image
+          key={`${uri}-${retryCount}`}
           source={{ uri }}
           style={styles.image}
           placeholder={blurhash}
           contentFit="cover"
           transition={250}
-          onError={() => setHasError(true)}
+          onError={() => {
+            if (retryCount < 2) {
+              // Retry loading -- image may have failed due to aborted request during filter toggle
+              setRetryCount((c) => c + 1);
+            } else {
+              setHasError(true);
+            }
+          }}
         />
       )}
       {showVerified && (
