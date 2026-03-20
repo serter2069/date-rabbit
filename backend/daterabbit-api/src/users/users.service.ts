@@ -119,10 +119,14 @@ export class UsersService {
       case 'rating':
         query.orderBy('user.rating', 'DESC');
         break;
-      case 'new':
-        // Show newest companions first (recently joined)
+      case 'new': {
+        // Show companions who joined in the last 30 days, newest first
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        query.andWhere('user.createdAt >= :thirtyDaysAgo', { thirtyDaysAgo });
         query.orderBy('user.createdAt', 'DESC');
         break;
+      }
       default:
         query.orderBy('user.createdAt', 'DESC');
     }
