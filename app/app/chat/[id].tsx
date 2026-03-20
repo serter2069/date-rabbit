@@ -27,21 +27,23 @@ export default function ChatScreen() {
   const [messageText, setMessageText] = useState('');
 
   const { user } = useAuthStore();
-  const { messages, sendMessage, getMessages, fetchMessages, chats } = useMessagesStore();
+  const { messages, sendMessage, getMessages, fetchMessages, fetchChats, chats } = useMessagesStore();
 
   // id param is the otherUser's id
   const otherUserId = id || '';
   const chatMessages = getMessages(otherUserId);
   const chat = chats.find(c => c.otherUser.id === otherUserId);
 
-  // Resolve companion name: prefer URL param, fall back to chat data, then a safe default
-  const companionName = name || chat?.otherUser?.name || 'this person';
+  // Resolve companion name: prefer URL param, fall back to chat data
+  const companionName = name || chat?.otherUser?.name || '';
 
   // Poll messages every 5 seconds while screen is focused
   useFocusEffect(
     useCallback(() => {
       // Initial fetch (with loading spinner)
       fetchMessages(otherUserId);
+      // Ensure chats are loaded so companion name resolves from store
+      if (!chat) fetchChats(true);
 
       // Poll every 5s silently (no loading spinner)
       const interval = setInterval(() => {

@@ -228,7 +228,7 @@ function BookingCard({ booking, type, colors, onCancel, formatDate }: BookingCar
             title="Message"
             onPress={() => router.push({
               pathname: `/chat/${booking.companion?.id || booking.companion_id}`,
-              params: { name: booking.companion?.name }
+              params: { name: booking.companion?.name || companion.name }
             })}
             variant="outline"
             size="sm"
