@@ -27,6 +27,9 @@ export class EmailService {
     }
 
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
       const response = await fetch('https://api.brevo.com/v3/smtp/email', {
         method: 'POST',
         headers: {
@@ -40,7 +43,10 @@ export class EmailService {
           subject: options.subject,
           htmlContent: options.htmlContent,
         }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeout);
 
       if (response.ok) {
         this.logger.log(`Email sent to ${options.to}: ${options.subject}`);
@@ -51,7 +57,11 @@ export class EmailService {
         return false;
       }
     } catch (error) {
-      this.logger.error(`Failed to send email to ${options.to}: ${error}`);
+      if (error instanceof Error && error.name === 'AbortError') {
+        this.logger.error(`Brevo API timeout after 10s for ${options.to}`);
+      } else {
+        this.logger.error(`Failed to send email to ${options.to}: ${error}`);
+      }
       return false;
     }
   }
