@@ -66,6 +66,8 @@ export default function MessagesScreen() {
             icon="message-circle"
             title="No messages yet"
             description="Start booking dates to begin conversations with companions"
+            actionLabel="Browse Companions"
+            onAction={() => router.push('/(tabs)/male/browse')}
           />
         ) : (
           chats.map((chat) => (
