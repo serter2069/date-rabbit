@@ -40,9 +40,6 @@ export default function WelcomeScreen() {
             </LinearGradient>
             <Text style={styles.logoText}>DateRabbit</Text>
           </View>
-          <View style={styles.langBtn}>
-            <Text style={styles.langBtnText}>EN</Text>
-          </View>
         </View>
 
         {showRedirectMessage && (
@@ -225,17 +222,6 @@ const styles = StyleSheet.create({
     fontFamily: typography.fonts.heading,
     fontSize: 18,
     color: colors.text,
-  },
-  langBtn: {
-    backgroundColor: colors.surface,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: borderRadius.full,
-  },
-  langBtnText: {
-    fontFamily: typography.fonts.bodyMedium,
-    fontSize: typography.sizes.xs,
-    color: colors.textMuted,
   },
 
   // Redirect banner
