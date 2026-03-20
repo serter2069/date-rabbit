@@ -237,7 +237,7 @@ export const companionsApi = {
         query.append(key, String(value));
       }
     });
-    return apiRequest<CompanionsResponse>(`/companions?${query}`, { auth: false });
+    return apiRequest<CompanionsResponse>(`/companions?${query}`);
   },
 
   getById: (id: string, latitude?: number, longitude?: number) => {
@@ -246,8 +246,7 @@ export const companionsApi = {
     if (longitude !== undefined) query.append('longitude', String(longitude));
     const queryStr = query.toString();
     return apiRequest<CompanionDetail>(
-      `/companions/${id}${queryStr ? `?${queryStr}` : ''}`,
-      { auth: false }
+      `/companions/${id}${queryStr ? `?${queryStr}` : ''}`
     );
   },
 };
