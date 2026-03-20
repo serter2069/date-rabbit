@@ -403,12 +403,14 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#000000',
     gap: spacing.sm,
+    overflow: 'hidden',
     // Neo-Brutalism offset shadow
     shadowColor: '#000000',
     shadowOffset: { width: 3, height: 3 },
     shadowOpacity: 1,
     shadowRadius: 0,
     elevation: 3,
+    zIndex: 1,
   },
   filterButton: {
     width: 46,
@@ -424,7 +426,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 1,
     shadowRadius: 0,
     elevation: 3,
-    zIndex: 2,
+    zIndex: 10,
   },
   filterBadge: {
     position: 'absolute',
