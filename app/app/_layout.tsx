@@ -24,11 +24,11 @@ const NON_TAB_AUTH_ROUTES = [
   'favorites',
   'settings',
   'date',
+  'booking',
 ];
 
 // Routes that REQUIRE verification — unverified users get redirected to verification prompt
 const VERIFICATION_REQUIRED_ROUTES = [
-  'booking',
   'payment',
   'stripe',
 ];
