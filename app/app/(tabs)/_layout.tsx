@@ -86,6 +86,10 @@ export default function TabsLayout() {
         options={isCompanion ? { href: null } : undefined}
       />
       <Tabs.Screen
+        name="male/home"
+        options={{ href: null }}
+      />
+      <Tabs.Screen
         name="male/browse"
         options={isCompanion ? { href: null } : undefined}
       />
