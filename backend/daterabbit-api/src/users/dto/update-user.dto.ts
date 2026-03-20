@@ -11,7 +11,10 @@ import {
   Min,
   ValidateNested,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
+
+const stripHtml = (value: string) =>
+  typeof value === 'string' ? value.replace(/<[^>]*>/g, '') : value;
 
 export class PhotoDto {
   @IsUUID()
@@ -32,6 +35,7 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   @MaxLength(100)
+  @Transform(({ value }) => stripHtml(value))
   name?: string;
 
   @IsOptional()
@@ -44,11 +48,13 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   @MaxLength(200)
+  @Transform(({ value }) => stripHtml(value))
   location?: string;
 
   @IsOptional()
   @IsString()
   @MaxLength(2000)
+  @Transform(({ value }) => stripHtml(value))
   bio?: string;
 
   @IsOptional()
