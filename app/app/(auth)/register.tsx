@@ -101,13 +101,13 @@ export default function RegisterScreen() {
     }
 
     if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
+      newErrors.email = 'Enter a valid email';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Invalid email format';
+      newErrors.email = 'Enter a valid email';
     }
 
     if (!formData.birthYear.trim()) {
-      newErrors.birthYear = 'Birth year is required';
+      newErrors.birthYear = 'Select birth year';
     } else {
       const year = parseInt(formData.birthYear);
       const currentYear = new Date().getFullYear();
@@ -117,7 +117,7 @@ export default function RegisterScreen() {
     }
 
     if (!formData.location.trim()) {
-      newErrors.location = 'City is required';
+      newErrors.location = 'Select your city';
     }
 
     if (isFemale) {
