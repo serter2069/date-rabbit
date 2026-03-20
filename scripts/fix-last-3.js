@@ -42,13 +42,13 @@ async function updateProfile(email, name, photoIndex) {
   const photos = [
     {
       id: generateUUID(),
-      url: 'https://randomuser.me/api/portraits/women/' + photoIndex + '.jpg',
+      url: 'https://i.pravatar.cc/400?img=' + photoIndex,
       order: 0,
       isPrimary: true,
     },
     {
       id: generateUUID(),
-      url: 'https://randomuser.me/api/portraits/women/' + (photoIndex - 1) + '.jpg',
+      url: 'https://i.pravatar.cc/400?img=' + (photoIndex - 1),
       order: 1,
       isPrimary: false,
     },
@@ -73,14 +73,14 @@ async function main() {
   const res = await apiRequest('GET', '/companions?limit=100');
   if (res.data && res.data.companions) {
     const withReal = res.data.companions.filter(
-      (c) => c.primaryPhoto && c.primaryPhoto.includes('randomuser.me'),
+      (c) => c.primaryPhoto && c.primaryPhoto.includes('i.pravatar.cc'),
     );
     const withDicebear = res.data.companions.filter(
       (c) => c.primaryPhoto && c.primaryPhoto.includes('dicebear'),
     );
     const noPhoto = res.data.companions.filter((c) => !c.primaryPhoto);
     console.log('\nFinal state (' + res.data.total + ' total companions):');
-    console.log('  With real photos (randomuser.me): ' + withReal.length);
+    console.log('  With real photos (i.pravatar.cc): ' + withReal.length);
     console.log('  With dicebear avatars:            ' + withDicebear.length);
     console.log('  No photo:                         ' + noPhoto.length);
   }
