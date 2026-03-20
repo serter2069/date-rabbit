@@ -8,7 +8,7 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../src/store/authStore';
 import { Button } from '../../src/components/Button';
@@ -18,13 +18,15 @@ import { colors, spacing, typography, borderRadius, PAGE_PADDING } from '../../s
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
+  const { role } = useLocalSearchParams<{ role?: string }>();
   const { startAuth, isLoading, error, clearError, authStep } = useAuthStore();
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
+  const isSeeker = role === 'seeker';
 
   useEffect(() => {
     if (authStep === 'otp') {
-      router.push({ pathname: '/(auth)/otp', params: { email: email.trim().toLowerCase() } });
+      router.push({ pathname: '/(auth)/otp', params: { email: email.trim().toLowerCase(), ...(role ? { role } : {}) } });
     }
   }, [authStep]);
 
@@ -78,9 +80,11 @@ export default function LoginScreen() {
 
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Welcome back</Text>
+          <Text style={styles.title}>{isSeeker ? 'Find Companions' : 'Welcome back'}</Text>
           <Text style={styles.subtitle}>
-            Enter your email to sign in or create an account
+            {isSeeker
+              ? 'Sign in to browse and book verified companions'
+              : 'Enter your email to sign in or create an account'}
           </Text>
         </View>
 
