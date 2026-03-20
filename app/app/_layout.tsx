@@ -14,7 +14,7 @@ import { colors } from '../src/constants/theme';
 import { StripeProvider } from '../src/components/StripeProvider';
 
 // Public routes accessible without authentication
-const PUBLIC_ROUTES = ['terms', 'privacy', 'onboarding', '(auth)', '+not-found'];
+const PUBLIC_ROUTES = ['terms', 'privacy', 'onboarding', '(auth)'];
 
 // Authenticated non-tab routes — accessible to all authenticated users (verified or not)
 const NON_TAB_AUTH_ROUTES = [
@@ -64,10 +64,10 @@ function NavigationGuard() {
     }
 
     if (!isAuthenticated) {
-      // Not logged in — redirect to auth
+      // Not logged in — redirect to auth with message
       const inAuthGroup = currentSegment === '(auth)';
       if (!inAuthGroup) {
-        router.replace('/(auth)/welcome');
+        router.replace({ pathname: '/(auth)/welcome', params: { redirect: '1' } });
       }
       return;
     }

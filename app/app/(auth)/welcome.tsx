@@ -73,7 +73,7 @@ export default function WelcomeScreen() {
           <Button
             title="Find Companions"
             label="Looking for a date?"
-            onPress={() => router.push({ pathname: '/(auth)/role-select', params: { role: 'seeker' } })}
+            onPress={() => router.push({ pathname: '/(auth)/register', params: { role: 'seeker' } })}
             variant="primary"
             fullWidth
             size="lg"
@@ -82,7 +82,7 @@ export default function WelcomeScreen() {
           <Button
             title="Become a Companion"
             label="Want to earn?"
-            onPress={() => router.push({ pathname: '/(auth)/role-select', params: { role: 'companion' } })}
+            onPress={() => router.push({ pathname: '/(auth)/register', params: { role: 'companion' } })}
             variant="secondary"
             fullWidth
             size="lg"
