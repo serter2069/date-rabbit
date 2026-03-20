@@ -43,7 +43,7 @@ export default function MessagesScreen() {
   };
 
   const handleOpenChat = (chat: Chat) => {
-    router.push(`/chat/${chat.otherUser.id}`);
+    router.push(`/chat/${chat.otherUser.id}?name=${encodeURIComponent(chat.otherUser.name)}`);
   };
 
   if (isLoading && chats.length === 0) {

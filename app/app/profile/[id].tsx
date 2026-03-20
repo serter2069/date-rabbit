@@ -202,7 +202,7 @@ export default function ProfileViewScreen() {
   };
 
   const handleMessage = () => {
-    router.push(`/chat/${profile.id}`);
+    router.push(`/chat/${profile.id}?name=${encodeURIComponent(profile.name)}`);
   };
 
   const nextPhoto = () => {
@@ -994,6 +994,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     borderTopWidth: 1,
     gap: spacing.md,
+    zIndex: 10,
   },
   messageButton: {
     flex: 1,
