@@ -26,27 +26,27 @@ html, body {
   height: 100%;
   margin: 0;
   padding: 0;
+}
+
+body {
   overflow: hidden;
+  overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 #root {
   display: flex;
   flex-direction: column;
   height: 100%;
-  overflow: hidden;
 }
 
-body {
-  overscroll-behavior-y: none;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Ensure Expo Router screen containers fill height for ScrollView */
+/* Expo Router wraps screens in nested divs. They must fill height
+   but must NOT set overflow:hidden — that clips RN ScrollView content.
+   Only body has overflow:hidden to prevent double scrollbars. */
 #root > div {
   display: flex;
   flex-direction: column;
   flex: 1;
   height: 100%;
-  overflow: hidden;
 }
 `;
