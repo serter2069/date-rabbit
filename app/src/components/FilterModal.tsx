@@ -295,6 +295,9 @@ export function FilterModal({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    maxWidth: 430,
+    width: '100%',
+    alignSelf: 'center',
     backgroundColor: colors.background,
   },
   header: {
