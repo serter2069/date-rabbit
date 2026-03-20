@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -31,6 +31,8 @@ export default function RegisterScreen() {
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showFormError, setShowFormError] = useState(false);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const isFemale = role === 'companion';
 
@@ -59,6 +61,10 @@ export default function RegisterScreen() {
       }
     }
 
+    if (!formData.location.trim()) {
+      newErrors.location = 'City is required';
+    }
+
     if (isFemale) {
       if (!formData.hourlyRate.trim()) {
         newErrors.hourlyRate = 'Hourly rate is required';
@@ -73,7 +79,12 @@ export default function RegisterScreen() {
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const isValid = Object.keys(newErrors).length === 0;
+    setShowFormError(!isValid);
+    if (!isValid) {
+      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+    }
+    return isValid;
   };
 
   const handleRegister = async () => {
@@ -127,7 +138,13 @@ export default function RegisterScreen() {
 
   const updateField = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    setErrors(prev => ({ ...prev, [field]: '' }));
+    setErrors(prev => {
+      const updated = { ...prev, [field]: '' };
+      // Hide banner when all errors are cleared
+      const hasErrors = Object.values(updated).some(v => v);
+      if (!hasErrors) setShowFormError(false);
+      return updated;
+    });
   };
 
   return (
@@ -136,6 +153,7 @@ export default function RegisterScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
+        ref={scrollViewRef}
         style={styles.scrollView}
         contentContainerStyle={[
           styles.scrollContent,
@@ -163,6 +181,16 @@ export default function RegisterScreen() {
             }
           </Text>
         </View>
+
+        {/* Validation error banner */}
+        {showFormError && Object.keys(errors).length > 0 && (
+          <View style={styles.errorBanner} testID="register-error-banner">
+            <Icon name="alert-circle" size={18} color={colors.error} />
+            <Text style={styles.errorBannerText}>
+              Please fix the highlighted fields below
+            </Text>
+          </View>
+        )}
 
         {/* Form */}
         <View style={styles.form}>
@@ -210,6 +238,7 @@ export default function RegisterScreen() {
                 placeholder="City"
                 value={formData.location}
                 onChangeText={(v) => updateField('location', v)}
+                error={errors.location}
                 leftIcon={<Icon name="map-pin" size={20} color={colors.textLight} />}
               />
             </View>
@@ -286,6 +315,24 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.md,
     color: colors.textMuted,
     lineHeight: 24,
+  },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF0F0',
+    borderWidth: 1,
+    borderColor: colors.error,
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.sm + 2,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.lg,
+    gap: spacing.sm,
+  },
+  errorBannerText: {
+    fontFamily: typography.fonts.bodyMedium,
+    fontSize: typography.sizes.sm,
+    color: colors.error,
+    flex: 1,
   },
   form: {
     marginBottom: spacing.lg,
