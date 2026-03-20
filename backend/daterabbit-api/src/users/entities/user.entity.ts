@@ -44,6 +44,9 @@ export class User {
   bio: string;
 
   @Column({ type: 'jsonb', default: [] })
+  interests: string[];
+
+  @Column({ type: 'jsonb', default: [] })
   photos: { id: string; url: string; order: number; isPrimary: boolean }[];
 
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })

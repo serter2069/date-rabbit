@@ -1,11 +1,15 @@
 import { Controller, Get, Query, Param, NotFoundException, UseGuards, Request, ParseUUIDPipe } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
+import { ReviewsService } from '../reviews/reviews.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @UseGuards(JwtAuthGuard)
 @Controller('companions')
 export class CompanionsController {
-  constructor(private usersService: UsersService) {}
+  constructor(
+    private usersService: UsersService,
+    private reviewsService: ReviewsService,
+  ) {}
 
   @Get()
   async searchCompanions(
@@ -76,17 +80,28 @@ export class CompanionsController {
       throw new NotFoundException('Companion not found');
     }
 
+    // Fetch recent reviews for this companion
+    const { reviews } = await this.reviewsService.getReviewsForUser(id, 1, 3);
+
     return {
       id: user.id,
       name: user.name,
       age: user.age,
       location: user.location,
       bio: user.bio,
+      interests: user.interests || [],
       photos: user.photos || [],
       hourlyRate: user.hourlyRate != null ? Number(user.hourlyRate) : 0,
       rating: user.rating ? Number(user.rating) : null,
       reviewCount: user.reviewCount || 0,
       isVerified: user.isVerified || false,
+      reviews: reviews.map((r) => ({
+        id: r.id,
+        name: r.reviewer?.name || 'Anonymous',
+        rating: r.rating,
+        text: r.comment || '',
+        date: r.createdAt.toISOString().split('T')[0],
+      })),
     };
   }
 }

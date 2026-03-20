@@ -219,6 +219,7 @@ export interface CompanionDetail extends CompanionListItem {
   photos: { id: string; url: string; order: number }[];
   interests?: string[];
   languages?: string[];
+  reviews?: { id: string; name: string; rating: number; text: string; date: string }[];
   createdAt: string;
 }
 
