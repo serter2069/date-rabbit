@@ -42,6 +42,17 @@ function WebPaymentForm({ clientSecret, amount, onSuccess, onError }: StripePaym
     process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ||
     '';
 
+  if (!publishableKey) {
+    console.warn('[Stripe] EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY is not set. Stripe will not be initialized.');
+    return (
+      <View style={styles.fallback}>
+        <Text style={[styles.fallbackText, { color: colors.textSecondary }]}>
+          Payment is not available. Stripe key is missing.
+        </Text>
+      </View>
+    );
+  }
+
   const stripePromise = loadStripe(publishableKey);
 
   return (

@@ -8,7 +8,11 @@ const publishableKey =
   process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ||
   '';
 
-const stripePromise = loadStripe(publishableKey);
+if (!publishableKey) {
+  console.warn('[Stripe] EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY is not set. Stripe will not be initialized.');
+}
+
+const stripePromise = publishableKey ? loadStripe(publishableKey) : null;
 
 interface Props {
   children: React.ReactNode;
