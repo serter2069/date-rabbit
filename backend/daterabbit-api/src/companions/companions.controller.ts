@@ -59,7 +59,7 @@ export class CompanionsController {
         name: c.name,
         age: c.age,
         location: c.location,
-        bio: c.bio,
+        shortBio: c.bio ? c.bio.substring(0, 100) : null,
         primaryPhoto: c.photos?.[0]?.url || null,
         hourlyRate: c.hourlyRate != null ? Number(c.hourlyRate) : 0,
         rating: c.rating ? Number(c.rating) : 5.0,

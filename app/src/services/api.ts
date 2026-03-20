@@ -194,6 +194,7 @@ export interface CompanionListItem {
   isVerified: boolean;
   primaryPhoto?: string;
   distance?: number;
+  shortBio?: string;
 }
 
 export interface CompanionDetail extends CompanionListItem {
