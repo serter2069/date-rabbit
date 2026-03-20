@@ -121,6 +121,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: PAGE_PADDING,
+    flexGrow: 1,
   },
   heroContainer: {
     alignItems: 'center',
