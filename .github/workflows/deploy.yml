@@ -24,6 +24,8 @@ jobs:
           node-version: '20'
 
       - name: Build frontend (Expo web)
+        env:
+          EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_PUBLISHABLE_KEY }}
         run: |
           cd app
           npm ci --legacy-peer-deps
@@ -254,6 +256,8 @@ jobs:
           node-version: '20'
 
       - name: Build frontend (Expo web)
+        env:
+          EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_PUBLISHABLE_KEY }}
         run: |
           cd app
           npm ci --legacy-peer-deps
