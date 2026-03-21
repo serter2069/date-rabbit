@@ -10,10 +10,7 @@ export default function RoleSelectScreen() {
   const { colors } = useTheme();
 
   const handleSelectRole = (role: 'companion' | 'seeker') => {
-    router.push({
-      pathname: '/(auth)/register',
-      params: { role },
-    });
+    router.push(`/(auth)/register?role=${role}`);
   };
 
   return (

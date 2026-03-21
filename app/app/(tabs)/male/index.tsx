@@ -328,7 +328,7 @@ function CompanionCardItem({ companion, colors }: { companion: CompanionListItem
   return (
     <TouchableOpacity
       activeOpacity={0.8}
-      onPress={() => router.push({ pathname: '/profile/[id]', params: { id: companion.id } })}
+      onPress={() => router.push(`/profile/${companion.id}`)}
     >
       <Card variant="elevated" shadow="sm" style={styles.companionCard}>
         <UserImage
