@@ -18,15 +18,18 @@ function useCleanUrl() {
   const pathname = usePathname();
   useEffect(() => {
     if (Platform.OS !== 'web') return;
-    try {
-      const url = new URL(window.location.href);
-      if (url.searchParams.has('__EXPO_ROUTER_key')) {
-        url.searchParams.delete('__EXPO_ROUTER_key');
-        window.history.replaceState(null, '', url.pathname + url.search + url.hash);
+    const timer = setTimeout(() => {
+      try {
+        const url = new URL(window.location.href);
+        if (url.searchParams.has('__EXPO_ROUTER_key')) {
+          url.searchParams.delete('__EXPO_ROUTER_key');
+          window.history.replaceState(null, '', url.pathname + url.search + url.hash);
+        }
+      } catch {
+        // ignore
       }
-    } catch {
-      // ignore
-    }
+    }, 50);
+    return () => clearTimeout(timer);
   }, [pathname]);
 }
 
