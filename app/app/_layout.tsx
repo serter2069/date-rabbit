@@ -1,4 +1,4 @@
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Stack, useRouter, useSegments, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Platform, View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useAuthStore } from '../src/store/authStore';
@@ -12,6 +12,23 @@ import {
 import { useEffect } from 'react';
 import { colors } from '../src/constants/theme';
 import { StripeProvider } from '../src/components/StripeProvider';
+
+// Strip __EXPO_ROUTER_key from browser URL bar (Expo Router internal param)
+function useCleanUrl() {
+  const pathname = usePathname();
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    try {
+      const url = new URL(window.location.href);
+      if (url.searchParams.has('__EXPO_ROUTER_key')) {
+        url.searchParams.delete('__EXPO_ROUTER_key');
+        window.history.replaceState(null, '', url.pathname + url.search + url.hash);
+      }
+    } catch {
+      // ignore
+    }
+  }, [pathname]);
+}
 
 // Public routes accessible without authentication
 const PUBLIC_ROUTES = ['terms', 'privacy', 'onboarding', '(auth)'];
@@ -116,6 +133,9 @@ function NavigationGuard() {
 }
 
 export default function RootLayout() {
+  // Clean __EXPO_ROUTER_key from browser URL
+  useCleanUrl();
+
   // Load Neo-Brutalism font
   const [fontsLoaded] = useFonts({
     SpaceGrotesk_400Regular,
