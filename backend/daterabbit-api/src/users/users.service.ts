@@ -69,6 +69,8 @@ export class UsersService {
     priceMin?: number;
     priceMax?: number;
     maxDistance?: number;
+    latitude?: number;
+    longitude?: number;
     minRating?: number;
     ageMin?: number;
     ageMax?: number;
@@ -77,11 +79,19 @@ export class UsersService {
     limit?: number;
     offset?: number;
     excludeUserIds?: string[];
-  }): Promise<{ companions: User[]; total: number }> {
+  }): Promise<{ companions: (User & { distance?: number })[]; total: number }> {
+    const hasLocation = filters.latitude != null && filters.longitude != null;
+    const distanceExpr = `(3959 * acos(LEAST(1.0, cos(radians(:lat)) * cos(radians("user"."latitude")) * cos(radians("user"."longitude") - radians(:lng)) + sin(radians(:lat)) * sin(radians("user"."latitude")))))`;
+
     const query = this.usersRepository
       .createQueryBuilder('user')
       .where('user.role = :role', { role: UserRole.COMPANION })
       .andWhere('user.isActive = true');
+
+    if (hasLocation) {
+      query.addSelect(distanceExpr, 'distance');
+      query.setParameters({ lat: filters.latitude, lng: filters.longitude });
+    }
 
     if (filters.excludeUserIds && filters.excludeUserIds.length > 0) {
       query.andWhere('user.id NOT IN (:...excludeIds)', { excludeIds: filters.excludeUserIds });
@@ -108,7 +118,11 @@ export class UsersService {
       });
     }
 
-    // Sort
+    if (hasLocation && filters.maxDistance) {
+      query.andWhere('"user"."latitude" IS NOT NULL AND "user"."longitude" IS NOT NULL');
+      query.andWhere(`${distanceExpr} <= :maxDist`, { maxDist: filters.maxDistance });
+    }
+
     switch (filters.sortBy) {
       case 'price_low':
         query.orderBy('user.hourlyRate', 'ASC');
@@ -119,8 +133,15 @@ export class UsersService {
       case 'rating':
         query.orderBy('user.rating', 'DESC');
         break;
+      case 'distance':
+        if (hasLocation) {
+          query.andWhere('"user"."latitude" IS NOT NULL AND "user"."longitude" IS NOT NULL');
+          query.orderBy('distance', 'ASC');
+        } else {
+          query.orderBy('user.createdAt', 'DESC');
+        }
+        break;
       case 'new': {
-        // "New" = recently joined AND few reviews (genuinely new to the platform)
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         query.andWhere('user.createdAt >= :thirtyDaysAgo', { thirtyDaysAgo });
@@ -133,6 +154,22 @@ export class UsersService {
     }
 
     const total = await query.getCount();
+
+    if (hasLocation) {
+      const rawResults = await query
+        .skip(filters.offset || 0)
+        .take(Math.min(filters.limit || 20, 100))
+        .getRawAndEntities();
+
+      const companions = rawResults.entities.map((entity, i) => {
+        const raw = rawResults.raw[i];
+        return Object.assign(entity, {
+          distance: raw?.distance != null ? parseFloat(raw.distance) : undefined,
+        });
+      });
+      return { companions, total };
+    }
+
     const companions = await query
       .skip(filters.offset || 0)
       .take(Math.min(filters.limit || 20, 100))

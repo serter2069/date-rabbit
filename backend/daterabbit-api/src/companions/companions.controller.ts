@@ -17,6 +17,8 @@ export class CompanionsController {
     @Query('priceMin') priceMin?: string,
     @Query('priceMax') priceMax?: string,
     @Query('maxDistance') maxDistance?: string,
+    @Query('latitude') latitude?: string,
+    @Query('longitude') longitude?: string,
     @Query('minRating') minRating?: string,
     @Query('ageMin') ageMin?: string,
     @Query('ageMax') ageMax?: string,
@@ -42,6 +44,8 @@ export class CompanionsController {
       priceMin: priceMin ? parseFloat(priceMin) : undefined,
       priceMax: priceMax ? parseFloat(priceMax) : undefined,
       maxDistance: maxDistance ? parseFloat(maxDistance) : undefined,
+      latitude: latitude ? parseFloat(latitude) : undefined,
+      longitude: longitude ? parseFloat(longitude) : undefined,
       minRating: minRating ? parseFloat(minRating) : undefined,
       ageMin: ageMin ? parseInt(ageMin) : undefined,
       ageMax: ageMax ? parseInt(ageMax) : undefined,
@@ -55,7 +59,7 @@ export class CompanionsController {
     const currentPage = page ? parseInt(page) : Math.floor(parsedOffset / parsedLimit) + 1;
 
     return {
-      companions: companions.map((c) => ({
+      companions: companions.map((c: any) => ({
         id: c.id,
         name: c.name,
         age: c.age,
@@ -66,6 +70,7 @@ export class CompanionsController {
         rating: c.rating ? Number(c.rating) : null,
         reviewCount: c.reviewCount || 0,
         isVerified: c.isVerified || false,
+        distance: c.distance != null ? Math.round(c.distance * 10) / 10 : undefined,
       })),
       total,
       page: currentPage,
