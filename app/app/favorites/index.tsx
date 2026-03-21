@@ -85,7 +85,7 @@ export default function FavoritesScreen() {
             />
             <Button
               title="Browse Companions"
-              onPress={() => router.push('/(tabs)/male/browse')}
+              onPress={() => router.replace('/male/browse')}
               style={{ marginTop: spacing.lg }}
             />
           </View>
