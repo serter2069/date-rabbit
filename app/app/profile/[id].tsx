@@ -438,7 +438,14 @@ export default function ProfileViewScreen() {
                   </View>
                 ))
               ) : (
-                <Text style={[styles.bio, { color: colors.textSecondary }]}>No reviews yet. Be the first!</Text>
+                <View style={{ alignItems: 'center', paddingVertical: spacing.md }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs }}>
+                    <Icon name="star" size={16} color={colors.accent} />
+                    <Text style={[styles.statValue, { color: colors.text, marginLeft: spacing.xs }]}>{profile.rating}</Text>
+                    <Text style={[styles.statLabel, { color: colors.textSecondary }]}> based on {profile.reviewCount} {profile.reviewCount === 1 ? 'review' : 'reviews'}</Text>
+                  </View>
+                  <Text style={[styles.bio, { color: colors.textSecondary, textAlign: 'center' }]}>Detailed reviews are not available yet</Text>
+                </View>
               )}
             </Card>
           ) : null}
