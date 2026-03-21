@@ -29,9 +29,8 @@ html, body {
 }
 
 body {
-  overflow: auto;
+  overflow: hidden;
   overscroll-behavior-y: none;
-  -webkit-overflow-scrolling: touch;
 }
 
 #root {
@@ -41,12 +40,23 @@ body {
 }
 
 /* Expo Router wraps screens in nested divs. They must fill height
-   but must NOT set overflow:hidden — that clips RN ScrollView content.
-   Body uses overflow:auto to allow native ScrollView scrolling. */
+   so ScrollView can calculate its scrollable area.
+   We use min-height on the outermost and flex:1 on all nested divs
+   so content can grow beyond viewport while ScrollView constrains it. */
 #root > div {
   display: flex;
   flex-direction: column;
   flex: 1;
-  height: 100%;
+  min-height: 0;
+}
+
+/* Ensure ALL nested Expo Router wrapper divs propagate flex layout */
+#root > div > div,
+#root > div > div > div,
+#root > div > div > div > div {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 `;

@@ -141,13 +141,13 @@ export default function RootLayout() {
           headerShown: false,
           contentStyle: {
             backgroundColor: colors.background,
+            flex: 1,
             ...(Platform.OS === 'web' ? {
               width: '100%',
               maxWidth: 430,
               minWidth: 320,
               marginLeft: 'auto',
               marginRight: 'auto',
-              flex: 1,
             } as any : {}),
           }
         }}
