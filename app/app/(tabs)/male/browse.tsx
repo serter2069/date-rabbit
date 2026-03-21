@@ -44,35 +44,45 @@ export default function BrowseScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Request location permission and get current location (with timeout for web)
-  useEffect(() => {
-    (async () => {
-      try {
-        const locationResult = await Promise.race([
-          (async () => {
-            const { status } = await Location.requestForegroundPermissionsAsync();
-            setLocationPermission(status === 'granted' ? 'granted' : 'denied');
-            if (status === 'granted') {
-              const location = await Location.getCurrentPositionAsync({
-                accuracy: Location.Accuracy.Balanced,
-              });
-              return {
-                latitude: location.coords.latitude,
-                longitude: location.coords.longitude,
-              };
-            }
-            return null;
-          })(),
-          new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
-        ]);
-        if (locationResult) {
-          setUserLocation(locationResult);
-        }
-      } catch {
-        // Location fetch failed, continue without
+  const [isRequestingLocation, setIsRequestingLocation] = useState(false);
+
+  // Reusable location request function
+  const requestLocation = useCallback(async () => {
+    setIsRequestingLocation(true);
+    try {
+      const locationResult = await Promise.race([
+        (async () => {
+          const { status } = await Location.requestForegroundPermissionsAsync();
+          setLocationPermission(status === 'granted' ? 'granted' : 'denied');
+          if (status === 'granted') {
+            const location = await Location.getCurrentPositionAsync({
+              accuracy: Location.Accuracy.Balanced,
+            });
+            return {
+              latitude: location.coords.latitude,
+              longitude: location.coords.longitude,
+            };
+          }
+          return null;
+        })(),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
+      ]);
+      if (locationResult) {
+        setUserLocation(locationResult);
       }
-    })();
+      return locationResult;
+    } catch {
+      // Location fetch failed, continue without
+      return null;
+    } finally {
+      setIsRequestingLocation(false);
+    }
   }, []);
+
+  // Request location on mount (with timeout for web)
+  useEffect(() => {
+    requestLocation();
+  }, [requestLocation]);
 
   // Track fetch generation to prevent stale responses from overwriting fresh data
   const fetchGeneration = React.useRef(0);
@@ -215,7 +225,12 @@ export default function BrowseScreen() {
               { backgroundColor: colors.surface },
               activeFilter === filter && [styles.filterChipActive, { backgroundColor: colors.primary }],
             ]}
-            onPress={() => setActiveFilter(filter)}
+            onPress={() => {
+              setActiveFilter(filter);
+              if (filter === 'Nearby' && !userLocation) {
+                requestLocation();
+              }
+            }}
           >
             <Text style={[
               styles.filterText,
@@ -235,11 +250,21 @@ export default function BrowseScreen() {
           <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
         }
       >
-        {isLoading ? (
+        {isLoading || (activeFilter === 'Nearby' && isRequestingLocation) ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Finding companions...</Text>
+            <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+              {isRequestingLocation ? 'Getting your location...' : 'Finding companions...'}
+            </Text>
           </View>
+        ) : activeFilter === 'Nearby' && !userLocation ? (
+          <EmptyState
+            icon="map-pin"
+            title="Location Required"
+            description="Enable location access to see nearby companions. We need your location to sort by distance."
+            actionLabel="Enable Location"
+            onAction={requestLocation}
+          />
         ) : filteredCompanions.length === 0 ? (
           <EmptyState
             icon="search"
