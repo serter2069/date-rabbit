@@ -26,7 +26,7 @@ export default function LoginScreen() {
 
   useEffect(() => {
     if (authStep === 'otp') {
-      router.push({ pathname: '/(auth)/otp', params: { email: email.trim().toLowerCase(), ...(role ? { role } : {}) } });
+      router.push(`/(auth)/otp?email=${encodeURIComponent(email.trim().toLowerCase())}${role ? `&role=${role}` : ''}`);
     }
   }, [authStep]);
 
