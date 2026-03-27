@@ -4,6 +4,8 @@ import {
   Text,
   StyleSheet,
   ActivityIndicator,
+  ScrollView,
+  TouchableOpacity,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -12,7 +14,7 @@ import { Icon } from '../../../src/components/Icon';
 import { UserImage } from '../../../src/components/UserImage';
 import { useTheme, spacing, typography, borderRadius } from '../../../src/constants/theme';
 import { useBookingsStore } from '../../../src/store/bookingsStore';
-import { Booking } from '../../../src/services/api';
+import { Booking, companionsApi, CompanionListItem } from '../../../src/services/api';
 
 export default function DeclinedScreen() {
   const { bookingId } = useLocalSearchParams<{ bookingId: string }>();
@@ -22,11 +24,20 @@ export default function DeclinedScreen() {
 
   const [booking, setBooking] = useState<Booking | null>(null);
   const [loading, setLoading] = useState(true);
+  const [similarCompanions, setSimilarCompanions] = useState<CompanionListItem[]>([]);
 
   useEffect(() => {
     if (!bookingId) return;
     getBookingById(bookingId)
-      .then((b) => setBooking(b))
+      .then((b) => {
+        setBooking(b);
+        // Fetch similar companions after loading booking
+        companionsApi.search({ limit: 2 }).then((res) => {
+          // Exclude the declined companion
+          const filtered = res.companions.filter((c) => c.id !== b?.companion?.id);
+          setSimilarCompanions(filtered.slice(0, 2));
+        }).catch(() => {});
+      })
       .finally(() => setLoading(false));
   }, [bookingId, getBookingById]);
 
@@ -38,9 +49,14 @@ export default function DeclinedScreen() {
     );
   }
 
+  const refundAmount = booking?.total ?? 0;
+
   return (
-    <View style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top + spacing.xl }]}>
-      <View style={styles.content}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <ScrollView
+        contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.xl }]}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Declined icon */}
         <View style={[styles.iconCircle, { backgroundColor: colors.errorLight }]}>
           <Icon name="x" size={48} color={colors.error} />
@@ -48,37 +64,72 @@ export default function DeclinedScreen() {
 
         <Text style={[styles.title, { color: colors.text }]}>Request Declined</Text>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          Unfortunately, {booking?.companion?.name || 'the companion'} wasn't available for this date.
-          Don't worry -- there are many other great companions to choose from!
+          {booking?.companion?.name || 'The companion'} is unavailable for this date.
         </Text>
 
-        {/* Booking summary */}
-        {booking && (
-          <View style={[styles.summaryCard, { backgroundColor: colors.white, borderColor: colors.border }]}>
-            <View style={styles.companionRow}>
-              <UserImage
-                uri={booking.companion.photo}
-                name={booking.companion.name}
-                size={48}
-              />
-              <View style={styles.companionInfo}>
-                <Text style={[styles.companionName, { color: colors.text }]}>
-                  {booking.companion.name}
-                </Text>
-                <Text style={[styles.detail, { color: colors.textSecondary }]}>
-                  {booking.activity} - {booking.duration}h
-                </Text>
-              </View>
-              <View style={[styles.statusBadge, { backgroundColor: colors.errorLight }]}>
-                <Text style={[styles.statusText, { color: colors.error }]}>Declined</Text>
-              </View>
+        {/* Decline reason */}
+        {booking?.cancellationReason ? (
+          <View style={[styles.reasonCard, { backgroundColor: colors.errorLight, borderColor: colors.error }]}>
+            <Text style={[styles.reasonLabel, { color: colors.error }]}>Reason</Text>
+            <Text style={[styles.reasonText, { color: colors.text }]}>{booking.cancellationReason}</Text>
+          </View>
+        ) : null}
+
+        {/* Refund info */}
+        {refundAmount > 0 ? (
+          <View style={[styles.refundCard, { backgroundColor: colors.white, borderColor: colors.border }]}>
+            <View style={styles.refundRow}>
+              <Text style={[styles.refundLabel, { color: colors.textSecondary }]}>Original hold</Text>
+              <Text style={[styles.refundValue, { color: colors.text }]}>${refundAmount.toFixed(2)}</Text>
+            </View>
+            <View style={styles.refundRow}>
+              <Text style={[styles.refundLabel, { color: colors.textSecondary }]}>Refunded</Text>
+              <Text style={[styles.refundValue, { color: colors.success || '#10B981' }]}>${refundAmount.toFixed(2)}</Text>
+            </View>
+            <View style={[styles.refundDivider, { borderColor: colors.border }]} />
+            <View style={styles.refundTimeline}>
+              <Icon name="clock" size={14} color={colors.textSecondary} />
+              <Text style={[styles.refundTimelineText, { color: colors.textSecondary }]}>
+                Refund in 3–5 business days
+              </Text>
             </View>
           </View>
-        )}
-      </View>
+        ) : null}
+
+        {/* Similar companions */}
+        {similarCompanions.length > 0 ? (
+          <View style={styles.similarSection}>
+            <Text style={[styles.similarLabel, { color: colors.textSecondary }]}>
+              SIMILAR COMPANIONS AVAILABLE
+            </Text>
+            <View style={styles.similarRow}>
+              {similarCompanions.map((companion) => (
+                <TouchableOpacity
+                  key={companion.id}
+                  style={[styles.companionCard, { backgroundColor: colors.white, borderColor: colors.border }]}
+                  onPress={() => router.push(`/companion/${companion.id}`)}
+                  activeOpacity={0.8}
+                >
+                  <UserImage
+                    uri={companion.primaryPhoto}
+                    name={companion.name}
+                    size={44}
+                  />
+                  <Text style={[styles.companionName, { color: colors.text }]} numberOfLines={1}>
+                    {companion.name}
+                  </Text>
+                  <Text style={[styles.companionRate, { color: colors.primary }]}>
+                    ${companion.hourlyRate}/h
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        ) : null}
+      </ScrollView>
 
       {/* Bottom actions */}
-      <View style={[styles.bottomBar, { paddingBottom: insets.bottom || spacing.xl }]}>
+      <View style={[styles.bottomBar, { paddingBottom: insets.bottom || spacing.xl, borderTopColor: colors.border }]}>
         <Button
           title="Browse Companions"
           onPress={() => router.replace('/(tabs)/male/browse')}
@@ -103,9 +154,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   content: {
-    flex: 1,
     alignItems: 'center',
     paddingHorizontal: spacing.xl,
+    paddingBottom: spacing.xl,
   },
   iconCircle: {
     width: 96,
@@ -126,40 +177,97 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.md,
     textAlign: 'center',
     lineHeight: 24,
-    marginBottom: spacing.xl,
+    marginBottom: spacing.lg,
   },
-  summaryCard: {
+  reasonCard: {
+    width: '100%',
+    padding: spacing.md,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    marginBottom: spacing.lg,
+  },
+  reasonLabel: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.xs,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: spacing.xs,
+  },
+  reasonText: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.sm,
+    lineHeight: 20,
+  },
+  refundCard: {
+    width: '100%',
     padding: spacing.lg,
     borderRadius: borderRadius.lg,
     borderWidth: 3,
-    width: '100%',
+    marginBottom: spacing.lg,
   },
-  companionRow: {
+  refundRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.sm,
   },
-  companionInfo: {
-    flex: 1,
-    marginLeft: spacing.md,
-  },
-  companionName: {
-    fontFamily: typography.fonts.bodySemiBold,
-    fontSize: typography.sizes.md,
-  },
-  detail: {
+  refundLabel: {
     fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
   },
-  statusBadge: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: borderRadius.sm,
+  refundValue: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.sm,
   },
-  statusText: {
+  refundDivider: {
+    borderTopWidth: 1,
+    borderStyle: 'dashed',
+    marginBottom: spacing.sm,
+  },
+  refundTimeline: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  refundTimelineText: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.xs,
+    marginLeft: spacing.xs,
+  },
+  similarSection: {
+    width: '100%',
+    marginBottom: spacing.lg,
+  },
+  similarLabel: {
     fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.xs,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: spacing.sm,
+    textAlign: 'center',
+  },
+  similarRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  companionCard: {
+    flex: 1,
+    padding: spacing.md,
+    borderRadius: borderRadius.md,
+    borderWidth: 3,
+    alignItems: 'center',
+  },
+  companionName: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.sm,
+    marginTop: spacing.sm,
+  },
+  companionRate: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.xs,
+    marginTop: spacing.xs,
   },
   bottomBar: {
     padding: spacing.lg,
+    borderTopWidth: 1,
   },
 });

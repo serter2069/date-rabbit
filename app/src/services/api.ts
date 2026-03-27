@@ -270,6 +270,7 @@ export interface Booking {
   duration: number;
   location?: string;
   message?: string;
+  cancellationReason?: string;
   hourlyRate: number;
   subtotal: number;
   platformFee: number;
