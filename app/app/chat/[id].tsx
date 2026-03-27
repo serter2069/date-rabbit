@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { UserImage } from '../../src/components/UserImage';
 import { Icon } from '../../src/components/Icon';
 import { EmptyState } from '../../src/components/EmptyState';
-import { useMessagesStore } from '../../src/store/messagesStore';
+import { useMessagesStore, POLL_INTERVAL } from '../../src/store/messagesStore';
 import { useAuthStore } from '../../src/store/authStore';
 import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
 import { showAlert } from '../../src/utils/alert';
@@ -49,7 +49,7 @@ export default function ChatScreen() {
       // Poll every 5s silently (no loading spinner)
       const interval = setInterval(() => {
         fetchMessages(otherUserId, 1, true);
-      }, 5000);
+      }, POLL_INTERVAL);
 
       return () => clearInterval(interval);
     }, [otherUserId])

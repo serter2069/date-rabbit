@@ -91,6 +91,25 @@ describe('messagesStore', () => {
       expect(result.current.messages['user-2']).toHaveLength(1);
       expect(result.current.messages['user-2'][0].content).toBe('Hello!');
     });
+
+    it('should clear unread count and sync last message in chats after fetching', async () => {
+      const mockGetMessages = api.messagesApi.getMessages as jest.Mock;
+      mockGetMessages.mockResolvedValue([mockMessage]);
+
+      const { result } = renderHook(() => useMessagesStore());
+
+      await act(async () => {
+        useMessagesStore.setState({ chats: [mockChat] });
+      });
+
+      await act(async () => {
+        await result.current.fetchMessages('user-2');
+      });
+
+      expect(result.current.chats[0].unreadCount).toBe(0);
+      expect(result.current.chats[0].lastMessage).toBe('Hello!');
+      expect(result.current.chats[0].lastMessageAt).toBe('2024-03-10T10:00:00Z');
+    });
   });
 
   describe('sendMessage', () => {

@@ -1,6 +1,9 @@
 import { create } from 'zustand';
 import { messagesApi, Message, Chat, ApiError } from '../services/api';
 
+// Shared polling interval for all chat-related screens
+export const POLL_INTERVAL = 5000;
+
 interface MessagesState {
   chats: Chat[];
   messages: Record<string, Message[]>; // otherUserId -> messages
@@ -50,15 +53,35 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
     try {
       // Backend auto-marks messages as read on GET
       const msgs = await messagesApi.getMessages(otherUserId, page);
-      set((state) => ({
-        messages: {
+      set((state) => {
+        const updatedMessages = {
           ...state.messages,
           [otherUserId]: page === 1
             ? msgs
             : [...(state.messages[otherUserId] || []), ...msgs],
-        },
-        isLoading: false,
-      }));
+        };
+
+        // Sync the chat entry: clear unread count (messages marked as read on GET)
+        // and update last message preview if available
+        const lastMsg = page === 1 && msgs.length > 0 ? msgs[msgs.length - 1] : null;
+        const updatedChats = state.chats.map((chat) => {
+          if (chat.otherUser.id !== otherUserId) return chat;
+          return {
+            ...chat,
+            unreadCount: 0,
+            ...(lastMsg ? {
+              lastMessage: lastMsg.content,
+              lastMessageAt: lastMsg.createdAt,
+            } : {}),
+          };
+        });
+
+        return {
+          messages: updatedMessages,
+          chats: updatedChats,
+          isLoading: false,
+        };
+      });
     } catch (err) {
       if (!silent) {
         const message = err instanceof ApiError ? err.message : 'Failed to fetch messages';

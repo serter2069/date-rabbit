@@ -4,7 +4,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { UserImage } from '../../../src/components/UserImage';
 import { EmptyState } from '../../../src/components/EmptyState';
-import { useMessagesStore } from '../../../src/store/messagesStore';
+import { useMessagesStore, POLL_INTERVAL } from '../../../src/store/messagesStore';
 import { useTheme, spacing, typography } from '../../../src/constants/theme';
 import type { Chat } from '../../../src/types';
 
@@ -22,7 +22,7 @@ export default function MessagesScreen() {
       // Poll every 10s silently (no loading spinner)
       const interval = setInterval(() => {
         fetchChats(true);
-      }, 10000);
+      }, POLL_INTERVAL);
 
       return () => clearInterval(interval);
     }, [])
