@@ -43,6 +43,7 @@
     "expo-location": "^18.0.10",
     "expo-notifications": "^0.29.14",
     "expo-router": "~4.0.22",
+    "expo-secure-store": "~14.0.1",
     "expo-status-bar": "~2.0.1",
     "expo-web-browser": "~14.0.2",
     "jest": "~29.7.0",

@@ -1,25 +1,26 @@
 // API Client for DateRabbit Backend
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import type { Verification, VerificationReference } from '../types';
 
 const API_BASE_URL = 'https://daterabbit-api.smartlaunchhub.com/api';
 const API_TIMEOUT_MS = 10_000; // 10 seconds
 
-// Token management
+// Token management — stored in SecureStore (iOS Keychain / Android Keystore)
+const TOKEN_KEY = 'authToken';
 let authToken: string | null = null;
 
 export async function getToken(): Promise<string | null> {
   if (authToken) return authToken;
-  authToken = await AsyncStorage.getItem('authToken');
+  authToken = await SecureStore.getItemAsync(TOKEN_KEY);
   return authToken;
 }
 
 export async function setToken(token: string | null): Promise<void> {
   authToken = token;
   if (token) {
-    await AsyncStorage.setItem('authToken', token);
+    await SecureStore.setItemAsync(TOKEN_KEY, token);
   } else {
-    await AsyncStorage.removeItem('authToken');
+    await SecureStore.deleteItemAsync(TOKEN_KEY);
   }
 }
 

@@ -330,9 +330,6 @@ export const useAuthStore = create<AuthState>()(
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
         hasSeenOnboarding: state.hasSeenOnboarding,
-        // Persist user state for demo mode (when API is unavailable)
-        user: state.user,
-        isAuthenticated: state.isAuthenticated,
         hasCompletedOnboarding: state.hasCompletedOnboarding,
       }),
     }
