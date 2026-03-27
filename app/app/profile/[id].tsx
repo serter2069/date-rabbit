@@ -24,6 +24,7 @@ import { useTheme, spacing, typography, borderRadius, colors } from '../../src/c
 import { useFavoritesStore } from '../../src/store/favoritesStore';
 import { useAuthStore } from '../../src/store/authStore';
 import { usersApi, companionsApi, CompanionDetail } from '../../src/services/api';
+import * as Haptics from 'expo-haptics';
 
 // Max width for photo container — prevents giant hero on wide screens
 const MAX_PHOTO_WIDTH = 430;
@@ -338,7 +339,12 @@ export default function ProfileViewScreen() {
           {/* Favorite button */}
           <TouchableOpacity
             style={[styles.favoriteButton, { top: insets.top + spacing.sm, backgroundColor: colors.white }]}
-            onPress={() => toggleFavorite(profile.id)}
+            onPress={() => {
+              if (Platform.OS !== 'web') {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              }
+              toggleFavorite(profile.id);
+            }}
             testID="profile-view-favorite-btn"
             accessibilityLabel={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
             accessibilityRole="button"
