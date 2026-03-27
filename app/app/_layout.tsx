@@ -34,7 +34,7 @@ function useCleanUrl() {
 }
 
 // Public routes accessible without authentication
-const PUBLIC_ROUTES = ['terms', 'privacy', 'onboarding', '(auth)'];
+const PUBLIC_ROUTES = ['terms', 'privacy', 'onboarding', '(auth)', '(dev)'];
 
 // Authenticated non-tab routes — accessible to all authenticated users (verified or not)
 const NON_TAB_AUTH_ROUTES = [
@@ -178,6 +178,7 @@ export default function RootLayout() {
         <Stack.Screen name="index" />
         <Stack.Screen name="onboarding" />
         <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(dev)" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="(seeker-verify)" />
         <Stack.Screen name="(comp-onboard)" />
