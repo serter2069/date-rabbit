@@ -14,7 +14,7 @@ import { useTheme, spacing, typography, borderRadius } from '../../../src/consta
 import { useBookingsStore } from '../../../src/store/bookingsStore';
 import { Booking } from '../../../src/services/api';
 
-const POLL_INTERVAL = 10_000; // 10 seconds
+const POLL_INTERVAL = 2_000; // 2 seconds
 
 export default function RequestSentScreen() {
   const { bookingId } = useLocalSearchParams<{ bookingId: string }>();
