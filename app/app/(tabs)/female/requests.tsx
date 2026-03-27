@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { showAlert, showConfirm } from '../../../src/utils/alert';
@@ -11,6 +11,7 @@ import { EmptyState } from '../../../src/components/EmptyState';
 import { useTheme, spacing, typography, borderRadius } from '../../../src/constants/theme';
 import { useBookingsStore } from '../../../src/store/bookingsStore';
 import { Booking } from '../../../src/services/api';
+import * as Haptics from 'expo-haptics';
 
 type TabType = 'pending' | 'accepted' | 'completed';
 
@@ -92,7 +93,12 @@ export default function RequestsScreen() {
               { backgroundColor: colors.surface },
               activeTab === tab && { backgroundColor: colors.primary },
             ]}
-            onPress={() => setActiveTab(tab)}
+            onPress={() => {
+              if (Platform.OS !== 'web') {
+                Haptics.selectionAsync();
+              }
+              setActiveTab(tab);
+            }}
             testID={`requests-tab-${tab}`}
             accessibilityLabel={`${tab.charAt(0).toUpperCase() + tab.slice(1)} requests`}
             accessibilityRole="tab"

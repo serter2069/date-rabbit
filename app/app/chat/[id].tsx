@@ -18,6 +18,7 @@ import { useMessagesStore } from '../../src/store/messagesStore';
 import { useAuthStore } from '../../src/store/authStore';
 import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
 import { showAlert } from '../../src/utils/alert';
+import * as Haptics from 'expo-haptics';
 
 export default function ChatScreen() {
   const { id, name } = useLocalSearchParams<{ id: string; name: string }>();
@@ -64,6 +65,9 @@ export default function ChatScreen() {
   const handleSend = async () => {
     if (!messageText.trim() || !user) return;
 
+    if (Platform.OS !== 'web') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
     const text = messageText.trim();
     setMessageText('');
     try {

@@ -14,6 +14,7 @@ import { companionsApi, CompanionListItem } from '../../../src/services/api';
 import { showAlert } from '../../../src/utils/alert';
 
 import { useAuthStore } from '../../../src/store/authStore';
+import * as Haptics from 'expo-haptics';
 
 const quickFilters = ['All', 'Nearby', 'Top Rated', 'New'];
 
@@ -228,6 +229,9 @@ export default function BrowseScreen() {
               activeFilter === filter && [styles.filterChipActive, { backgroundColor: colors.primary }],
             ]}
             onPress={() => {
+              if (Platform.OS !== 'web') {
+                Haptics.selectionAsync();
+              }
               setActiveFilter(filter);
               if (filter === 'Nearby' && !userLocation) {
                 requestLocation();

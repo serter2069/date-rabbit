@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from '../../src/components/Card';
@@ -10,6 +10,7 @@ import { EmptyState } from '../../src/components/EmptyState';
 import { useFavoritesStore } from '../../src/store/favoritesStore';
 import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
 import { companionsApi, CompanionDetail } from '../../src/services/api';
+import * as Haptics from 'expo-haptics';
 
 export default function FavoritesScreen() {
   const insets = useSafeAreaInsets();
@@ -50,6 +51,9 @@ export default function FavoritesScreen() {
   }, [fetchFavorites]);
 
   const handleToggleFavorite = (id: string) => {
+    if (Platform.OS !== 'web') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
     toggleFavorite(id);
     setFavoriteCompanions(prev => prev.filter(c => c.id !== id));
   };
