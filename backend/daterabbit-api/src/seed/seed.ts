@@ -558,108 +558,108 @@ async function seed() {
     const userRepo = AppDataSource.getRepository(User);
     const companions: User[] = [];
 
-  // Real portrait photos from Unsplash (free, reliable CDN)
+  // Placeholder portrait photos using Lorem Picsum (seed-based, deterministic, no auth required)
   // Each companion gets 2 unique photos — primary + secondary
   const companionPhotos: { primary: string; secondary: string }[] = [
     // 0 - Sophia Chen (26, Manhattan)
     {
-      primary: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400&h=400&fit=crop&crop=face',
-      secondary: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&h=400&fit=crop&crop=face',
+      primary: 'https://picsum.photos/seed/sophia-chen/400/400',
+      secondary: 'https://picsum.photos/seed/sophia-chen-2/400/400',
     },
     // 1 - Isabella Romano (29, Brooklyn)
     {
-      primary: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop&crop=face',
-      secondary: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop&crop=face',
+      primary: 'https://picsum.photos/seed/isabella-romano/400/400',
+      secondary: 'https://picsum.photos/seed/isabella-romano-2/400/400',
     },
     // 2 - Mia Thompson (24, West Village)
     {
-      primary: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&h=400&fit=crop&crop=face',
-      secondary: 'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=400&h=400&fit=crop&crop=face',
+      primary: 'https://picsum.photos/seed/mia-thompson/400/400',
+      secondary: 'https://picsum.photos/seed/mia-thompson-2/400/400',
     },
     // 3 - Ava Williams (31, Upper East Side)
     {
-      primary: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&h=400&fit=crop&crop=face',
-      secondary: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&h=400&fit=crop&crop=face',
+      primary: 'https://picsum.photos/seed/ava-williams/400/400',
+      secondary: 'https://picsum.photos/seed/ava-williams-2/400/400',
     },
     // 4 - Emma Davis (27, SoHo)
     {
-      primary: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&fit=crop&crop=face',
-      secondary: 'https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?w=400&h=400&fit=crop&crop=face',
+      primary: 'https://picsum.photos/seed/emma-davis/400/400',
+      secondary: 'https://picsum.photos/seed/emma-davis-2/400/400',
     },
     // 5 - Olivia Martinez (25, Santa Monica)
     {
-      primary: 'https://images.unsplash.com/photo-1524638431109-93d95c968f03?w=400&h=400&fit=crop&crop=face',
-      secondary: 'https://images.unsplash.com/photo-1509967419530-da38b4704bc6?w=400&h=400&fit=crop&crop=face',
+      primary: 'https://picsum.photos/seed/olivia-martinez/400/400',
+      secondary: 'https://picsum.photos/seed/olivia-martinez-2/400/400',
     },
     // 6 - Charlotte Lee (30, Silver Lake)
     {
-      primary: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face',
-      secondary: 'https://images.unsplash.com/photo-1500917293891-ef795e70e1f6?w=400&h=400&fit=crop&crop=face',
+      primary: 'https://picsum.photos/seed/charlotte-lee/400/400',
+      secondary: 'https://picsum.photos/seed/charlotte-lee-2/400/400',
     },
     // 7 - Luna Vasquez (23, Venice Beach)
     {
-      primary: 'https://images.unsplash.com/photo-1464863979621-258859e62245?w=400&h=400&fit=crop&crop=face',
-      secondary: 'https://images.unsplash.com/photo-1506956191951-7a88da4435e5?w=400&h=400&fit=crop&crop=face',
+      primary: 'https://picsum.photos/seed/luna-vasquez/400/400',
+      secondary: 'https://picsum.photos/seed/luna-vasquez-2/400/400',
     },
     // 8 - Zoe Anderson (28, Los Feliz)
     {
-      primary: 'https://images.unsplash.com/photo-1496440737103-cd596325d314?w=400&h=400&fit=crop&crop=face',
-      secondary: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=400&h=400&fit=crop&crop=face',
+      primary: 'https://picsum.photos/seed/zoe-anderson/400/400',
+      secondary: 'https://picsum.photos/seed/zoe-anderson-2/400/400',
     },
     // 9 - Natalie Kim (33, Beverly Hills)
     {
-      primary: 'https://images.unsplash.com/photo-1515023115894-bacee3643854?w=400&h=400&fit=crop&crop=face',
-      secondary: 'https://images.unsplash.com/photo-1492106087820-71f1a00d2b11?w=400&h=400&fit=crop&crop=face',
+      primary: 'https://picsum.photos/seed/natalie-kim/400/400',
+      secondary: 'https://picsum.photos/seed/natalie-kim-2/400/400',
     },
     // 10 - Chloe Johnson (26, South Beach)
     {
-      primary: 'https://images.unsplash.com/photo-1519699047748-de8e457a634e?w=400&h=400&fit=crop&crop=face',
-      secondary: 'https://images.unsplash.com/photo-1502767089025-6572583495f9?w=400&h=400&fit=crop&crop=face',
+      primary: 'https://picsum.photos/seed/chloe-johnson/400/400',
+      secondary: 'https://picsum.photos/seed/chloe-johnson-2/400/400',
     },
     // 11 - Aria Patel (29, Wynwood)
     {
-      primary: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face',
-      secondary: 'https://images.unsplash.com/photo-1526510747491-58f928ec870f?w=400&h=400&fit=crop&crop=face',
+      primary: 'https://picsum.photos/seed/aria-patel/400/400',
+      secondary: 'https://picsum.photos/seed/aria-patel-2/400/400',
     },
     // 12 - Grace Wilson (35, Brickell)
     {
-      primary: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=400&fit=crop&crop=face',
-      secondary: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&h=400&fit=crop&crop=face',
+      primary: 'https://picsum.photos/seed/grace-wilson/400/400',
+      secondary: 'https://picsum.photos/seed/grace-wilson-2/400/400',
     },
     // 13 - Lily Taylor (22, Miami Beach)
     {
-      primary: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400&h=400&fit=crop&crop=face',
-      secondary: 'https://images.unsplash.com/photo-1521146764736-56c929d59c83?w=400&h=400&fit=crop&crop=face',
+      primary: 'https://picsum.photos/seed/lily-taylor/400/400',
+      secondary: 'https://picsum.photos/seed/lily-taylor-2/400/400',
     },
     // 14 - Harper Brown (32, Midtown)
     {
-      primary: 'https://images.unsplash.com/photo-1548142813-c348350df52b?w=400&h=400&fit=crop&crop=face',
-      secondary: 'https://images.unsplash.com/photo-1499557354967-2b2d8910bcca?w=400&h=400&fit=crop&crop=face',
+      primary: 'https://picsum.photos/seed/harper-brown/400/400',
+      secondary: 'https://picsum.photos/seed/harper-brown-2/400/400',
     },
     // 15 - Scarlett Nguyen (27, Chelsea)
     {
-      primary: 'https://images.unsplash.com/photo-1516726817505-f5ed825624d8?w=400&h=400&fit=crop&crop=face',
-      secondary: 'https://images.unsplash.com/photo-1485893086445-ed75865251e0?w=400&h=400&fit=crop&crop=face',
+      primary: 'https://picsum.photos/seed/scarlett-nguyen/400/400',
+      secondary: 'https://picsum.photos/seed/scarlett-nguyen-2/400/400',
     },
     // 16 - Maya Robinson (24, Astoria)
     {
-      primary: 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=400&h=400&fit=crop&crop=face',
-      secondary: 'https://images.unsplash.com/photo-1523824921871-d6f1a15151f1?w=400&h=400&fit=crop&crop=face',
+      primary: 'https://picsum.photos/seed/maya-robinson/400/400',
+      secondary: 'https://picsum.photos/seed/maya-robinson-2/400/400',
     },
     // 17 - Stella Garcia (31, Coral Gables)
     {
-      primary: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=400&h=400&fit=crop&crop=face',
-      secondary: 'https://images.unsplash.com/photo-1485875437071-bb71a38113e9?w=400&h=400&fit=crop&crop=face',
+      primary: 'https://picsum.photos/seed/stella-garcia/400/400',
+      secondary: 'https://picsum.photos/seed/stella-garcia-2/400/400',
     },
     // 18 - Penelope Clarke (34, Malibu)
     {
-      primary: 'https://images.unsplash.com/photo-1514315384763-ba401779410f?w=400&h=400&fit=crop&crop=face',
-      secondary: 'https://images.unsplash.com/photo-1504703395950-b89145a5425b?w=400&h=400&fit=crop&crop=face',
+      primary: 'https://picsum.photos/seed/penelope-clarke/400/400',
+      secondary: 'https://picsum.photos/seed/penelope-clarke-2/400/400',
     },
     // 19 - Victoria Scott (28, Downtown LA)
     {
-      primary: 'https://images.unsplash.com/photo-1534751516642-a1af1ef26a56?w=400&h=400&fit=crop&crop=face',
-      secondary: 'https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=400&h=400&fit=crop&crop=face',
+      primary: 'https://picsum.photos/seed/victoria-scott/400/400',
+      secondary: 'https://picsum.photos/seed/victoria-scott-2/400/400',
     },
   ];
 
@@ -712,13 +712,13 @@ async function seed() {
 
     const seekers: User[] = [];
 
-  // Real portrait photos from Unsplash for seekers (men)
+  // Placeholder portrait photos using Lorem Picsum (seed-based, deterministic, no auth required)
   const seekerPhotos = [
-    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop&crop=face', // James Mitchell
-    'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop&crop=face', // David Park
-    'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face', // Michael Torres
-    'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&h=400&fit=crop&crop=face', // Ryan O'Brien
-    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face', // Daniel Hoffman
+    'https://picsum.photos/seed/james-mitchell/400/400', // James Mitchell
+    'https://picsum.photos/seed/david-park/400/400',     // David Park
+    'https://picsum.photos/seed/michael-torres/400/400', // Michael Torres
+    'https://picsum.photos/seed/ryan-obrien/400/400',    // Ryan O'Brien
+    'https://picsum.photos/seed/daniel-hoffman/400/400', // Daniel Hoffman
   ];
 
     for (let si = 0; si < seekerSeeds.length; si++) {
