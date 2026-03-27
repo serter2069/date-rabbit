@@ -32,6 +32,8 @@ export default function SOSScreen() {
       <TouchableOpacity
         style={styles.callBtn}
         onPress={() => Linking.openURL('tel:911')}
+        accessibilityLabel="Call 911"
+        accessibilityRole="button"
       >
         <Text style={styles.callBtnText}>CALL 911</Text>
       </TouchableOpacity>
@@ -41,6 +43,9 @@ export default function SOSScreen() {
           style={[styles.alertBtn, loading && styles.btnDisabled]}
           onPress={handleAlert}
           disabled={loading}
+          accessibilityLabel="Alert DateRabbit support"
+          accessibilityRole="button"
+          accessibilityState={{ disabled: loading }}
         >
           <Text style={styles.alertBtnText}>
             {loading ? 'Sending...' : 'Alert DateRabbit Support'}
@@ -53,7 +58,10 @@ export default function SOSScreen() {
         </View>
       )}
 
-      <TouchableOpacity style={styles.cancelBtn} onPress={() => router.back()}>
+      <TouchableOpacity style={styles.cancelBtn} onPress={() => router.back()}
+        accessibilityLabel="I'm OK, go back"
+        accessibilityRole="button"
+      >
         <Text style={styles.cancelText}>I'm OK — Go Back</Text>
       </TouchableOpacity>
     </View>

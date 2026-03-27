@@ -119,7 +119,10 @@ export default function ChatScreen() {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={[styles.header, { paddingTop: insets.top + spacing.sm, backgroundColor: colors.white, borderBottomColor: colors.border }]}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton} testID="chat-back-btn">
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton} testID="chat-back-btn"
+            accessibilityLabel="Go back"
+            accessibilityRole="button"
+          >
             <Icon name="arrow-left" size={24} color={colors.text} />
           </TouchableOpacity>
         </View>
@@ -142,13 +145,18 @@ export default function ChatScreen() {
     >
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm, backgroundColor: colors.white, borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton} testID="chat-back-btn">
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton} testID="chat-back-btn"
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+        >
           <Icon name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.headerProfile}
           onPress={() => router.push(`/profile/${id || ''}`)}
+          accessibilityLabel={`View ${companionName}'s profile`}
+          accessibilityRole="button"
         >
           <UserImage name={companionName} size={40} />
           <View style={styles.headerInfo}>
@@ -161,6 +169,8 @@ export default function ChatScreen() {
           style={[styles.bookButton, { backgroundColor: colors.primary }]}
           onPress={() => router.push(`/booking/${id || ''}`)}
           testID="chat-book-btn"
+          accessibilityLabel={`Book ${companionName}`}
+          accessibilityRole="button"
         >
           <Text style={[styles.bookButtonText, { color: colors.white }]}>Book</Text>
         </TouchableOpacity>
@@ -268,6 +278,9 @@ export default function ChatScreen() {
           onPress={handleSend}
           disabled={!messageText.trim()}
           testID="chat-send-btn"
+          accessibilityLabel="Send message"
+          accessibilityRole="button"
+          accessibilityState={{ disabled: !messageText.trim() }}
         >
           <Icon name="send" size={20} color={colors.white} />
         </TouchableOpacity>

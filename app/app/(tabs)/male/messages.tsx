@@ -76,6 +76,8 @@ export default function MessagesScreen() {
               style={[styles.conversationItem, { borderBottomColor: colors.border }]}
               onPress={() => handleOpenChat(chat)}
               testID={`messages-conversation-${chat.id}`}
+              accessibilityLabel={`Conversation with ${chat.otherUser.name}${(chat.unreadCount || 0) > 0 ? `, ${chat.unreadCount} unread` : ''}`}
+              accessibilityRole="button"
             >
               <UserImage
                 uri={chat.otherUser.photos?.[0]?.url}

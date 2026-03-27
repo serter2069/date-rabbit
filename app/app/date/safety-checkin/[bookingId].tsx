@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { activeDateApi } from '../../../src/services/activeDateApi';
+import { colors } from '../../../src/constants/theme';
 
 export default function SafetyCheckinScreen() {
   const { bookingId } = useLocalSearchParams<{ bookingId: string }>();
@@ -36,6 +37,9 @@ export default function SafetyCheckinScreen() {
             style={[styles.okBtn, confirming && styles.btnDisabled]}
             onPress={handleOK}
             disabled={confirming}
+            accessibilityLabel="I'm OK"
+            accessibilityRole="button"
+            accessibilityState={{ disabled: confirming }}
           >
             {confirming
               ? <ActivityIndicator color="#fff" size="large" />
@@ -46,6 +50,8 @@ export default function SafetyCheckinScreen() {
           <TouchableOpacity
             style={styles.helpBtn}
             onPress={() => router.push(`/date/sos/${bookingId}` as any)}
+            accessibilityLabel="I need help"
+            accessibilityRole="button"
           >
             <Text style={styles.helpBtnText}>I Need Help</Text>
           </TouchableOpacity>
@@ -60,7 +66,7 @@ const styles = StyleSheet.create({
   card: { backgroundColor: '#FF5A85', borderWidth: 2, borderColor: '#000', padding: 24, marginBottom: 40, shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
   title: { fontSize: 28, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000', marginBottom: 12 },
   subtitle: { fontSize: 18, color: '#000', lineHeight: 28 },
-  okBtn: { backgroundColor: '#00CC66', borderWidth: 2, borderColor: '#000', paddingVertical: 28, alignItems: 'center', marginBottom: 16, shadowOffset: { width: 4, height: 4 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
+  okBtn: { backgroundColor: colors.successStrong, borderWidth: 2, borderColor: '#000', paddingVertical: 28, alignItems: 'center', marginBottom: 16, shadowOffset: { width: 4, height: 4 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
   okBtnText: { fontSize: 28, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#fff' },
   helpBtn: { backgroundColor: '#FF0000', borderWidth: 2, borderColor: '#000', paddingVertical: 18, alignItems: 'center' },
   helpBtnText: { fontSize: 18, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#fff' },

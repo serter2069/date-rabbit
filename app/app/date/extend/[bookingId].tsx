@@ -34,6 +34,9 @@ export default function ExtendDateScreen() {
             key={h}
             style={[styles.option, selected === h && styles.optionSelected]}
             onPress={() => setSelected(h)}
+            accessibilityLabel={`Extend by ${h} hour${h !== 1 ? 's' : ''}`}
+            accessibilityRole="button"
+            accessibilityState={{ selected: selected === h }}
           >
             <Text style={[styles.optionText, selected === h && styles.optionTextSelected]}>
               +{h}h
@@ -53,6 +56,9 @@ export default function ExtendDateScreen() {
           style={[styles.button, sending && styles.buttonDisabled]}
           onPress={handleSend}
           disabled={sending}
+          accessibilityLabel="Send extension request"
+          accessibilityRole="button"
+          accessibilityState={{ disabled: sending }}
         >
           {sending
             ? <ActivityIndicator color="#fff" />
@@ -61,7 +67,10 @@ export default function ExtendDateScreen() {
         </TouchableOpacity>
       )}
 
-      <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+      <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}
+        accessibilityLabel="Cancel"
+        accessibilityRole="button"
+      >
         <Text style={styles.backText}>Cancel</Text>
       </TouchableOpacity>
     </View>

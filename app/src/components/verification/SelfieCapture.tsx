@@ -63,6 +63,8 @@ export function SelfieCapture({ imageUri, onImageCaptured, error }: SelfieCaptur
             style={styles.retakeButton}
             onPress={handleRetake}
             activeOpacity={0.8}
+            accessibilityLabel="Retake selfie"
+            accessibilityRole="button"
           >
             <Icon name="refresh" size={18} color={colors.primary} />
             <Text style={styles.retakeButtonText}>Retake Selfie</Text>
@@ -73,6 +75,8 @@ export function SelfieCapture({ imageUri, onImageCaptured, error }: SelfieCaptur
           style={[styles.captureArea, error ? styles.captureAreaError : null]}
           onPress={handleCapture}
           activeOpacity={0.8}
+          accessibilityLabel="Take selfie"
+          accessibilityRole="button"
         >
           {/* Oval face guide overlay */}
           <View style={styles.ovalGuide}>

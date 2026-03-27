@@ -89,6 +89,8 @@ export default function CompStep2Screen() {
             style={styles.removeBtn}
             onPress={() => removePhoto(index)}
             hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
+            accessibilityLabel="Remove photo"
+            accessibilityRole="button"
           >
             <Icon name="x" size={12} color={colors.white} />
           </TouchableOpacity>
@@ -98,7 +100,10 @@ export default function CompStep2Screen() {
 
     if (index === photos.length) {
       return (
-        <TouchableOpacity key={index} style={styles.photoSlotEmpty} onPress={pickPhoto} activeOpacity={0.7}>
+        <TouchableOpacity key={index} style={styles.photoSlotEmpty} onPress={pickPhoto} activeOpacity={0.7}
+          accessibilityLabel={isFirst ? 'Add first photo' : 'Add photo'}
+          accessibilityRole="button"
+        >
           <Icon name="plus" size={24} color={colors.accent} />
           {isFirst && <Text style={styles.addFirstLabel}>Add photo</Text>}
         </TouchableOpacity>

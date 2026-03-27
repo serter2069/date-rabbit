@@ -110,6 +110,8 @@ export default function ActiveDateScreen() {
             key={action.label}
             style={[styles.actionBtn, { backgroundColor: action.color }]}
             onPress={() => action.onPress ? action.onPress() : router.push(action.route as any)}
+            accessibilityLabel={action.label}
+            accessibilityRole="button"
           >
             <Text style={[styles.actionText, action.textColor ? { color: action.textColor } : {}]}>
               {action.label}

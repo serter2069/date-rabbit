@@ -81,6 +81,8 @@ export function PhotoUpload({
             <TouchableOpacity
               style={styles.removeButton}
               onPress={() => handleRemove(uri)}
+              accessibilityLabel="Remove photo"
+              accessibilityRole="button"
             >
               <X size={12} color={colors.white} strokeWidth={2.5} />
             </TouchableOpacity>
@@ -97,6 +99,9 @@ export function PhotoUpload({
             style={styles.addButton}
             onPress={showAddOptions}
             disabled={loading}
+            accessibilityLabel="Add photo"
+            accessibilityRole="button"
+            accessibilityState={{ disabled: loading }}
           >
             {loading ? (
               <ActivityIndicator color={colors.primary} />

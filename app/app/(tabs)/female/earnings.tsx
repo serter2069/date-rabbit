@@ -174,7 +174,10 @@ export default function EarningsScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Transactions</Text>
-              <TouchableOpacity onPress={() => router.push('/female/earnings/history')}>
+              <TouchableOpacity onPress={() => router.push('/female/earnings/history')}
+                accessibilityLabel="View earnings history"
+                accessibilityRole="button"
+              >
                 <Text style={[styles.seeAll, { color: colors.primary }]}>See All</Text>
               </TouchableOpacity>
             </View>

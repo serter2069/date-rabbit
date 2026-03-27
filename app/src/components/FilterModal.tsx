@@ -88,11 +88,17 @@ export function FilterModal({
     >
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton} testID="filter-close-btn">
+          <TouchableOpacity onPress={onClose} style={styles.closeButton} testID="filter-close-btn"
+            accessibilityLabel="Close filters"
+            accessibilityRole="button"
+          >
             <X size={20} color={colors.text} strokeWidth={2} />
           </TouchableOpacity>
           <Text style={styles.title} testID="filter-modal-title">Filters</Text>
-          <TouchableOpacity onPress={handleReset} testID="filter-reset-btn">
+          <TouchableOpacity onPress={handleReset} testID="filter-reset-btn"
+            accessibilityLabel="Reset filters"
+            accessibilityRole="button"
+          >
             <Text style={styles.resetText}>Reset</Text>
           </TouchableOpacity>
         </View>
@@ -237,6 +243,9 @@ export function FilterModal({
                     filters.availability === option.value && styles.chipActive,
                   ]}
                   onPress={() => updateFilter('availability', option.value)}
+                  accessibilityLabel={option.label}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: filters.availability === option.value }}
                 >
                   <Text
                     style={[
@@ -259,6 +268,9 @@ export function FilterModal({
                 key={option.value}
                 style={styles.radioRow}
                 onPress={() => updateFilter('sortBy', option.value)}
+                accessibilityLabel={option.label}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: filters.sortBy === option.value }}
               >
                 <View
                   style={[

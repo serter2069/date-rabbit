@@ -117,6 +117,8 @@ export default function OTPScreen() {
           style={styles.backButton}
           onPress={() => router.back()}
           testID="otp-back-btn"
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
         >
           <Icon name="arrow-left" size={20} color={colors.primary} />
           <Text style={[styles.backText, { color: colors.primary }]}> Back</Text>
@@ -132,6 +134,9 @@ export default function OTPScreen() {
           activeOpacity={1}
           onPress={() => inputRef.current?.focus()}
           style={styles.codeContainer}
+          accessibilityLabel="Enter verification code"
+          accessibilityRole="button"
+          accessibilityHint="Tap to open keyboard and enter your 6-digit code"
         >
           {renderCodeBoxes()}
         </TouchableOpacity>
@@ -166,6 +171,9 @@ export default function OTPScreen() {
             disabled={resendCooldown > 0}
             style={styles.resendButton}
             testID="otp-resend-btn"
+            accessibilityLabel={resendCooldown > 0 ? `Resend code in ${resendCooldown} seconds` : 'Resend code'}
+            accessibilityRole="button"
+            accessibilityState={{ disabled: resendCooldown > 0 }}
           >
             <Text style={[styles.resendLink, { color: colors.primary }, resendCooldown > 0 && { color: colors.textSecondary }]}>
               {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend'}

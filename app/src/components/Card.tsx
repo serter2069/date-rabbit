@@ -14,6 +14,8 @@ interface CardProps {
   shadow?: CardShadow;
   onPress?: () => void;
   testID?: string;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 }
 
 export function Card({
@@ -24,6 +26,8 @@ export function Card({
   shadow = 'md',
   onPress,
   testID,
+  accessibilityLabel,
+  accessibilityHint,
 }: CardProps) {
   const getBackgroundColor = () => {
     switch (variant) {
@@ -75,6 +79,9 @@ export function Card({
           styles.pressable,
           pressed && styles.pressed,
         ]}
+        accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel}
+        accessibilityHint={accessibilityHint}
       >
         {content}
       </Pressable>

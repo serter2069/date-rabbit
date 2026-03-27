@@ -57,7 +57,10 @@ export default function FavoritesScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm, backgroundColor: colors.white, borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+        >
           <Icon name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>Favorites</Text>
@@ -119,6 +122,8 @@ export default function FavoritesScreen() {
                   <TouchableOpacity
                     style={styles.heartButton}
                     onPress={() => handleToggleFavorite(companion.id)}
+                    accessibilityLabel={`Remove ${companion.name} from favorites`}
+                    accessibilityRole="button"
                   >
                     <Icon name="heart" size={24} color={colors.error} />
                   </TouchableOpacity>

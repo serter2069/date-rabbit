@@ -111,6 +111,8 @@ export function VideoRecorder({
             style={styles.retakeButton}
             onPress={handleRetake}
             activeOpacity={0.8}
+            accessibilityLabel="Re-record video"
+            accessibilityRole="button"
           >
             <Icon name="refresh" size={18} color={colors.primary} />
             <Text style={styles.retakeButtonText}>Re-record Video</Text>
@@ -161,6 +163,9 @@ export function VideoRecorder({
             onPress={handleRecord}
             disabled={isRecording}
             activeOpacity={0.8}
+            accessibilityLabel={isRecording ? 'Stop recording' : 'Start recording'}
+            accessibilityRole="button"
+            accessibilityState={{ disabled: isRecording }}
           >
             {isRecording ? (
               <View style={styles.stopIcon} />

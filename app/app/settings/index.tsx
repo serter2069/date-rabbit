@@ -30,7 +30,11 @@ function SettingsMenuItem({
   showChevron?: boolean;
 }) {
   return (
-    <TouchableOpacity style={styles.menuItem} onPress={onPress}>
+    <TouchableOpacity style={styles.menuItem} onPress={onPress}
+      accessibilityLabel={label}
+      accessibilityRole="button"
+      accessibilityHint={description}
+    >
       <View style={[styles.menuIconContainer, { backgroundColor: colors.primary + '15' }]}>
         <Icon name={icon} size={18} color={colors.primary} />
       </View>
@@ -58,7 +62,10 @@ export default function SettingsScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm, backgroundColor: colors.white, borderBottomColor: colors.border }]}>
-        <TouchableOpacity style={[styles.backButton, { backgroundColor: colors.surface }]} onPress={() => router.back()}>
+        <TouchableOpacity style={[styles.backButton, { backgroundColor: colors.surface }]} onPress={() => router.back()}
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+        >
           <Icon name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>Settings</Text>

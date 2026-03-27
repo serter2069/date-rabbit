@@ -162,7 +162,10 @@ export default function BookingScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm, backgroundColor: colors.white, borderBottomColor: colors.border }]}>
-        <TouchableOpacity style={[styles.backButton, { backgroundColor: colors.surface }]} onPress={() => router.back()} testID="booking-back-btn">
+        <TouchableOpacity style={[styles.backButton, { backgroundColor: colors.surface }]} onPress={() => router.back()} testID="booking-back-btn"
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+        >
           <Icon name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>Book a Date</Text>
@@ -194,6 +197,9 @@ export default function BookingScreen() {
                   selectedActivity === activity.id && { borderColor: colors.primary, backgroundColor: colors.primary + '10' },
                 ]}
                 onPress={() => setSelectedActivity(activity.id)}
+                accessibilityLabel={activity.label}
+                accessibilityRole="button"
+                accessibilityState={{ selected: selectedActivity === activity.id }}
               >
                 <Icon
                   name={activity.icon}
@@ -234,6 +240,9 @@ export default function BookingScreen() {
                   selectedDuration === duration.hours && { borderColor: colors.primary, backgroundColor: colors.primary + '10' },
                 ]}
                 onPress={() => setSelectedDuration(duration.hours)}
+                accessibilityLabel={`${duration.label}, $${hourlyRate * duration.hours}`}
+                accessibilityRole="button"
+                accessibilityState={{ selected: selectedDuration === duration.hours }}
               >
                 <Text style={[
                   styles.durationLabel,
@@ -273,6 +282,9 @@ export default function BookingScreen() {
                     isSelected && { borderColor: colors.primary, backgroundColor: colors.primary },
                   ]}
                   onPress={() => setSelectedDate(d.date)}
+                  accessibilityLabel={`${d.day} ${d.dayNum} ${d.month}`}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isSelected }}
                 >
                   <Text style={[
                     styles.dateDay,
@@ -316,6 +328,9 @@ export default function BookingScreen() {
                     isSelected && { borderColor: colors.primary, backgroundColor: colors.primary },
                   ]}
                   onPress={() => setSelectedTime(time)}
+                  accessibilityLabel={time}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isSelected }}
                 >
                   <Text style={[
                     styles.timeSlotText,

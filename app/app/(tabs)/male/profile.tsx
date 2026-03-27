@@ -37,7 +37,10 @@ export default function MaleProfileScreen() {
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.md }]}>
       <View style={styles.header}>
         <Text style={[styles.title, { color: colors.text }]}>Profile</Text>
-        <TouchableOpacity onPress={() => router.push('/settings')} style={styles.settingsButton}>
+        <TouchableOpacity onPress={() => router.push('/settings')} style={styles.settingsButton}
+          accessibilityLabel="Settings"
+          accessibilityRole="button"
+        >
           <Icon name="settings" size={24} color={colors.text} />
         </TouchableOpacity>
       </View>
@@ -163,7 +166,10 @@ export default function MaleProfileScreen() {
 
 function MenuItem({ icon, label, value, onPress, colors }: { icon: string; label: string; value?: string; onPress?: () => void; colors: any }) {
   return (
-    <TouchableOpacity style={styles.menuItem} onPress={onPress}>
+    <TouchableOpacity style={styles.menuItem} onPress={onPress}
+      accessibilityLabel={label}
+      accessibilityRole="button"
+    >
       <View style={[styles.menuIconContainer, { backgroundColor: colors.primary + '15' }]}>
         <Icon name={icon} size={18} color={colors.primary} />
       </View>

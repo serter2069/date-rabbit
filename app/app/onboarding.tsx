@@ -100,6 +100,9 @@ export default function OnboardingScreen() {
               styles.dot,
               index === currentIndex && styles.dotActive,
             ]}
+            accessibilityLabel={`Go to slide ${index + 1}`}
+            accessibilityRole="button"
+            accessibilityState={{ selected: index === currentIndex }}
           />
         ))}
       </View>

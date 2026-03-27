@@ -201,6 +201,8 @@ export default function BrowseScreen() {
           style={[styles.filterButton, { backgroundColor: colors.surface }]}
           onPress={() => setFilterModalVisible(true)}
           testID="browse-filter-btn"
+          accessibilityLabel={activeFiltersCount > 0 ? `Filters, ${activeFiltersCount} active` : 'Open filters'}
+          accessibilityRole="button"
         >
           <Icon name="sliders" size={20} color={colors.text} />
           {activeFiltersCount > 0 && (
@@ -231,6 +233,9 @@ export default function BrowseScreen() {
                 requestLocation();
               }
             }}
+            accessibilityLabel={filter}
+            accessibilityRole="button"
+            accessibilityState={{ selected: activeFilter === filter }}
           >
             <Text style={[
               styles.filterText,

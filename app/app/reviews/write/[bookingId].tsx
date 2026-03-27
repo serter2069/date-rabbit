@@ -31,7 +31,11 @@ export default function WriteReviewScreen() {
 
       <View style={styles.starsRow}>
         {[1, 2, 3, 4, 5].map(star => (
-          <TouchableOpacity key={star} onPress={() => setRating(star)} style={styles.starBtn}>
+          <TouchableOpacity key={star} onPress={() => setRating(star)} style={styles.starBtn}
+            accessibilityLabel={`Rate ${star} star${star !== 1 ? 's' : ''}`}
+            accessibilityRole="button"
+            accessibilityState={{ selected: star <= rating }}
+          >
             <Text style={[styles.star, star <= rating && styles.starFilled]}>★</Text>
           </TouchableOpacity>
         ))}
@@ -51,6 +55,9 @@ export default function WriteReviewScreen() {
         style={[styles.submitBtn, (submitting || rating === 0) && styles.btnDisabled]}
         onPress={handleSubmit}
         disabled={submitting || rating === 0}
+        accessibilityLabel="Submit review"
+        accessibilityRole="button"
+        accessibilityState={{ disabled: submitting || rating === 0 }}
       >
         {submitting
           ? <ActivityIndicator color="#fff" />

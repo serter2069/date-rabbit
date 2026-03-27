@@ -47,6 +47,9 @@ export function VerificationBanner({ compact = false }: VerificationBannerProps)
       style={[styles.banner, styles.warningBanner, compact && styles.compact]}
       onPress={handlePress}
       activeOpacity={0.8}
+      accessibilityLabel="Complete verification"
+      accessibilityRole="button"
+      accessibilityHint="Opens identity verification flow"
     >
       <View style={styles.content}>
         <Icon name="shield-alert" size={compact ? 16 : 20} color={colors.warning} />

@@ -74,6 +74,8 @@ export default function LoginScreen() {
           style={styles.backButton}
           onPress={() => router.back()}
           testID="login-back-btn"
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
         >
           <Icon name="arrow-left" size={20} color={colors.text} />
         </TouchableOpacity>

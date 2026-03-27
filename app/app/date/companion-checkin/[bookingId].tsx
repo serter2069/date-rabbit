@@ -13,6 +13,7 @@ import { useLocalSearchParams, router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { activeDateApi, ActiveBooking } from '../../../src/services/activeDateApi';
+import { colors } from '../../../src/constants/theme';
 
 type Step = 'selfie' | 'location' | 'ready' | 'waiting';
 
@@ -169,12 +170,18 @@ export default function CompanionCheckinScreen() {
         {selfieUri ? (
           <View style={styles.selfieRow}>
             <Image source={{ uri: selfieUri }} style={styles.selfieThumb} />
-            <TouchableOpacity style={styles.retakeBtn} onPress={handleTakeSelfie}>
+            <TouchableOpacity style={styles.retakeBtn} onPress={handleTakeSelfie}
+              accessibilityLabel="Retake selfie"
+              accessibilityRole="button"
+            >
               <Text style={styles.retakeBtnText}>Retake</Text>
             </TouchableOpacity>
           </View>
         ) : (
-          <TouchableOpacity style={styles.cameraBtn} onPress={handleTakeSelfie}>
+          <TouchableOpacity style={styles.cameraBtn} onPress={handleTakeSelfie}
+            accessibilityLabel="Open camera for selfie"
+            accessibilityRole="button"
+          >
             <Text style={styles.cameraBtnText}>📸  Open Camera</Text>
           </TouchableOpacity>
         )}
@@ -202,6 +209,9 @@ export default function CompanionCheckinScreen() {
             style={[styles.locationBtn, (step === 'selfie' || locationStatus === 'loading') && styles.btnDisabled]}
             onPress={handleGetLocation}
             disabled={step === 'selfie' || locationStatus === 'loading'}
+            accessibilityLabel="Get current location"
+            accessibilityRole="button"
+            accessibilityState={{ disabled: step === 'selfie' || locationStatus === 'loading' }}
           >
             {locationStatus === 'loading'
               ? <ActivityIndicator color="#000" size="small" />
@@ -216,6 +226,9 @@ export default function CompanionCheckinScreen() {
         style={[styles.checkinBtn, (step !== 'ready' || checkingIn) && styles.btnDisabled]}
         onPress={handleCheckin}
         disabled={step !== 'ready' || checkingIn}
+        accessibilityLabel="Check in"
+        accessibilityRole="button"
+        accessibilityState={{ disabled: step !== 'ready' || checkingIn }}
       >
         {checkingIn
           ? <ActivityIndicator color="#fff" />
@@ -239,7 +252,7 @@ const styles = StyleSheet.create({
   stepHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
   stepBadge: { width: 28, height: 28, borderRadius: 14, borderWidth: 2, borderColor: '#000', justifyContent: 'center', alignItems: 'center', marginRight: 10 },
   stepBadgeTodo: { backgroundColor: '#fff' },
-  stepBadgeDone: { backgroundColor: '#00CC66' },
+  stepBadgeDone: { backgroundColor: colors.successStrong },
   stepBadgeText: { fontSize: 12, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
   stepTitle: { fontSize: 18, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
   stepDesc: { fontSize: 13, color: '#555', marginBottom: 14, marginLeft: 38 },
@@ -261,7 +274,7 @@ const styles = StyleSheet.create({
   waitingSubtext: { fontSize: 14, color: '#000', marginTop: 8, textAlign: 'center' },
   statusRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
   dot: { width: 14, height: 14, borderRadius: 7, borderWidth: 2, borderColor: '#000' },
-  dotGreen: { backgroundColor: '#00CC66' },
+  dotGreen: { backgroundColor: colors.successStrong },
   dotGray: { backgroundColor: '#ccc' },
   statusName: { fontSize: 14, fontFamily: 'SpaceGrotesk-Bold', marginLeft: 6, color: '#000' },
 });

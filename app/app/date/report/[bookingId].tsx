@@ -51,6 +51,9 @@ export default function ReportIssueScreen() {
           key={t}
           style={[styles.typeOption, type === t && styles.typeOptionSelected]}
           onPress={() => setType(t)}
+          accessibilityLabel={t}
+          accessibilityRole="radio"
+          accessibilityState={{ selected: type === t }}
         >
           <Text style={[styles.typeText, type === t && styles.typeTextSelected]}>{t}</Text>
         </TouchableOpacity>
@@ -71,6 +74,9 @@ export default function ReportIssueScreen() {
         style={[styles.submitBtn, submitting && styles.btnDisabled]}
         onPress={handleSubmit}
         disabled={submitting}
+        accessibilityLabel="Submit report"
+        accessibilityRole="button"
+        accessibilityState={{ disabled: submitting }}
       >
         <Text style={styles.submitBtnText}>{submitting ? 'Submitting...' : 'Submit Report'}</Text>
       </TouchableOpacity>

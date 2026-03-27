@@ -98,10 +98,16 @@ export default function WelcomeScreen() {
 
         {/* Footer */}
         <View style={styles.footer}>
-          <TouchableOpacity onPress={() => router.push('/terms')}>
+          <TouchableOpacity onPress={() => router.push('/terms')}
+            accessibilityLabel="Terms of Service"
+            accessibilityRole="button"
+          >
             <Text style={styles.footerLink}>Terms</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => router.push('/privacy')}>
+          <TouchableOpacity onPress={() => router.push('/privacy')}
+            accessibilityLabel="Privacy Policy"
+            accessibilityRole="button"
+          >
             <Text style={styles.footerLink}>Privacy</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -113,6 +119,8 @@ export default function WelcomeScreen() {
               }
             }}
             testID="welcome-safety-link"
+            accessibilityLabel="Safety information"
+            accessibilityRole="button"
           >
             <Text style={styles.footerLink}>Safety</Text>
           </TouchableOpacity>

@@ -81,7 +81,12 @@ export default function DatePhotosScreen() {
           )
         }
         renderItem={({ item }) => (
-          <TouchableOpacity onPress={() => setFullscreen(item.url)} style={styles.photoWrap}>
+          <TouchableOpacity
+            onPress={() => setFullscreen(item.url)}
+            style={styles.photoWrap}
+            accessibilityLabel="View photo"
+            accessibilityRole="button"
+          >
             <Image source={{ uri: item.url }} style={styles.photo} />
           </TouchableOpacity>
         )}
@@ -91,6 +96,9 @@ export default function DatePhotosScreen() {
         style={[styles.addBtn, uploading && styles.btnDisabled]}
         onPress={handleAddPhoto}
         disabled={uploading}
+        accessibilityLabel="Add photo"
+        accessibilityRole="button"
+        accessibilityState={{ disabled: uploading }}
       >
         {uploading
           ? <ActivityIndicator color="#000" />
@@ -104,6 +112,8 @@ export default function DatePhotosScreen() {
           style={styles.modal}
           activeOpacity={1}
           onPress={() => setFullscreen(null)}
+          accessibilityLabel="Close photo"
+          accessibilityRole="button"
         >
           {fullscreen && (
             <Image

@@ -145,6 +145,8 @@ export default function MaleDashboard() {
         style={[styles.searchBox, { backgroundColor: colors.surface, borderColor: colors.black }]}
         activeOpacity={0.8}
         onPress={() => router.push('/(tabs)/male/browse')}
+        accessibilityLabel="Search companions"
+        accessibilityRole="button"
       >
         <Icon name="search" size={20} color={colors.textLight} />
         <Text style={[styles.searchText, { color: colors.textLight }]}>Find your perfect date...</Text>
@@ -170,6 +172,8 @@ export default function MaleDashboard() {
               style={[styles.ctaButton, { backgroundColor: colors.primary, borderColor: colors.border }]}
               activeOpacity={0.8}
               onPress={() => router.push('/(tabs)/male/browse')}
+              accessibilityLabel="Browse companions"
+              accessibilityRole="button"
             >
               <Text style={[styles.ctaButtonText, { color: colors.textInverse }]}>Browse Companions</Text>
             </TouchableOpacity>
@@ -180,6 +184,8 @@ export default function MaleDashboard() {
               key={booking.id}
               activeOpacity={0.8}
               onPress={() => router.push(`/booking/${booking.id}`)}
+              accessibilityLabel={`Booking with ${booking.companion?.name}`}
+              accessibilityRole="button"
             >
               <Card variant="elevated" shadow="sm" style={styles.bookingCard}>
                 <View style={styles.bookingRow}>
@@ -220,6 +226,8 @@ export default function MaleDashboard() {
           <TouchableOpacity
             style={styles.seeAllBtn}
             onPress={() => router.push('/(tabs)/male/browse')}
+            accessibilityLabel="See all companions"
+            accessibilityRole="button"
           >
             <Text style={[styles.seeAll, { color: colors.secondary }]}>See All</Text>
             <Icon name="chevron-right" size={16} color={colors.secondary} />
@@ -329,6 +337,8 @@ function CompanionCardItem({ companion, colors }: { companion: CompanionListItem
     <TouchableOpacity
       activeOpacity={0.8}
       onPress={() => router.push(`/profile/${companion.id}`)}
+      accessibilityLabel={`View ${companion.name}'s profile`}
+      accessibilityRole="button"
     >
       <Card variant="elevated" shadow="sm" style={styles.companionCard}>
         <UserImage
@@ -366,6 +376,8 @@ function ActivityCard({ icon, label, colors }: { icon: string; label: string; co
       style={[styles.activityCard, { backgroundColor: colors.surface, borderColor: colors.borderLight }]}
       activeOpacity={0.7}
       onPress={() => router.push('/(tabs)/male/browse')}
+      accessibilityLabel={label}
+      accessibilityRole="button"
     >
       <View style={[styles.activityIconWrap, { backgroundColor: colors.background }]}>
         <Icon name={icon as any} size={22} color={colors.secondary} />

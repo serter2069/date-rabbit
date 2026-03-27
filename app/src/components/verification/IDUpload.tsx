@@ -89,6 +89,8 @@ export function IDUpload({ imageUri, onImageSelected, error }: IDUploadProps) {
             style={styles.retakeOverlay}
             onPress={handleCamera}
             activeOpacity={0.8}
+            accessibilityLabel="Retake ID photo"
+            accessibilityRole="button"
           >
             <View style={styles.retakeBadge}>
               <Icon name="camera" size={16} color={colors.white} />
@@ -101,6 +103,8 @@ export function IDUpload({ imageUri, onImageSelected, error }: IDUploadProps) {
           style={[styles.uploadArea, error ? styles.uploadAreaError : null]}
           onPress={handleGallery}
           activeOpacity={0.7}
+          accessibilityLabel="Upload your ID photo"
+          accessibilityRole="button"
         >
           <View style={styles.uploadIconContainer}>
             <Icon name="upload" size={32} color={colors.primary} />
@@ -117,6 +121,8 @@ export function IDUpload({ imageUri, onImageSelected, error }: IDUploadProps) {
           style={styles.actionButton}
           onPress={handleCamera}
           activeOpacity={0.8}
+          accessibilityLabel="Take photo of ID"
+          accessibilityRole="button"
         >
           <Icon name="camera" size={18} color={colors.primary} />
           <Text style={styles.actionButtonText}>Take Photo</Text>
@@ -128,6 +134,8 @@ export function IDUpload({ imageUri, onImageSelected, error }: IDUploadProps) {
           style={styles.actionButton}
           onPress={handleGallery}
           activeOpacity={0.8}
+          accessibilityLabel="Choose ID photo from gallery"
+          accessibilityRole="button"
         >
           <Icon name="image" size={18} color={colors.primary} />
           <Text style={styles.actionButtonText}>Choose from Gallery</Text>

@@ -26,6 +26,7 @@ interface InputProps extends Omit<TextInputProps, 'style'> {
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   onRightIconPress?: () => void;
+  rightIconAccessibilityLabel?: string;
   containerStyle?: ViewStyle;
   inputStyle?: ViewStyle;
   variant?: 'default' | 'filled';
@@ -40,6 +41,7 @@ export function Input({
   leftIcon,
   rightIcon,
   onRightIconPress,
+  rightIconAccessibilityLabel,
   containerStyle,
   inputStyle,
   variant = 'default',
@@ -118,6 +120,7 @@ export function Input({
           editable={!disabled}
           onFocus={handleFocus}
           onBlur={handleBlur}
+          accessibilityLabel={label ?? (textInputProps.placeholder as string | undefined)}
           style={[
             styles.input,
             {
@@ -137,6 +140,8 @@ export function Input({
             onPress={onRightIconPress}
             style={styles.rightIcon}
             disabled={!onRightIconPress}
+            accessibilityRole="button"
+            accessibilityLabel={rightIconAccessibilityLabel}
           >
             {rightIcon}
           </Pressable>

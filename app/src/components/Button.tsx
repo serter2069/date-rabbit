@@ -25,6 +25,8 @@ interface ButtonProps {
   label?: string; // Small label above title
   testID?: string;
   haptic?: boolean;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 }
 
 export function Button({
@@ -41,6 +43,8 @@ export function Button({
   label,
   testID,
   haptic = true,
+  accessibilityLabel,
+  accessibilityHint,
 }: ButtonProps) {
   const scale = useSharedValue(1);
 
@@ -136,6 +140,10 @@ export function Button({
           disabled={disabled || loading}
           activeOpacity={0.85}
           style={[styles.gradientWrapper, fullWidth && styles.fullWidth, style]}
+          accessibilityLabel={accessibilityLabel ?? title}
+          accessibilityRole="button"
+          accessibilityState={{ disabled: disabled || loading }}
+          accessibilityHint={accessibilityHint}
         >
           <LinearGradient
             colors={gradientColors}
@@ -157,6 +165,10 @@ export function Button({
         onPressOut={handlePressOut}
         disabled={disabled || loading}
         style={[styles.gradientWrapper, fullWidth && styles.fullWidth, style, animatedStyle]}
+        accessibilityLabel={accessibilityLabel ?? title}
+        accessibilityRole="button"
+        accessibilityState={{ disabled: disabled || loading }}
+        accessibilityHint={accessibilityHint}
       >
         <LinearGradient
           colors={gradientColors}
@@ -189,6 +201,10 @@ export function Button({
         onPress={handlePress}
         disabled={disabled || loading}
         activeOpacity={0.8}
+        accessibilityLabel={accessibilityLabel ?? title}
+        accessibilityRole="button"
+        accessibilityState={{ disabled: disabled || loading }}
+        accessibilityHint={accessibilityHint}
       >
         {renderContent()}
       </TouchableOpacity>
@@ -204,6 +220,10 @@ export function Button({
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       disabled={disabled || loading}
+      accessibilityLabel={accessibilityLabel ?? title}
+      accessibilityRole="button"
+      accessibilityState={{ disabled: disabled || loading }}
+      accessibilityHint={accessibilityHint}
     >
       {renderContent()}
     </AnimatedPressable>

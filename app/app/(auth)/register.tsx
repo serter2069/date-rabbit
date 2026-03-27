@@ -222,6 +222,8 @@ export default function RegisterScreen() {
           style={styles.backButton}
           onPress={() => router.back()}
           testID="register-back-btn"
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
         >
           <Icon name="arrow-left" size={20} color={colors.text} />
         </TouchableOpacity>
@@ -291,6 +293,8 @@ export default function RegisterScreen() {
                   ]}
                   onPress={() => setYearPickerVisible(true)}
                   activeOpacity={0.7}
+                  accessibilityLabel={formData.birthYear ? `Birth year: ${formData.birthYear}` : 'Select birth year'}
+                  accessibilityRole="button"
                 >
                   <Icon name="calendar" size={20} color={colors.textLight} />
                   <Text
@@ -367,11 +371,16 @@ export default function RegisterScreen() {
             style={styles.modalOverlay}
             activeOpacity={1}
             onPress={() => setYearPickerVisible(false)}
+            accessibilityLabel="Close year picker"
+            accessibilityRole="button"
           >
             <View style={styles.modalContent}>
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Birth Year</Text>
-                <TouchableOpacity onPress={() => setYearPickerVisible(false)}>
+                <TouchableOpacity onPress={() => setYearPickerVisible(false)}
+                  accessibilityLabel="Close"
+                  accessibilityRole="button"
+                >
                   <Icon name="x" size={24} color={colors.text} />
                 </TouchableOpacity>
               </View>
@@ -390,6 +399,9 @@ export default function RegisterScreen() {
                       updateField('birthYear', item.toString());
                       setYearPickerVisible(false);
                     }}
+                    accessibilityLabel={`Year ${item}`}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: formData.birthYear === item.toString() }}
                   >
                     <Text
                       style={[

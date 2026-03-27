@@ -105,7 +105,12 @@ export default function DatePlanScreen() {
               {item.time && <Text style={styles.placeTime}>{item.time}</Text>}
             </View>
             {isSeeker && (
-              <TouchableOpacity onPress={() => handleRemove(index)} style={styles.removeBtn}>
+              <TouchableOpacity
+                onPress={() => handleRemove(index)}
+                style={styles.removeBtn}
+                accessibilityLabel={`Remove ${item.name}`}
+                accessibilityRole="button"
+              >
                 <Text style={styles.removeText}>x</Text>
               </TouchableOpacity>
             )}
@@ -138,16 +143,29 @@ export default function DatePlanScreen() {
                     style={[styles.saveBtn, saving && styles.btnDisabled]}
                     onPress={handleAdd}
                     disabled={saving}
+                    accessibilityLabel="Add place"
+                    accessibilityRole="button"
+                    accessibilityState={{ disabled: saving }}
                   >
                     <Text style={styles.saveBtnText}>{saving ? 'Saving...' : 'Add Place'}</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity style={styles.cancelBtn} onPress={() => setAdding(false)}>
+                  <TouchableOpacity
+                    style={styles.cancelBtn}
+                    onPress={() => setAdding(false)}
+                    accessibilityLabel="Cancel"
+                    accessibilityRole="button"
+                  >
                     <Text style={styles.cancelText}>Cancel</Text>
                   </TouchableOpacity>
                 </View>
               </View>
             ) : (
-              <TouchableOpacity style={styles.addBtn} onPress={() => setAdding(true)}>
+              <TouchableOpacity
+                style={styles.addBtn}
+                onPress={() => setAdding(true)}
+                accessibilityLabel="Add a place"
+                accessibilityRole="button"
+              >
                 <Text style={styles.addBtnText}>+ Add Place</Text>
               </TouchableOpacity>
             )

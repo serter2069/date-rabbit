@@ -79,7 +79,10 @@ export default function FemaleDashboard() {
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Recent Requests</Text>
-          <TouchableOpacity style={styles.seeAllBtn}>
+          <TouchableOpacity style={styles.seeAllBtn}
+            accessibilityLabel="See all requests"
+            accessibilityRole="button"
+          >
             <Text style={styles.seeAll}>View All</Text>
             <Icon name="chevron-right" size={16} color={colors.secondary} />
           </TouchableOpacity>
@@ -158,7 +161,10 @@ function ActionCard({
   onPress?: () => void;
 }) {
   return (
-    <TouchableOpacity style={styles.actionCard} activeOpacity={0.7} onPress={onPress}>
+    <TouchableOpacity style={styles.actionCard} activeOpacity={0.7} onPress={onPress}
+      accessibilityLabel={label}
+      accessibilityRole="button"
+    >
       <View style={[styles.actionIconWrap, { backgroundColor: color + '15' }]}>
         <Icon name={icon as any} size={22} color={color} />
       </View>

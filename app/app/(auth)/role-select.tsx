@@ -19,6 +19,8 @@ export default function RoleSelectScreen() {
         style={styles.backButton}
         onPress={() => router.back()}
         testID="role-select-back-btn"
+        accessibilityLabel="Go back"
+        accessibilityRole="button"
       >
         <Icon name="arrow-left" size={20} color={colors.primary} />
         <Text style={[styles.backText, { color: colors.primary }]}> Back</Text>
@@ -34,6 +36,9 @@ export default function RoleSelectScreen() {
           style={[styles.roleCard, { backgroundColor: colors.surface, borderColor: colors.black }]}
           onPress={() => handleSelectRole('companion')}
           testID="role-select-companion-btn"
+          accessibilityLabel="Join as Date Companion"
+          accessibilityRole="button"
+          accessibilityHint="Get paid for going on dates"
         >
           <View style={[styles.iconContainer, { backgroundColor: colors.accent }]}>
             <Icon name="user" size={32} color={colors.black} />
@@ -53,6 +58,9 @@ export default function RoleSelectScreen() {
           style={[styles.roleCard, { backgroundColor: colors.surface, borderColor: colors.black }]}
           onPress={() => handleSelectRole('seeker')}
           testID="role-select-seeker-btn"
+          accessibilityLabel="Join as Date Seeker"
+          accessibilityRole="button"
+          accessibilityHint="Book dates with verified companions"
         >
           <View style={[styles.iconContainer, { backgroundColor: colors.secondary }]}>
             <Icon name="search" size={32} color={colors.black} />

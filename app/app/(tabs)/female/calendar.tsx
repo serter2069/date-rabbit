@@ -166,6 +166,9 @@ export default function CalendarScreen() {
           ]}
           onPress={() => handleDayPress(day)}
           disabled={isPast}
+          accessibilityLabel={`${day}${isBlocked ? ', blocked' : ''}${isSelected ? ', selected' : ''}${hasBooking ? ', has booking' : ''}`}
+          accessibilityRole="button"
+          accessibilityState={{ disabled: isPast, selected: isSelected }}
         >
           <Text style={[
             styles.dayText,
@@ -213,6 +216,9 @@ export default function CalendarScreen() {
               setSelectedForBlock(new Set());
               setSelectedDate(null);
             }}
+            accessibilityLabel={blockMode ? 'Exit block mode' : 'Enter block mode'}
+            accessibilityRole="button"
+            accessibilityState={{ selected: blockMode }}
           >
             <Icon
               name={blockMode ? 'check' : 'calendar-x'}
@@ -223,13 +229,19 @@ export default function CalendarScreen() {
         </View>
 
         <View style={styles.monthNav}>
-          <TouchableOpacity onPress={goToPrevMonth} style={styles.navButton}>
+          <TouchableOpacity onPress={goToPrevMonth} style={styles.navButton}
+            accessibilityLabel="Previous month"
+            accessibilityRole="button"
+          >
             <Icon name="chevron-left" size={24} color={colors.text} />
           </TouchableOpacity>
           <Text style={[styles.monthYear, { color: colors.text }]}>
             {currentMonth.toLocaleString('default', { month: 'long', year: 'numeric' })}
           </Text>
-          <TouchableOpacity onPress={goToNextMonth} style={styles.navButton}>
+          <TouchableOpacity onPress={goToNextMonth} style={styles.navButton}
+            accessibilityLabel="Next month"
+            accessibilityRole="button"
+          >
             <Icon name="chevron-right" size={24} color={colors.text} />
           </TouchableOpacity>
         </View>
@@ -243,6 +255,8 @@ export default function CalendarScreen() {
           <TouchableOpacity
             style={[styles.applyButton, { backgroundColor: colors.primary }]}
             onPress={handleBlockDates}
+            accessibilityLabel="Apply date blocks"
+            accessibilityRole="button"
           >
             <Text style={[styles.applyButtonText, { color: colors.white }]}>Apply</Text>
           </TouchableOpacity>

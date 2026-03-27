@@ -69,7 +69,10 @@ export default function FemaleProfileScreen() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.photosRow}>
             {[1, 2, 3].map((i) => (
-              <TouchableOpacity key={i} style={[styles.photoPlaceholder, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <TouchableOpacity key={i} style={[styles.photoPlaceholder, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                accessibilityLabel="Add photo"
+                accessibilityRole="button"
+              >
                 <Icon name="plus" size={32} color={colors.textSecondary} />
               </TouchableOpacity>
             ))}
@@ -115,7 +118,10 @@ export default function FemaleProfileScreen() {
 
 function MenuItem({ icon, label, onPress, colors }: { icon: string; label: string; onPress?: () => void; colors: any }) {
   return (
-    <TouchableOpacity style={styles.menuItem} onPress={onPress}>
+    <TouchableOpacity style={styles.menuItem} onPress={onPress}
+      accessibilityLabel={label}
+      accessibilityRole="button"
+    >
       <View style={[styles.menuIconContainer, { backgroundColor: colors.primary + '15' }]}>
         <Icon name={icon} size={18} color={colors.primary} />
       </View>

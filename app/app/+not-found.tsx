@@ -59,6 +59,8 @@ export default function NotFoundScreen() {
         ]}
         onPress={() => router.replace('/')}
         activeOpacity={0.8}
+        accessibilityLabel="Go to home screen"
+        accessibilityRole="button"
       >
         <Text style={[styles.buttonText, { color: colors.textInverse }]}>Go Home</Text>
       </TouchableOpacity>

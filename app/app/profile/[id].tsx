@@ -275,6 +275,8 @@ export default function ProfileViewScreen() {
               activeOpacity={0.9}
               onPress={() => setPhotoModalVisible(true)}
               style={styles.photoWrapper}
+              accessibilityLabel="View photos fullscreen"
+              accessibilityRole="button"
             >
               <Image
                 source={{ uri: profile.photos[currentPhotoIndex]?.url }}
@@ -299,12 +301,18 @@ export default function ProfileViewScreen() {
 
               {/* Navigation arrows */}
               {currentPhotoIndex > 0 && (
-                <TouchableOpacity style={[styles.photoNav, styles.photoNavLeft]} onPress={prevPhoto}>
+                <TouchableOpacity style={[styles.photoNav, styles.photoNavLeft]} onPress={prevPhoto}
+                  accessibilityLabel="Previous photo"
+                  accessibilityRole="button"
+                >
                   <Icon name="chevron-left" size={32} color={colors.white} />
                 </TouchableOpacity>
               )}
               {currentPhotoIndex < profile.photos.length - 1 && (
-                <TouchableOpacity style={[styles.photoNav, styles.photoNavRight]} onPress={nextPhoto}>
+                <TouchableOpacity style={[styles.photoNav, styles.photoNavRight]} onPress={nextPhoto}
+                  accessibilityLabel="Next photo"
+                  accessibilityRole="button"
+                >
                   <Icon name="chevron-right" size={32} color={colors.white} />
                 </TouchableOpacity>
               )}
@@ -321,6 +329,8 @@ export default function ProfileViewScreen() {
             style={[styles.backButton, { top: insets.top + spacing.sm, backgroundColor: colors.white }]}
             onPress={() => router.back()}
             testID="profile-view-back-btn"
+            accessibilityLabel="Go back"
+            accessibilityRole="button"
           >
             <Icon name="arrow-left" size={24} color={colors.text} />
           </TouchableOpacity>
@@ -330,6 +340,9 @@ export default function ProfileViewScreen() {
             style={[styles.favoriteButton, { top: insets.top + spacing.sm, backgroundColor: colors.white }]}
             onPress={() => toggleFavorite(profile.id)}
             testID="profile-view-favorite-btn"
+            accessibilityLabel={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+            accessibilityRole="button"
+            accessibilityState={{ selected: isFavorite }}
           >
             <Icon name="heart" size={20} color={isFavorite ? colors.error : colors.textSecondary} />
           </TouchableOpacity>
@@ -339,6 +352,8 @@ export default function ProfileViewScreen() {
             style={[styles.moreButton, { top: insets.top + spacing.sm, backgroundColor: colors.white }]}
             onPress={() => setMenuVisible(true)}
             testID="profile-view-more-btn"
+            accessibilityLabel="More options"
+            accessibilityRole="button"
           >
             <Icon name="more-vertical" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
@@ -435,7 +450,10 @@ export default function ProfileViewScreen() {
             <Card style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Text style={[styles.sectionTitle, { color: colors.text }]}>Reviews ({profile.reviewCount})</Text>
-                <TouchableOpacity onPress={() => router.push(`/reviews/${profile.id}`)}>
+                <TouchableOpacity onPress={() => router.push(`/reviews/${profile.id}`)}
+                  accessibilityLabel="See all reviews"
+                  accessibilityRole="button"
+                >
                   <Text style={[styles.seeAll, { color: colors.primary }]}>See All</Text>
                 </TouchableOpacity>
               </View>
@@ -530,11 +548,15 @@ export default function ProfileViewScreen() {
           style={styles.menuOverlay}
           activeOpacity={1}
           onPress={() => setMenuVisible(false)}
+          accessibilityLabel="Close menu"
+          accessibilityRole="button"
         >
           <View style={[styles.menuContainer, { backgroundColor: colors.white }]}>
             <TouchableOpacity
               style={[styles.menuItem, { borderBottomColor: colors.border }]}
               onPress={handleBlockUser}
+              accessibilityLabel="Block user"
+              accessibilityRole="button"
             >
               <Icon name="slash" size={20} color={colors.error} />
               <Text style={[styles.menuItemText, { color: colors.error }]}>Block User</Text>
@@ -545,6 +567,8 @@ export default function ProfileViewScreen() {
                 setMenuVisible(false);
                 setReportModalVisible(true);
               }}
+              accessibilityLabel="Report user"
+              accessibilityRole="button"
             >
               <Icon name="flag" size={20} color={colors.textSecondary} />
               <Text style={[styles.menuItemText, { color: colors.text }]}>Report User</Text>
@@ -583,6 +607,9 @@ export default function ProfileViewScreen() {
                     selectedReason === reason.id && { borderColor: colors.primary, backgroundColor: colors.primary + '10' },
                   ]}
                   onPress={() => setSelectedReason(reason.id)}
+                  accessibilityLabel={reason.label}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: selectedReason === reason.id }}
                 >
                   <View style={[
                     styles.reportReasonRadio,
@@ -638,6 +665,8 @@ export default function ProfileViewScreen() {
           <TouchableOpacity
             style={[styles.modalClose, { top: insets.top + spacing.sm }]}
             onPress={() => setPhotoModalVisible(false)}
+            accessibilityLabel="Close photo"
+            accessibilityRole="button"
           >
             <Icon name="x" size={24} color={colors.white} />
           </TouchableOpacity>

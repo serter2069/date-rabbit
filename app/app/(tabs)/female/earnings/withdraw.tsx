@@ -113,7 +113,10 @@ export default function WithdrawScreen() {
       contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.md }]}
     >
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+        >
           <Icon name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>Withdraw Funds</Text>
@@ -144,6 +147,9 @@ export default function WithdrawScreen() {
             useFullAmount && { backgroundColor: colors.primary + '15', borderColor: colors.primary },
           ]}
           onPress={() => setUseFullAmount(true)}
+          accessibilityLabel={`Withdraw full amount $${balance.available.toFixed(2)}`}
+          accessibilityRole="radio"
+          accessibilityState={{ selected: useFullAmount }}
         >
           <View style={[styles.radio, useFullAmount && { borderColor: colors.primary }]}>
             {useFullAmount && <View style={[styles.radioInner, { backgroundColor: colors.primary }]} />}
@@ -159,6 +165,9 @@ export default function WithdrawScreen() {
             !useFullAmount && { backgroundColor: colors.primary + '15', borderColor: colors.primary },
           ]}
           onPress={() => setUseFullAmount(false)}
+          accessibilityLabel="Withdraw custom amount"
+          accessibilityRole="radio"
+          accessibilityState={{ selected: !useFullAmount }}
         >
           <View style={[styles.radio, !useFullAmount && { borderColor: colors.primary }]}>
             {!useFullAmount && <View style={[styles.radioInner, { backgroundColor: colors.primary }]} />}

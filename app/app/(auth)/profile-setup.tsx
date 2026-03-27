@@ -114,6 +114,9 @@ export default function ProfileSetupScreen() {
               style={[styles.roleCard, { borderColor: colors.black, backgroundColor: colors.accent }]}
               onPress={() => handleRoleSelect('companion')}
               testID="setup-companion-btn"
+              accessibilityLabel="Select Companion role"
+              accessibilityRole="button"
+              accessibilityHint="Get paid to go on amazing dates"
             >
               <View style={[styles.roleIconContainer, { backgroundColor: colors.black }]}>
                 <Icon name="user" size={32} color={colors.accent} />
@@ -128,6 +131,9 @@ export default function ProfileSetupScreen() {
               style={[styles.roleCard, { borderColor: colors.black, backgroundColor: colors.secondary }]}
               onPress={() => handleRoleSelect('seeker')}
               testID="setup-seeker-btn"
+              accessibilityLabel="Select Date Seeker role"
+              accessibilityRole="button"
+              accessibilityHint="Find interesting companions for dinners and events"
             >
               <View style={[styles.roleIconContainer, { backgroundColor: colors.black }]}>
                 <Icon name="search" size={32} color={colors.secondary} />
@@ -153,7 +159,10 @@ export default function ProfileSetupScreen() {
         contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + spacing.lg, paddingBottom: insets.bottom + spacing.lg }]}
         keyboardShouldPersistTaps="handled"
       >
-        <TouchableOpacity style={styles.backButton} onPress={handleBack} testID="setup-back-btn">
+        <TouchableOpacity style={styles.backButton} onPress={handleBack} testID="setup-back-btn"
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+        >
           <Icon name="arrow-left" size={20} color={colors.primary} />
           <Text style={[styles.backText, { color: colors.primary }]}> Back</Text>
         </TouchableOpacity>

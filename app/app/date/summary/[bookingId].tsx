@@ -73,6 +73,8 @@ export default function DateSummaryScreen() {
       <TouchableOpacity
         style={styles.reviewBtn}
         onPress={() => router.push(`/reviews/write/${bookingId}` as any)}
+        accessibilityLabel="Leave a review"
+        accessibilityRole="button"
       >
         <Text style={styles.reviewBtnText}>Leave a Review</Text>
       </TouchableOpacity>
@@ -80,6 +82,8 @@ export default function DateSummaryScreen() {
       <TouchableOpacity
         style={styles.homeBtn}
         onPress={() => router.replace('/(tabs)' as any)}
+        accessibilityLabel="Back to home"
+        accessibilityRole="button"
       >
         <Text style={styles.homeBtnText}>Back to Home</Text>
       </TouchableOpacity>

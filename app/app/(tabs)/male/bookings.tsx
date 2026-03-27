@@ -103,6 +103,9 @@ export default function BookingsScreen() {
             ]}
             onPress={() => setActiveTab(tab)}
             testID={`bookings-tab-${tab}`}
+            accessibilityLabel={`${tab.charAt(0).toUpperCase() + tab.slice(1)} bookings`}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: activeTab === tab }}
           >
             <Text style={[
               styles.tabText,
@@ -263,7 +266,10 @@ function BookingCard({ booking, type, colors, onCancel, formatDate }: BookingCar
               Waiting for {companion.name} to accept...
             </Text>
           </View>
-          <TouchableOpacity onPress={onCancel} testID={`cancel-booking-${booking.id}`}>
+          <TouchableOpacity onPress={onCancel} testID={`cancel-booking-${booking.id}`}
+            accessibilityLabel="Cancel booking"
+            accessibilityRole="button"
+          >
             <Text style={[styles.cancelText, { color: colors.error }]}>Cancel Request</Text>
           </TouchableOpacity>
         </View>

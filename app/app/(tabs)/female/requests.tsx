@@ -94,6 +94,9 @@ export default function RequestsScreen() {
             ]}
             onPress={() => setActiveTab(tab)}
             testID={`requests-tab-${tab}`}
+            accessibilityLabel={`${tab.charAt(0).toUpperCase() + tab.slice(1)} requests`}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: activeTab === tab }}
           >
             <Text style={[
               styles.tabText,
