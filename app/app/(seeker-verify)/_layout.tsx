@@ -7,6 +7,7 @@ export default function SeekerVerifyLayout() {
       screenOptions={{
         headerShown: false,
         gestureEnabled: false,
+        animation: 'slide_from_right',
         contentStyle: { backgroundColor: colors.background },
       }}
     >

@@ -162,6 +162,7 @@ export default function RootLayout() {
       <Stack
         screenOptions={{
           headerShown: false,
+          animation: 'slide_from_right',
           contentStyle: {
             backgroundColor: colors.background,
             flex: 1,
@@ -175,22 +176,22 @@ export default function RootLayout() {
           }
         }}
       >
-        <Stack.Screen name="index" />
-        <Stack.Screen name="onboarding" />
-        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="index" options={{ animation: 'fade' }} />
+        <Stack.Screen name="onboarding" options={{ animation: 'fade' }} />
+        <Stack.Screen name="(auth)" options={{ animation: 'fade' }} />
         <Stack.Screen name="(dev)" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
         <Stack.Screen name="(seeker-verify)" />
         <Stack.Screen name="(comp-onboard)" />
         <Stack.Screen name="terms" />
         <Stack.Screen name="privacy" />
-        <Stack.Screen name="booking/[id]" />
-        <Stack.Screen name="chat/[id]" />
+        <Stack.Screen name="booking/[id]" options={{ animation: 'slide_from_bottom' }} />
+        <Stack.Screen name="chat/[id]" options={{ animation: 'slide_from_bottom' }} />
         <Stack.Screen name="profile/[id]" />
         <Stack.Screen name="reviews/[id]" />
-        <Stack.Screen name="payment/[bookingId]" />
-        <Stack.Screen name="stripe/return" />
-        <Stack.Screen name="stripe/refresh" />
+        <Stack.Screen name="payment/[bookingId]" options={{ animation: 'slide_from_bottom' }} />
+        <Stack.Screen name="stripe/return" options={{ animation: 'slide_from_bottom' }} />
+        <Stack.Screen name="stripe/refresh" options={{ animation: 'slide_from_bottom' }} />
         <Stack.Screen name="favorites/index" />
         <Stack.Screen name="settings/index" />
         <Stack.Screen name="settings/edit-profile" />
