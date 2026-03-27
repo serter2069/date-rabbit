@@ -186,6 +186,7 @@ export default function ChatScreen() {
         style={styles.messagesContainer}
         contentContainerStyle={styles.messagesContent}
         showsVerticalScrollIndicator={false}
+        keyboardDismissMode="on-drag"
       >
         {chatMessages.length === 0 ? (
           <View style={styles.emptyContainer}>
