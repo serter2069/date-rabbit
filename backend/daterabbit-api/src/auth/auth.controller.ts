@@ -75,6 +75,16 @@ export class AuthController {
       throw new HttpException('Name is required', HttpStatus.BAD_REQUEST);
     }
 
+    if (body.bio !== undefined) {
+      const bioTrimmed = (body.bio || '').trim();
+      if (bioTrimmed.length < 20) {
+        throw new HttpException('Bio must be at least 20 characters', HttpStatus.BAD_REQUEST);
+      }
+      if (bioTrimmed.length > 500) {
+        throw new HttpException('Bio must be 500 characters or less', HttpStatus.BAD_REQUEST);
+      }
+    }
+
     // Email always from JWT token (set by JwtAuthGuard)
     const email: string = req.user.email;
 

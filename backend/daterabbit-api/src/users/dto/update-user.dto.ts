@@ -9,6 +9,7 @@ import {
   Max,
   MaxLength,
   Min,
+  MinLength,
   ValidateNested,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
@@ -53,7 +54,8 @@ export class UpdateUserDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(2000)
+  @MinLength(20)
+  @MaxLength(500)
   @Transform(({ value }) => stripHtml(value))
   bio?: string;
 
