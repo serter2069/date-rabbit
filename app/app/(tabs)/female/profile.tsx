@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../../src/store/authStore';
@@ -68,14 +69,31 @@ export default function FemaleProfileScreen() {
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Photos</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.photosRow}>
-            {[1, 2, 3].map((i) => (
-              <TouchableOpacity key={i} style={[styles.photoPlaceholder, { backgroundColor: colors.surface, borderColor: colors.border }]}
+            {(user?.photos ?? []).map((photo) => (
+              <TouchableOpacity
+                key={photo.id}
+                style={styles.photoSlot}
+                onPress={() => router.push('/settings/edit-profile')}
+                accessibilityLabel="Edit photo"
+                accessibilityRole="button"
+              >
+                <Image
+                  source={{ uri: photo.url }}
+                  style={styles.photoImage}
+                  contentFit="cover"
+                />
+              </TouchableOpacity>
+            ))}
+            {(user?.photos?.length ?? 0) < 6 && (
+              <TouchableOpacity
+                style={[styles.photoPlaceholder, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                onPress={() => router.push('/settings/edit-profile')}
                 accessibilityLabel="Add photo"
                 accessibilityRole="button"
               >
                 <Icon name="plus" size={32} color={colors.textSecondary} />
               </TouchableOpacity>
-            ))}
+            )}
           </View>
         </ScrollView>
       </View>
@@ -207,6 +225,16 @@ const styles = StyleSheet.create({
   photosRow: {
     flexDirection: 'row',
     gap: spacing.md,
+  },
+  photoSlot: {
+    width: 100,
+    height: 130,
+    borderRadius: borderRadius.lg,
+    overflow: 'hidden',
+  },
+  photoImage: {
+    width: '100%',
+    height: '100%',
   },
   photoPlaceholder: {
     width: 100,
