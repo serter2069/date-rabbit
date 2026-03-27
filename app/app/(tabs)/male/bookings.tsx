@@ -39,9 +39,10 @@ export default function BookingsScreen() {
   }, [activeTab]);
 
   const handleCancelBooking = useCallback((booking: Booking) => {
+    const companionName = booking.companion?.name || 'this companion';
     showConfirm(
       'Cancel Booking',
-      `Are you sure you want to cancel your date with ${booking.companion.name}?`,
+      `Are you sure you want to cancel your date with ${companionName}?`,
       async () => {
         const result = await cancelBooking(booking.id, 'Cancelled by user');
         if (result.success) {
@@ -102,6 +103,9 @@ export default function BookingsScreen() {
             ]}
             onPress={() => setActiveTab(tab)}
             testID={`bookings-tab-${tab}`}
+            accessibilityLabel={`${tab.charAt(0).toUpperCase() + tab.slice(1)} bookings`}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: activeTab === tab }}
           >
             <Text style={[
               styles.tabText,
@@ -127,6 +131,8 @@ export default function BookingsScreen() {
             icon="calendar"
             title={`No ${activeTab} bookings`}
             description={getEmptyDescription()}
+            actionLabel="Browse Companions"
+            onAction={() => router.push('/(tabs)/male/browse')}
           />
         ) : (
           bookings.map((booking) => (
@@ -154,7 +160,11 @@ interface BookingCardProps {
 }
 
 function BookingCard({ booking, type, colors, onCancel, formatDate }: BookingCardProps) {
-  const companion = booking.companion || { name: 'Unknown', photo: null, rating: 0 };
+  // Guard against undefined companion OR empty object {} produced by normalization
+  const rawCompanion = booking.companion;
+  const companion = (rawCompanion && rawCompanion.name)
+    ? rawCompanion
+    : { name: 'Unknown', photo: null, rating: 0 };
   
   const getStatusStyle = (status: string) => {
     switch (status) {
@@ -164,6 +174,7 @@ function BookingCard({ booking, type, colors, onCancel, formatDate }: BookingCar
       case 'cancelled': return { bg: colors.error + '20', text: colors.error };
       case 'completed': return { bg: colors.primary + '20', text: colors.primary };
       case 'paid': return { bg: colors.success + '20', text: colors.success };
+      case 'active': return { bg: colors.accent + '20', text: colors.accent };
       default: return { bg: colors.warning + '20', text: colors.warning };
     }
   };
@@ -203,14 +214,22 @@ function BookingCard({ booking, type, colors, onCancel, formatDate }: BookingCar
             />
           )}
           {booking.isPaid && (
-            <View style={[styles.paidBadge, { backgroundColor: colors.success + '20' }]}>
-              <Icon name="check-circle" size={14} color={colors.success} />
-              <Text style={[styles.paidText, { color: colors.success }]}>Paid</Text>
-            </View>
+            <>
+              <View style={[styles.paidBadge, { backgroundColor: colors.success + '20' }]}>
+                <Icon name="check-circle" size={14} color={colors.success} />
+                <Text style={[styles.paidText, { color: colors.success }]}>Paid</Text>
+              </View>
+              <Button
+                title="Start Date"
+                onPress={() => router.push(`/date/checkin/${booking.id}`)}
+                size="sm"
+                style={{ flex: 1 }}
+              />
+            </>
           )}
           <Button
             title="Message"
-            onPress={() => router.push(`/chat/${booking.id}`)}
+            onPress={() => router.push(`/chat/${booking.companion?.id || booking.companion_id}?name=${encodeURIComponent(booking.companion?.name || companion.name)}`)}
             variant="outline"
             size="sm"
             style={{ flex: 1 }}
@@ -228,6 +247,17 @@ function BookingCard({ booking, type, colors, onCancel, formatDate }: BookingCar
         </View>
       )}
 
+      {booking.status === 'active' && (
+        <View style={styles.actions}>
+          <Button
+            title="Resume Date"
+            onPress={() => router.push(`/date/active/${booking.id}`)}
+            size="sm"
+            style={{ flex: 1 }}
+          />
+        </View>
+      )}
+
       {type === 'pending' && (
         <View style={styles.pendingInfo}>
           <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing.sm }}>
@@ -236,7 +266,10 @@ function BookingCard({ booking, type, colors, onCancel, formatDate }: BookingCar
               Waiting for {companion.name} to accept...
             </Text>
           </View>
-          <TouchableOpacity onPress={onCancel} testID={`cancel-booking-${booking.id}`}>
+          <TouchableOpacity onPress={onCancel} testID={`cancel-booking-${booking.id}`}
+            accessibilityLabel="Cancel booking"
+            accessibilityRole="button"
+          >
             <Text style={[styles.cancelText, { color: colors.error }]}>Cancel Request</Text>
           </TouchableOpacity>
         </View>
@@ -284,7 +317,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: spacing.sm,
     alignItems: 'center',
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.sm,
     minHeight: 44,
     justifyContent: 'center',
   },
@@ -333,7 +366,7 @@ const styles = StyleSheet.create({
   statusBadge: {
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
-    borderRadius: borderRadius.full,
+    borderRadius: borderRadius.sm,
     marginTop: spacing.xs,
   },
   statusText: {

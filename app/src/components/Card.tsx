@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, StyleProp, ViewStyle, Pressable } from 'react-native';
+import { View, StyleSheet, StyleProp, ViewStyle, Pressable, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, borderRadius, spacing, shadows, borderWidth } from '../constants/theme';
 
@@ -14,6 +14,8 @@ interface CardProps {
   shadow?: CardShadow;
   onPress?: () => void;
   testID?: string;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 }
 
 export function Card({
@@ -24,6 +26,8 @@ export function Card({
   shadow = 'md',
   onPress,
   testID,
+  accessibilityLabel,
+  accessibilityHint,
 }: CardProps) {
   const getBackgroundColor = () => {
     switch (variant) {
@@ -75,6 +79,9 @@ export function Card({
           styles.pressable,
           pressed && styles.pressed,
         ]}
+        accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel}
+        accessibilityHint={accessibilityHint}
       >
         {content}
       </Pressable>
@@ -89,7 +96,10 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.sm,
     borderWidth: borderWidth.normal,
     borderColor: colors.black,
-    overflow: 'hidden',
+    // overflow:'hidden' on web creates a stacking context that can block
+    // pointer events on nested TouchableOpacity/Pressable children (buttons).
+    // On native it's needed for borderRadius clipping of images.
+    ...(Platform.OS === 'web' ? {} : { overflow: 'hidden' as const }),
   },
   outlined: {
     borderWidth: borderWidth.normal,

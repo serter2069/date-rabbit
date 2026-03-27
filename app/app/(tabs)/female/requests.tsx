@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { showAlert, showConfirm } from '../../../src/utils/alert';
@@ -11,6 +11,7 @@ import { EmptyState } from '../../../src/components/EmptyState';
 import { useTheme, spacing, typography, borderRadius } from '../../../src/constants/theme';
 import { useBookingsStore } from '../../../src/store/bookingsStore';
 import { Booking } from '../../../src/services/api';
+import * as Haptics from 'expo-haptics';
 
 type TabType = 'pending' | 'accepted' | 'completed';
 
@@ -92,8 +93,16 @@ export default function RequestsScreen() {
               { backgroundColor: colors.surface },
               activeTab === tab && { backgroundColor: colors.primary },
             ]}
-            onPress={() => setActiveTab(tab)}
+            onPress={() => {
+              if (Platform.OS !== 'web') {
+                Haptics.selectionAsync();
+              }
+              setActiveTab(tab);
+            }}
             testID={`requests-tab-${tab}`}
+            accessibilityLabel={`${tab.charAt(0).toUpperCase() + tab.slice(1)} requests`}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: activeTab === tab }}
           >
             <Text style={[
               styles.tabText,
@@ -195,17 +204,34 @@ function RequestCard({ request, type, colors, onAccept, onDecline, formatDate }:
         <View style={styles.actions}>
           <Button
             title="Message"
-            onPress={() => router.push({
-              pathname: '/chat/[id]',
-              params: { id: request.seeker.id, name: request.seeker.name },
-            })}
+            onPress={() => router.push(`/chat/${request.seeker.id}?name=${encodeURIComponent(request.seeker.name)}`)}
             variant="outline"
             size="sm"
             style={{ flex: 1 }}
           />
+          {request.isPaid ? (
+            <Button
+              title="Start Date"
+              onPress={() => router.push(`/date/companion-checkin/${request.id}`)}
+              size="sm"
+              style={{ flex: 1 }}
+            />
+          ) : (
+            <Button
+              title="View Details"
+              onPress={() => router.push(`/booking/${request.id}`)}
+              size="sm"
+              style={{ flex: 1 }}
+            />
+          )}
+        </View>
+      )}
+
+      {request.status === 'active' && (
+        <View style={styles.actions}>
           <Button
-            title="View Details"
-            onPress={() => router.push(`/booking/${request.id}`)}
+            title="Resume Date"
+            onPress={() => router.push(`/date/active/${request.id}`)}
             size="sm"
             style={{ flex: 1 }}
           />

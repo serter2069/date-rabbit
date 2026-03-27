@@ -34,12 +34,18 @@ export default function FemaleProfileScreen() {
             showVerified={user?.isVerified}
           />
           <View style={styles.profileInfo}>
-            <Text style={[styles.profileName, { color: colors.text }]}>{user?.name}, {user?.age}</Text>
+            <Text style={[styles.profileName, { color: colors.text }]}>{user?.name}{user?.age ? `, ${user.age}` : ''}</Text>
             <Text style={[styles.profileLocation, { color: colors.textSecondary }]}>{user?.location}</Text>
             <View style={styles.ratingRow}>
-              <Icon name="star" size={14} color={colors.accent} />
-              <Text style={[styles.ratingValue, { color: colors.text }]}> {user?.rating}</Text>
-              <Text style={[styles.reviewCount, { color: colors.textSecondary }]}>({user?.reviewCount} reviews)</Text>
+              {(user?.reviewCount ?? 0) > 0 ? (
+                <>
+                  <Icon name="star" size={14} color={colors.accent} />
+                  <Text style={[styles.ratingValue, { color: colors.text }]}> {user?.rating}</Text>
+                  <Text style={[styles.reviewCount, { color: colors.textSecondary }]}>({user?.reviewCount} reviews)</Text>
+                </>
+              ) : (
+                <Text style={[styles.reviewCount, { color: colors.textSecondary }]}>No reviews yet</Text>
+              )}
             </View>
           </View>
         </View>
@@ -63,7 +69,10 @@ export default function FemaleProfileScreen() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.photosRow}>
             {[1, 2, 3].map((i) => (
-              <TouchableOpacity key={i} style={[styles.photoPlaceholder, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              <TouchableOpacity key={i} style={[styles.photoPlaceholder, { backgroundColor: colors.surface, borderColor: colors.border }]}
+                accessibilityLabel="Add photo"
+                accessibilityRole="button"
+              >
                 <Icon name="plus" size={32} color={colors.textSecondary} />
               </TouchableOpacity>
             ))}
@@ -74,11 +83,11 @@ export default function FemaleProfileScreen() {
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Settings</Text>
         <Card>
-          <MenuItem icon="bell" label="Notifications" colors={colors} />
+          <MenuItem icon="bell" label="Notifications" onPress={() => router.push('/settings/notifications')} colors={colors} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <MenuItem icon="lock" label="Privacy" colors={colors} />
+          <MenuItem icon="lock" label="Privacy" onPress={() => router.push('/privacy')} colors={colors} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <MenuItem icon="credit-card" label="Payment Settings" colors={colors} />
+          <MenuItem icon="credit-card" label="Payment Settings" onPress={() => router.push('/settings/payment-methods')} colors={colors} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
           <MenuItem icon="calendar" label="Availability" colors={colors} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
@@ -88,9 +97,9 @@ export default function FemaleProfileScreen() {
 
       <View style={styles.section}>
         <Card>
-          <MenuItem icon="file-text" label="Terms of Service" colors={colors} />
+          <MenuItem icon="file-text" label="Terms of Service" onPress={() => router.push('/terms')} colors={colors} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <MenuItem icon="shield" label="Privacy Policy" colors={colors} />
+          <MenuItem icon="shield" label="Privacy Policy" onPress={() => router.push('/privacy')} colors={colors} />
         </Card>
       </View>
 
@@ -103,14 +112,16 @@ export default function FemaleProfileScreen() {
         testID="profile-signout-btn"
       />
 
-      <Text style={[styles.version, { color: colors.textSecondary }]}>DateRabbit v1.0.0</Text>
     </ScrollView>
   );
 }
 
-function MenuItem({ icon, label, colors }: { icon: string; label: string; colors: any }) {
+function MenuItem({ icon, label, onPress, colors }: { icon: string; label: string; onPress?: () => void; colors: any }) {
   return (
-    <TouchableOpacity style={styles.menuItem}>
+    <TouchableOpacity style={styles.menuItem} onPress={onPress}
+      accessibilityLabel={label}
+      accessibilityRole="button"
+    >
       <View style={[styles.menuIconContainer, { backgroundColor: colors.primary + '15' }]}>
         <Icon name={icon} size={18} color={colors.primary} />
       </View>
@@ -227,12 +238,5 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-  },
-  version: {
-    fontFamily: typography.fonts.body,
-    textAlign: 'center',
-    fontSize: typography.sizes.sm,
-    marginTop: spacing.lg,
-    marginBottom: spacing.xxl,
   },
 });

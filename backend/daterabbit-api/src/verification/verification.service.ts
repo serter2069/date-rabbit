@@ -17,7 +17,7 @@ import { UploadsService } from '../uploads/uploads.service';
 import { SubmitSsnDto } from './dto/submit-ssn.dto';
 import { SubmitReferencesDto } from './dto/submit-references.dto';
 import { SubmitConsentDto } from './dto/submit-consent.dto';
-import { UserRole } from '../users/entities/user.entity';
+import { UserRole, UserVerificationStatus } from '../users/entities/user.entity';
 
 @Injectable()
 export class VerificationService {
@@ -218,7 +218,10 @@ export class VerificationService {
 
     verification.status = VerificationStatus.APPROVED;
     await this.verificationRepository.save(verification);
-    await this.usersService.update(userId, { isVerified: true });
+    await this.usersService.update(userId, {
+      isVerified: true,
+      verificationStatus: UserVerificationStatus.APPROVED,
+    });
   }
 
   private async getOrFail(userId: string): Promise<Verification> {

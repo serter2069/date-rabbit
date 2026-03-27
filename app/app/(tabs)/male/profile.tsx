@@ -1,33 +1,48 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useEffect, useMemo } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../../src/store/authStore';
+import { useBookingsStore } from '../../../src/store/bookingsStore';
 import { Card } from '../../../src/components/Card';
 import { UserImage } from '../../../src/components/UserImage';
 import { Button } from '../../../src/components/Button';
 import { Icon } from '../../../src/components/Icon';
-import { useTheme, spacing, typography, borderRadius } from '../../../src/constants/theme';
+import { useTheme, spacing, typography, borderRadius, shadows } from '../../../src/constants/theme';
 
 export default function MaleProfileScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const { user, logout } = useAuthStore();
+  const { bookings, fetchMyBookings } = useBookingsStore();
+
+  useEffect(() => {
+    fetchMyBookings('past');
+  }, []);
+
+  // Compute stats from past bookings fetched from the API
+  const stats = useMemo(() => {
+    const pastBookings = bookings.filter((b) => b.status === 'completed');
+    const totalDates = pastBookings.length;
+    const totalSpent = pastBookings.reduce((sum, b) => sum + (b.total ?? 0), 0);
+    return { totalDates, totalSpent };
+  }, [bookings]);
 
   const handleLogout = () => {
     logout();
     router.replace('/(auth)/welcome');
   };
 
-  const stats = {
-    totalDates: 8,
-    totalSpent: 1850,
-  };
-
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.md }]}>
       <View style={styles.header}>
         <Text style={[styles.title, { color: colors.text }]}>Profile</Text>
+        <TouchableOpacity onPress={() => router.push('/settings')} style={styles.settingsButton}
+          accessibilityLabel="Settings"
+          accessibilityRole="button"
+        >
+          <Icon name="settings" size={24} color={colors.text} />
+        </TouchableOpacity>
       </View>
 
       <Card style={styles.profileCard}>
@@ -39,15 +54,37 @@ export default function MaleProfileScreen() {
             showVerified={user?.isVerified}
           />
           <View style={styles.profileInfo}>
-            <Text style={[styles.profileName, { color: colors.text }]}>{user?.name}, {user?.age}</Text>
-            <Text style={[styles.profileLocation, { color: colors.textSecondary }]}>{user?.location}</Text>
+            <View style={styles.badgeRow}>
+              <View style={[styles.roleBadge, { backgroundColor: colors.badge.pink.bg, borderColor: colors.badge.pink.border }]}>
+                <Text style={[styles.roleBadgeText, { color: colors.badge.pink.text }]}>SEEKER</Text>
+              </View>
+            </View>
+            <Text style={[styles.profileName, { color: colors.text }]}>{user?.name}{user?.age ? `, ${user.age}` : ''}</Text>
+            {user?.location ? (
+              <View style={styles.locationRow}>
+                <Icon name="map-pin" size={13} color={colors.primary} />
+                <Text style={[styles.profileLocation, { color: colors.text }]}> {user.location}</Text>
+              </View>
+            ) : null}
             <View style={styles.ratingRow}>
-              <Icon name="star" size={14} color={colors.accent} />
-              <Text style={[styles.ratingValue, { color: colors.text }]}> {user?.rating}</Text>
-              <Text style={[styles.reviewCount, { color: colors.textSecondary }]}>({user?.reviewCount} reviews)</Text>
+              {(user?.reviewCount ?? 0) > 0 ? (
+                <>
+                  <Icon name="star" size={14} color={colors.accent} />
+                  <Text style={[styles.ratingValue, { color: colors.text }]}> {user?.rating}</Text>
+                  <Text style={[styles.reviewCount, { color: colors.textSecondary }]}>({user?.reviewCount} reviews)</Text>
+                </>
+              ) : (
+                <Text style={[styles.reviewCount, { color: colors.textSecondary }]}>No reviews yet</Text>
+              )}
             </View>
           </View>
         </View>
+
+        {user?.bio ? (
+          <View style={[styles.bioBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <Text style={[styles.bioText, { color: colors.text }]}>{user.bio}</Text>
+          </View>
+        ) : null}
 
         <View style={[styles.statsRow, { backgroundColor: colors.surface }]}>
           <View style={styles.statItem}>
@@ -66,6 +103,7 @@ export default function MaleProfileScreen() {
           onPress={() => router.push('/settings/edit-profile')}
           variant="outline"
           fullWidth
+          style={shadows.md}
           testID="profile-edit-btn"
         />
       </Card>
@@ -75,18 +113,18 @@ export default function MaleProfileScreen() {
         <Card>
           <MenuItem icon="heart" label="Favorites" onPress={() => router.push('/favorites')} colors={colors} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <MenuItem icon="credit-card" label="Payment Methods" colors={colors} />
+          <MenuItem icon="credit-card" label="Payment Methods" onPress={() => router.push('/settings/payment-methods')} colors={colors} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
           <MenuItem icon="receipt" label="Transaction History" colors={colors} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <MenuItem icon="bell" label="Notifications" colors={colors} />
+          <MenuItem icon="bell" label="Notifications" onPress={() => router.push('/settings/notifications')} colors={colors} />
         </Card>
       </View>
 
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Preferences</Text>
         <Card>
-          <MenuItem icon="map-pin" label="Location" value="San Francisco" colors={colors} />
+          <MenuItem icon="map-pin" label="Location" value={user?.location || 'Not set'} colors={colors} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
           <MenuItem icon="cake" label="Age Range" value="25-35" colors={colors} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
@@ -107,9 +145,9 @@ export default function MaleProfileScreen() {
 
       <View style={styles.section}>
         <Card>
-          <MenuItem icon="file-text" label="Terms of Service" colors={colors} />
+          <MenuItem icon="file-text" label="Terms of Service" onPress={() => router.push('/terms')} colors={colors} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <MenuItem icon="shield" label="Privacy Policy" colors={colors} />
+          <MenuItem icon="shield" label="Privacy Policy" onPress={() => router.push('/privacy')} colors={colors} />
         </Card>
       </View>
 
@@ -122,14 +160,16 @@ export default function MaleProfileScreen() {
         testID="profile-signout-btn"
       />
 
-      <Text style={[styles.version, { color: colors.textSecondary }]}>DateRabbit v1.0.0</Text>
     </ScrollView>
   );
 }
 
 function MenuItem({ icon, label, value, onPress, colors }: { icon: string; label: string; value?: string; onPress?: () => void; colors: any }) {
   return (
-    <TouchableOpacity style={styles.menuItem} onPress={onPress}>
+    <TouchableOpacity style={styles.menuItem} onPress={onPress}
+      accessibilityLabel={label}
+      accessibilityRole="button"
+    >
       <View style={[styles.menuIconContainer, { backgroundColor: colors.primary + '15' }]}>
         <Icon name={icon} size={18} color={colors.primary} />
       </View>
@@ -143,12 +183,22 @@ function MenuItem({ icon, label, value, onPress, colors }: { icon: string; label
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    ...(Platform.OS === 'web' ? { overflow: 'auto' as any } : {}),
   },
   content: {
     padding: spacing.lg,
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: spacing.lg,
+  },
+  settingsButton: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
     fontFamily: typography.fonts.heading,
@@ -166,14 +216,44 @@ const styles = StyleSheet.create({
     marginLeft: spacing.md,
     justifyContent: 'center',
   },
+  badgeRow: {
+    flexDirection: 'row',
+    marginBottom: spacing.xs,
+  },
+  roleBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 3,
+    borderRadius: borderRadius.sm,
+    borderWidth: 2,
+  },
+  roleBadgeText: {
+    fontFamily: typography.fonts.heading,
+    fontSize: typography.sizes.xs,
+    letterSpacing: 1,
+  },
   profileName: {
     fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.lg,
   },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 3,
+  },
   profileLocation: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.sm,
+  },
+  bioBox: {
+    borderWidth: 2,
+    borderRadius: borderRadius.sm,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+  bioText: {
     fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
-    marginTop: 2,
+    lineHeight: 20,
   },
   ratingRow: {
     flexDirection: 'row',
@@ -245,12 +325,5 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-  },
-  version: {
-    fontFamily: typography.fonts.body,
-    textAlign: 'center',
-    fontSize: typography.sizes.sm,
-    marginTop: spacing.lg,
-    marginBottom: spacing.xxl,
   },
 });

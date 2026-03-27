@@ -7,63 +7,69 @@ import {
   Platform,
 } from 'react-native';
 import { router } from 'expo-router';
+import { Heart, Shield, DollarSign, Sparkles, type LucideIcon } from 'lucide-react-native';
 import { useAuthStore } from '../src/store/authStore';
 import { Button } from '../src/components/Button';
 import { colors, spacing, typography } from '../src/constants/theme';
-import type { OnboardingSlide } from '../src/types';
 
-const slides: OnboardingSlide[] = [
+interface SlideItem {
+  id: string;
+  title: string;
+  description: string;
+  IconComponent: LucideIcon;
+}
+
+const slides: SlideItem[] = [
   {
     id: '1',
     title: 'Find Your Perfect Date',
     description: 'Connect with verified, interesting people for memorable experiences',
-    icon: '💝',
+    IconComponent: Heart,
   },
   {
     id: '2',
     title: 'Safe & Secure',
     description: 'All users are verified. Your safety is our top priority',
-    icon: '🛡️',
+    IconComponent: Shield,
   },
   {
     id: '3',
     title: 'Earn While Dating',
     description: 'Set your own rates and schedule. You\'re in control',
-    icon: '💰',
+    IconComponent: DollarSign,
   },
   {
     id: '4',
     title: 'Premium Experiences',
     description: 'Book amazing dates at top restaurants, events, and more',
-    icon: '✨',
+    IconComponent: Sparkles,
   },
 ];
 
 export default function OnboardingScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const { setOnboardingSeen, user } = useAuthStore();
+  const { setOnboardingSeen } = useAuthStore();
 
   const handleNext = () => {
     if (currentIndex < slides.length - 1) {
-      setCurrentIndex(currentIndex + 1);
+      setCurrentIndex(prev => prev + 1);
     } else {
-      handleGetStarted();
+      completeOnboarding();
     }
   };
 
-  const handleGetStarted = () => {
+  const completeOnboarding = () => {
     setOnboardingSeen();
-    // User is already authenticated at this point, go to main app based on role
-    // In Expo Router, /male is equivalent to /male/index when index.tsx exists
-    const isCompanion = user?.role === 'companion';
-    router.replace(isCompanion ? '/female' : '/male');
+    // Navigate to auth welcome (login) page after onboarding
+    router.replace('/(auth)/welcome');
   };
 
   const handleSkip = () => {
-    handleGetStarted();
+    completeOnboarding();
   };
 
   const currentSlide = slides[currentIndex];
+  const SlideIcon = currentSlide.IconComponent;
 
   return (
     <View style={styles.container}>
@@ -78,7 +84,9 @@ export default function OnboardingScreen() {
       </View>
 
       <View style={styles.slideContainer}>
-        <Text style={styles.icon}>{currentSlide.icon}</Text>
+        <View style={styles.iconContainer}>
+          <SlideIcon size={56} color={colors.primary} strokeWidth={1.5} />
+        </View>
         <Text style={styles.title}>{currentSlide.title}</Text>
         <Text style={styles.description}>{currentSlide.description}</Text>
       </View>
@@ -92,6 +100,9 @@ export default function OnboardingScreen() {
               styles.dot,
               index === currentIndex && styles.dotActive,
             ]}
+            accessibilityLabel={`Go to slide ${index + 1}`}
+            accessibilityRole="button"
+            accessibilityState={{ selected: index === currentIndex }}
           />
         ))}
       </View>
@@ -127,16 +138,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     paddingTop: 80,
   },
-  icon: {
-    fontSize: 80,
+  iconContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: spacing.xl,
-    ...Platform.select({
-      web: {
-        lineHeight: 100,
-      },
-    }),
+    borderWidth: 2,
+    borderColor: colors.border,
   },
   title: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.xxl,
     fontWeight: '700',
     color: colors.text,
@@ -144,6 +158,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   description: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.md,
     color: colors.textSecondary,
     textAlign: 'center',

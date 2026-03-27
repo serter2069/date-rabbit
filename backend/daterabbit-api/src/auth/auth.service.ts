@@ -1,26 +1,38 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
 import { UsersService } from '../users/users.service';
 import { User, UserRole } from '../users/entities/user.entity';
+import { EmailService } from '../email/email.service';
+import { sanitizeText } from '../common/sanitize';
 
 @Injectable()
 export class AuthService {
-  private brevoApiKey: string;
-  private senderEmail: string;
+  // Per-email OTP attempt tracking to prevent brute force
+  private otpAttempts = new Map<string, { count: number; lockedUntil: number }>();
+  private readonly MAX_OTP_ATTEMPTS = 5;
+  private readonly LOCKOUT_MINUTES = 15;
 
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private emailService: EmailService,
   ) {
-    this.brevoApiKey = this.configService.get('BREVO_API_KEY') || '';
-    this.senderEmail = this.configService.get('BREVO_SENDER_EMAIL') || 'noreply@diagrams.love';
+    // Cleanup stale entries every hour
+    setInterval(() => {
+      const now = Date.now();
+      for (const [email, data] of this.otpAttempts) {
+        if (data.lockedUntil < now && data.count === 0) {
+          this.otpAttempts.delete(email);
+        }
+      }
+    }, 60 * 60 * 1000);
   }
 
   generateOtp(): string {
-    // DEV режим: фиксированный код для быстрого тестирования
+    // DEV mode: fixed code for quick testing
     if (this.configService.get('DEV_AUTH') === 'true') {
       return '000000';
     }
@@ -44,49 +56,35 @@ export class AuthService {
 
     await this.usersService.setOtp(user.id, otp, expiresAt);
 
-    // DEV режим: пропускаем отправку email
+    // DEV mode: skip email sending
     if (this.configService.get('DEV_AUTH') === 'true') {
-      console.log(`🔧 DEV MODE: OTP для ${email} → 000000 (email не отправляется)`);
+      console.log(`DEV MODE: OTP for ${email} -> 000000 (email not sent)`);
       return { success: true, isNewUser };
     }
 
-    // Send email via Brevo API
-    try {
-      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
-        method: 'POST',
-        headers: {
-          'accept': 'application/json',
-          'api-key': this.brevoApiKey,
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify({
-          sender: { email: this.senderEmail, name: 'DateRabbit' },
-          to: [{ email }],
-          subject: 'Your DateRabbit Verification Code',
-          htmlContent: `
-            <div style="font-family: 'Space Grotesk', Arial, sans-serif; max-width: 400px; margin: 0 auto; padding: 24px; background: #F4F0EA; border: 3px solid #000; border-radius: 12px;">
-              <h2 style="color: #FF2A5F; font-weight: 700; text-transform: uppercase; margin-bottom: 16px;">DateRabbit</h2>
-              <p style="color: #000; font-size: 16px;">Your verification code is:</p>
-              <h1 style="font-size: 36px; letter-spacing: 8px; color: #000; font-weight: 700; background: #fff; border: 3px solid #000; border-radius: 8px; padding: 16px; text-align: center; margin: 16px 0;">${otp}</h1>
-              <p style="color: #666; font-size: 14px;">This code expires in 10 minutes.</p>
-            </div>
-          `,
-        }),
-      });
-      if (response.ok) {
-        console.log(`OTP sent to ${email}`);
-      } else {
-        console.error('Brevo API error:', await response.text());
-      }
-    } catch (error) {
-      console.error('Failed to send email:', error);
-      // Continue anyway for development
+    const emailSent = await this.emailService.sendOtp(email, otp);
+
+    if (!emailSent) {
+      throw new HttpException(
+        'Failed to send verification email. Please try again later.',
+        HttpStatus.SERVICE_UNAVAILABLE,
+      );
     }
 
     return { success: true, isNewUser };
   }
 
   async verifyOtp(email: string, code: string): Promise<{ success: boolean; token?: string; user?: User; error?: string }> {
+    // Check per-email lockout
+    const attempts = this.otpAttempts.get(email);
+    if (attempts && attempts.lockedUntil > Date.now()) {
+      const minutesLeft = Math.ceil((attempts.lockedUntil - Date.now()) / 60000);
+      throw new HttpException(
+        `Too many attempts. Try again in ${minutesLeft} minutes`,
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+
     const user = await this.usersService.findByEmail(email);
 
     if (!user) {
@@ -104,12 +102,21 @@ export class AuthService {
     const isValid = user.otpCode.length === code.length &&
       crypto.timingSafeEqual(Buffer.from(user.otpCode), Buffer.from(code));
     if (!isValid) {
-      // Invalidate OTP after failed attempt to prevent brute-force
-      await this.usersService.clearOtp(user.id);
+      // Track failed attempt for rate limiting
+      const current = this.otpAttempts.get(email) || { count: 0, lockedUntil: 0 };
+      current.count++;
+      if (current.count >= this.MAX_OTP_ATTEMPTS) {
+        current.lockedUntil = Date.now() + this.LOCKOUT_MINUTES * 60 * 1000;
+        current.count = 0;
+      }
+      this.otpAttempts.set(email, current);
+
+      // Don't clear OTP on failed attempt -- let users retry until 10-min TTL expires
       return { success: false, error: 'Invalid OTP' };
     }
 
-    // Clear OTP
+    // Successful verification -- clear attempts and OTP
+    this.otpAttempts.delete(email);
     await this.usersService.clearOtp(user.id);
 
     // Generate JWT
@@ -128,18 +135,26 @@ export class AuthService {
     bio?: string;
     hourlyRate?: number;
   }): Promise<{ success: boolean; token?: string; user?: User; error?: string }> {
+    // Sanitize user-facing text fields
+    const sanitizedData = {
+      ...data,
+      name: sanitizeText(data.name),
+      bio: data.bio ? sanitizeText(data.bio) : data.bio,
+      location: data.location ? sanitizeText(data.location) : data.location,
+    };
+
     let user = await this.usersService.findByEmail(data.email);
 
     if (user) {
       // Update existing user
-      const updated = await this.usersService.update(user.id, data);
+      const updated = await this.usersService.update(user.id, sanitizedData);
       if (!updated) {
         return { success: false, error: 'Failed to update user' };
       }
       user = updated;
     } else {
       // Create new user
-      user = await this.usersService.create(data);
+      user = await this.usersService.create(sanitizedData);
     }
 
     const token = this.jwtService.sign({ id: user.id, email: user.email });

@@ -8,7 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../src/store/authStore';
 import { Button } from '../../src/components/Button';
@@ -21,7 +21,19 @@ const CODE_LENGTH = 6;
 export default function OTPScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const { pendingEmail, verifyCode, resendCode, isLoading, error, clearError, authStep } = useAuthStore();
+  const params = useLocalSearchParams<{ email?: string }>();
+  const { pendingEmail, verifyCode, resendCode, isLoading, error, clearError, authStep, setPendingEmail } = useAuthStore();
+
+  // Use email from route params (reliable on web) or fall back to store value
+  const email = params.email || pendingEmail;
+
+  // Sync route param email back into the store if store lost it
+  useEffect(() => {
+    if (params.email && !pendingEmail && setPendingEmail) {
+      setPendingEmail(params.email);
+    }
+  }, [params.email]);
+
   const [code, setCode] = useState('');
   const [resendCooldown, setResendCooldown] = useState(0);
   const inputRef = useRef<TextInput>(null);
@@ -105,6 +117,8 @@ export default function OTPScreen() {
           style={styles.backButton}
           onPress={() => router.back()}
           testID="otp-back-btn"
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
         >
           <Icon name="arrow-left" size={20} color={colors.primary} />
           <Text style={[styles.backText, { color: colors.primary }]}> Back</Text>
@@ -113,13 +127,16 @@ export default function OTPScreen() {
         <Text style={[styles.title, { color: colors.text }]}>Enter Code</Text>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
           We sent a 6-digit code to{'\n'}
-          <Text style={[styles.email, { color: colors.primary }]}>{pendingEmail}</Text>
+          <Text style={[styles.email, { color: colors.primary }]}>{email}</Text>
         </Text>
 
         <TouchableOpacity
           activeOpacity={1}
           onPress={() => inputRef.current?.focus()}
           style={styles.codeContainer}
+          accessibilityLabel="Enter verification code"
+          accessibilityRole="button"
+          accessibilityHint="Tap to open keyboard and enter your 6-digit code"
         >
           {renderCodeBoxes()}
         </TouchableOpacity>
@@ -154,6 +171,9 @@ export default function OTPScreen() {
             disabled={resendCooldown > 0}
             style={styles.resendButton}
             testID="otp-resend-btn"
+            accessibilityLabel={resendCooldown > 0 ? `Resend code in ${resendCooldown} seconds` : 'Resend code'}
+            accessibilityRole="button"
+            accessibilityState={{ disabled: resendCooldown > 0 }}
           >
             <Text style={[styles.resendLink, { color: colors.primary }, resendCooldown > 0 && { color: colors.textSecondary }]}>
               {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend'}
