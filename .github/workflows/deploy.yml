@@ -178,7 +178,7 @@ jobs:
       - name: Restart backend
         run: |
           cd /var/www/daterabbit/api
-          sudo pm2 restart daterabbit || sudo pm2 start dist/main.js --name daterabbit
+          sudo pm2 restart daterabbit || sudo pm2 start dist/main.js --name daterabbit --cwd /var/www/daterabbit/api -i 2
           sudo chown -R www-data:www-data /var/www/daterabbit/ 2>/dev/null || true
 
       - name: Deploy nginx config
@@ -398,7 +398,7 @@ jobs:
       - name: Restart backend
         run: |
           cd /var/www/daterabbit/api
-          sudo pm2 restart daterabbit || sudo pm2 start dist/main.js --name daterabbit
+          sudo pm2 restart daterabbit || sudo pm2 start dist/main.js --name daterabbit --cwd /var/www/daterabbit/api -i 2
           sudo chown -R www-data:www-data /var/www/daterabbit/ 2>/dev/null || true
 
       - name: Deploy nginx config
