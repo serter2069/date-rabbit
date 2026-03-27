@@ -69,7 +69,7 @@ export default function RequestsScreen() {
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString(undefined, {
       weekday: 'short',
       month: 'short',
       day: 'numeric',

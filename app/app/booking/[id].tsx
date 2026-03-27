@@ -49,9 +49,9 @@ const generateDates = () => {
     date.setDate(today.getDate() + i);
     dates.push({
       date,
-      day: date.toLocaleDateString('en-US', { weekday: 'short' }),
+      day: date.toLocaleDateString(undefined, { weekday: 'short' }),
       dayNum: date.getDate(),
-      month: date.toLocaleDateString('en-US', { month: 'short' }),
+      month: date.toLocaleDateString(undefined, { month: 'short' }),
     });
   }
   return dates;

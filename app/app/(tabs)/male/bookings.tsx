@@ -64,12 +64,12 @@ export default function BookingsScreen() {
     tomorrow.setDate(now.getDate() + 1);
 
     if (date.toDateString() === now.toDateString()) {
-      return `Today, ${date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
+      return `Today, ${date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`;
     }
     if (date.toDateString() === tomorrow.toDateString()) {
-      return `Tomorrow, ${date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
+      return `Tomorrow, ${date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`;
     }
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString(undefined, {
       weekday: 'short',
       month: 'short',
       day: 'numeric',
