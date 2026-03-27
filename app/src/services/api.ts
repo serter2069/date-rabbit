@@ -645,5 +645,6 @@ export interface User {
   photos?: { id: string; url: string; order: number; isPrimary: boolean }[];
   stripeOnboardingComplete?: boolean;
   expoPushToken?: string;
+  notificationsEnabled?: boolean;
   createdAt: string;
 }

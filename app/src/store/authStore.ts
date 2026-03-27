@@ -80,7 +80,7 @@ function mapApiUserToUser(apiUser: ApiUser): User {
     stripeOnboardingComplete: apiUser.stripeOnboardingComplete,
     latitude: apiUser.latitude,
     longitude: apiUser.longitude,
-    notificationsEnabled: (apiUser as any).notificationsEnabled,
+    notificationsEnabled: apiUser.notificationsEnabled,
     expoPushToken: apiUser.expoPushToken,
     createdAt: apiUser.createdAt,
   };
