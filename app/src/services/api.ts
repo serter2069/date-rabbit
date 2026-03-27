@@ -1,6 +1,7 @@
 // API Client for DateRabbit Backend
 import * as SecureStore from 'expo-secure-store';
 import type { Verification, VerificationReference } from '../types';
+import { useNetworkStore } from '../store/networkStore';
 
 const API_BASE_URL = 'https://daterabbit-api.smartlaunchhub.com/api';
 const API_TIMEOUT_MS = 10_000; // 10 seconds
@@ -76,9 +77,13 @@ export async function apiRequest<T>(
       throw new ApiError('Request timed out. Please try again.', 408);
     }
     // Network error (no connection, DNS failure, etc.)
+    useNetworkStore.getState().setOffline();
     throw new ApiError('Network error. Please check your connection.', 0);
   }
   clearTimeout(timeoutId);
+
+  // Successful network response — mark as online
+  useNetworkStore.getState().setOnline();
 
   const data = await response.json().catch(() => ({}));
 

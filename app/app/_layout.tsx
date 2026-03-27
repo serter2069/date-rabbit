@@ -12,6 +12,26 @@ import {
 import { useEffect } from 'react';
 import { colors } from '../src/constants/theme';
 import { StripeProvider } from '../src/components/StripeProvider';
+import { OfflineBanner } from '../src/components/OfflineBanner';
+import { useNetworkStore } from '../src/store/networkStore';
+
+// Listen to browser online/offline events (web only)
+function useWebNetworkStatus() {
+  const { setOffline, setOnline } = useNetworkStore();
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const handleOnline = () => setOnline();
+    const handleOffline = () => setOffline();
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    // Sync initial state
+    if (!navigator.onLine) setOffline();
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [setOffline, setOnline]);
+}
 
 // Strip __EXPO_ROUTER_key from browser URL bar (Expo Router internal param)
 function useCleanUrl() {
@@ -138,6 +158,8 @@ function NavigationGuard() {
 export default function RootLayout() {
   // Clean __EXPO_ROUTER_key from browser URL
   useCleanUrl();
+  // Track web browser online/offline events
+  useWebNetworkStatus();
 
   // Load Neo-Brutalism font
   const [fontsLoaded] = useFonts({
@@ -158,6 +180,7 @@ export default function RootLayout() {
 
   return (
     <StripeProvider>
+      <View style={styles.container}>
       <StatusBar style="dark" />
       <Stack
         screenOptions={{
@@ -203,11 +226,16 @@ export default function RootLayout() {
         <Stack.Screen name="+not-found" />
       </Stack>
       <NavigationGuard />
+      <OfflineBanner />
+      </View>
     </StripeProvider>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
