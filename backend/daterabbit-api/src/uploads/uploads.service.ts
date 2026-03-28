@@ -2,7 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
 
-export type UploadType = 'id-photos' | 'selfies' | 'videos' | 'profile-photos';
+export type UploadType = 'id-photos' | 'selfies' | 'videos' | 'profile-photos' | 'date-photos';
 
 const IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const VIDEO_MIME_TYPES = ['video/mp4', 'video/quicktime'];
@@ -19,7 +19,7 @@ export class UploadsService {
   }
 
   private ensureDirectories() {
-    const dirs: UploadType[] = ['id-photos', 'selfies', 'videos', 'profile-photos'];
+    const dirs: UploadType[] = ['id-photos', 'selfies', 'videos', 'profile-photos', 'date-photos'];
     for (const dir of dirs) {
       fs.mkdirSync(path.join(UPLOADS_ROOT, dir), { recursive: true });
     }

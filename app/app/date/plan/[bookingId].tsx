@@ -63,6 +63,7 @@ export default function DatePlanScreen() {
   };
 
   const handleRemove = async (index: number) => {
+    if (!isSeeker) return;
     const updated = places.filter((_, i) => i !== index);
     setSaving(true);
     try {

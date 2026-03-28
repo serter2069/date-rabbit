@@ -84,7 +84,7 @@ export const activeDateApi = {
     formData.append('file', { uri, type: `image/${ext === 'jpg' ? 'jpeg' : ext}`, name: `date-photo.${ext}` } as any);
     const resp = await fetch(`${API_BASE}/bookings/${bookingId}/photos`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' },
+      headers: { Authorization: `Bearer ${token}` },
       body: formData,
     });
     const data = await resp.json();
