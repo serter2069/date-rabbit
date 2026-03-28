@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { activeDateApi, ActiveBooking } from '../../../src/services/activeDateApi';
+import { useAuthStore } from '../../../src/store/authStore';
 
 function formatTime(ms: number): string {
   if (ms <= 0) return '00:00:00';
@@ -17,6 +18,8 @@ export default function ActiveDateScreen() {
   const [booking, setBooking] = useState<ActiveBooking | null>(null);
   const [remaining, setRemaining] = useState(0);
   const [loading, setLoading] = useState(true);
+  const user = useAuthStore(s => s.user);
+  const isCompanion = user?.role === 'companion';
 
   const loadBooking = useCallback(async () => {
     try {
@@ -32,6 +35,22 @@ export default function ActiveDateScreen() {
   }, [bookingId]);
 
   useEffect(() => { loadBooking(); }, [loadBooking]);
+
+  // Poll every 15s to detect status changes (extend request, SOS, end)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      activeDateApi.getBookingById(bookingId)
+        .then(data => {
+          setBooking(data);
+          if (data.status === 'completed') {
+            clearInterval(interval);
+            router.replace(`/date/summary/${bookingId}`);
+          }
+        })
+        .catch(() => {});
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [bookingId]);
 
   // Countdown timer
   useEffect(() => {
@@ -73,8 +92,16 @@ export default function ActiveDateScreen() {
 
   const isLow = remaining < 30 * 60 * 1000;
 
+  // Companion sees "Respond to Extend" when seeker has a pending request
+  const hasExtendRequest = isCompanion && !!booking?.extendRequestedHours && booking?.extendRequestApproved === null;
+
   const actions = [
-    { label: 'Extend Time', color: '#4DF0FF', route: `/date/extend/${bookingId}` },
+    ...(isCompanion
+      ? hasExtendRequest
+        ? [{ label: `Respond to +${booking!.extendRequestedHours}h Request`, color: '#4DF0FF', route: `/date/extend-response/${bookingId}` }]
+        : []
+      : [{ label: 'Extend Time', color: '#4DF0FF', route: `/date/extend/${bookingId}` }]
+    ),
     { label: 'End Early', color: '#FF5A85', onPress: handleEndEarly },
     { label: 'Date Plan', color: '#fff', route: `/date/plan/${bookingId}` },
     { label: 'Photos', color: '#fff', route: `/date/photos/${bookingId}` },

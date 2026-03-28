@@ -17,6 +17,9 @@ export interface ActiveBooking {
   actualDurationHours?: number;
   sosTriggeredAt?: string;
   noShowReason?: string;
+  extendRequestedHours?: number;
+  extendRequestedAt?: string;
+  extendRequestApproved?: boolean | null;
   seeker: { id: string; name: string; photos?: { url: string }[] };
   companion: { id: string; name: string; photos?: { url: string }[]; hourlyRate: number };
 }
@@ -33,10 +36,16 @@ export const activeDateApi = {
       method: 'POST',
     }),
 
-  extendDate: (bookingId: string, additionalHours: number) =>
-    apiRequest<ActiveBooking>(`/bookings/${bookingId}/extend`, {
+  extendDate: (bookingId: string, hours: number) =>
+    apiRequest<ActiveBooking>(`/bookings/${bookingId}/extend-request`, {
       method: 'POST',
-      body: { additionalHours },
+      body: { hours },
+    }),
+
+  extendResponse: (bookingId: string, approved: boolean) =>
+    apiRequest<ActiveBooking>(`/bookings/${bookingId}/extend-response`, {
+      method: 'PUT',
+      body: { approved },
     }),
 
   seekerCheckin: (bookingId: string, coords?: { lat: number; lon: number }) =>
@@ -91,13 +100,13 @@ export const activeDateApi = {
 
   savePlan: (bookingId: string, places: { name: string; address: string; time?: string }[]) =>
     apiRequest<{ ok: boolean }>(`/bookings/${bookingId}/plan`, {
-      method: 'POST',
-      body: { places },
+      method: 'PUT',
+      body: { plan: { places } },
     }),
 
   reportIssue: (bookingId: string, type: string, description: string) =>
-    apiRequest<{ ok: boolean }>(`/bookings/${bookingId}/report`, {
+    apiRequest<{ ok: boolean }>(`/bookings/${bookingId}/report-issue`, {
       method: 'POST',
-      body: { type, description },
+      body: { type, text: description },
     }),
 };
