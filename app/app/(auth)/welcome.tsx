@@ -148,10 +148,10 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: PAGE_PADDING,
-    // flexGrow: 1 breaks scrolling on web — the container stretches to
-    // fill the viewport and ScrollView thinks content fits, so it won't
-    // scroll. Only use flexGrow on native where it works correctly.
-    ...(Platform.OS === 'web' ? {} : { flexGrow: 1 }),
+    // Do NOT use flexGrow: 1 — it expands content to fill the viewport
+    // height, making ScrollView think everything fits and disabling scroll.
+    // On small screens (390x664) the bottom buttons get clipped. Let
+    // content be its natural height so the ScrollView actually scrolls.
     paddingTop: spacing.xl,
   },
 
