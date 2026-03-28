@@ -84,6 +84,9 @@ function NavigationGuard() {
     // (hasSeenOnboarding=false) and immediately redirects returning users to onboarding.
     if (!_hasHydrated) return;
 
+    // Don't redirect 404 pages
+    if (segments[0] === '+not-found') return;
+
     const currentSegment = segments[0];
     const needsVerification = isAuthenticated && user?.verificationStatus !== 'approved';
     const isSeeker = user?.role === 'seeker';
