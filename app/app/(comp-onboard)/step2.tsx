@@ -9,6 +9,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
@@ -18,6 +19,7 @@ import { Button } from '../../src/components/Button';
 import { Icon } from '../../src/components/Icon';
 import { ProgressBar } from '../../src/components/verification';
 import { colors, spacing, typography, borderRadius, PAGE_PADDING } from '../../src/constants/theme';
+import { usersApi } from '../../src/services/api';
 
 const MIN_PHOTOS = 3;
 const MAX_PHOTOS = 6;
@@ -28,6 +30,7 @@ export default function CompStep2Screen() {
   const [photos, setPhotos] = useState<string[]>([]);
   const [bio, setBio] = useState('');
   const [errors, setErrors] = useState<{ photos?: string; bio?: string }>({});
+  const [isUploading, setIsUploading] = useState(false);
 
   const pickPhoto = async () => {
     if (photos.length >= MAX_PHOTOS) return;
@@ -67,9 +70,32 @@ export default function CompStep2Screen() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!validate()) return;
-    router.push('/(comp-onboard)/verify');
+
+    setIsUploading(true);
+    try {
+      // Upload each photo to the server and collect the returned URLs
+      const uploadedPhotos: { id: string; url: string; order: number; isPrimary: boolean }[] = [];
+      for (let i = 0; i < photos.length; i++) {
+        const result = await usersApi.uploadProfilePhoto(photos[i]);
+        uploadedPhotos.push({
+          id: String(i),
+          url: result.url,
+          order: i,
+          isPrimary: i === 0,
+        });
+      }
+
+      // Save photos and bio to the user profile
+      await usersApi.updateProfile({ photos: uploadedPhotos as any, bio });
+
+      router.push('/(comp-onboard)/verify');
+    } catch (err: any) {
+      showAlert('Upload failed', err?.message || 'Could not upload photos. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const renderPhotoSlot = (index: number) => {
@@ -211,12 +237,19 @@ export default function CompStep2Screen() {
           </View>
         </View>
 
+        {isUploading && (
+          <View style={styles.uploadingRow}>
+            <ActivityIndicator size="small" color={colors.primary} />
+            <Text style={styles.uploadingText}>Uploading photos…</Text>
+          </View>
+        )}
         <Button
           title="Continue"
           onPress={handleContinue}
           variant="pink"
           fullWidth
           size="lg"
+          disabled={isUploading}
           testID="comp-step2-continue-btn"
         />
       </ScrollView>
@@ -408,5 +441,17 @@ const styles = StyleSheet.create({
   },
   charCountWarning: {
     color: colors.warning,
+  },
+  uploadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  uploadingText: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.sm,
+    color: colors.textMuted,
   },
 });
