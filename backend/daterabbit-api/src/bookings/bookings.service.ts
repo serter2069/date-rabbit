@@ -348,7 +348,7 @@ export class BookingsService {
     return (await this.findById(bookingId))!;
   }
 
-  async handleNoShow(bookingId: string, reason: 'seeker' | 'companion'): Promise<Booking> {
+  async handleNoShow(bookingId: string, reason: 'seeker' | 'companion' | 'both'): Promise<Booking> {
     await this.bookingsRepository.update(bookingId, {
       status: BookingStatus.CANCELLED,
       noShowReason: reason,
