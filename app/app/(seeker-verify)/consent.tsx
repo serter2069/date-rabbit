@@ -19,12 +19,20 @@ const STEPS = ['Intro', 'SSN', 'Photo ID', 'Selfie', 'Consent'];
 export default function SeekerConsentScreen() {
   const insets = useSafeAreaInsets();
   const [agreed, setAgreed] = useState(false);
-  const { submitConsent, submitForReview, isLoading } = useVerificationStore();
+  const { submitConsent, submitForReview, isLoading, error: apiError } = useVerificationStore();
 
   const handleSubmit = async () => {
     if (!agreed) return;
-    await submitConsent();
-    await submitForReview();
+    const consentOk = await submitConsent();
+    if (!consentOk) {
+      Alert.alert('Submission Failed', apiError || 'Failed to submit consent. Please try again.');
+      return;
+    }
+    const reviewOk = await submitForReview();
+    if (!reviewOk) {
+      Alert.alert('Submission Failed', apiError || 'Failed to submit for review. Please try again.');
+      return;
+    }
     router.push('/(seeker-verify)/pending');
   };
 
