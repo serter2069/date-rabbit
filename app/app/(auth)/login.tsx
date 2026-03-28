@@ -7,6 +7,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -53,6 +54,14 @@ export default function LoginScreen() {
       setEmailError(result.error || 'Failed to send code. Please try again.');
       return;
     }
+  };
+
+  const handleGoogleLogin = () => {
+    Alert.alert(
+      'Coming Soon',
+      'Google login will be available in a future update.',
+      [{ text: 'OK' }]
+    );
   };
 
   return (
@@ -132,7 +141,7 @@ export default function LoginScreen() {
         {/* Social login */}
         <Button
           title="Continue with Google"
-          onPress={() => {}}
+          onPress={handleGoogleLogin}
           variant="secondary"
           fullWidth
           size="lg"
