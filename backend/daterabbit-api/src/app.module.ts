@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
@@ -11,6 +12,9 @@ import { MessagesModule } from './messages/messages.module';
 import { VerificationModule } from './verification/verification.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { PaymentsModule } from './payments/payments.module';
+import { AdminModule } from './admin/admin.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { CalendarModule } from './calendar/calendar.module';
 
 @Module({
   imports: [
@@ -46,6 +50,7 @@ import { PaymentsModule } from './payments/payments.module';
         logging: configService.get('NODE_ENV') === 'development',
       }),
     }),
+    ScheduleModule.forRoot(),
     AuthModule,
     UsersModule,
     CompanionsModule,
@@ -54,6 +59,9 @@ import { PaymentsModule } from './payments/payments.module';
     VerificationModule,
     ReviewsModule,
     PaymentsModule,
+    AdminModule,
+    NotificationsModule,
+    CalendarModule,
   ],
   providers: [
     {

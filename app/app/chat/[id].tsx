@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,15 +9,17 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { useLocalSearchParams, router } from 'expo-router';
+import { useLocalSearchParams, router, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { UserImage } from '../../src/components/UserImage';
 import { Icon } from '../../src/components/Icon';
 import { EmptyState } from '../../src/components/EmptyState';
-import { useMessagesStore } from '../../src/store/messagesStore';
+import { useMessagesStore, POLL_INTERVAL } from '../../src/store/messagesStore';
 import { useAuthStore } from '../../src/store/authStore';
+import { useVerificationGate } from '../../src/hooks/useVerificationGate';
 import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
 import { showAlert } from '../../src/utils/alert';
+import * as Haptics from 'expo-haptics';
 
 export default function ChatScreen() {
   const { id, name } = useLocalSearchParams<{ id: string; name: string }>();
@@ -27,17 +29,33 @@ export default function ChatScreen() {
   const [messageText, setMessageText] = useState('');
 
   const { user } = useAuthStore();
-  const { messages, sendMessage, getMessages, fetchMessages, chats } = useMessagesStore();
+  const { messages, sendMessage, getMessages, fetchMessages, fetchChats, chats } = useMessagesStore();
+  const { requireVerification } = useVerificationGate();
 
   // id param is the otherUser's id
   const otherUserId = id || '';
   const chatMessages = getMessages(otherUserId);
   const chat = chats.find(c => c.otherUser.id === otherUserId);
 
-  useEffect(() => {
-    // Fetch messages — backend auto-marks as read on GET
-    fetchMessages(otherUserId);
-  }, [otherUserId]);
+  // Resolve companion name: prefer URL param, fall back to chat data
+  const companionName = name || chat?.otherUser?.name || '';
+
+  // Poll messages every 5 seconds while screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      // Initial fetch (with loading spinner)
+      fetchMessages(otherUserId);
+      // Ensure chats are loaded so companion name resolves from store
+      if (!chat) fetchChats(true);
+
+      // Poll every 5s silently (no loading spinner)
+      const interval = setInterval(() => {
+        fetchMessages(otherUserId, 1, true);
+      }, POLL_INTERVAL);
+
+      return () => clearInterval(interval);
+    }, [otherUserId])
+  );
 
   useEffect(() => {
     // Scroll to bottom when messages change
@@ -49,6 +67,9 @@ export default function ChatScreen() {
   const handleSend = async () => {
     if (!messageText.trim() || !user) return;
 
+    if (Platform.OS !== 'web') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
     const text = messageText.trim();
     setMessageText('');
     try {
@@ -58,6 +79,11 @@ export default function ChatScreen() {
       setMessageText(text);
       showAlert('Send Failed', 'Message could not be sent. Please try again.');
     }
+  };
+
+  const handleBook = () => {
+    if (requireVerification()) return;
+    router.push(`/booking/${id || ''}`);
   };
 
   const formatTime = (date: Date) => {
@@ -99,6 +125,29 @@ export default function ChatScreen() {
     return groups;
   }, {} as Record<string, typeof chatMessages>);
 
+  // Show error state when no valid conversation ID is provided
+  if (!otherUserId) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={[styles.header, { paddingTop: insets.top + spacing.sm, backgroundColor: colors.white, borderBottomColor: colors.border }]}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton} testID="chat-back-btn"
+            accessibilityLabel="Go back"
+            accessibilityRole="button"
+          >
+            <Icon name="arrow-left" size={24} color={colors.text} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.emptyContainer}>
+          <EmptyState
+            icon="alert-circle"
+            title="Conversation not found"
+            description="This conversation does not exist or may have been removed."
+          />
+        </View>
+      </View>
+    );
+  }
+
   return (
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: colors.background }]}
@@ -107,25 +156,32 @@ export default function ChatScreen() {
     >
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm, backgroundColor: colors.white, borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton} testID="chat-back-btn">
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton} testID="chat-back-btn"
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+        >
           <Icon name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.headerProfile}
-          onPress={() => router.push({ pathname: '/profile/[id]', params: { id: id || '' } })}
+          onPress={() => router.push(`/profile/${id || ''}`)}
+          accessibilityLabel={`View ${companionName}'s profile`}
+          accessibilityRole="button"
         >
-          <UserImage name={name || 'User'} size={40} />
+          <UserImage name={companionName} size={40} />
           <View style={styles.headerInfo}>
-            <Text style={[styles.headerName, { color: colors.text }]}>{name || 'User'}</Text>
+            <Text style={[styles.headerName, { color: colors.text }]}>{companionName}</Text>
             <Text style={[styles.headerStatus, { color: colors.textSecondary }]}>Tap to view profile</Text>
           </View>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.bookButton, { backgroundColor: colors.primary }]}
-          onPress={() => router.push({ pathname: '/booking/[id]', params: { id: id || '' } })}
+          onPress={handleBook}
           testID="chat-book-btn"
+          accessibilityLabel={`Book ${companionName}`}
+          accessibilityRole="button"
         >
           <Text style={[styles.bookButtonText, { color: colors.white }]}>Book</Text>
         </TouchableOpacity>
@@ -137,13 +193,14 @@ export default function ChatScreen() {
         style={styles.messagesContainer}
         contentContainerStyle={styles.messagesContent}
         showsVerticalScrollIndicator={false}
+        keyboardDismissMode="on-drag"
       >
         {chatMessages.length === 0 ? (
           <View style={styles.emptyContainer}>
             <EmptyState
               icon="message-circle"
               title="Start the conversation"
-              description={`Say hello to ${name}! Be respectful and have a great conversation.`}
+              description={`Say hello to ${companionName}! Be respectful and have a great conversation.`}
             />
           </View>
         ) : (
@@ -171,7 +228,7 @@ export default function ChatScreen() {
                     ]}
                   >
                     {!isMine && showAvatar && (
-                      <UserImage name={name || 'User'} size={32} />
+                      <UserImage name={companionName} size={32} />
                     )}
                     {!isMine && !showAvatar && (
                       <View style={{ width: 32 }} />
@@ -233,6 +290,9 @@ export default function ChatScreen() {
           onPress={handleSend}
           disabled={!messageText.trim()}
           testID="chat-send-btn"
+          accessibilityLabel="Send message"
+          accessibilityRole="button"
+          accessibilityState={{ disabled: !messageText.trim() }}
         >
           <Icon name="send" size={20} color={colors.white} />
         </TouchableOpacity>
@@ -307,7 +367,7 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.xs,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
-    borderRadius: borderRadius.full,
+    borderRadius: borderRadius.sm,
   },
   messageRow: {
     flexDirection: 'row',

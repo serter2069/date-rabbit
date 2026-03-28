@@ -19,11 +19,15 @@ const STEPS = ['Intro', 'SSN', 'Photo ID', 'Selfie', 'Consent'];
 export default function SeekerSelfieScreen() {
   const insets = useSafeAreaInsets();
   const [imageUri, setImageUri] = useState<string | undefined>();
-  const { uploadSelfie, isLoading } = useVerificationStore();
+  const { uploadSelfie, isLoading, error: apiError } = useVerificationStore();
 
   const handleContinue = async () => {
     if (!imageUri) return;
-    await uploadSelfie(imageUri);
+    const success = await uploadSelfie(imageUri);
+    if (!success) {
+      Alert.alert('Upload Failed', apiError || 'Failed to upload selfie. Please try again.');
+      return;
+    }
     router.push('/(seeker-verify)/consent');
   };
 

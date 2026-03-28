@@ -9,7 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { showAlert } from '../../src/utils/alert';
 import { useAuthStore } from '../../src/store/authStore';
@@ -24,8 +24,10 @@ export default function ProfileSetupScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const { completeOnboarding } = useAuthStore();
-  const [step, setStep] = useState<Step>('role');
-  const [role, setRole] = useState<UserRole | null>(null);
+  const params = useLocalSearchParams<{ role?: string }>();
+  const initialRole = (params.role as UserRole) || null;
+  const [step, setStep] = useState<Step>(initialRole ? 'basic' : 'role');
+  const [role, setRole] = useState<UserRole | null>(initialRole);
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
   const [location, setLocation] = useState('');
@@ -54,21 +56,25 @@ export default function ProfileSetupScreen() {
     setStep('details');
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     if (!bio.trim()) {
       showAlert('Required', 'Please write something about yourself');
       return;
     }
 
     if (role === 'companion') {
-      const rate = parseInt(hourlyRate);
-      if (isNaN(rate) || rate < 1) {
-        showAlert('Required', 'Please enter your hourly rate');
+      const rate = parseInt(hourlyRate, 10);
+      if (isNaN(rate) || rate <= 0) {
+        showAlert('Required', 'Please enter your hourly rate (must be greater than 0)');
+        return;
+      }
+      if (rate >= 10000) {
+        showAlert('Invalid Rate', 'Hourly rate must be less than $10,000');
         return;
       }
     }
 
-    completeOnboarding({
+    const result = await completeOnboarding({
       name: name.trim(),
       age: parseInt(age),
       role: role!,
@@ -78,9 +84,15 @@ export default function ProfileSetupScreen() {
       hourlyRate: role === 'companion' ? parseInt(hourlyRate) : undefined,
     });
 
-    // Navigate to correct tabs based on role
-    // In Expo Router, /male is equivalent to /male/index when index.tsx exists
-    router.replace(role === 'companion' ? '/female' : '/male');
+    if (!result.success) {
+      showAlert('Error', result.error || 'Failed to complete setup. Please try again.');
+      return;
+    }
+
+    // Navigate to verification flow based on role
+    // Companions need identity/background verification before going live
+    // Seekers need identity verification before booking
+    router.replace(role === 'companion' ? '/(comp-onboard)/step1' : '/(seeker-verify)/intro');
   };
 
   const handleBack = () => {
@@ -105,6 +117,9 @@ export default function ProfileSetupScreen() {
               style={[styles.roleCard, { borderColor: colors.black, backgroundColor: colors.accent }]}
               onPress={() => handleRoleSelect('companion')}
               testID="setup-companion-btn"
+              accessibilityLabel="Select Companion role"
+              accessibilityRole="button"
+              accessibilityHint="Get paid to go on amazing dates"
             >
               <View style={[styles.roleIconContainer, { backgroundColor: colors.black }]}>
                 <Icon name="user" size={32} color={colors.accent} />
@@ -119,6 +134,9 @@ export default function ProfileSetupScreen() {
               style={[styles.roleCard, { borderColor: colors.black, backgroundColor: colors.secondary }]}
               onPress={() => handleRoleSelect('seeker')}
               testID="setup-seeker-btn"
+              accessibilityLabel="Select Date Seeker role"
+              accessibilityRole="button"
+              accessibilityHint="Find interesting companions for dinners and events"
             >
               <View style={[styles.roleIconContainer, { backgroundColor: colors.black }]}>
                 <Icon name="search" size={32} color={colors.secondary} />
@@ -144,7 +162,10 @@ export default function ProfileSetupScreen() {
         contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + spacing.lg, paddingBottom: insets.bottom + spacing.lg }]}
         keyboardShouldPersistTaps="handled"
       >
-        <TouchableOpacity style={styles.backButton} onPress={handleBack} testID="setup-back-btn">
+        <TouchableOpacity style={styles.backButton} onPress={handleBack} testID="setup-back-btn"
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+        >
           <Icon name="arrow-left" size={20} color={colors.primary} />
           <Text style={[styles.backText, { color: colors.primary }]}> Back</Text>
         </TouchableOpacity>

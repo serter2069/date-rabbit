@@ -10,10 +10,7 @@ export default function RoleSelectScreen() {
   const { colors } = useTheme();
 
   const handleSelectRole = (role: 'companion' | 'seeker') => {
-    router.push({
-      pathname: '/(auth)/register',
-      params: { role },
-    });
+    router.push(`/(auth)/register?role=${role}`);
   };
 
   return (
@@ -22,6 +19,8 @@ export default function RoleSelectScreen() {
         style={styles.backButton}
         onPress={() => router.back()}
         testID="role-select-back-btn"
+        accessibilityLabel="Go back"
+        accessibilityRole="button"
       >
         <Icon name="arrow-left" size={20} color={colors.primary} />
         <Text style={[styles.backText, { color: colors.primary }]}> Back</Text>
@@ -37,6 +36,9 @@ export default function RoleSelectScreen() {
           style={[styles.roleCard, { backgroundColor: colors.surface, borderColor: colors.black }]}
           onPress={() => handleSelectRole('companion')}
           testID="role-select-companion-btn"
+          accessibilityLabel="Join as Date Companion"
+          accessibilityRole="button"
+          accessibilityHint="Get paid for going on dates"
         >
           <View style={[styles.iconContainer, { backgroundColor: colors.accent }]}>
             <Icon name="user" size={32} color={colors.black} />
@@ -56,6 +58,9 @@ export default function RoleSelectScreen() {
           style={[styles.roleCard, { backgroundColor: colors.surface, borderColor: colors.black }]}
           onPress={() => handleSelectRole('seeker')}
           testID="role-select-seeker-btn"
+          accessibilityLabel="Join as Date Seeker"
+          accessibilityRole="button"
+          accessibilityHint="Book dates with verified companions"
         >
           <View style={[styles.iconContainer, { backgroundColor: colors.secondary }]}>
             <Icon name="search" size={32} color={colors.black} />
@@ -91,17 +96,20 @@ const styles = StyleSheet.create({
     minHeight: 44,
   },
   backText: {
+    fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.md,
   },
   content: {
     flex: 1,
   },
   title: {
+    fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.xxl,
     fontWeight: '700',
     marginBottom: spacing.sm,
   },
   subtitle: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.md,
     marginBottom: spacing.xl,
   },
@@ -131,11 +139,13 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   roleTitle: {
+    fontFamily: typography.fonts.headingMedium,
     fontSize: typography.sizes.lg,
     fontWeight: '600',
     marginBottom: spacing.xs,
   },
   roleDescription: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     lineHeight: 20,
   },
@@ -143,15 +153,17 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
-    borderRadius: borderRadius.full,
+    borderRadius: borderRadius.sm,
     minHeight: 32,
     justifyContent: 'center',
   },
   badgeText: {
+    fontFamily: typography.fonts.headingMedium,
     fontSize: typography.sizes.sm,
     fontWeight: '600',
   },
   note: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     textAlign: 'center',
   },

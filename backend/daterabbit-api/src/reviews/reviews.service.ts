@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Review } from './entities/review.entity';
 import { Booking, BookingStatus } from '../bookings/entities/booking.entity';
 import { User } from '../users/entities/user.entity';
+import { sanitizeText } from '../common/sanitize';
 
 @Injectable()
 export class ReviewsService {
@@ -58,7 +59,7 @@ export class ReviewsService {
       revieweeId,
       bookingId,
       rating,
-      comment,
+      comment: comment ? sanitizeText(comment) : comment,
     });
 
     const saved = await this.reviewsRepo.save(review);
@@ -74,15 +75,20 @@ export class ReviewsService {
     page = 1,
     limit = 20,
   ): Promise<{ reviews: Review[]; total: number }> {
-    const [reviews, total] = await this.reviewsRepo.findAndCount({
-      where: { revieweeId: userId },
-      relations: ['reviewer'],
-      order: { createdAt: 'DESC' },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
+    try {
+      const [reviews, total] = await this.reviewsRepo.findAndCount({
+        where: { revieweeId: userId },
+        relations: ['reviewer'],
+        order: { createdAt: 'DESC' },
+        skip: (page - 1) * limit,
+        take: limit,
+      });
 
-    return { reviews, total };
+      return { reviews, total };
+    } catch {
+      // Return empty result if query fails (e.g. user not found)
+      return { reviews: [], total: 0 };
+    }
   }
 
   private async updateUserRating(userId: string): Promise<void> {
@@ -94,7 +100,7 @@ export class ReviewsService {
       .getRawOne();
 
     await this.usersRepo.update(userId, {
-      rating: parseFloat(result.avg) || 5.0,
+      rating: parseFloat(result.avg) || 0,
       reviewCount: parseInt(result.count) || 0,
     });
   }

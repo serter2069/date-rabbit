@@ -59,6 +59,18 @@ export default function EditProfileScreen() {
       return;
     }
 
+    if (formData.hourlyRate) {
+      const rate = parseInt(formData.hourlyRate, 10);
+      if (isNaN(rate) || rate <= 0) {
+        showAlert('Invalid Rate', 'Hourly rate must be greater than 0');
+        return;
+      }
+      if (rate >= 10000) {
+        showAlert('Invalid Rate', 'Hourly rate must be less than $10,000');
+        return;
+      }
+    }
+
     setLoading(true);
     try {
       // TODO: Photo upload will be handled separately via the API
@@ -67,7 +79,7 @@ export default function EditProfileScreen() {
         name: formData.name,
         bio: formData.bio,
         location: formData.location,
-        hourlyRate: formData.hourlyRate ? parseInt(formData.hourlyRate) : undefined,
+        hourlyRate: formData.hourlyRate ? parseInt(formData.hourlyRate, 10) : undefined,
       });
       router.back();
     } catch {
@@ -89,7 +101,10 @@ export default function EditProfileScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm, backgroundColor: colors.white, borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+        >
           <Icon name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>Edit Profile</Text>

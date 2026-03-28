@@ -11,6 +11,7 @@ import {
   Req,
   HttpException,
   HttpStatus,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import type { Request as ExpressRequest } from 'express';
 import { SkipThrottle } from '@nestjs/throttler';
@@ -41,7 +42,7 @@ export class PaymentsController {
   @UseGuards(JwtAuthGuard)
   async createPaymentIntent(
     @Request() req,
-    @Param('bookingId') bookingId: string,
+    @Param('bookingId', ParseUUIDPipe) bookingId: string,
   ) {
     return this.paymentsService.createPaymentIntent(req.user.id, bookingId);
   }
@@ -77,6 +78,11 @@ export class PaymentsController {
   @Post('payouts/create')
   @UseGuards(JwtAuthGuard)
   async createPayout(@Request() req, @Body() body: { amount?: number }) {
+    if (body.amount !== undefined) {
+      if (typeof body.amount !== 'number' || body.amount <= 0) {
+        throw new HttpException('Amount must be a positive number', HttpStatus.BAD_REQUEST);
+      }
+    }
     return this.paymentsService.createPayout(req.user.id, body.amount);
   }
 

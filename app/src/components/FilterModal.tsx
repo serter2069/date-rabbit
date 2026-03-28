@@ -8,6 +8,7 @@ import {
   ScrollView,
 } from 'react-native';
 import Slider from '@react-native-community/slider';
+import { X, Star } from 'lucide-react-native';
 import { Button } from './Button';
 import { colors, spacing, typography, borderRadius } from '../constants/theme';
 
@@ -87,11 +88,17 @@ export function FilterModal({
     >
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton} testID="filter-close-btn">
-            <Text style={styles.closeIcon}>✕</Text>
+          <TouchableOpacity onPress={onClose} style={styles.closeButton} testID="filter-close-btn"
+            accessibilityLabel="Close filters"
+            accessibilityRole="button"
+          >
+            <X size={20} color={colors.text} strokeWidth={2} />
           </TouchableOpacity>
           <Text style={styles.title} testID="filter-modal-title">Filters</Text>
-          <TouchableOpacity onPress={handleReset} testID="filter-reset-btn">
+          <TouchableOpacity onPress={handleReset} testID="filter-reset-btn"
+            accessibilityLabel="Reset filters"
+            accessibilityRole="button"
+          >
             <Text style={styles.resetText}>Reset</Text>
           </TouchableOpacity>
         </View>
@@ -163,7 +170,10 @@ export function FilterModal({
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Minimum Rating</Text>
-              <Text style={styles.valueLabel}>⭐ {filters.minRating.toFixed(1)}+</Text>
+              <View style={styles.ratingLabel}>
+                <Star size={14} color={colors.primary} fill={colors.primary} strokeWidth={1} />
+                <Text style={styles.valueLabel}> {filters.minRating.toFixed(1)}+</Text>
+              </View>
             </View>
             <Slider
               style={styles.slider}
@@ -233,6 +243,9 @@ export function FilterModal({
                     filters.availability === option.value && styles.chipActive,
                   ]}
                   onPress={() => updateFilter('availability', option.value)}
+                  accessibilityLabel={option.label}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: filters.availability === option.value }}
                 >
                   <Text
                     style={[
@@ -255,6 +268,9 @@ export function FilterModal({
                 key={option.value}
                 style={styles.radioRow}
                 onPress={() => updateFilter('sortBy', option.value)}
+                accessibilityLabel={option.label}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: filters.sortBy === option.value }}
               >
                 <View
                   style={[
@@ -291,6 +307,9 @@ export function FilterModal({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    maxWidth: 430,
+    width: '100%',
+    alignSelf: 'center',
     backgroundColor: colors.background,
   },
   header: {
@@ -310,9 +329,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  closeIcon: {
-    fontSize: 20,
-    color: colors.text,
+  ratingLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   title: {
     fontSize: typography.sizes.lg,
@@ -373,7 +392,7 @@ const styles = StyleSheet.create({
   chip: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
-    borderRadius: borderRadius.full,
+    borderRadius: borderRadius.sm,
     backgroundColor: colors.surface,
     borderWidth: 2,
     borderColor: colors.black,
