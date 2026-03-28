@@ -117,7 +117,7 @@ export default function CompanionCheckinScreen() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#FF2A5F" />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -135,7 +135,7 @@ export default function CompanionCheckinScreen() {
         <View style={styles.waitingCard}>
           <Text style={styles.waitingText}>Waiting for {booking?.seeker?.name ?? 'your guest'}...</Text>
           <Text style={styles.waitingSubtext}>They'll check in when they arrive</Text>
-          <ActivityIndicator color="#FF2A5F" style={{ marginTop: 16 }} />
+          <ActivityIndicator color={colors.primary} style={{ marginTop: 16 }} />
         </View>
         <View style={styles.statusRow}>
           <View style={[styles.dot, styles.dotGreen]} />
@@ -240,41 +240,41 @@ export default function CompanionCheckinScreen() {
 }
 
 const styles = StyleSheet.create({
-  scroll: { flex: 1, backgroundColor: '#F4F0EA' },
+  scroll: { flex: 1, backgroundColor: colors.background },
   container: { padding: 24, paddingTop: 60, paddingBottom: 40 },
-  center: { flex: 1, backgroundColor: '#F4F0EA', justifyContent: 'center', alignItems: 'center' },
-  title: { fontSize: 40, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000', lineHeight: 48, marginBottom: 24 },
-  locationCard: { backgroundColor: '#4DF0FF', borderWidth: 2, borderColor: '#000', padding: 16, marginBottom: 24, shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
-  locationLabel: { fontSize: 12, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', textTransform: 'uppercase', color: '#000', marginBottom: 4 },
-  locationText: { fontSize: 18, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
-  stepCard: { backgroundColor: '#fff', borderWidth: 2, borderColor: '#000', padding: 16, marginBottom: 16, shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
+  center: { flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' },
+  title: { fontSize: 40, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: colors.text, lineHeight: 48, marginBottom: 24 },
+  locationCard: { backgroundColor: colors.accent, borderWidth: 2, borderColor: colors.border, padding: 16, marginBottom: 24, shadowOffset: { width: 3, height: 3 }, shadowColor: colors.shadow, shadowOpacity: 1, shadowRadius: 0 },
+  locationLabel: { fontSize: 12, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', textTransform: 'uppercase', color: colors.text, marginBottom: 4 },
+  locationText: { fontSize: 18, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: colors.text },
+  stepCard: { backgroundColor: colors.surface, borderWidth: 2, borderColor: colors.border, padding: 16, marginBottom: 16, shadowOffset: { width: 3, height: 3 }, shadowColor: colors.shadow, shadowOpacity: 1, shadowRadius: 0 },
   stepCardDimmed: { opacity: 0.4 },
   stepHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
-  stepBadge: { width: 28, height: 28, borderRadius: 14, borderWidth: 2, borderColor: '#000', justifyContent: 'center', alignItems: 'center', marginRight: 10 },
-  stepBadgeTodo: { backgroundColor: '#fff' },
+  stepBadge: { width: 28, height: 28, borderRadius: 14, borderWidth: 2, borderColor: colors.border, justifyContent: 'center', alignItems: 'center', marginRight: 10 },
+  stepBadgeTodo: { backgroundColor: colors.surface },
   stepBadgeDone: { backgroundColor: colors.successStrong },
-  stepBadgeText: { fontSize: 12, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
-  stepTitle: { fontSize: 18, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
-  stepDesc: { fontSize: 13, color: '#555', marginBottom: 14, marginLeft: 38 },
+  stepBadgeText: { fontSize: 12, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: colors.text },
+  stepTitle: { fontSize: 18, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: colors.text },
+  stepDesc: { fontSize: 13, color: colors.textMuted, marginBottom: 14, marginLeft: 38 },
   selfieRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  selfieThumb: { width: 72, height: 72, borderWidth: 2, borderColor: '#000' },
-  retakeBtn: { borderWidth: 2, borderColor: '#000', paddingHorizontal: 16, paddingVertical: 8 },
-  retakeBtnText: { fontSize: 14, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
-  cameraBtn: { backgroundColor: '#FF5A85', borderWidth: 2, borderColor: '#000', paddingVertical: 14, alignItems: 'center', shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
-  cameraBtnText: { fontSize: 16, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
-  locationBtn: { backgroundColor: '#4DF0FF', borderWidth: 2, borderColor: '#000', paddingVertical: 14, alignItems: 'center', shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
-  locationBtnText: { fontSize: 16, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
-  locationDoneRow: { backgroundColor: '#F4F0EA', borderWidth: 1, borderColor: '#ccc', padding: 10 },
-  locationDoneText: { fontSize: 14, fontFamily: 'SpaceGrotesk-Bold', color: '#000' },
-  checkinBtn: { backgroundColor: '#FF2A5F', borderWidth: 2, borderColor: '#000', paddingVertical: 20, alignItems: 'center', marginTop: 8, shadowOffset: { width: 4, height: 4 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
+  selfieThumb: { width: 72, height: 72, borderWidth: 2, borderColor: colors.border },
+  retakeBtn: { borderWidth: 2, borderColor: colors.border, paddingHorizontal: 16, paddingVertical: 8 },
+  retakeBtnText: { fontSize: 14, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: colors.text },
+  cameraBtn: { backgroundColor: colors.primaryLight, borderWidth: 2, borderColor: colors.border, paddingVertical: 14, alignItems: 'center', shadowOffset: { width: 3, height: 3 }, shadowColor: colors.shadow, shadowOpacity: 1, shadowRadius: 0 },
+  cameraBtnText: { fontSize: 16, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: colors.text },
+  locationBtn: { backgroundColor: colors.accent, borderWidth: 2, borderColor: colors.border, paddingVertical: 14, alignItems: 'center', shadowOffset: { width: 3, height: 3 }, shadowColor: colors.shadow, shadowOpacity: 1, shadowRadius: 0 },
+  locationBtnText: { fontSize: 16, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: colors.text },
+  locationDoneRow: { backgroundColor: colors.background, borderWidth: 1, borderColor: colors.borderLight, padding: 10 },
+  locationDoneText: { fontSize: 14, fontFamily: 'SpaceGrotesk-Bold', color: colors.text },
+  checkinBtn: { backgroundColor: colors.primary, borderWidth: 2, borderColor: colors.border, paddingVertical: 20, alignItems: 'center', marginTop: 8, shadowOffset: { width: 4, height: 4 }, shadowColor: colors.shadow, shadowOpacity: 1, shadowRadius: 0 },
   btnDisabled: { opacity: 0.4 },
-  checkinBtnText: { fontSize: 20, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#fff' },
-  waitingCard: { backgroundColor: '#FF5A85', borderWidth: 2, borderColor: '#000', padding: 20, alignItems: 'center', shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0, marginBottom: 24 },
-  waitingText: { fontSize: 20, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
-  waitingSubtext: { fontSize: 14, color: '#000', marginTop: 8, textAlign: 'center' },
+  checkinBtnText: { fontSize: 20, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: colors.textInverse },
+  waitingCard: { backgroundColor: colors.primaryLight, borderWidth: 2, borderColor: colors.border, padding: 20, alignItems: 'center', shadowOffset: { width: 3, height: 3 }, shadowColor: colors.shadow, shadowOpacity: 1, shadowRadius: 0, marginBottom: 24 },
+  waitingText: { fontSize: 20, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: colors.text },
+  waitingSubtext: { fontSize: 14, color: colors.text, marginTop: 8, textAlign: 'center' },
   statusRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
-  dot: { width: 14, height: 14, borderRadius: 7, borderWidth: 2, borderColor: '#000' },
+  dot: { width: 14, height: 14, borderRadius: 7, borderWidth: 2, borderColor: colors.border },
   dotGreen: { backgroundColor: colors.successStrong },
-  dotGray: { backgroundColor: '#ccc' },
-  statusName: { fontSize: 14, fontFamily: 'SpaceGrotesk-Bold', marginLeft: 6, color: '#000' },
+  dotGray: { backgroundColor: colors.textLight },
+  statusName: { fontSize: 14, fontFamily: 'SpaceGrotesk-Bold', marginLeft: 6, color: colors.text },
 });
