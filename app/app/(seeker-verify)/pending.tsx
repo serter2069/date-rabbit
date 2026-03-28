@@ -20,6 +20,7 @@ import { useVerificationStore } from '../../src/store/verificationStore';
 import { colors, spacing, typography, borderRadius, PAGE_PADDING } from '../../src/constants/theme';
 
 const IS_DEV = __DEV__;
+const POLL_INTERVAL_MS = 10_000;
 
 export default function SeekerVerifyPendingScreen() {
   const insets = useSafeAreaInsets();
@@ -46,7 +47,8 @@ export default function SeekerVerifyPendingScreen() {
   }, [rotation, pulse]);
 
   useEffect(() => {
-    if (!IS_DEV) return;
+    // Initial fetch
+    fetchStatus();
 
     pollingRef.current = setInterval(async () => {
       await fetchStatus();
@@ -55,7 +57,7 @@ export default function SeekerVerifyPendingScreen() {
         if (pollingRef.current) clearInterval(pollingRef.current);
         router.replace('/(seeker-verify)/approved');
       }
-    }, 2000);
+    }, POLL_INTERVAL_MS);
 
     return () => {
       if (pollingRef.current) clearInterval(pollingRef.current);
