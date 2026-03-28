@@ -35,6 +35,7 @@ interface AuthState {
   isLoading: boolean;
   hasCompletedOnboarding: boolean;
   hasSeenOnboarding: boolean; // Intro slides (not profile setup)
+  _hasHydrated: boolean; // True once zustand persist has loaded from AsyncStorage
   authStep: AuthStep;
   pendingEmail: string | null;
   error: string | null;
@@ -56,6 +57,7 @@ interface AuthState {
   logout: () => Promise<void>;
   clearError: () => void;
   setOnboardingSeen: () => void;
+  setHasHydrated: (value: boolean) => void;
   refreshUser: () => Promise<void>;
   initialize: () => Promise<void>;
   setPendingEmail: (email: string) => void;
@@ -94,6 +96,7 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
       hasCompletedOnboarding: false,
       hasSeenOnboarding: false,
+      _hasHydrated: false,
       authStep: 'idle',
       pendingEmail: null,
       error: null,
@@ -323,6 +326,8 @@ export const useAuthStore = create<AuthState>()(
 
       setOnboardingSeen: () => set({ hasSeenOnboarding: true }),
 
+      setHasHydrated: (value) => set({ _hasHydrated: value }),
+
       setPendingEmail: (email) => set({ pendingEmail: email }),
     }),
     {
@@ -332,6 +337,11 @@ export const useAuthStore = create<AuthState>()(
         hasSeenOnboarding: state.hasSeenOnboarding,
         hasCompletedOnboarding: state.hasCompletedOnboarding,
       }),
+      onRehydrateStorage: () => (_state, error) => {
+        if (!error) {
+          useAuthStore.getState().setHasHydrated(true);
+        }
+      },
     }
   )
 );

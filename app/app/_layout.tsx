@@ -74,11 +74,16 @@ const VERIFICATION_REQUIRED_ROUTES = [
 ];
 
 function NavigationGuard() {
-  const { isAuthenticated, hasSeenOnboarding, user } = useAuthStore();
+  const { isAuthenticated, hasSeenOnboarding, _hasHydrated, user } = useAuthStore();
   const router = useRouter();
   const segments = useSegments();
 
   useEffect(() => {
+    // Wait for AsyncStorage hydration before making any routing decisions.
+    // Without this guard, NavigationGuard fires with the unhydrated initial state
+    // (hasSeenOnboarding=false) and immediately redirects returning users to onboarding.
+    if (!_hasHydrated) return;
+
     const currentSegment = segments[0];
     const needsVerification = isAuthenticated && user?.verificationStatus !== 'approved';
     const isSeeker = user?.role === 'seeker';
@@ -150,7 +155,7 @@ function NavigationGuard() {
       const isCompanion = user?.role === 'companion';
       router.replace(isCompanion ? '/(tabs)/female' : '/(tabs)/male');
     }
-  }, [isAuthenticated, hasSeenOnboarding, user, segments, router]);
+  }, [isAuthenticated, hasSeenOnboarding, _hasHydrated, user, segments, router]);
 
   return null;
 }
