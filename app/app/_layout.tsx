@@ -210,6 +210,7 @@ export default function RootLayout() {
         <Stack.Screen name="index" options={{ animation: 'fade' }} />
         <Stack.Screen name="onboarding" options={{ animation: 'fade' }} />
         <Stack.Screen name="(auth)" options={{ animation: 'fade' }} />
+        <Stack.Screen name="(auth)/forgot-password" />
         <Stack.Screen name="(dev)" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
         <Stack.Screen name="(seeker-verify)" />
