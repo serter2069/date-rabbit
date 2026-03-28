@@ -9,7 +9,7 @@ import { Button } from '../../../src/components/Button';
 import { Icon } from '../../../src/components/Icon';
 import { EmptyState } from '../../../src/components/EmptyState';
 import { FilterModal, FilterOptions } from '../../../src/components/FilterModal';
-import { useTheme, spacing, typography, borderRadius } from '../../../src/constants/theme';
+import { useTheme, colors, spacing, typography, borderRadius } from '../../../src/constants/theme';
 import { companionsApi, CompanionListItem } from '../../../src/services/api';
 import { showAlert } from '../../../src/utils/alert';
 
@@ -410,7 +410,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
     borderRadius: borderRadius.sm,
     borderWidth: 2,
-    borderColor: '#000000',
+    borderColor: colors.border,
     marginBottom: spacing.md,
     gap: spacing.xs,
   },
@@ -433,11 +433,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderWidth: 2,
-    borderColor: '#000000',
+    borderColor: colors.border,
     gap: spacing.sm,
     overflow: 'hidden',
     // Neo-Brutalism offset shadow
-    shadowColor: '#000000',
+    shadowColor: colors.shadow,
     shadowOffset: { width: 3, height: 3 },
     shadowOpacity: 1,
     shadowRadius: 0,
@@ -451,9 +451,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: '#000000',
+    borderColor: colors.border,
     // Neo-Brutalism offset shadow
-    shadowColor: '#000000',
+    shadowColor: colors.shadow,
     shadowOffset: { width: 3, height: 3 },
     shadowOpacity: 1,
     shadowRadius: 0,
@@ -470,7 +470,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: '#000000',
+    borderColor: colors.border,
   },
   filterBadgeText: {
     fontFamily: typography.fonts.heading,
@@ -501,9 +501,9 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: borderRadius.sm,
     borderWidth: 2,
-    borderColor: '#000000',
+    borderColor: colors.border,
     // Inactive chip: subtle shadow
-    shadowColor: '#000000',
+    shadowColor: colors.shadow,
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 1,
     shadowRadius: 0,
@@ -574,8 +574,8 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.sm,
     borderWidth: 2,
-    borderColor: '#000000',
-    shadowColor: '#000000',
+    borderColor: colors.border,
+    shadowColor: colors.shadow,
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 1,
     shadowRadius: 0,

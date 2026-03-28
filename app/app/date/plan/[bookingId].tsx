@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { activeDateApi } from '../../../src/services/activeDateApi';
+import { colors, spacing, typography } from '../../../src/constants/theme';
 
 interface Place {
   name: string;
@@ -74,7 +75,7 @@ export default function DatePlanScreen() {
 
   if (loading) return (
     <View style={styles.center}>
-      <ActivityIndicator color="#FF2A5F" size="large" />
+      <ActivityIndicator color={colors.primary} size="large" />
     </View>
   );
 
@@ -177,30 +178,30 @@ export default function DatePlanScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F0EA' },
-  center: { flex: 1, backgroundColor: '#F4F0EA', justifyContent: 'center', alignItems: 'center' },
-  list: { padding: 24, paddingBottom: 40 },
-  title: { fontSize: 28, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000', marginBottom: 20 },
-  placeCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderWidth: 2, borderColor: '#000', padding: 14, marginBottom: 10, shadowOffset: { width: 2, height: 2 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
-  placeNum: { backgroundColor: '#FF2A5F', width: 32, height: 32, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#000', marginRight: 12 },
-  placeNumText: { color: '#fff', fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', fontSize: 14 },
+  container: { flex: 1, backgroundColor: colors.background },
+  center: { flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' },
+  list: { padding: spacing.xl, paddingBottom: 40 },
+  title: { fontSize: typography.sizes.xl, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.text, marginBottom: spacing.lg },
+  placeCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface, borderWidth: 2, borderColor: colors.border, padding: 14, marginBottom: 10, shadowOffset: { width: 2, height: 2 }, shadowColor: colors.shadow, shadowOpacity: 1, shadowRadius: 0 },
+  placeNum: { backgroundColor: colors.primary, width: 32, height: 32, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: colors.border, marginRight: 12 },
+  placeNumText: { color: colors.textInverse, fontFamily: typography.fonts.heading, fontWeight: '700', fontSize: typography.sizes.sm },
   placeInfo: { flex: 1 },
-  placeName: { fontSize: 16, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
-  placeAddress: { fontSize: 13, color: '#555', marginTop: 2 },
-  placeTime: { fontSize: 13, color: '#FF2A5F', marginTop: 4, fontFamily: 'SpaceGrotesk-Bold' },
-  removeBtn: { padding: 8 },
-  removeText: { fontSize: 18, color: '#FF2A5F', fontFamily: 'SpaceGrotesk-Bold' },
+  placeName: { fontSize: typography.sizes.md, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.text },
+  placeAddress: { fontSize: typography.sizes.sm, color: colors.textMuted, marginTop: 2 },
+  placeTime: { fontSize: typography.sizes.sm, color: colors.primary, marginTop: 4, fontFamily: typography.fonts.heading },
+  removeBtn: { padding: spacing.sm },
+  removeText: { fontSize: 18, color: colors.primary, fontFamily: typography.fonts.heading },
   empty: { alignItems: 'center', paddingVertical: 40 },
-  emptyText: { fontSize: 20, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
-  emptySubtext: { fontSize: 14, color: '#555', marginTop: 8 },
-  addBtn: { backgroundColor: '#4DF0FF', borderWidth: 2, borderColor: '#000', paddingVertical: 16, alignItems: 'center', marginTop: 8, shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
-  addBtnText: { fontSize: 16, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
-  addForm: { backgroundColor: '#fff', borderWidth: 2, borderColor: '#000', padding: 16, marginTop: 8 },
-  input: { borderWidth: 2, borderColor: '#000', padding: 12, fontSize: 15, marginBottom: 10, backgroundColor: '#F4F0EA' },
+  emptyText: { fontSize: typography.sizes.lg, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.text },
+  emptySubtext: { fontSize: typography.sizes.sm, color: colors.textMuted, marginTop: spacing.sm },
+  addBtn: { backgroundColor: colors.accent, borderWidth: 2, borderColor: colors.border, paddingVertical: spacing.md, alignItems: 'center', marginTop: spacing.sm, shadowOffset: { width: 3, height: 3 }, shadowColor: colors.shadow, shadowOpacity: 1, shadowRadius: 0 },
+  addBtnText: { fontSize: typography.sizes.md, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.text },
+  addForm: { backgroundColor: colors.surface, borderWidth: 2, borderColor: colors.border, padding: spacing.md, marginTop: spacing.sm },
+  input: { borderWidth: 2, borderColor: colors.border, padding: 12, fontSize: typography.sizes.md, marginBottom: spacing.sm, backgroundColor: colors.background },
   formBtns: { flexDirection: 'row', gap: 10 },
-  saveBtn: { flex: 1, backgroundColor: '#FF2A5F', borderWidth: 2, borderColor: '#000', paddingVertical: 12, alignItems: 'center' },
-  saveBtnText: { fontSize: 15, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#fff' },
-  cancelBtn: { flex: 1, backgroundColor: '#fff', borderWidth: 2, borderColor: '#000', paddingVertical: 12, alignItems: 'center' },
-  cancelText: { fontSize: 15, color: '#000' },
+  saveBtn: { flex: 1, backgroundColor: colors.primary, borderWidth: 2, borderColor: colors.border, paddingVertical: 12, alignItems: 'center' },
+  saveBtnText: { fontSize: typography.sizes.md, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.textInverse },
+  cancelBtn: { flex: 1, backgroundColor: colors.surface, borderWidth: 2, borderColor: colors.border, paddingVertical: 12, alignItems: 'center' },
+  cancelText: { fontSize: typography.sizes.md, color: colors.text },
   btnDisabled: { opacity: 0.6 },
 });
