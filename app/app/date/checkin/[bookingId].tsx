@@ -25,6 +25,7 @@ export default function SeekerCheckinScreen() {
   const [step, setStep] = useState<Step>('selfie');
 
   const [selfieUri, setSelfieUri] = useState<string | null>(null);
+  const [selfieUploadStatus, setSelfieUploadStatus] = useState<'idle' | 'uploading' | 'done' | 'failed'>('idle');
   const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
   const [locationStatus, setLocationStatus] = useState<'idle' | 'loading' | 'done' | 'denied'>('idle');
 
@@ -74,8 +75,28 @@ export default function SeekerCheckinScreen() {
       cameraType: ImagePicker.CameraType.front,
     });
     if (!result.canceled && result.assets[0]) {
-      setSelfieUri(result.assets[0].uri);
+      const uri = result.assets[0].uri;
+      setSelfieUri(uri);
+      setSelfieUploadStatus('uploading');
+      try {
+        await activeDateApi.uploadSelfie(bookingId, uri);
+        setSelfieUploadStatus('done');
+      } catch (_e) {
+        // Graceful degradation: upload failed, show warning but allow proceeding
+        setSelfieUploadStatus('failed');
+      }
       setStep('location');
+    }
+  };
+
+  const handleRetrySelfieUpload = async () => {
+    if (!selfieUri) return;
+    setSelfieUploadStatus('uploading');
+    try {
+      await activeDateApi.uploadSelfie(bookingId, selfieUri);
+      setSelfieUploadStatus('done');
+    } catch (_e) {
+      setSelfieUploadStatus('failed');
     }
   };
 
@@ -161,34 +182,59 @@ export default function SeekerCheckinScreen() {
       {/* Step 1: Selfie */}
       <View style={styles.stepCard}>
         <View style={styles.stepHeader}>
-          <View style={[styles.stepBadge, selfieUri ? styles.stepBadgeDone : styles.stepBadgeTodo]}>
-            <Text style={styles.stepBadgeText}>{selfieUri ? '✓' : '1'}</Text>
+          <View style={[styles.stepBadge, selfieUploadStatus === 'done' ? styles.stepBadgeDone : styles.stepBadgeTodo]}>
+            <Text style={styles.stepBadgeText}>{selfieUploadStatus === 'done' ? '✓' : '1'}</Text>
           </View>
           <Text style={styles.stepTitle}>Take a Selfie</Text>
         </View>
         <Text style={styles.stepDesc}>Verify your identity at the location</Text>
         {selfieUri ? (
-          <View style={styles.selfieRow}>
-            <Image source={{ uri: selfieUri }} style={styles.selfieThumb} />
-            <TouchableOpacity style={styles.retakeBtn} onPress={handleTakeSelfie}
-              accessibilityLabel="Retake selfie"
-              accessibilityRole="button"
-            >
-              <Text style={styles.retakeBtnText}>Retake</Text>
-            </TouchableOpacity>
+          <View>
+            <View style={styles.selfieRow}>
+              <Image source={{ uri: selfieUri }} style={styles.selfieThumb} />
+              <View style={styles.selfieActions}>
+                {selfieUploadStatus === 'uploading' && (
+                  <View style={styles.uploadingRow}>
+                    <ActivityIndicator color="#FF2A5F" size="small" />
+                    <Text style={styles.uploadingText}>Uploading...</Text>
+                  </View>
+                )}
+                {selfieUploadStatus === 'done' && (
+                  <Text style={styles.uploadDoneText}>Uploaded</Text>
+                )}
+                {selfieUploadStatus === 'failed' && (
+                  <View>
+                    <Text style={styles.uploadFailText}>Upload failed</Text>
+                    <TouchableOpacity style={styles.retryBtn} onPress={handleRetrySelfieUpload}
+                      accessibilityLabel="Retry selfie upload"
+                      accessibilityRole="button"
+                    >
+                      <Text style={styles.retakeBtnText}>Retry</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+                <TouchableOpacity style={[styles.retakeBtn, selfieUploadStatus === 'uploading' && styles.btnDisabled]}
+                  onPress={selfieUploadStatus === 'uploading' ? undefined : handleTakeSelfie}
+                  accessibilityLabel="Retake selfie"
+                  accessibilityRole="button"
+                >
+                  <Text style={styles.retakeBtnText}>Retake</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
         ) : (
           <TouchableOpacity style={styles.cameraBtn} onPress={handleTakeSelfie}
             accessibilityLabel="Open camera for selfie"
             accessibilityRole="button"
           >
-            <Text style={styles.cameraBtnText}>📸  Open Camera</Text>
+            <Text style={styles.cameraBtnText}>Open Camera</Text>
           </TouchableOpacity>
         )}
       </View>
 
       {/* Step 2: Location */}
-      <View style={[styles.stepCard, step === 'selfie' && styles.stepCardDimmed]}>
+      <View style={[styles.stepCard, !selfieUri && styles.stepCardDimmed]}>
         <View style={styles.stepHeader}>
           <View style={[styles.stepBadge, locationStatus === 'done' ? styles.stepBadgeDone : styles.stepBadgeTodo]}>
             <Text style={styles.stepBadgeText}>{locationStatus === 'done' ? '✓' : '2'}</Text>
@@ -198,24 +244,24 @@ export default function SeekerCheckinScreen() {
         <Text style={styles.stepDesc}>Confirm you're at the meeting spot</Text>
         {locationStatus === 'done' ? (
           <View style={styles.locationDoneRow}>
-            <Text style={styles.locationDoneText}>📍 Location captured</Text>
+            <Text style={styles.locationDoneText}>Location captured</Text>
           </View>
         ) : locationStatus === 'denied' ? (
           <View style={styles.locationDoneRow}>
-            <Text style={styles.locationDoneText}>⚠️ Location skipped</Text>
+            <Text style={styles.locationDoneText}>Location skipped</Text>
           </View>
         ) : (
           <TouchableOpacity
-            style={[styles.locationBtn, (step === 'selfie' || locationStatus === 'loading') && styles.btnDisabled]}
+            style={[styles.locationBtn, (!selfieUri || locationStatus === 'loading') && styles.btnDisabled]}
             onPress={handleGetLocation}
-            disabled={step === 'selfie' || locationStatus === 'loading'}
+            disabled={!selfieUri || locationStatus === 'loading'}
             accessibilityLabel="Get current location"
             accessibilityRole="button"
-            accessibilityState={{ disabled: step === 'selfie' || locationStatus === 'loading' }}
+            accessibilityState={{ disabled: !selfieUri || locationStatus === 'loading' }}
           >
             {locationStatus === 'loading'
               ? <ActivityIndicator color="#000" size="small" />
-              : <Text style={styles.locationBtnText}>📍  Get Location</Text>
+              : <Text style={styles.locationBtnText}>Get Location</Text>
             }
           </TouchableOpacity>
         )}
@@ -256,8 +302,14 @@ const styles = StyleSheet.create({
   stepBadgeText: { fontSize: 12, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
   stepTitle: { fontSize: 18, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
   stepDesc: { fontSize: 13, color: '#555', marginBottom: 14, marginLeft: 38 },
-  selfieRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  selfieRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
   selfieThumb: { width: 72, height: 72, borderWidth: 2, borderColor: '#000' },
+  selfieActions: { flex: 1, gap: 8 },
+  uploadingRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  uploadingText: { fontSize: 13, fontFamily: 'SpaceGrotesk-Bold', color: '#555' },
+  uploadDoneText: { fontSize: 13, fontFamily: 'SpaceGrotesk-Bold', color: '#16a34a' },
+  uploadFailText: { fontSize: 13, fontFamily: 'SpaceGrotesk-Bold', color: '#dc2626', marginBottom: 6 },
+  retryBtn: { borderWidth: 2, borderColor: '#dc2626', paddingHorizontal: 12, paddingVertical: 6, marginBottom: 6 },
   retakeBtn: { borderWidth: 2, borderColor: '#000', paddingHorizontal: 16, paddingVertical: 8 },
   retakeBtnText: { fontSize: 14, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
   cameraBtn: { backgroundColor: '#FF5A85', borderWidth: 2, borderColor: '#000', paddingVertical: 14, alignItems: 'center', shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },

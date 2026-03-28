@@ -1,6 +1,8 @@
-import { Controller, Get, Post, Put, Body, Param, Query, UseGuards, Request, HttpException, HttpStatus, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Post, Put, Body, Param, Query, UseGuards, Request, HttpException, HttpStatus, ParseUUIDPipe, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { BookingsService } from './bookings.service';
 import { PaymentsService } from '../payments/payments.service';
+import { UploadsService } from '../uploads/uploads.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { BookingStatus, ActivityType } from './entities/booking.entity';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -13,6 +15,7 @@ export class BookingsController {
     private bookingsService: BookingsService,
     private paymentsService: PaymentsService,
     private notificationsService: NotificationsService,
+    private uploadsService: UploadsService,
   ) {}
 
   @Post()
@@ -353,6 +356,25 @@ export class BookingsController {
   }
 
   // --- UC-061: Selfie verification ---
+
+  /**
+   * Multipart upload: POST /bookings/:id/verify-selfie/upload
+   * Accepts `file` (image), saves to uploads/selfies/, then records selfie verification.
+   */
+  @Post(':id/verify-selfie/upload')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadSelfieFile(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Request() req,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException('No file provided');
+    }
+    this.uploadsService.validateImageFile(file);
+    const photoUrl = this.uploadsService.getFileUrl('selfies', file.filename);
+    return this.bookingsService.submitSelfie(id, req.user.id, photoUrl);
+  }
 
   @Post(':id/verify-selfie')
   async submitSelfie(

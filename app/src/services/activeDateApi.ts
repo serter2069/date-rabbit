@@ -109,4 +109,19 @@ export const activeDateApi = {
       method: 'POST',
       body: { type, text: description },
     }),
+
+  uploadSelfie: async (bookingId: string, uri: string): Promise<{ id: string; photoUrl: string }> => {
+    const token = await getToken();
+    const formData = new FormData();
+    const ext = uri.split('.').pop() || 'jpg';
+    formData.append('file', { uri, type: `image/${ext === 'jpg' ? 'jpeg' : ext}`, name: `selfie.${ext}` } as any);
+    const resp = await fetch(`${API_BASE}/bookings/${bookingId}/verify-selfie/upload`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.message || 'Selfie upload failed');
+    return data;
+  },
 };
