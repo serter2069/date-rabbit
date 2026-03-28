@@ -42,6 +42,11 @@ export default function ActiveDateScreen() {
       activeDateApi.getBookingById(bookingId)
         .then(data => {
           setBooking(data);
+          // Recalculate remaining time so timer reflects updated duration after extend approval
+          if (data.activeDateStartedAt) {
+            const endTime = new Date(data.activeDateStartedAt).getTime() + data.duration * 3600 * 1000;
+            setRemaining(Math.max(0, endTime - Date.now()));
+          }
           if (data.status === 'completed') {
             clearInterval(interval);
             router.replace(`/date/summary/${bookingId}`);
