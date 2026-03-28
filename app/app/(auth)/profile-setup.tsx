@@ -89,9 +89,10 @@ export default function ProfileSetupScreen() {
       return;
     }
 
-    // Navigate to correct tabs based on role
-    // In Expo Router, /male is equivalent to /male/index when index.tsx exists
-    router.replace(role === 'companion' ? '/female' : '/male');
+    // Navigate to verification flow based on role
+    // Companions need identity/background verification before going live
+    // Seekers need identity verification before booking
+    router.replace(role === 'companion' ? '/(comp-onboard)/step1' : '/(seeker-verify)/intro');
   };
 
   const handleBack = () => {
