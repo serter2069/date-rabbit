@@ -161,24 +161,11 @@ export default function RegisterScreen() {
     const result = await completeOnboarding(onboardingData);
 
     if (!result.success) {
-      const { setUser, setOnboardingSeen } = useAuthStore.getState();
-      setUser({
-        id: 'demo-' + Date.now(),
-        email: formData.email,
-        name: formData.name,
-        role: (role || 'seeker') as 'seeker' | 'companion',
-        age: onboardingData.age,
-        location: formData.location || 'New York',
-        bio: '',
-        photos: [] as { id: string; url: string; order: number; isPrimary: boolean }[],
-        hourlyRate: onboardingData.hourlyRate,
-        rating: 5.0,
-        reviewCount: 0,
-        isVerified: false,
-        verificationStatus: 'not_started',
-        createdAt: new Date().toISOString(),
-      });
-      setOnboardingSeen();
+      setLoading(false);
+      setErrors({ form: result.error || 'Registration failed. Please try again.' });
+      setShowFormError(true);
+      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+      return;
     }
 
     setLoading(false);
