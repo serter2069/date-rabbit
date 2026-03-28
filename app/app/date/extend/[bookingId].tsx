@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { activeDateApi } from '../../../src/services/activeDateApi';
@@ -10,6 +10,28 @@ export default function ExtendDateScreen() {
   const [selected, setSelected] = useState(1);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [responseStatus, setResponseStatus] = useState<'pending' | 'approved' | 'rejected'>('pending');
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Poll for companion's response after request is sent
+  useEffect(() => {
+    if (!sent) return;
+    pollRef.current = setInterval(async () => {
+      try {
+        const data = await activeDateApi.getBookingById(bookingId);
+        if (data.extendRequestApproved === true) {
+          setResponseStatus('approved');
+          if (pollRef.current) clearInterval(pollRef.current);
+          setTimeout(() => router.back(), 2000);
+        } else if (data.extendRequestApproved === false) {
+          setResponseStatus('rejected');
+          if (pollRef.current) clearInterval(pollRef.current);
+          setTimeout(() => router.back(), 2500);
+        }
+      } catch {}
+    }, 5000);
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+  }, [sent, bookingId]);
 
   const handleSend = async () => {
     setSending(true);
@@ -46,11 +68,23 @@ export default function ExtendDateScreen() {
       </View>
 
       {sent ? (
-        <View style={styles.sentCard}>
-          <Text style={styles.sentText}>Request sent!</Text>
-          <Text style={styles.sentSubtext}>Waiting for companion's response...</Text>
-          <ActivityIndicator color="#FF2A5F" style={{ marginTop: 16 }} />
-        </View>
+        responseStatus === 'approved' ? (
+          <View style={[styles.sentCard, { backgroundColor: '#4DF0FF' }]}>
+            <Text style={styles.sentText}>Extension Approved!</Text>
+            <Text style={styles.sentSubtext}>Your date has been extended by {selected} hour{selected !== 1 ? 's' : ''}.</Text>
+          </View>
+        ) : responseStatus === 'rejected' ? (
+          <View style={[styles.sentCard, { backgroundColor: '#FF5A85' }]}>
+            <Text style={styles.sentText}>Request Declined</Text>
+            <Text style={styles.sentSubtext}>The companion declined the extension request.</Text>
+          </View>
+        ) : (
+          <View style={styles.sentCard}>
+            <Text style={styles.sentText}>Request sent!</Text>
+            <Text style={styles.sentSubtext}>Waiting for companion's response...</Text>
+            <ActivityIndicator color="#FF2A5F" style={{ marginTop: 16 }} />
+          </View>
+        )
       ) : (
         <TouchableOpacity
           style={[styles.button, sending && styles.buttonDisabled]}

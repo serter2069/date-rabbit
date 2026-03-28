@@ -13,7 +13,8 @@ interface ActiveDateState {
   seekerCheckin: (bookingId: string, coords?: { lat: number; lon: number }) => Promise<{ success: boolean; error?: string }>;
   companionCheckin: (bookingId: string, coords?: { lat: number; lon: number }) => Promise<{ success: boolean; error?: string }>;
   safetyCheckin: (bookingId: string) => Promise<{ success: boolean; error?: string }>;
-  extendDate: (bookingId: string, additionalHours: number) => Promise<{ success: boolean; error?: string }>;
+  extendDate: (bookingId: string, hours: number) => Promise<{ success: boolean; error?: string }>;
+  extendResponse: (bookingId: string, approved: boolean) => Promise<{ success: boolean; error?: string }>;
   endEarly: (bookingId: string) => Promise<{ success: boolean; error?: string }>;
   triggerSOS: (bookingId: string, coords?: { lat: number; lon: number }) => Promise<{ success: boolean; error?: string }>;
   clearError: () => void;
@@ -84,13 +85,23 @@ export const useActiveDateStore = create<ActiveDateState>((set) => ({
     }
   },
 
-  extendDate: async (bookingId: string, additionalHours: number) => {
+  extendDate: async (bookingId: string, hours: number) => {
     try {
-      const booking = await activeDateApi.extendDate(bookingId, additionalHours);
+      const booking = await activeDateApi.extendDate(bookingId, hours);
       set({ activeBooking: booking });
       return { success: true };
     } catch (e: any) {
       return { success: false, error: e.message || 'Extend request failed' };
+    }
+  },
+
+  extendResponse: async (bookingId: string, approved: boolean) => {
+    try {
+      const booking = await activeDateApi.extendResponse(bookingId, approved);
+      set({ activeBooking: booking });
+      return { success: true };
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Extend response failed' };
     }
   },
 

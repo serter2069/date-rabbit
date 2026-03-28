@@ -1,0 +1,133 @@
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { useLocalSearchParams, router } from 'expo-router';
+import { activeDateApi, ActiveBooking } from '../../../src/services/activeDateApi';
+
+export default function ExtendResponseScreen() {
+  const { bookingId } = useLocalSearchParams<{ bookingId: string }>();
+  const [booking, setBooking] = useState<ActiveBooking | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [responding, setResponding] = useState(false);
+
+  useEffect(() => {
+    activeDateApi.getBookingById(bookingId)
+      .then(data => setBooking(data))
+      .catch(() => Alert.alert('Error', 'Could not load booking'))
+      .finally(() => setLoading(false));
+  }, [bookingId]);
+
+  const handleRespond = async (approved: boolean) => {
+    setResponding(true);
+    try {
+      await activeDateApi.extendResponse(bookingId, approved);
+      Alert.alert(
+        approved ? 'Extension Approved' : 'Extension Declined',
+        approved
+          ? `You approved extending the date by ${booking?.extendRequestedHours} hour${booking?.extendRequestedHours !== 1 ? 's' : ''}.`
+          : 'You declined the extension request.',
+        [{ text: 'OK', onPress: () => router.back() }]
+      );
+    } catch (e: any) {
+      Alert.alert('Error', e.message || 'Failed to respond');
+      setResponding(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator color="#FF2A5F" size="large" />
+      </View>
+    );
+  }
+
+  if (!booking?.extendRequestedHours) {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.noRequest}>No pending extension request.</Text>
+        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+          <Text style={styles.backText}>Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Extension Request</Text>
+
+      <View style={styles.requestCard}>
+        <Text style={styles.requestLabel}>Seeker wants to extend by</Text>
+        <Text style={styles.requestHours}>+{booking.extendRequestedHours}h</Text>
+        <Text style={styles.requestSubtext}>
+          This will add {booking.extendRequestedHours} hour{booking.extendRequestedHours !== 1 ? 's' : ''} to your date.
+        </Text>
+      </View>
+
+      <View style={styles.buttonRow}>
+        <TouchableOpacity
+          style={[styles.rejectBtn, responding && styles.btnDisabled]}
+          onPress={() => handleRespond(false)}
+          disabled={responding}
+          accessibilityLabel="Decline extension"
+          accessibilityRole="button"
+          accessibilityState={{ disabled: responding }}
+        >
+          <Text style={styles.rejectText}>Decline</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.approveBtn, responding && styles.btnDisabled]}
+          onPress={() => handleRespond(true)}
+          disabled={responding}
+          accessibilityLabel="Approve extension"
+          accessibilityRole="button"
+          accessibilityState={{ disabled: responding }}
+        >
+          {responding
+            ? <ActivityIndicator color="#000" />
+            : <Text style={styles.approveText}>Approve</Text>
+          }
+        </TouchableOpacity>
+      </View>
+
+      <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}
+        accessibilityLabel="Cancel"
+        accessibilityRole="button"
+      >
+        <Text style={styles.backText}>Cancel</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#F4F0EA', padding: 24, paddingTop: 60 },
+  center: { flex: 1, backgroundColor: '#F4F0EA', justifyContent: 'center', alignItems: 'center', padding: 24 },
+  title: { fontSize: 36, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000', marginBottom: 32 },
+  requestCard: {
+    backgroundColor: '#fff', borderWidth: 2, borderColor: '#000',
+    padding: 32, alignItems: 'center', marginBottom: 40,
+    shadowOffset: { width: 4, height: 4 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0,
+  },
+  requestLabel: { fontSize: 14, color: '#555', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 },
+  requestHours: { fontSize: 72, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#FF2A5F', lineHeight: 80 },
+  requestSubtext: { fontSize: 14, color: '#555', marginTop: 8, textAlign: 'center' },
+  buttonRow: { flexDirection: 'row', gap: 12, marginBottom: 24 },
+  rejectBtn: {
+    flex: 1, paddingVertical: 18, alignItems: 'center',
+    borderWidth: 2, borderColor: '#000', backgroundColor: '#fff',
+    shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0,
+  },
+  rejectText: { fontSize: 18, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
+  approveBtn: {
+    flex: 1, paddingVertical: 18, alignItems: 'center',
+    borderWidth: 2, borderColor: '#000', backgroundColor: '#4DF0FF',
+    shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0,
+  },
+  approveText: { fontSize: 18, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
+  btnDisabled: { opacity: 0.6 },
+  noRequest: { fontSize: 18, fontFamily: 'SpaceGrotesk-Bold', color: '#000', textAlign: 'center', marginBottom: 24 },
+  backBtn: { alignItems: 'center', padding: 12 },
+  backText: { fontSize: 16, color: '#555', textDecorationLine: 'underline' },
+});
