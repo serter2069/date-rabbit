@@ -3,11 +3,23 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } fr
 import { useLocalSearchParams, router } from 'expo-router';
 import { activeDateApi } from '../../../src/services/activeDateApi';
 
-const HOURS_OPTIONS = [1, 2, 3];
+const HOURS_OPTIONS = [0.5, 1, 2];
+
+function formatHoursLabel(h: number): string {
+  if (h === 0.5) return '+30 min';
+  if (h === 1) return '+1 hour';
+  return `+${h} hours`;
+}
+
+function formatHoursDuration(h: number): string {
+  if (h === 0.5) return '30 minutes';
+  if (h === 1) return '1 hour';
+  return `${h} hours`;
+}
 
 export default function ExtendDateScreen() {
   const { bookingId } = useLocalSearchParams<{ bookingId: string }>();
-  const [selected, setSelected] = useState(1);
+  const [selected, setSelected] = useState(0.5);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [responseStatus, setResponseStatus] = useState<'pending' | 'approved' | 'rejected'>('pending');
@@ -56,12 +68,12 @@ export default function ExtendDateScreen() {
             key={h}
             style={[styles.option, selected === h && styles.optionSelected]}
             onPress={() => setSelected(h)}
-            accessibilityLabel={`Extend by ${h} hour${h !== 1 ? 's' : ''}`}
+            accessibilityLabel={`Extend by ${formatHoursDuration(h)}`}
             accessibilityRole="button"
             accessibilityState={{ selected: selected === h }}
           >
             <Text style={[styles.optionText, selected === h && styles.optionTextSelected]}>
-              +{h}h
+              {formatHoursLabel(h)}
             </Text>
           </TouchableOpacity>
         ))}
@@ -71,7 +83,7 @@ export default function ExtendDateScreen() {
         responseStatus === 'approved' ? (
           <View style={[styles.sentCard, { backgroundColor: '#4DF0FF' }]}>
             <Text style={styles.sentText}>Extension Approved!</Text>
-            <Text style={styles.sentSubtext}>Your date has been extended by {selected} hour{selected !== 1 ? 's' : ''}.</Text>
+            <Text style={styles.sentSubtext}>Your date has been extended by {formatHoursDuration(selected)}.</Text>
           </View>
         ) : responseStatus === 'rejected' ? (
           <View style={[styles.sentCard, { backgroundColor: '#FF5A85' }]}>
