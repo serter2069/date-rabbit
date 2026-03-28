@@ -2,7 +2,7 @@ export const colors = {
   bg: '#F4F0EA',
   pink: '#FF2A5F',
   cyan: '#4DF0FF',
-  yellow: '#FFE600',
+  pinkLight: '#FF5A85',
   black: '#000000',
   white: '#FFFFFF',
   gray: '#8A8A8A',

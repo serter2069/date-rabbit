@@ -84,7 +84,7 @@ export default function EarningsScreen() {
     if (diffDays === 1) return 'Yesterday';
     if (diffDays < 7) return `${diffDays} days ago`;
 
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   };
 
   if (loading) {
@@ -174,7 +174,10 @@ export default function EarningsScreen() {
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Transactions</Text>
-              <TouchableOpacity onPress={() => router.push('/female/earnings/history')}>
+              <TouchableOpacity onPress={() => router.push('/female/earnings/history')}
+                accessibilityLabel="View earnings history"
+                accessibilityRole="button"
+              >
                 <Text style={[styles.seeAll, { color: colors.primary }]}>See All</Text>
               </TouchableOpacity>
             </View>

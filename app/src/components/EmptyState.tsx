@@ -76,7 +76,7 @@ export function EmptyState({
       width: 100,
       height: 100,
       borderRadius: 50,
-      backgroundColor: colors.secondary,
+      backgroundColor: colors.primaryLight + '25',
       borderWidth: 3,
       borderColor: colors.black,
       alignItems: 'center',
@@ -90,7 +90,6 @@ export function EmptyState({
       color: colors.text,
       marginBottom: spacing.sm,
       textAlign: 'center',
-      textTransform: 'uppercase',
     },
     description: {
       fontFamily: typography.fonts.body,

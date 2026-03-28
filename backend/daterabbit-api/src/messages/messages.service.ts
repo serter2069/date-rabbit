@@ -2,6 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Message, Conversation } from './entities/message.entity';
+import { BookingsService } from '../bookings/bookings.service';
+import { sanitizeText } from '../common/sanitize';
+
+// Max messages a seeker can send to a companion before booking
+const PRE_CHAT_LIMIT = 3;
 
 @Injectable()
 export class MessagesService {
@@ -10,6 +15,7 @@ export class MessagesService {
     private messagesRepository: Repository<Message>,
     @InjectRepository(Conversation)
     private conversationsRepository: Repository<Conversation>,
+    private bookingsService: BookingsService,
   ) {}
 
   async getOrCreateConversation(user1Id: string, user2Id: string): Promise<Conversation> {
@@ -39,7 +45,7 @@ export class MessagesService {
     const message = this.messagesRepository.create({
       senderId,
       receiverId,
-      content,
+      content: sanitizeText(content),
     });
 
     const saved = await this.messagesRepository.save(message);
@@ -59,7 +65,7 @@ export class MessagesService {
         { user1Id: userId },
         { user2Id: userId },
       ],
-      relations: ['user1', 'user2'],
+      relations: ['user1', 'user2', 'lastMessage'],
       order: { lastMessageAt: 'DESC' },
     });
   }
@@ -87,5 +93,33 @@ export class MessagesService {
     return this.messagesRepository.count({
       where: { receiverId: userId, isRead: false },
     });
+  }
+
+  /**
+   * UC-037: Check if seeker can send pre-chat message to companion.
+   * Returns { allowed, sent, limit } indicating whether the seeker
+   * can still send messages before creating a booking.
+   */
+  async getPreChatStatus(
+    senderId: string,
+    receiverId: string,
+  ): Promise<{ allowed: boolean; sent: number; limit: number }> {
+    // Check if any booking exists between these users
+    const hasBooking = await this.bookingsService.hasAnyBooking(senderId, receiverId);
+    if (hasBooking) {
+      // No limit if a booking already exists
+      return { allowed: true, sent: 0, limit: PRE_CHAT_LIMIT };
+    }
+
+    // Count messages sent by this sender to this receiver
+    const sent = await this.messagesRepository.count({
+      where: { senderId, receiverId },
+    });
+
+    return {
+      allowed: sent < PRE_CHAT_LIMIT,
+      sent,
+      limit: PRE_CHAT_LIMIT,
+    };
   }
 }

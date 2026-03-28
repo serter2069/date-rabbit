@@ -1,6 +1,9 @@
 import { create } from 'zustand';
 import { messagesApi, Message, Chat, ApiError } from '../services/api';
 
+// Shared polling interval for all chat-related screens
+export const POLL_INTERVAL = 5000;
+
 interface MessagesState {
   chats: Chat[];
   messages: Record<string, Message[]>; // otherUserId -> messages
@@ -10,8 +13,8 @@ interface MessagesState {
   error: string | null;
 
   // Actions
-  fetchChats: () => Promise<void>;
-  fetchMessages: (otherUserId: string, page?: number) => Promise<void>;
+  fetchChats: (silent?: boolean) => Promise<void>;
+  fetchMessages: (otherUserId: string, page?: number, silent?: boolean) => Promise<void>;
   sendMessage: (otherUserId: string, content: string) => Promise<{ success: boolean; error?: string }>;
   refreshUnreadCount: () => Promise<void>;
 
@@ -29,37 +32,61 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
   unreadCount: 0,
   error: null,
 
-  fetchChats: async () => {
-    set({ isLoading: true, error: null });
+  fetchChats: async (silent = false) => {
+    if (!silent) set({ isLoading: true, error: null });
 
     try {
       const chats = await messagesApi.getChats();
       const totalUnread = chats.reduce((sum, chat) => sum + (chat.unreadCount || 0), 0);
       set({ chats, unreadCount: totalUnread, isLoading: false });
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : 'Failed to fetch chats';
-      set({ error: message, isLoading: false });
+      if (!silent) {
+        const message = err instanceof ApiError ? err.message : 'Failed to fetch chats';
+        set({ error: message, isLoading: false });
+      }
     }
   },
 
-  fetchMessages: async (otherUserId, page = 1) => {
-    set({ isLoading: true, error: null });
+  fetchMessages: async (otherUserId, page = 1, silent = false) => {
+    if (!silent) set({ isLoading: true, error: null });
 
     try {
       // Backend auto-marks messages as read on GET
       const msgs = await messagesApi.getMessages(otherUserId, page);
-      set((state) => ({
-        messages: {
+      set((state) => {
+        const updatedMessages = {
           ...state.messages,
           [otherUserId]: page === 1
             ? msgs
             : [...(state.messages[otherUserId] || []), ...msgs],
-        },
-        isLoading: false,
-      }));
+        };
+
+        // Sync the chat entry: clear unread count (messages marked as read on GET)
+        // and update last message preview if available
+        const lastMsg = page === 1 && msgs.length > 0 ? msgs[msgs.length - 1] : null;
+        const updatedChats = state.chats.map((chat) => {
+          if (chat.otherUser.id !== otherUserId) return chat;
+          return {
+            ...chat,
+            unreadCount: 0,
+            ...(lastMsg ? {
+              lastMessage: lastMsg.content,
+              lastMessageAt: lastMsg.createdAt,
+            } : {}),
+          };
+        });
+
+        return {
+          messages: updatedMessages,
+          chats: updatedChats,
+          isLoading: false,
+        };
+      });
     } catch (err) {
-      const message = err instanceof ApiError ? err.message : 'Failed to fetch messages';
-      set({ error: message, isLoading: false });
+      if (!silent) {
+        const message = err instanceof ApiError ? err.message : 'Failed to fetch messages';
+        set({ error: message, isLoading: false });
+      }
     }
   },
 
@@ -75,6 +102,7 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
           chat.otherUser.id === otherUserId
             ? {
                 ...chat,
+                lastMessage: content,
                 lastMessageAt: newMessage.createdAt,
               }
             : chat

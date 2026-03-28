@@ -8,11 +8,14 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from 'react-native';
-import { router } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { showAlert } from '../../src/utils/alert';
 import { useAuthStore } from '../../src/store/authStore';
+import { usersApi } from '../../src/services/api';
 import { Button } from '../../src/components/Button';
 import { Icon } from '../../src/components/Icon';
 import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
@@ -24,13 +27,32 @@ export default function ProfileSetupScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const { completeOnboarding } = useAuthStore();
-  const [step, setStep] = useState<Step>('role');
-  const [role, setRole] = useState<UserRole | null>(null);
+  const params = useLocalSearchParams<{ role?: string }>();
+  const initialRole = (params.role as UserRole) || null;
+  const [step, setStep] = useState<Step>(initialRole ? 'basic' : 'role');
+  const [role, setRole] = useState<UserRole | null>(initialRole);
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
   const [location, setLocation] = useState('');
   const [bio, setBio] = useState('');
   const [hourlyRate, setHourlyRate] = useState('');
+  const [avatarUri, setAvatarUri] = useState<string | null>(null);
+
+  const pickAvatar = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.85,
+    });
+    if (!result.canceled && result.assets[0]?.uri) {
+      setAvatarUri(result.assets[0].uri);
+    }
+  };
 
   const handleRoleSelect = (selectedRole: UserRole) => {
     setRole(selectedRole);
@@ -54,21 +76,25 @@ export default function ProfileSetupScreen() {
     setStep('details');
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     if (!bio.trim()) {
       showAlert('Required', 'Please write something about yourself');
       return;
     }
 
     if (role === 'companion') {
-      const rate = parseInt(hourlyRate);
-      if (isNaN(rate) || rate < 1) {
-        showAlert('Required', 'Please enter your hourly rate');
+      const rate = parseInt(hourlyRate, 10);
+      if (isNaN(rate) || rate <= 0) {
+        showAlert('Required', 'Please enter your hourly rate (must be greater than 0)');
+        return;
+      }
+      if (rate >= 10000) {
+        showAlert('Invalid Rate', 'Hourly rate must be less than $10,000');
         return;
       }
     }
 
-    completeOnboarding({
+    const result = await completeOnboarding({
       name: name.trim(),
       age: parseInt(age),
       role: role!,
@@ -78,9 +104,24 @@ export default function ProfileSetupScreen() {
       hourlyRate: role === 'companion' ? parseInt(hourlyRate) : undefined,
     });
 
-    // Navigate to correct tabs based on role
-    // In Expo Router, /male is equivalent to /male/index when index.tsx exists
-    router.replace(role === 'companion' ? '/female' : '/male');
+    if (!result.success) {
+      showAlert('Error', result.error || 'Failed to complete setup. Please try again.');
+      return;
+    }
+
+    // Non-blocking avatar upload after auth is established
+    if (avatarUri) {
+      try {
+        await usersApi.uploadProfilePhoto(avatarUri);
+      } catch {
+        // Avatar upload failure should not block registration
+      }
+    }
+
+    // Navigate to verification flow based on role
+    // Companions need identity/background verification before going live
+    // Seekers need identity verification before booking
+    router.replace(role === 'companion' ? '/(comp-onboard)/step1' : '/(seeker-verify)/intro');
   };
 
   const handleBack = () => {
@@ -105,6 +146,9 @@ export default function ProfileSetupScreen() {
               style={[styles.roleCard, { borderColor: colors.black, backgroundColor: colors.accent }]}
               onPress={() => handleRoleSelect('companion')}
               testID="setup-companion-btn"
+              accessibilityLabel="Select Companion role"
+              accessibilityRole="button"
+              accessibilityHint="Get paid to go on amazing dates"
             >
               <View style={[styles.roleIconContainer, { backgroundColor: colors.black }]}>
                 <Icon name="user" size={32} color={colors.accent} />
@@ -119,6 +163,9 @@ export default function ProfileSetupScreen() {
               style={[styles.roleCard, { borderColor: colors.black, backgroundColor: colors.secondary }]}
               onPress={() => handleRoleSelect('seeker')}
               testID="setup-seeker-btn"
+              accessibilityLabel="Select Date Seeker role"
+              accessibilityRole="button"
+              accessibilityHint="Find interesting companions for dinners and events"
             >
               <View style={[styles.roleIconContainer, { backgroundColor: colors.black }]}>
                 <Icon name="search" size={32} color={colors.secondary} />
@@ -144,7 +191,10 @@ export default function ProfileSetupScreen() {
         contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + spacing.lg, paddingBottom: insets.bottom + spacing.lg }]}
         keyboardShouldPersistTaps="handled"
       >
-        <TouchableOpacity style={styles.backButton} onPress={handleBack} testID="setup-back-btn">
+        <TouchableOpacity style={styles.backButton} onPress={handleBack} testID="setup-back-btn"
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+        >
           <Icon name="arrow-left" size={20} color={colors.primary} />
           <Text style={[styles.backText, { color: colors.primary }]}> Back</Text>
         </TouchableOpacity>
@@ -153,6 +203,27 @@ export default function ProfileSetupScreen() {
           <>
             <Text style={[styles.title, { color: colors.text }]}>Tell us about yourself</Text>
             <Text style={[styles.subtitle, { color: colors.textSecondary }]}>This helps others get to know you</Text>
+
+            {/* Avatar picker */}
+            <TouchableOpacity
+              style={styles.avatarContainer}
+              onPress={pickAvatar}
+              activeOpacity={0.7}
+              accessibilityLabel={avatarUri ? 'Change profile photo' : 'Add profile photo'}
+              accessibilityRole="button"
+              testID="setup-avatar-picker"
+            >
+              {avatarUri ? (
+                <Image source={{ uri: avatarUri }} style={[styles.avatarImage, { borderColor: colors.border }]} />
+              ) : (
+                <View style={[styles.avatarPlaceholder, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                  <Icon name="camera" size={24} color={colors.textSecondary} />
+                </View>
+              )}
+              <Text style={[styles.avatarHint, { color: colors.textSecondary }]}>
+                {avatarUri ? 'Change photo' : 'Add photo'}
+              </Text>
+            </TouchableOpacity>
 
             <View style={styles.form}>
               <View style={styles.inputGroup}>
@@ -336,6 +407,29 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  avatarContainer: {
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  avatarImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 2,
+  },
+  avatarPlaceholder: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarHint: {
+    fontSize: typography.sizes.xs,
+    marginTop: spacing.xs,
   },
   form: {
     marginBottom: spacing.xl,

@@ -5,12 +5,12 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
-  Alert,
   Platform,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Icon } from '../Icon';
 import { colors, spacing, borderRadius, typography, touchTargets, shadows } from '../../constants/theme';
+import { showAlert } from '../../utils/alert';
 
 interface IDUploadProps {
   imageUri?: string;
@@ -24,20 +24,18 @@ export function IDUpload({ imageUri, onImageSelected, error }: IDUploadProps) {
       if (type === 'camera') {
         const { status } = await ImagePicker.requestCameraPermissionsAsync();
         if (status !== 'granted') {
-          Alert.alert(
+          showAlert(
             'Camera Permission Required',
-            'Please allow camera access in settings to take a photo of your ID.',
-            [{ text: 'OK' }]
+            'Please allow camera access in settings to take a photo of your ID.'
           );
           return false;
         }
       } else {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
-          Alert.alert(
+          showAlert(
             'Gallery Permission Required',
-            'Please allow photo library access to select your ID.',
-            [{ text: 'OK' }]
+            'Please allow photo library access to select your ID.'
           );
           return false;
         }
@@ -91,6 +89,8 @@ export function IDUpload({ imageUri, onImageSelected, error }: IDUploadProps) {
             style={styles.retakeOverlay}
             onPress={handleCamera}
             activeOpacity={0.8}
+            accessibilityLabel="Retake ID photo"
+            accessibilityRole="button"
           >
             <View style={styles.retakeBadge}>
               <Icon name="camera" size={16} color={colors.white} />
@@ -103,6 +103,8 @@ export function IDUpload({ imageUri, onImageSelected, error }: IDUploadProps) {
           style={[styles.uploadArea, error ? styles.uploadAreaError : null]}
           onPress={handleGallery}
           activeOpacity={0.7}
+          accessibilityLabel="Upload your ID photo"
+          accessibilityRole="button"
         >
           <View style={styles.uploadIconContainer}>
             <Icon name="upload" size={32} color={colors.primary} />
@@ -119,6 +121,8 @@ export function IDUpload({ imageUri, onImageSelected, error }: IDUploadProps) {
           style={styles.actionButton}
           onPress={handleCamera}
           activeOpacity={0.8}
+          accessibilityLabel="Take photo of ID"
+          accessibilityRole="button"
         >
           <Icon name="camera" size={18} color={colors.primary} />
           <Text style={styles.actionButtonText}>Take Photo</Text>
@@ -130,6 +134,8 @@ export function IDUpload({ imageUri, onImageSelected, error }: IDUploadProps) {
           style={styles.actionButton}
           onPress={handleGallery}
           activeOpacity={0.8}
+          accessibilityLabel="Choose ID photo from gallery"
+          accessibilityRole="button"
         >
           <Icon name="image" size={18} color={colors.primary} />
           <Text style={styles.actionButtonText}>Choose from Gallery</Text>

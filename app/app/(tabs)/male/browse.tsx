@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, RefreshControl, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, RefreshControl, ActivityIndicator, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
@@ -9,8 +9,12 @@ import { Button } from '../../../src/components/Button';
 import { Icon } from '../../../src/components/Icon';
 import { EmptyState } from '../../../src/components/EmptyState';
 import { FilterModal, FilterOptions } from '../../../src/components/FilterModal';
-import { useTheme, spacing, typography, borderRadius } from '../../../src/constants/theme';
+import { useTheme, colors, spacing, typography, borderRadius } from '../../../src/constants/theme';
 import { companionsApi, CompanionListItem } from '../../../src/services/api';
+import { showAlert } from '../../../src/utils/alert';
+
+import { useAuthStore } from '../../../src/store/authStore';
+import * as Haptics from 'expo-haptics';
 
 const quickFilters = ['All', 'Nearby', 'Top Rated', 'New'];
 
@@ -26,6 +30,7 @@ const defaultFilterOptions: FilterOptions = {
 export default function BrowseScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
+  const { isAuthenticated } = useAuthStore();
   const [activeFilter, setActiveFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterModalVisible, setFilterModalVisible] = useState(false);
@@ -40,40 +45,55 @@ export default function BrowseScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Request location permission and get current location (with timeout for web)
-  useEffect(() => {
-    (async () => {
-      try {
-        const locationResult = await Promise.race([
-          (async () => {
-            const { status } = await Location.requestForegroundPermissionsAsync();
-            setLocationPermission(status === 'granted' ? 'granted' : 'denied');
-            if (status === 'granted') {
-              const location = await Location.getCurrentPositionAsync({
-                accuracy: Location.Accuracy.Balanced,
-              });
-              return {
-                latitude: location.coords.latitude,
-                longitude: location.coords.longitude,
-              };
-            }
-            return null;
-          })(),
-          new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
-        ]);
-        if (locationResult) {
-          setUserLocation(locationResult);
-        }
-      } catch {
-        // Location fetch failed, continue without
+  const [isRequestingLocation, setIsRequestingLocation] = useState(false);
+
+  // Reusable location request function
+  const requestLocation = useCallback(async () => {
+    setIsRequestingLocation(true);
+    try {
+      const locationResult = await Promise.race([
+        (async () => {
+          const { status } = await Location.requestForegroundPermissionsAsync();
+          setLocationPermission(status === 'granted' ? 'granted' : 'denied');
+          if (status === 'granted') {
+            const location = await Location.getCurrentPositionAsync({
+              accuracy: Location.Accuracy.Balanced,
+            });
+            return {
+              latitude: location.coords.latitude,
+              longitude: location.coords.longitude,
+            };
+          }
+          return null;
+        })(),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
+      ]);
+      if (locationResult) {
+        setUserLocation(locationResult);
       }
-    })();
+      return locationResult;
+    } catch {
+      // Location fetch failed, continue without
+      return null;
+    } finally {
+      setIsRequestingLocation(false);
+    }
   }, []);
+
+  // Request location on mount (with timeout for web)
+  useEffect(() => {
+    requestLocation();
+  }, [requestLocation]);
+
+  // Track fetch generation to prevent stale responses from overwriting fresh data
+  const fetchGeneration = React.useRef(0);
 
   // Fetch companions when location or filters change
   const fetchCompanions = useCallback(async () => {
+    const generation = ++fetchGeneration.current;
+
     try {
-      const sortByMap: Record<string, 'recommended' | 'price_low' | 'price_high' | 'rating' | 'distance'> = {
+      const sortByMap: Record<string, 'recommended' | 'price_low' | 'price_high' | 'rating' | 'distance' | 'new'> = {
         'recommended': 'recommended',
         'price_low': 'price_low',
         'price_high': 'price_high',
@@ -81,13 +101,16 @@ export default function BrowseScreen() {
         'distance': 'distance',
       };
 
-      let sortBy = sortByMap[appliedFilters.sortBy] || 'recommended';
+      let sortBy: 'recommended' | 'price_low' | 'price_high' | 'rating' | 'distance' | 'new' =
+        sortByMap[appliedFilters.sortBy] || 'recommended';
 
       // Quick filter overrides
       if (activeFilter === 'Nearby' && userLocation) {
         sortBy = 'distance';
       } else if (activeFilter === 'Top Rated') {
         sortBy = 'rating';
+      } else if (activeFilter === 'New') {
+        sortBy = 'new';
       }
 
       const response = await companionsApi.search({
@@ -103,10 +126,16 @@ export default function BrowseScreen() {
         search: searchQuery.trim() || undefined,
       });
 
-      setCompanions(response.companions);
+      // Only update state if this is still the latest fetch (prevents stale overwrites)
+      if (generation === fetchGeneration.current) {
+        setCompanions(response.companions);
+      }
     } catch (err) {
-      console.error('Failed to fetch companions:', err);
-      setCompanions([]);
+      // Only handle error if this is still the latest fetch
+      if (generation === fetchGeneration.current) {
+        console.error('Failed to fetch companions:', err);
+        // Keep existing companions on error instead of wiping the list
+      }
     }
   }, [appliedFilters, activeFilter, userLocation, searchQuery]);
 
@@ -158,7 +187,7 @@ export default function BrowseScreen() {
       </View>
 
       <View style={styles.searchContainer}>
-        <View style={[styles.searchBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[styles.searchBox, { backgroundColor: colors.surface }]}>
           <Icon name="search" size={18} color={colors.textSecondary} />
           <TextInput
             style={[styles.searchInput, { color: colors.text }]}
@@ -170,9 +199,11 @@ export default function BrowseScreen() {
           />
         </View>
         <TouchableOpacity
-          style={[styles.filterButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+          style={[styles.filterButton, { backgroundColor: colors.surface }]}
           onPress={() => setFilterModalVisible(true)}
           testID="browse-filter-btn"
+          accessibilityLabel={activeFiltersCount > 0 ? `Filters, ${activeFiltersCount} active` : 'Open filters'}
+          accessibilityRole="button"
         >
           <Icon name="sliders" size={20} color={colors.text} />
           {activeFiltersCount > 0 && (
@@ -195,9 +226,20 @@ export default function BrowseScreen() {
             style={[
               styles.filterChip,
               { backgroundColor: colors.surface },
-              activeFilter === filter && { backgroundColor: colors.primary },
+              activeFilter === filter && [styles.filterChipActive, { backgroundColor: colors.primary }],
             ]}
-            onPress={() => setActiveFilter(filter)}
+            onPress={() => {
+              if (Platform.OS !== 'web') {
+                Haptics.selectionAsync();
+              }
+              setActiveFilter(filter);
+              if (filter === 'Nearby' && !userLocation) {
+                requestLocation();
+              }
+            }}
+            accessibilityLabel={filter}
+            accessibilityRole="button"
+            accessibilityState={{ selected: activeFilter === filter }}
           >
             <Text style={[
               styles.filterText,
@@ -217,11 +259,21 @@ export default function BrowseScreen() {
           <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
         }
       >
-        {isLoading ? (
+        {isLoading || (activeFilter === 'Nearby' && isRequestingLocation) ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Finding companions...</Text>
+            <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+              {isRequestingLocation ? 'Getting your location...' : 'Finding companions...'}
+            </Text>
           </View>
+        ) : activeFilter === 'Nearby' && !userLocation ? (
+          <EmptyState
+            icon="map-pin"
+            title="Location Required"
+            description="Enable location access to see nearby companions. We need your location to sort by distance."
+            actionLabel="Enable Location"
+            onAction={requestLocation}
+          />
         ) : filteredCompanions.length === 0 ? (
           <EmptyState
             icon="search"
@@ -232,7 +284,7 @@ export default function BrowseScreen() {
           />
         ) : (
           filteredCompanions.map((companion) => (
-            <Card key={companion.id} style={styles.companionCard}>
+            <Card key={`${companion.id}-${activeFilter}`} style={styles.companionCard}>
               <View style={styles.cardHeader}>
                 <UserImage
                   name={companion.name}
@@ -253,13 +305,21 @@ export default function BrowseScreen() {
                     </Text>
                   </View>
                   <View style={styles.ratingRow}>
-                    <Icon name="star" size={14} color={colors.accent} />
-                    <Text style={[styles.rating, { color: colors.text, marginLeft: 4 }]}>{Number(companion.rating).toFixed(1)}</Text>
-                    <Text style={[styles.reviews, { color: colors.textSecondary }]}>({companion.reviewCount} reviews)</Text>
+                    {companion.reviewCount > 0 ? (
+                      <>
+                        <Icon name="star" size={14} color={colors.accent} />
+                        <Text style={[styles.rating, { color: colors.text, marginLeft: 4 }]}>{Number(companion.rating).toFixed(1)}</Text>
+                        <Text style={[styles.reviews, { color: colors.textSecondary }]}>({companion.reviewCount} reviews)</Text>
+                      </>
+                    ) : (
+                      <View style={[styles.newBadge, { backgroundColor: colors.primary + '15' }]}>
+                        <Text style={[styles.newBadgeText, { color: colors.primary }]}>New</Text>
+                      </View>
+                    )}
                   </View>
                 </View>
                 <View style={[styles.rateBox, { backgroundColor: colors.primary + '15' }]}>
-                  <Text style={[styles.rateValue, { color: colors.primary }]}>${companion.hourlyRate}</Text>
+                  <Text style={[styles.rateValue, { color: colors.primary }]}>${companion.hourlyRate ?? 0}</Text>
                   <Text style={[styles.rateLabel, { color: colors.textSecondary }]}>/hr</Text>
                 </View>
               </View>
@@ -278,7 +338,7 @@ export default function BrowseScreen() {
               <View style={styles.actions}>
                 <Button
                   title="View Profile"
-                  onPress={() => router.push({ pathname: '/profile/[id]', params: { id: companion.id } })}
+                  onPress={() => router.push(`/profile/${companion.id}`)}
                   variant="outline"
                   size="md"
                   style={styles.actionButton}
@@ -286,7 +346,14 @@ export default function BrowseScreen() {
                 />
                 <Button
                   title="Book Date"
-                  onPress={() => router.push({ pathname: '/booking/[id]', params: { id: companion.id } })}
+                  onPress={() => {
+                    if (!isAuthenticated) {
+                      showAlert('Sign In Required', 'Please sign in to book a date.');
+                      router.push('/(auth)/welcome');
+                      return;
+                    }
+                    router.push(`/booking/${companion.id}`);
+                  }}
                   size="md"
                   style={styles.actionButton}
                   testID={`browse-book-date-${companion.id}`}
@@ -341,7 +408,9 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
-    borderRadius: borderRadius.full,
+    borderRadius: borderRadius.sm,
+    borderWidth: 2,
+    borderColor: colors.border,
     marginBottom: spacing.md,
     gap: spacing.xs,
   },
@@ -360,29 +429,48 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: borderRadius.xl,
+    borderRadius: borderRadius.sm,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    borderWidth: 1,
+    borderWidth: 2,
+    borderColor: colors.border,
     gap: spacing.sm,
+    overflow: 'hidden',
+    // Neo-Brutalism offset shadow
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 3,
+    zIndex: 1,
   },
   filterButton: {
-    width: 44,
-    height: 44,
-    borderRadius: borderRadius.lg,
+    width: 46,
+    height: 46,
+    borderRadius: borderRadius.sm,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
+    borderWidth: 2,
+    borderColor: colors.border,
+    // Neo-Brutalism offset shadow
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 3,
+    zIndex: 10,
   },
   filterBadge: {
     position: 'absolute',
-    top: -4,
-    right: -4,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
+    top: -6,
+    right: -6,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: colors.border,
   },
   filterBadgeText: {
     fontFamily: typography.fonts.heading,
@@ -394,21 +482,40 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: typography.sizes.md,
     padding: 0,
+    ...Platform.select({
+      web: {
+        outlineStyle: 'none',
+      } as any,
+    }),
   },
   filtersScroll: {
-    maxHeight: 50,
+    maxHeight: 56,
   },
   filtersContent: {
     paddingHorizontal: spacing.lg,
     gap: spacing.sm,
+    alignItems: 'center',
   },
   filterChip: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.full,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 8,
+    borderRadius: borderRadius.sm,
+    borderWidth: 2,
+    borderColor: colors.border,
+    // Inactive chip: subtle shadow
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+  },
+  filterChipActive: {
+    // Active chip: stronger offset shadow
+    shadowOffset: { width: 3, height: 3 },
+    elevation: 3,
   },
   filterText: {
-    fontFamily: typography.fonts.bodyMedium,
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.sm,
   },
   scrollView: {
@@ -452,11 +559,27 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     marginLeft: spacing.xs,
   },
+  newBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: borderRadius.xs,
+  },
+  newBadgeText: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.xs,
+  },
   rateBox: {
     alignItems: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    borderRadius: borderRadius.lg,
+    borderRadius: borderRadius.sm,
+    borderWidth: 2,
+    borderColor: colors.border,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
   },
   rateValue: {
     fontFamily: typography.fonts.heading,

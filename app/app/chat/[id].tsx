@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,15 +9,22 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { useLocalSearchParams, router } from 'expo-router';
+import { useLocalSearchParams, router, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { UserImage } from '../../src/components/UserImage';
 import { Icon } from '../../src/components/Icon';
 import { EmptyState } from '../../src/components/EmptyState';
-import { useMessagesStore } from '../../src/store/messagesStore';
+import { useMessagesStore, POLL_INTERVAL } from '../../src/store/messagesStore';
 import { useAuthStore } from '../../src/store/authStore';
+import { useVerificationGate } from '../../src/hooks/useVerificationGate';
 import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
-import { showAlert } from '../../src/utils/alert';
+import * as Haptics from 'expo-haptics';
+
+interface FailedMessage {
+  tempId: string;
+  text: string;
+  time: Date;
+}
 
 export default function ChatScreen() {
   const { id, name } = useLocalSearchParams<{ id: string; name: string }>();
@@ -25,19 +32,36 @@ export default function ChatScreen() {
   const { colors } = useTheme();
   const scrollViewRef = useRef<ScrollView>(null);
   const [messageText, setMessageText] = useState('');
+  const [failedMessages, setFailedMessages] = useState<FailedMessage[]>([])
 
   const { user } = useAuthStore();
-  const { messages, sendMessage, getMessages, fetchMessages, chats } = useMessagesStore();
+  const { messages, sendMessage, getMessages, fetchMessages, fetchChats, chats, isSending } = useMessagesStore();
+  const { requireVerification } = useVerificationGate();
 
   // id param is the otherUser's id
   const otherUserId = id || '';
   const chatMessages = getMessages(otherUserId);
   const chat = chats.find(c => c.otherUser.id === otherUserId);
 
-  useEffect(() => {
-    // Fetch messages — backend auto-marks as read on GET
-    fetchMessages(otherUserId);
-  }, [otherUserId]);
+  // Resolve companion name: prefer URL param, fall back to chat data
+  const companionName = name || chat?.otherUser?.name || '';
+
+  // Poll messages every 5 seconds while screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      // Initial fetch (with loading spinner)
+      fetchMessages(otherUserId);
+      // Ensure chats are loaded so companion name resolves from store
+      if (!chat) fetchChats(true);
+
+      // Poll every 5s silently (no loading spinner)
+      const interval = setInterval(() => {
+        fetchMessages(otherUserId, 1, true);
+      }, POLL_INTERVAL);
+
+      return () => clearInterval(interval);
+    }, [otherUserId])
+  );
 
   useEffect(() => {
     // Scroll to bottom when messages change
@@ -46,18 +70,49 @@ export default function ChatScreen() {
     }, 100);
   }, [chatMessages.length]);
 
+  useEffect(() => {
+    // Scroll to bottom when failed messages change
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  }, [failedMessages.length]);
+
   const handleSend = async () => {
     if (!messageText.trim() || !user) return;
 
+    if (Platform.OS !== 'web') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
     const text = messageText.trim();
     setMessageText('');
     try {
       await sendMessage(otherUserId, text);
     } catch {
-      // Restore message text on failure so user can retry
-      setMessageText(text);
-      showAlert('Send Failed', 'Message could not be sent. Please try again.');
+      // Show failed message bubble with retry instead of alert
+      const tempId = `failed-${Date.now()}`;
+      setFailedMessages(prev => [...prev, { tempId, text, time: new Date() }]);
     }
+  };
+
+  const handleRetry = async (tempId: string, text: string) => {
+    if (isSending) return;
+    // Remove from failed list optimistically
+    setFailedMessages(prev => prev.filter(m => m.tempId !== tempId));
+    if (Platform.OS !== 'web') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    try {
+      await sendMessage(otherUserId, text);
+    } catch {
+      // Re-add as failed if retry also fails
+      const newTempId = `failed-${Date.now()}`;
+      setFailedMessages(prev => [...prev, { tempId: newTempId, text, time: new Date() }]);
+    }
+  };
+
+  const handleBook = () => {
+    if (requireVerification()) return;
+    router.push(`/booking/${id || ''}`);
   };
 
   const formatTime = (date: Date) => {
@@ -99,6 +154,31 @@ export default function ChatScreen() {
     return groups;
   }, {} as Record<string, typeof chatMessages>);
 
+  const todayKey = new Date().toDateString();
+
+  // Show error state when no valid conversation ID is provided
+  if (!otherUserId) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={[styles.header, { paddingTop: insets.top + spacing.sm, backgroundColor: colors.white, borderBottomColor: colors.border }]}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton} testID="chat-back-btn"
+            accessibilityLabel="Go back"
+            accessibilityRole="button"
+          >
+            <Icon name="arrow-left" size={24} color={colors.text} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.emptyContainer}>
+          <EmptyState
+            icon="alert-circle"
+            title="Conversation not found"
+            description="This conversation does not exist or may have been removed."
+          />
+        </View>
+      </View>
+    );
+  }
+
   return (
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: colors.background }]}
@@ -107,25 +187,32 @@ export default function ChatScreen() {
     >
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm, backgroundColor: colors.white, borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton} testID="chat-back-btn">
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton} testID="chat-back-btn"
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+        >
           <Icon name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.headerProfile}
-          onPress={() => router.push({ pathname: '/profile/[id]', params: { id: id || '' } })}
+          onPress={() => router.push(`/profile/${id || ''}`)}
+          accessibilityLabel={`View ${companionName}'s profile`}
+          accessibilityRole="button"
         >
-          <UserImage name={name || 'User'} size={40} />
+          <UserImage name={companionName} size={40} />
           <View style={styles.headerInfo}>
-            <Text style={[styles.headerName, { color: colors.text }]}>{name || 'User'}</Text>
+            <Text style={[styles.headerName, { color: colors.text }]}>{companionName}</Text>
             <Text style={[styles.headerStatus, { color: colors.textSecondary }]}>Tap to view profile</Text>
           </View>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.bookButton, { backgroundColor: colors.primary }]}
-          onPress={() => router.push({ pathname: '/booking/[id]', params: { id: id || '' } })}
+          onPress={handleBook}
           testID="chat-book-btn"
+          accessibilityLabel={`Book ${companionName}`}
+          accessibilityRole="button"
         >
           <Text style={[styles.bookButtonText, { color: colors.white }]}>Book</Text>
         </TouchableOpacity>
@@ -137,76 +224,140 @@ export default function ChatScreen() {
         style={styles.messagesContainer}
         contentContainerStyle={styles.messagesContent}
         showsVerticalScrollIndicator={false}
+        keyboardDismissMode="on-drag"
       >
-        {chatMessages.length === 0 ? (
+        {chatMessages.length === 0 && failedMessages.length === 0 ? (
           <View style={styles.emptyContainer}>
             <EmptyState
               icon="message-circle"
               title="Start the conversation"
-              description={`Say hello to ${name}! Be respectful and have a great conversation.`}
+              description={`Say hello to ${companionName}! Be respectful and have a great conversation.`}
             />
           </View>
         ) : (
-          Object.entries(groupedMessages).map(([dateKey, msgs]) => (
-            <View key={dateKey}>
-              <View style={styles.dateHeader}>
-                <Text style={[styles.dateHeaderText, { color: colors.textSecondary, backgroundColor: colors.background }]}>
-                  {formatDateHeader(new Date(dateKey))}
-                </Text>
-              </View>
+          <>
+            {Object.entries(groupedMessages).map(([dateKey, msgs]) => (
+              <View key={dateKey}>
+                <View style={styles.dateHeader}>
+                  <Text style={[styles.dateHeaderText, { color: colors.textSecondary, backgroundColor: colors.background }]}>
+                    {formatDateHeader(new Date(dateKey))}
+                  </Text>
+                </View>
 
-              {msgs.map((message, index) => {
-                const isMine = isMyMessage(message.senderId);
-                const showAvatar = !isMine && (
-                  index === msgs.length - 1 ||
-                  isMyMessage(msgs[index + 1]?.senderId)
-                );
+                {msgs.map((message, index) => {
+                  const isMine = isMyMessage(message.senderId);
+                  const showAvatar = !isMine && (
+                    index === msgs.length - 1 ||
+                    isMyMessage(msgs[index + 1]?.senderId)
+                  );
 
-                return (
-                  <View
-                    key={message.id}
-                    style={[
-                      styles.messageRow,
-                      isMine && styles.messageRowMine
-                    ]}
-                  >
-                    {!isMine && showAvatar && (
-                      <UserImage name={name || 'User'} size={32} />
-                    )}
-                    {!isMine && !showAvatar && (
-                      <View style={{ width: 32 }} />
-                    )}
-
+                  return (
                     <View
+                      key={message.id}
                       style={[
-                        styles.messageBubble,
-                        isMine
-                          ? [styles.messageBubbleMine, { backgroundColor: colors.primary }]
-                          : [styles.messageBubbleOther, { backgroundColor: colors.white }]
+                        styles.messageRow,
+                        isMine && styles.messageRowMine
                       ]}
                     >
-                      <Text
+                      {!isMine && showAvatar && (
+                        <UserImage name={companionName} size={32} />
+                      )}
+                      {!isMine && !showAvatar && (
+                        <View style={{ width: 32 }} />
+                      )}
+
+                      <View
                         style={[
-                          styles.messageText,
-                          { color: isMine ? colors.white : colors.text }
+                          styles.messageBubble,
+                          isMine
+                            ? [styles.messageBubbleMine, { backgroundColor: colors.primary }]
+                            : [styles.messageBubbleOther, { backgroundColor: colors.white }]
                         ]}
                       >
-                        {message.content}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.messageTime,
-                          { color: isMine ? colors.white + 'BB' : colors.textSecondary }
-                        ]}
-                      >
-                        {formatTime(new Date(message.createdAt))}
+                        <Text
+                          style={[
+                            styles.messageText,
+                            { color: isMine ? colors.white : colors.text }
+                          ]}
+                        >
+                          {message.content}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.messageTime,
+                            { color: isMine ? colors.white + 'BB' : colors.textSecondary }
+                          ]}
+                        >
+                          {formatTime(new Date(message.createdAt))}
+                        </Text>
+                      </View>
+                    </View>
+                  );
+                })}
+
+                {/* Inject failed messages into today's date group */}
+                {dateKey === todayKey && failedMessages.map((failed) => (
+                  <TouchableOpacity
+                    key={failed.tempId}
+                    style={[styles.messageRow, styles.messageRowMine]}
+                    onPress={() => handleRetry(failed.tempId, failed.text)}
+                    disabled={isSending}
+                    accessibilityLabel="Failed message, tap to retry"
+                    accessibilityRole="button"
+                  >
+                    <View style={styles.failedMessageWrapper}>
+                      <View style={[styles.messageBubble, styles.messageBubbleMine, { backgroundColor: colors.error }]}>
+                        <Text style={[styles.messageText, { color: colors.white }]}>
+                          {failed.text}
+                        </Text>
+                        <Text style={[styles.messageTime, { color: colors.white + 'BB' }]}>
+                          {formatTime(failed.time)}
+                        </Text>
+                      </View>
+                      <Text style={[styles.retryText, { color: colors.error }]}>
+                        {isSending ? 'Sending...' : 'Tap to retry'}
                       </Text>
                     </View>
-                  </View>
-                );
-              })}
-            </View>
-          ))
+                  </TouchableOpacity>
+                ))}
+              </View>
+            ))}
+
+            {/* Render failed messages in today's group if no messages exist yet for today */}
+            {!groupedMessages[todayKey] && failedMessages.length > 0 && (
+              <View key={todayKey}>
+                <View style={styles.dateHeader}>
+                  <Text style={[styles.dateHeaderText, { color: colors.textSecondary, backgroundColor: colors.background }]}>
+                    Today
+                  </Text>
+                </View>
+                {failedMessages.map((failed) => (
+                  <TouchableOpacity
+                    key={failed.tempId}
+                    style={[styles.messageRow, styles.messageRowMine]}
+                    onPress={() => handleRetry(failed.tempId, failed.text)}
+                    disabled={isSending}
+                    accessibilityLabel="Failed message, tap to retry"
+                    accessibilityRole="button"
+                  >
+                    <View style={styles.failedMessageWrapper}>
+                      <View style={[styles.messageBubble, styles.messageBubbleMine, { backgroundColor: colors.error }]}>
+                        <Text style={[styles.messageText, { color: colors.white }]}>
+                          {failed.text}
+                        </Text>
+                        <Text style={[styles.messageTime, { color: colors.white + 'BB' }]}>
+                          {formatTime(failed.time)}
+                        </Text>
+                      </View>
+                      <Text style={[styles.retryText, { color: colors.error }]}>
+                        {isSending ? 'Sending...' : 'Tap to retry'}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </>
         )}
       </ScrollView>
 
@@ -233,6 +384,9 @@ export default function ChatScreen() {
           onPress={handleSend}
           disabled={!messageText.trim()}
           testID="chat-send-btn"
+          accessibilityLabel="Send message"
+          accessibilityRole="button"
+          accessibilityState={{ disabled: !messageText.trim() }}
         >
           <Icon name="send" size={20} color={colors.white} />
         </TouchableOpacity>
@@ -307,7 +461,7 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.xs,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
-    borderRadius: borderRadius.full,
+    borderRadius: borderRadius.sm,
   },
   messageRow: {
     flexDirection: 'row',
@@ -367,5 +521,14 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  failedMessageWrapper: {
+    alignItems: 'flex-end',
+  },
+  retryText: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.xs,
+    marginTop: 4,
+    marginRight: spacing.xs,
   },
 });

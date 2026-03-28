@@ -1,10 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, Linking, Platform, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Platform, ScrollView, TouchableOpacity } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Button } from '../../src/components/Button';
-import { Badge } from '../../src/components/Badge';
+// Badge removed -- "Premium dating marketplace" didn't match the color scheme
 import { Icon } from '../../src/components/Icon';
 import { colors, spacing, typography, borderRadius, PAGE_PADDING } from '../../src/constants/theme';
 
@@ -40,9 +40,6 @@ export default function WelcomeScreen() {
             </LinearGradient>
             <Text style={styles.logoText}>DateRabbit</Text>
           </View>
-          <View style={styles.langBtn}>
-            <Text style={styles.langBtnText}>EN</Text>
-          </View>
         </View>
 
         {showRedirectMessage && (
@@ -53,8 +50,6 @@ export default function WelcomeScreen() {
 
         {/* Hero */}
         <View style={styles.hero}>
-          <Badge text="Premium dating marketplace" variant="gradient" size="md" />
-
           <Text style={styles.headline}>
             Real dates.{'\n'}
             <Text style={styles.headlineHighlight}>Your terms.</Text>
@@ -71,12 +66,6 @@ export default function WelcomeScreen() {
             <ValueItem text="24/7 safety & support team" />
           </View>
 
-          {/* Stats */}
-          <View style={styles.statsRow}>
-            <Stat number="2K+" label="Companions" />
-            <Stat number="15K+" label="Bookings" />
-            <Stat number="4.9" label="Rating" />
-          </View>
         </View>
 
         {/* Actions */}
@@ -84,7 +73,7 @@ export default function WelcomeScreen() {
           <Button
             title="Find Companions"
             label="Looking for a date?"
-            onPress={() => router.push({ pathname: '/(auth)/role-select', params: { role: 'seeker' } })}
+            onPress={() => router.push(`/(auth)/login?role=seeker`)}
             variant="primary"
             fullWidth
             size="lg"
@@ -93,7 +82,7 @@ export default function WelcomeScreen() {
           <Button
             title="Become a Companion"
             label="Want to earn?"
-            onPress={() => router.push({ pathname: '/(auth)/role-select', params: { role: 'companion' } })}
+            onPress={() => router.push(`/(auth)/register?role=companion`)}
             variant="secondary"
             fullWidth
             size="lg"
@@ -109,36 +98,30 @@ export default function WelcomeScreen() {
 
         {/* Footer */}
         <View style={styles.footer}>
-          <Text
-            style={styles.footerLink}
-            onPress={() => router.push('/terms')}
+          <TouchableOpacity onPress={() => router.push('/terms')}
+            accessibilityLabel="Terms of Service"
+            accessibilityRole="button"
           >
-            Terms
-          </Text>
-          <Text
-            style={styles.footerLink}
-            onPress={() => router.push('/privacy')}
+            <Text style={styles.footerLink}>Terms</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/privacy')}
+            accessibilityLabel="Privacy Policy"
+            accessibilityRole="button"
           >
-            Privacy
-          </Text>
-          <Text
-            style={styles.footerLink}
-            onPress={() => openLink('https://daterabbit.com/safety')}
+            <Text style={styles.footerLink}>Privacy</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.push('/safety')}
+            testID="welcome-safety-link"
+            accessibilityLabel="Safety information"
+            accessibilityRole="button"
           >
-            Safety
-          </Text>
+            <Text style={styles.footerLink}>Safety</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </View>
   );
-}
-
-function openLink(url: string) {
-  if (Platform.OS === 'web') {
-    window.open(url, '_blank');
-  } else {
-    Linking.openURL(url);
-  }
 }
 
 function ValueItem({ text }: { text: string }) {
@@ -155,15 +138,6 @@ function ValueItem({ text }: { text: string }) {
   );
 }
 
-function Stat({ number, label }: { number: string; label: string }) {
-  return (
-    <View style={styles.stat}>
-      <Text style={styles.statNumber}>{number}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -174,7 +148,11 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: PAGE_PADDING,
-    flexGrow: 1,
+    // Do NOT use flexGrow: 1 — it expands content to fill the viewport
+    // height, making ScrollView think everything fits and disabling scroll.
+    // On small screens (390x664) the bottom buttons get clipped. Let
+    // content be its natural height so the ScrollView actually scrolls.
+    paddingTop: spacing.xl,
   },
 
   // Decorative blobs
@@ -226,17 +204,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: colors.text,
   },
-  langBtn: {
-    backgroundColor: colors.surface,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: borderRadius.full,
-  },
-  langBtnText: {
-    fontFamily: typography.fonts.bodyMedium,
-    fontSize: typography.sizes.xs,
-    color: colors.textMuted,
-  },
 
   // Redirect banner
   redirectBanner: {
@@ -255,9 +222,7 @@ const styles = StyleSheet.create({
 
   // Hero
   hero: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingVertical: spacing.xl,
+    paddingVertical: spacing.lg,
   },
   headline: {
     fontFamily: typography.fonts.heading,
@@ -301,34 +266,12 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
 
-  // Stats
-  statsRow: {
-    flexDirection: 'row',
-    gap: spacing.xl + spacing.sm,
-    paddingTop: spacing.lg,
-    borderTopWidth: 1,
-    borderTopColor: colors.divider,
-  },
-  stat: {
-    gap: spacing.xs,
-  },
-  statNumber: {
-    fontFamily: typography.fonts.heading,
-    fontSize: 24,
-    color: colors.text,
-  },
-  statLabel: {
-    fontFamily: typography.fonts.body,
-    fontSize: typography.sizes.xs,
-    color: colors.textLight,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
 
   // Actions
   actions: {
-    marginTop: 'auto',
+    marginTop: spacing.lg,
     gap: spacing.md,
+    paddingBottom: spacing.md,
   },
   signinLink: {
     fontFamily: typography.fonts.body,
@@ -353,5 +296,6 @@ const styles = StyleSheet.create({
     fontFamily: typography.fonts.body,
     fontSize: typography.sizes.xs,
     color: colors.textLight,
-  },
+    ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
+  } as any,
 });

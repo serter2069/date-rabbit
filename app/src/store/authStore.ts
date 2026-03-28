@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { User, UserRole, VerificationStatus } from '../types';
 import { authApi, usersApi, setToken, getToken, ApiError, User as ApiUser } from '../services/api';
+import { useFavoritesStore } from './favoritesStore';
 
 type AuthStep = 'idle' | 'email' | 'otp' | 'onboarding' | 'authenticated';
 
@@ -34,6 +35,7 @@ interface AuthState {
   isLoading: boolean;
   hasCompletedOnboarding: boolean;
   hasSeenOnboarding: boolean; // Intro slides (not profile setup)
+  _hasHydrated: boolean; // True once zustand persist has loaded from AsyncStorage
   authStep: AuthStep;
   pendingEmail: string | null;
   error: string | null;
@@ -55,8 +57,10 @@ interface AuthState {
   logout: () => Promise<void>;
   clearError: () => void;
   setOnboardingSeen: () => void;
+  setHasHydrated: (value: boolean) => void;
   refreshUser: () => Promise<void>;
   initialize: () => Promise<void>;
+  setPendingEmail: (email: string) => void;
 }
 
 // Convert API user to local User type
@@ -78,7 +82,7 @@ function mapApiUserToUser(apiUser: ApiUser): User {
     stripeOnboardingComplete: apiUser.stripeOnboardingComplete,
     latitude: apiUser.latitude,
     longitude: apiUser.longitude,
-    notificationsEnabled: (apiUser as any).notificationsEnabled,
+    notificationsEnabled: apiUser.notificationsEnabled,
     expoPushToken: apiUser.expoPushToken,
     createdAt: apiUser.createdAt,
   };
@@ -92,6 +96,7 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
       hasCompletedOnboarding: false,
       hasSeenOnboarding: false,
+      _hasHydrated: false,
       authStep: 'idle',
       pendingEmail: null,
       error: null,
@@ -108,6 +113,8 @@ export const useAuthStore = create<AuthState>()(
               hasCompletedOnboarding: true,
               authStep: 'authenticated',
             });
+            // Sync favorites from server after successful auth
+            useFavoritesStore.getState().syncFromServer();
           } catch {
             // Token invalid, clear it
             await setToken(null);
@@ -142,7 +149,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      // Step 2: User enters 8-digit code
+      // Step 2: User enters 6-digit code
       verifyCode: async (code) => {
         const { pendingEmail } = get();
         if (!pendingEmail) {
@@ -157,33 +164,43 @@ export const useAuthStore = create<AuthState>()(
           // Save the token
           await setToken(result.token);
 
-          if (result.isNewUser) {
-            // New user - needs onboarding
-            set({
-              authStep: 'onboarding',
-              isLoading: false,
-            });
-          } else {
-            // Existing user - fetch their profile
-            try {
-              const apiUser = await usersApi.getMe();
+          // Fetch user profile to determine if onboarding is needed
+          try {
+            const apiUser = await usersApi.getMe();
+            const needsOnboarding = !apiUser.age;
+
+            if (needsOnboarding) {
+              // New/incomplete user - needs onboarding
+              set({
+                user: mapApiUserToUser(apiUser),
+                authStep: 'onboarding',
+                isLoading: false,
+              });
+            } else {
+              // Complete user - go to dashboard
               set({
                 user: mapApiUserToUser(apiUser),
                 authStep: 'authenticated',
                 isAuthenticated: true,
                 hasCompletedOnboarding: true,
+                hasSeenOnboarding: true,
                 isLoading: false,
                 pendingEmail: null,
               });
-            } catch {
-              // Could not fetch profile, but we have token
-              set({
-                authStep: 'authenticated',
-                isAuthenticated: true,
-                hasCompletedOnboarding: true,
-                isLoading: false,
-              });
+              // Sync favorites from server after login
+              useFavoritesStore.getState().syncFromServer();
             }
+          } catch {
+            // Could not fetch profile, but we have token - assume existing user
+            set({
+              authStep: 'authenticated',
+              isAuthenticated: true,
+              hasCompletedOnboarding: true,
+              hasSeenOnboarding: true,
+              isLoading: false,
+            });
+            // Sync favorites from server
+            useFavoritesStore.getState().syncFromServer();
           }
           return { success: true };
         } catch (err) {
@@ -234,6 +251,9 @@ export const useAuthStore = create<AuthState>()(
             pendingEmail: null,
             isLoading: false,
           });
+
+          // Sync favorites from server after registration
+          useFavoritesStore.getState().syncFromServer();
 
           return { success: true };
         } catch (err) {
@@ -305,17 +325,23 @@ export const useAuthStore = create<AuthState>()(
       clearError: () => set({ error: null }),
 
       setOnboardingSeen: () => set({ hasSeenOnboarding: true }),
+
+      setHasHydrated: (value) => set({ _hasHydrated: value }),
+
+      setPendingEmail: (email) => set({ pendingEmail: email }),
     }),
     {
       name: 'auth-storage',
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
         hasSeenOnboarding: state.hasSeenOnboarding,
-        // Persist user state for demo mode (when API is unavailable)
-        user: state.user,
-        isAuthenticated: state.isAuthenticated,
         hasCompletedOnboarding: state.hasCompletedOnboarding,
       }),
+      onRehydrateStorage: () => (_state, error) => {
+        if (!error) {
+          useAuthStore.getState().setHasHydrated(true);
+        }
+      },
     }
   )
 );

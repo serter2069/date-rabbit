@@ -1,28 +1,44 @@
-import { Controller, Get, Post, Body, Param, Query, UseGuards, Request, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, UseGuards, Request, HttpException, HttpStatus, ParseUUIDPipe } from '@nestjs/common';
 import { MessagesService } from './messages.service';
+import { UsersService } from '../users/users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('messages')
 @UseGuards(JwtAuthGuard)
 export class MessagesController {
-  constructor(private messagesService: MessagesService) {}
+  constructor(
+    private messagesService: MessagesService,
+    private usersService: UsersService,
+  ) {}
 
   @Get('conversations')
   async getConversations(@Request() req) {
-    const conversations = await this.messagesService.getConversations(req.user.id);
-    return conversations.map((c) => ({
-      id: c.id,
-      otherUser: c.user1Id === req.user.id ? {
-        id: c.user2.id,
-        name: c.user2.name,
-        photos: c.user2.photos,
-      } : {
-        id: c.user1.id,
-        name: c.user1.name,
-        photos: c.user1.photos,
-      },
-      lastMessageAt: c.lastMessageAt,
-    }));
+    const [conversations, blockedIds] = await Promise.all([
+      this.messagesService.getConversations(req.user.id),
+      this.usersService.getBlockedUserIds(req.user.id),
+    ]);
+
+    const blockedSet = new Set(blockedIds);
+
+    return conversations
+      .filter((c) => {
+        const otherId = c.user1Id === req.user.id ? c.user2Id : c.user1Id;
+        return !blockedSet.has(otherId);
+      })
+      .map((c) => ({
+        id: c.id,
+        otherUser: c.user1Id === req.user.id ? {
+          id: c.user2.id,
+          name: c.user2.name,
+          photos: c.user2.photos,
+        } : {
+          id: c.user1.id,
+          name: c.user1.name,
+          photos: c.user1.photos,
+        },
+        lastMessageAt: c.lastMessageAt,
+        lastMessage: c.lastMessage?.content || null,
+      }));
   }
 
   @Get('unread-count')
@@ -31,9 +47,16 @@ export class MessagesController {
     return { count };
   }
 
+  // Explicit route declared before @Get(':userId') wildcard to prevent route collision
+  @Get('unread')
+  async getUnreadMessages(@Request() req) {
+    const count = await this.messagesService.getUnreadCount(req.user.id);
+    return { unread: count };
+  }
+
   @Get(':userId')
   async getMessages(
-    @Param('userId') otherUserId: string,
+    @Param('userId', ParseUUIDPipe) otherUserId: string,
     @Request() req,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
@@ -58,9 +81,20 @@ export class MessagesController {
     }));
   }
 
+  /**
+   * UC-037: Get pre-chat status (how many messages can be sent before booking).
+   */
+  @Get(':userId/pre-chat')
+  async getPreChatStatus(
+    @Param('userId', ParseUUIDPipe) companionId: string,
+    @Request() req,
+  ) {
+    return this.messagesService.getPreChatStatus(req.user.id, companionId);
+  }
+
   @Post(':userId')
   async sendMessage(
-    @Param('userId') receiverId: string,
+    @Param('userId', ParseUUIDPipe) receiverId: string,
     @Request() req,
     @Body() body: { content: string },
   ) {
@@ -69,6 +103,24 @@ export class MessagesController {
     }
     if (body.content.length > 5000) {
       throw new HttpException('Message too long (max 5000 chars)', HttpStatus.BAD_REQUEST);
+    }
+
+    // Prevent messaging blocked users (in either direction)
+    const [blockedByMe, blockedByThem] = await Promise.all([
+      this.usersService.isBlocked(req.user.id, receiverId),
+      this.usersService.isBlocked(receiverId, req.user.id),
+    ]);
+    if (blockedByMe || blockedByThem) {
+      throw new HttpException('Cannot send message to this user', HttpStatus.FORBIDDEN);
+    }
+
+    // UC-037: Enforce pre-chat message limit
+    const preChatStatus = await this.messagesService.getPreChatStatus(req.user.id, receiverId);
+    if (!preChatStatus.allowed) {
+      throw new HttpException(
+        `Pre-chat limit reached (${preChatStatus.limit} messages). Create a booking to continue chatting.`,
+        HttpStatus.FORBIDDEN,
+      );
     }
 
     const message = await this.messagesService.sendMessage(

@@ -1,15 +1,24 @@
-import { Controller, Get, Query, Param, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Query, Param, NotFoundException, UseGuards, Request, ParseUUIDPipe } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
+import { ReviewsService } from '../reviews/reviews.service';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('companions')
 export class CompanionsController {
-  constructor(private usersService: UsersService) {}
+  constructor(
+    private usersService: UsersService,
+    private reviewsService: ReviewsService,
+  ) {}
 
   @Get()
   async searchCompanions(
+    @Request() req,
     @Query('priceMin') priceMin?: string,
     @Query('priceMax') priceMax?: string,
     @Query('maxDistance') maxDistance?: string,
+    @Query('latitude') latitude?: string,
+    @Query('longitude') longitude?: string,
     @Query('minRating') minRating?: string,
     @Query('ageMin') ageMin?: string,
     @Query('ageMax') ageMax?: string,
@@ -17,49 +26,67 @@ export class CompanionsController {
     @Query('search') search?: string,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
+    @Query('page') page?: string,
   ) {
+    const parsedLimit = limit ? parseInt(limit) : 20;
+    // Support both page-based and offset-based pagination.
+    // page takes precedence over offset when both are provided.
+    const parsedOffset = page
+      ? (parseInt(page) - 1) * parsedLimit
+      : offset
+        ? parseInt(offset)
+        : 0;
+
+    // Exclude blocked users (req.user is guaranteed by JwtAuthGuard)
+    const excludeUserIds = await this.usersService.getBlockedUserIds(req.user.id);
+
     const { companions, total } = await this.usersService.getCompanions({
       priceMin: priceMin ? parseFloat(priceMin) : undefined,
       priceMax: priceMax ? parseFloat(priceMax) : undefined,
       maxDistance: maxDistance ? parseFloat(maxDistance) : undefined,
+      latitude: latitude ? parseFloat(latitude) : undefined,
+      longitude: longitude ? parseFloat(longitude) : undefined,
       minRating: minRating ? parseFloat(minRating) : undefined,
       ageMin: ageMin ? parseInt(ageMin) : undefined,
       ageMax: ageMax ? parseInt(ageMax) : undefined,
       sortBy,
       search,
-      limit: limit ? parseInt(limit) : 20,
-      offset: offset ? parseInt(offset) : 0,
+      limit: parsedLimit,
+      offset: parsedOffset,
+      excludeUserIds,
     });
 
+    const currentPage = page ? parseInt(page) : Math.floor(parsedOffset / parsedLimit) + 1;
+
     return {
-      companions: companions.map((c) => ({
+      companions: companions.map((c: any) => ({
         id: c.id,
         name: c.name,
         age: c.age,
         location: c.location,
-        bio: c.bio,
+        shortBio: c.bio ? c.bio.substring(0, 100) : null,
         primaryPhoto: c.photos?.[0]?.url || null,
-        hourlyRate: c.hourlyRate ? Number(c.hourlyRate) : null,
-        rating: c.rating ? Number(c.rating) : 5.0,
+        hourlyRate: c.hourlyRate != null ? Number(c.hourlyRate) : 0,
+        rating: c.rating ? Number(c.rating) : null,
         reviewCount: c.reviewCount || 0,
         isVerified: c.isVerified || false,
+        distance: c.distance != null ? Math.round(c.distance * 10) / 10 : undefined,
       })),
       total,
+      page: currentPage,
+      totalPages: Math.ceil(total / parsedLimit),
     };
   }
 
   @Get(':id')
-  async getCompanion(@Param('id') id: string) {
-    // Validate UUID format
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(id)) {
-      throw new NotFoundException('Companion not found');
-    }
-
+  async getCompanion(@Param('id', ParseUUIDPipe) id: string) {
     const user = await this.usersService.findById(id);
     if (!user || user.role !== 'companion') {
       throw new NotFoundException('Companion not found');
     }
+
+    // Fetch recent reviews for this companion
+    const { reviews } = await this.reviewsService.getReviewsForUser(id, 1, 3);
 
     return {
       id: user.id,
@@ -67,11 +94,19 @@ export class CompanionsController {
       age: user.age,
       location: user.location,
       bio: user.bio,
+      interests: user.interests || [],
       photos: user.photos || [],
-      hourlyRate: user.hourlyRate ? Number(user.hourlyRate) : null,
-      rating: user.rating ? Number(user.rating) : 5.0,
+      hourlyRate: user.hourlyRate != null ? Number(user.hourlyRate) : 0,
+      rating: user.rating ? Number(user.rating) : null,
       reviewCount: user.reviewCount || 0,
       isVerified: user.isVerified || false,
+      reviews: reviews.map((r) => ({
+        id: r.id,
+        name: r.reviewer?.name || 'Anonymous',
+        rating: r.rating,
+        text: r.comment || '',
+        date: r.createdAt.toISOString().split('T')[0],
+      })),
     };
   }
 }
