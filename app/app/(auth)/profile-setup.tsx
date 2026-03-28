@@ -9,7 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { showAlert } from '../../src/utils/alert';
 import { useAuthStore } from '../../src/store/authStore';
@@ -24,8 +24,10 @@ export default function ProfileSetupScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const { completeOnboarding } = useAuthStore();
-  const [step, setStep] = useState<Step>('role');
-  const [role, setRole] = useState<UserRole | null>(null);
+  const params = useLocalSearchParams<{ role?: string }>();
+  const initialRole = (params.role as UserRole) || null;
+  const [step, setStep] = useState<Step>(initialRole ? 'basic' : 'role');
+  const [role, setRole] = useState<UserRole | null>(initialRole);
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
   const [location, setLocation] = useState('');

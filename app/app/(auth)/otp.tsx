@@ -21,11 +21,12 @@ const CODE_LENGTH = 6;
 export default function OTPScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const params = useLocalSearchParams<{ email?: string }>();
+  const params = useLocalSearchParams<{ email?: string; role?: string }>();
   const { pendingEmail, verifyCode, resendCode, isLoading, error, clearError, authStep, setPendingEmail } = useAuthStore();
 
   // Use email from route params (reliable on web) or fall back to store value
   const email = params.email || pendingEmail;
+  const role = params.role;
 
   // Sync route param email back into the store if store lost it
   useEffect(() => {
@@ -51,7 +52,7 @@ export default function OTPScreen() {
 
   useEffect(() => {
     if (authStep === 'onboarding') {
-      router.replace('/(auth)/profile-setup');
+      router.replace(role ? `/(auth)/profile-setup?role=${role}` : '/(auth)/profile-setup');
     }
   }, [authStep]);
 
