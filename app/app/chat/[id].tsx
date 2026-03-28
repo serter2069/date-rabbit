@@ -16,6 +16,7 @@ import { Icon } from '../../src/components/Icon';
 import { EmptyState } from '../../src/components/EmptyState';
 import { useMessagesStore, POLL_INTERVAL } from '../../src/store/messagesStore';
 import { useAuthStore } from '../../src/store/authStore';
+import { useVerificationGate } from '../../src/hooks/useVerificationGate';
 import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
 import { showAlert } from '../../src/utils/alert';
 import * as Haptics from 'expo-haptics';
@@ -29,6 +30,7 @@ export default function ChatScreen() {
 
   const { user } = useAuthStore();
   const { messages, sendMessage, getMessages, fetchMessages, fetchChats, chats } = useMessagesStore();
+  const { requireVerification } = useVerificationGate();
 
   // id param is the otherUser's id
   const otherUserId = id || '';
@@ -77,6 +79,11 @@ export default function ChatScreen() {
       setMessageText(text);
       showAlert('Send Failed', 'Message could not be sent. Please try again.');
     }
+  };
+
+  const handleBook = () => {
+    if (requireVerification()) return;
+    router.push(`/booking/${id || ''}`);
   };
 
   const formatTime = (date: Date) => {
@@ -171,7 +178,7 @@ export default function ChatScreen() {
 
         <TouchableOpacity
           style={[styles.bookButton, { backgroundColor: colors.primary }]}
-          onPress={() => router.push(`/booking/${id || ''}`)}
+          onPress={handleBook}
           testID="chat-book-btn"
           accessibilityLabel={`Book ${companionName}`}
           accessibilityRole="button"
