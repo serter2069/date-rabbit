@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Platform, ScrollView, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Platform, ScrollView, TouchableOpacity } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -111,13 +111,7 @@ export default function WelcomeScreen() {
             <Text style={styles.footerLink}>Privacy</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => {
-              if (Platform.OS === 'web') {
-                window.alert('Safety information coming soon.');
-              } else {
-                Alert.alert('Safety', 'Safety information coming soon.');
-              }
-            }}
+            onPress={() => router.push('/safety')}
             testID="welcome-safety-link"
             accessibilityLabel="Safety information"
             accessibilityRole="button"
