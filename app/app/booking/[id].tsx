@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
+  BackHandler,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,7 +18,7 @@ import { UserImage } from '../../src/components/UserImage';
 import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
 import { useBookingsStore } from '../../src/store/bookingsStore';
 import { companionsApi, CompanionDetail } from '../../src/services/api';
-import { showAlert } from '../../src/utils/alert';
+import { showAlert, showConfirm } from '../../src/utils/alert';
 import { useVerificationGate } from '../../src/hooks/useVerificationGate';
 
 // Activity IDs aligned with backend ActivityType enum
@@ -92,6 +93,46 @@ export default function BookingScreen() {
       .finally(() => setIsLoadingCompanion(false));
   }, [id]);
 
+  // Check if user has entered any data worth confirming before leaving
+  const hasUnsavedData =
+    selectedActivity !== null ||
+    selectedDate !== null ||
+    selectedTime !== null ||
+    location.length > 0 ||
+    notes.length > 0;
+
+  const handleBack = () => {
+    if (hasUnsavedData) {
+      showConfirm(
+        'Discard changes?',
+        'You have unsaved booking details. Are you sure you want to go back?',
+        () => router.back(),
+        'Discard',
+        'Keep editing',
+      );
+    } else {
+      router.back();
+    }
+  };
+
+  // Handle Android hardware back button
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (hasUnsavedData) {
+        showConfirm(
+          'Discard changes?',
+          'You have unsaved booking details. Are you sure you want to go back?',
+          () => router.back(),
+          'Discard',
+          'Keep editing',
+        );
+        return true; // prevent default back navigation
+      }
+      return false; // allow default back navigation
+    });
+    return () => subscription.remove();
+  }, [hasUnsavedData]);
+
   const serviceFee = 0.15; // 15% platform fee
   const hourlyRate = companion?.hourlyRate ?? 0;
   const subtotal = hourlyRate * selectedDuration;
@@ -162,7 +203,7 @@ export default function BookingScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm, backgroundColor: colors.white, borderBottomColor: colors.border }]}>
-        <TouchableOpacity style={[styles.backButton, { backgroundColor: colors.surface }]} onPress={() => router.back()} testID="booking-back-btn"
+        <TouchableOpacity style={[styles.backButton, { backgroundColor: colors.surface }]} onPress={handleBack} testID="booking-back-btn"
           accessibilityLabel="Go back"
           accessibilityRole="button"
         >
