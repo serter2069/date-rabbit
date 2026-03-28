@@ -98,6 +98,7 @@ export default function BookingScreen() {
     selectedActivity !== null ||
     selectedDate !== null ||
     selectedTime !== null ||
+    selectedDuration !== 2 ||
     location.length > 0 ||
     notes.length > 0;
 

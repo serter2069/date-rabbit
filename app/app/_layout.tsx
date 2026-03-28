@@ -208,7 +208,7 @@ export default function RootLayout() {
         <Stack.Screen name="(comp-onboard)" />
         <Stack.Screen name="terms" />
         <Stack.Screen name="privacy" />
-        <Stack.Screen name="booking/[id]" options={{ animation: 'slide_from_bottom' }} />
+        <Stack.Screen name="booking/[id]" options={{ animation: 'slide_from_bottom', gestureEnabled: false }} />
         <Stack.Screen name="chat/[id]" options={{ animation: 'slide_from_bottom' }} />
         <Stack.Screen name="profile/[id]" />
         <Stack.Screen name="reviews/[id]" />
