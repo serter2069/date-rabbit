@@ -1,11 +1,16 @@
-import { Controller, Get, Post, Put, Delete, Body, UseGuards, Request, Param, BadRequestException, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, UseGuards, Request, Param, BadRequestException, ParseUUIDPipe, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { UsersService } from './users.service';
+import { UploadsService } from '../uploads/uploads.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('users')
 export class UsersController {
-  constructor(private usersService: UsersService) {}
+  constructor(
+    private usersService: UsersService,
+    private uploadsService: UploadsService,
+  ) {}
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
@@ -50,6 +55,21 @@ export class UsersController {
     }
     const { otpCode, otpExpiresAt, ...safeUser } = updated;
     return safeUser;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('me/photos/upload')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadProfilePhoto(
+    @Request() req,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException('No file provided');
+    }
+    this.uploadsService.validateImageFile(file);
+    const url = this.uploadsService.getFileUrl('profile-photos', file.filename);
+    return { url };
   }
 
   @UseGuards(JwtAuthGuard)

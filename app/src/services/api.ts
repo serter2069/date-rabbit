@@ -188,6 +188,31 @@ export const usersApi = {
     apiRequest<{ success: boolean }>(`/users/favorites/${companionId}`, {
       method: 'DELETE',
     }),
+
+  uploadProfilePhoto: async (uri: string): Promise<{ url: string }> => {
+    const token = await getToken();
+    const formData = new FormData();
+    const extension = uri.split('.').pop()?.split('?')[0] || 'jpg';
+    const mimeType = `image/${extension === 'jpg' ? 'jpeg' : extension}`;
+    formData.append('file', {
+      uri,
+      type: mimeType,
+      name: `profile-photo.${extension}`,
+    } as unknown as Blob);
+    const response = await fetch(`${API_BASE_URL}/users/me/photos/upload`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
+      },
+      body: formData,
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new ApiError(data.message || 'Photo upload failed', response.status);
+    }
+    return data;
+  },
 };
 
 // Companions API
