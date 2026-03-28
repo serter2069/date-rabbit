@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking } from 'react-native';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -105,9 +105,9 @@ export default function FemaleProfileScreen() {
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
           <MenuItem icon="credit-card" label="Payment Settings" onPress={() => router.push('/settings/payment-methods')} colors={colors} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <MenuItem icon="calendar" label="Availability" colors={colors} />
+          <MenuItem icon="calendar" label="Availability" onPress={() => router.push('/settings/edit-profile')} colors={colors} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <MenuItem icon="help-circle" label="Help & Support" colors={colors} />
+          <MenuItem icon="help-circle" label="Help & Support" onPress={() => Linking.openURL('mailto:support@daterabbit.app')} colors={colors} />
         </Card>
       </View>
 

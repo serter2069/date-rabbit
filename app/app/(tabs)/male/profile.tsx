@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Linking } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../../src/store/authStore';
@@ -115,7 +115,7 @@ export default function MaleProfileScreen() {
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
           <MenuItem icon="credit-card" label="Payment Methods" onPress={() => router.push('/settings/payment-methods')} colors={colors} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <MenuItem icon="receipt" label="Transaction History" colors={colors} />
+          <MenuItem icon="receipt" label="Transaction History" onPress={() => router.push('/settings')} colors={colors} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
           <MenuItem icon="bell" label="Notifications" onPress={() => router.push('/settings/notifications')} colors={colors} />
         </Card>
@@ -124,22 +124,22 @@ export default function MaleProfileScreen() {
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Preferences</Text>
         <Card>
-          <MenuItem icon="map-pin" label="Location" value={user?.location || 'Not set'} colors={colors} />
+          <MenuItem icon="map-pin" label="Location" value={user?.location || 'Not set'} onPress={() => router.push('/settings/edit-profile')} colors={colors} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <MenuItem icon="cake" label="Age Range" value="25-35" colors={colors} />
+          <MenuItem icon="cake" label="Age Range" value="25-35" onPress={() => router.push('/settings/edit-profile')} colors={colors} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <MenuItem icon="globe" label="Language" value="English" colors={colors} />
+          <MenuItem icon="globe" label="Language" value="English" onPress={() => router.push('/settings/edit-profile')} colors={colors} />
         </Card>
       </View>
 
       <View style={styles.section}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Support</Text>
         <Card>
-          <MenuItem icon="help-circle" label="Help Center" colors={colors} />
+          <MenuItem icon="help-circle" label="Help Center" onPress={() => Linking.openURL('https://help.daterabbit.app')} colors={colors} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <MenuItem icon="mail" label="Contact Us" colors={colors} />
+          <MenuItem icon="mail" label="Contact Us" onPress={() => Linking.openURL('mailto:support@daterabbit.app')} colors={colors} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <MenuItem icon="star" label="Rate the App" colors={colors} />
+          <MenuItem icon="star" label="Rate the App" onPress={() => Linking.openURL('https://apps.apple.com/app/daterabbit')} colors={colors} />
         </Card>
       </View>
 
