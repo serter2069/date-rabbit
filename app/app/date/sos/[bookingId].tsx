@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Linking, Alert } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
+import * as Location from 'expo-location';
 import { activeDateApi } from '../../../src/services/activeDateApi';
 
 export default function SOSScreen() {
@@ -11,7 +12,18 @@ export default function SOSScreen() {
   const handleAlert = async () => {
     setLoading(true);
     try {
-      await activeDateApi.triggerSOS(bookingId);
+      // Attempt to get location — gracefully skip if denied
+      let coords: { lat: number; lon: number } | undefined;
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status === 'granted') {
+          const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+          coords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+        }
+      } catch {
+        // Location unavailable — continue SOS without coords
+      }
+      await activeDateApi.triggerSOS(bookingId, coords);
       setAlerted(true);
     } catch (e) {
       Alert.alert('Error', 'Failed to send alert. Please call 911 directly.');

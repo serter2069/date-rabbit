@@ -95,6 +95,12 @@ export class Booking {
   @Column({ nullable: true })
   sosTriggeredBy: string;
 
+  @Column({ type: 'decimal', precision: 10, scale: 6, nullable: true })
+  sosLat: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 6, nullable: true })
+  sosLon: number;
+
   @Column({ type: 'text', nullable: true })
   noShowReason: string;
 

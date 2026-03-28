@@ -6,6 +6,8 @@ import { DatePhoto } from './entities/date-photo.entity';
 import { SelfieVerification } from './entities/selfie-verification.entity';
 import { UsersService } from '../users/users.service';
 import { EmailService } from '../email/email.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '../notifications/entities/notification.entity';
 import { sanitizeText } from '../common/sanitize';
 
 @Injectable()
@@ -19,6 +21,7 @@ export class BookingsService {
     private selfieVerificationsRepository: Repository<SelfieVerification>,
     private usersService: UsersService,
     private emailService: EmailService,
+    private notificationsService: NotificationsService,
   ) {}
 
   async create(data: {
@@ -318,10 +321,37 @@ export class BookingsService {
     if (booking.seekerId !== userId && booking.companionId !== userId) {
       throw new HttpException('Unauthorized', HttpStatus.FORBIDDEN);
     }
-    await this.bookingsRepository.update(bookingId, {
+    const update: Partial<Booking> = {
       sosTriggeredAt: new Date(),
       sosTriggeredBy: userId,
-    });
+    };
+    if (lat !== undefined) update.sosLat = lat;
+    if (lon !== undefined) update.sosLon = lon;
+    await this.bookingsRepository.update(bookingId, update);
+
+    const triggeredBy = userId === booking.seekerId ? booking.seeker?.name || 'Seeker' : booking.companion?.name || 'Companion';
+    const locationNote = lat !== undefined && lon !== undefined ? ` Location: ${lat.toFixed(5)}, ${lon.toFixed(5)}.` : '';
+    const notifyData = { bookingId, triggeredBy: userId };
+
+    // Notify both parties (fire-and-forget)
+    const notifications = [
+      this.notificationsService.create({
+        userId: booking.seekerId,
+        type: NotificationType.SOS_ALERT,
+        title: 'SOS Alert Triggered',
+        body: `${triggeredBy} triggered an SOS alert for your date.${locationNote} Our team has been notified.`,
+        data: notifyData,
+      }),
+      this.notificationsService.create({
+        userId: booking.companionId,
+        type: NotificationType.SOS_ALERT,
+        title: 'SOS Alert Triggered',
+        body: `${triggeredBy} triggered an SOS alert for your date.${locationNote} Our team has been notified.`,
+        data: notifyData,
+      }),
+    ];
+    await Promise.all(notifications.map(p => p.catch(e => console.error('[SOS] notification error', e))));
+
     return (await this.findById(bookingId))!;
   }
 
@@ -451,6 +481,28 @@ export class BookingsService {
       reportIssueType: sanitizeText(issueType),
       reportIssueText: sanitizeText(issueText),
     });
+
+    // Notify both parties about the report (fire-and-forget)
+    const reporterName = userId === booking.seekerId ? booking.seeker?.name || 'Seeker' : booking.companion?.name || 'Companion';
+    const notifyData = { bookingId, issueType };
+    const notifications = [
+      this.notificationsService.create({
+        userId: booking.seekerId,
+        type: NotificationType.REPORT_ISSUE,
+        title: 'Issue Reported',
+        body: `${reporterName} filed a report (${issueType}) for your date. Our team will review it shortly.`,
+        data: notifyData,
+      }),
+      this.notificationsService.create({
+        userId: booking.companionId,
+        type: NotificationType.REPORT_ISSUE,
+        title: 'Issue Reported',
+        body: `${reporterName} filed a report (${issueType}) for your date. Our team will review it shortly.`,
+        data: notifyData,
+      }),
+    ];
+    await Promise.all(notifications.map(p => p.catch(e => console.error('[REPORT] notification error', e))));
+
     return this.findById(bookingId) as Promise<Booking>;
   }
 

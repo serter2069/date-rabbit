@@ -3,11 +3,12 @@ import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert 
 import { useLocalSearchParams, router } from 'expo-router';
 import { activeDateApi } from '../../../src/services/activeDateApi';
 
-const ISSUE_TYPES = [
-  'Inappropriate behavior',
-  'Safety concern',
-  'No show',
-  'Other',
+// Backend validates: safety | behavior | scam | other
+const ISSUE_TYPES: { label: string; value: string }[] = [
+  { label: 'Inappropriate behavior', value: 'behavior' },
+  { label: 'Safety concern', value: 'safety' },
+  { label: 'Scam / fraud', value: 'scam' },
+  { label: 'Other', value: 'other' },
 ];
 
 export default function ReportIssueScreen() {
@@ -46,16 +47,16 @@ export default function ReportIssueScreen() {
       <Text style={styles.title}>Report an Issue</Text>
 
       <Text style={styles.sectionLabel}>Issue Type</Text>
-      {ISSUE_TYPES.map(t => (
+      {ISSUE_TYPES.map(({ label, value }) => (
         <TouchableOpacity
-          key={t}
-          style={[styles.typeOption, type === t && styles.typeOptionSelected]}
-          onPress={() => setType(t)}
-          accessibilityLabel={t}
+          key={value}
+          style={[styles.typeOption, type === value && styles.typeOptionSelected]}
+          onPress={() => setType(value)}
+          accessibilityLabel={label}
           accessibilityRole="radio"
-          accessibilityState={{ selected: type === t }}
+          accessibilityState={{ selected: type === value }}
         >
-          <Text style={[styles.typeText, type === t && styles.typeTextSelected]}>{t}</Text>
+          <Text style={[styles.typeText, type === value && styles.typeTextSelected]}>{label}</Text>
         </TouchableOpacity>
       ))}
 

@@ -1,8 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, Modal } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { activeDateApi, ActiveBooking } from '../../../src/services/activeDateApi';
 import { useAuthStore } from '../../../src/store/authStore';
+
+const SAFETY_CHECKIN_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
 
 function formatTime(ms: number): string {
   if (ms <= 0) return '00:00:00';
@@ -18,6 +20,9 @@ export default function ActiveDateScreen() {
   const [booking, setBooking] = useState<ActiveBooking | null>(null);
   const [remaining, setRemaining] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [showCheckinModal, setShowCheckinModal] = useState(false);
+  const [checkinLoading, setCheckinLoading] = useState(false);
+  const lastCheckinRef = useRef<number>(Date.now());
   const user = useAuthStore(s => s.user);
   const isCompanion = user?.role === 'companion';
 
@@ -72,6 +77,36 @@ export default function ActiveDateScreen() {
     }, 1000);
     return () => clearInterval(interval);
   }, [booking, bookingId]);
+
+  // Safety check-in: prompt user every 30 min while date is active
+  useEffect(() => {
+    if (!booking?.activeDateStartedAt) return;
+    // Seed last-checkin from backend timestamp if available
+    if (booking.safetyCheckinAt) {
+      lastCheckinRef.current = new Date(booking.safetyCheckinAt).getTime();
+    }
+    const interval = setInterval(() => {
+      const sinceLastCheckin = Date.now() - lastCheckinRef.current;
+      if (sinceLastCheckin >= SAFETY_CHECKIN_INTERVAL_MS) {
+        setShowCheckinModal(true);
+      }
+    }, 60 * 1000); // check every minute
+    return () => clearInterval(interval);
+  }, [booking?.activeDateStartedAt, booking?.safetyCheckinAt]);
+
+  const handleSafetyCheckinOk = async () => {
+    setCheckinLoading(true);
+    try {
+      await activeDateApi.safetyCheckin(bookingId);
+      lastCheckinRef.current = Date.now();
+    } catch {
+      // Non-critical — reset timer anyway
+      lastCheckinRef.current = Date.now();
+    } finally {
+      setCheckinLoading(false);
+      setShowCheckinModal(false);
+    }
+  };
 
   const handleEndEarly = () => {
     Alert.alert(
@@ -151,6 +186,38 @@ export default function ActiveDateScreen() {
           </TouchableOpacity>
         ))}
       </View>
+
+      {/* Safety check-in modal */}
+      <Modal
+        visible={showCheckinModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowCheckinModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Safety Check-in</Text>
+            <Text style={styles.modalBody}>Are you OK? Tap to confirm you're safe.</Text>
+            <TouchableOpacity
+              style={[styles.modalOkBtn, checkinLoading && styles.btnDisabled]}
+              onPress={handleSafetyCheckinOk}
+              disabled={checkinLoading}
+              accessibilityLabel="I'm OK"
+              accessibilityRole="button"
+            >
+              <Text style={styles.modalOkText}>{checkinLoading ? 'Confirming...' : "I'm OK"}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.modalSosBtn}
+              onPress={() => { setShowCheckinModal(false); router.push(`/date/sos/${bookingId}` as any); }}
+              accessibilityLabel="I need help"
+              accessibilityRole="button"
+            >
+              <Text style={styles.modalSosText}>I Need Help</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -179,4 +246,13 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0,
   },
   actionText: { fontSize: 15, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: 24 },
+  modalCard: { backgroundColor: '#F4F0EA', borderWidth: 3, borderColor: '#000', padding: 32, width: '100%', maxWidth: 400, shadowOffset: { width: 5, height: 5 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
+  modalTitle: { fontSize: 26, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000', marginBottom: 12 },
+  modalBody: { fontSize: 16, color: '#333', marginBottom: 32 },
+  modalOkBtn: { backgroundColor: '#4DF0FF', borderWidth: 2, borderColor: '#000', paddingVertical: 18, alignItems: 'center', marginBottom: 12, shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
+  modalOkText: { fontSize: 18, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
+  modalSosBtn: { backgroundColor: '#FF0000', borderWidth: 2, borderColor: '#000', paddingVertical: 14, alignItems: 'center' },
+  modalSosText: { fontSize: 16, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#fff' },
+  btnDisabled: { opacity: 0.5 },
 });
