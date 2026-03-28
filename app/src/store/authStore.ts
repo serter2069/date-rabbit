@@ -146,7 +146,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      // Step 2: User enters 8-digit code
+      // Step 2: User enters 6-digit code
       verifyCode: async (code) => {
         const { pendingEmail } = get();
         if (!pendingEmail) {
