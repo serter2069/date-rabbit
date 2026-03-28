@@ -103,8 +103,6 @@ export default function FemaleProfileScreen() {
         <Card>
           <MenuItem icon="bell" label="Notifications" onPress={() => router.push('/settings/notifications')} colors={colors} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <MenuItem icon="lock" label="Privacy" onPress={() => router.push('/privacy')} colors={colors} />
-          <View style={[styles.divider, { backgroundColor: colors.border }]} />
           <MenuItem icon="credit-card" label="Payment Settings" onPress={() => router.push('/settings/payment-methods')} colors={colors} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
           <MenuItem icon="calendar" label="Availability" colors={colors} />
