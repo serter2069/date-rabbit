@@ -26,7 +26,7 @@ const UPLOADS_ROOT = path.join(process.cwd(), 'uploads');
       limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
       storage: multer.diskStorage({
         destination: (_req, _file, cb) => {
-          const dest = path.join(UPLOADS_ROOT, 'selfies');
+          const dest = path.join(UPLOADS_ROOT, 'date-photos');
           fs.mkdirSync(dest, { recursive: true });
           cb(null, dest);
         },
