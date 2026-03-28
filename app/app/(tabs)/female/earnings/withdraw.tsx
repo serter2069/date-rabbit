@@ -6,7 +6,7 @@ import { showAlert, showConfirm } from '../../../../src/utils/alert';
 import { Card } from '../../../../src/components/Card';
 import { Button } from '../../../../src/components/Button';
 import { Icon } from '../../../../src/components/Icon';
-import { useTheme, spacing, typography, borderRadius, colors } from '../../../../src/constants/theme';
+import { useTheme, spacing, typography, borderRadius, colors as themeColors } from '../../../../src/constants/theme';
 import { paymentsApi } from '../../../../src/services/api';
 
 interface Payout {
@@ -91,11 +91,11 @@ export default function WithdrawScreen() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'paid': return colors.success;
-      case 'pending': return colors.warning;
-      case 'in_transit': return colors.primary;
-      case 'failed': return colors.error;
-      default: return colors.textSecondary;
+      case 'paid': return themeColors.success;
+      case 'pending': return themeColors.warning;
+      case 'in_transit': return themeColors.primary;
+      case 'failed': return themeColors.error;
+      default: return themeColors.textSecondary;
     }
   };
 
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: colors.borderLight,
+    borderColor: themeColors.borderLight,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.md,
