@@ -170,6 +170,40 @@ export class PaymentsService {
     }
   }
 
+  // --- Partial refund for end-early ---
+
+  async partialRefundForEndEarly(bookingId: string, actualHours: number): Promise<void> {
+    const booking = await this.bookingsRepo.findOne({ where: { id: bookingId } });
+    if (!booking?.paymentIntentId) return;
+
+    const totalPrice = Number(booking.totalPrice);
+    const bookedDuration = Number(booking.duration);
+
+    // No refund if ended at or beyond booked duration
+    if (actualHours >= bookedDuration) return;
+
+    const refundFraction = 1 - actualHours / bookedDuration;
+    const refundAmountCents = Math.round(totalPrice * refundFraction * 100);
+
+    // Stripe minimum charge is 50 cents
+    if (refundAmountCents < 50) return;
+
+    if (!this.stripe) return; // Stripe not configured — skip silently
+
+    try {
+      const pi = await this.stripe.paymentIntents.retrieve(booking.paymentIntentId);
+      if (pi.status === 'succeeded') {
+        await this.stripe.refunds.create({
+          payment_intent: booking.paymentIntentId,
+          amount: refundAmountCents,
+        });
+      }
+      // requires_capture or other status — refund not applicable
+    } catch (err: any) {
+      console.error('Stripe partial refund error for end-early:', err.message);
+    }
+  }
+
   // --- Earnings ---
 
   async getEarnings(userId: string): Promise<{

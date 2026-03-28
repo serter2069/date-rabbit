@@ -268,6 +268,10 @@ export class BookingsController {
   @Post(':id/end-early')
   async endEarly(@Param('id', ParseUUIDPipe) id: string, @Request() req) {
     const booking = await this.bookingsService.endEarly(id, req.user.id);
+    // Proportional refund for unused time (fire-and-forget)
+    this.paymentsService.partialRefundForEndEarly(id, Number(booking.actualDurationHours ?? booking.duration)).catch(err =>
+      console.error('Partial refund error for booking', id, err),
+    );
     return this.formatBooking(booking);
   }
 
