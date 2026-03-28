@@ -286,27 +286,32 @@ export class BookingsController {
   // --- Group 1: Photos ---
 
   @Post(':id/photos')
+  @UseInterceptors(FileInterceptor('file'))
   async uploadPhoto(
     @Param('id', ParseUUIDPipe) id: string,
     @Request() req,
-    @Body() body: { url: string },
+    @UploadedFile() file: Express.Multer.File,
   ) {
-    if (!body.url) {
-      throw new HttpException('Photo URL is required', HttpStatus.BAD_REQUEST);
+    if (!file) {
+      throw new BadRequestException('No file provided');
     }
-    return this.bookingsService.addPhoto(id, req.user.id, body.url);
+    this.uploadsService.validateImageFile(file);
+    const url = this.uploadsService.getFileUrl('date-photos', file.filename);
+    return this.bookingsService.addPhoto(id, req.user.id, url);
   }
 
   @Get(':id/photos')
   async getPhotos(@Param('id', ParseUUIDPipe) id: string, @Request() req) {
-    return this.bookingsService.getPhotos(id, req.user.id);
+    const photos = await this.bookingsService.getPhotos(id, req.user.id);
+    return { photos };
   }
 
   // --- Group 1: Date plan ---
 
   @Get(':id/plan')
   async getDatePlan(@Param('id', ParseUUIDPipe) id: string, @Request() req) {
-    return this.bookingsService.getDatePlan(id, req.user.id);
+    const plan = await this.bookingsService.getDatePlan(id, req.user.id);
+    return plan || { places: [] };
   }
 
   @Put(':id/plan')
