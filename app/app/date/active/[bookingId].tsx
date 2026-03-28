@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { activeDateApi, ActiveBooking } from '../../../src/services/activeDateApi';
+import { useAuthStore } from '../../../src/store/authStore';
 
 function formatTime(ms: number): string {
   if (ms <= 0) return '00:00:00';
@@ -17,6 +18,8 @@ export default function ActiveDateScreen() {
   const [booking, setBooking] = useState<ActiveBooking | null>(null);
   const [remaining, setRemaining] = useState(0);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuthStore();
+  const isCompanion = user?.role === 'companion';
 
   const loadBooking = useCallback(async () => {
     try {
@@ -32,6 +35,12 @@ export default function ActiveDateScreen() {
   }, [bookingId]);
 
   useEffect(() => { loadBooking(); }, [loadBooking]);
+
+  // Poll every 30s to pick up extend requests and other state changes
+  useEffect(() => {
+    const interval = setInterval(loadBooking, 30000);
+    return () => clearInterval(interval);
+  }, [loadBooking]);
 
   // Countdown timer
   useEffect(() => {
@@ -72,8 +81,9 @@ export default function ActiveDateScreen() {
   }
 
   const isLow = remaining < 30 * 60 * 1000;
+  const hasPendingExtend = !!booking?.extendRequestedHours && booking?.extendApproved === undefined;
 
-  const actions = [
+  const seekerActions = [
     { label: 'Extend Time', color: '#4DF0FF', route: `/date/extend/${bookingId}` },
     { label: 'End Early', color: '#FF5A85', onPress: handleEndEarly },
     { label: 'Date Plan', color: '#fff', route: `/date/plan/${bookingId}` },
@@ -81,6 +91,16 @@ export default function ActiveDateScreen() {
     { label: 'Report Issue', color: '#fff', route: `/date/report/${bookingId}` },
     { label: 'SOS', color: '#FF0000', textColor: '#fff', route: `/date/sos/${bookingId}` },
   ];
+
+  const companionActions = [
+    { label: 'End Early', color: '#FF5A85', onPress: handleEndEarly },
+    { label: 'Date Plan', color: '#fff', route: `/date/plan/${bookingId}` },
+    { label: 'Photos', color: '#fff', route: `/date/photos/${bookingId}` },
+    { label: 'Report Issue', color: '#fff', route: `/date/report/${bookingId}` },
+    { label: 'SOS', color: '#FF0000', textColor: '#fff', route: `/date/sos/${bookingId}` },
+  ];
+
+  const actions = isCompanion ? companionActions : seekerActions;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -102,6 +122,20 @@ export default function ActiveDateScreen() {
         </Text>
         <Text style={styles.timerLabel}>TIME REMAINING</Text>
       </View>
+
+      {/* Extend request banner — shown to companion when seeker requests extension */}
+      {isCompanion && hasPendingExtend && (
+        <TouchableOpacity
+          style={styles.extendBanner}
+          onPress={() => router.push(`/date/extend-response/${bookingId}` as any)}
+          accessibilityLabel="Respond to extension request"
+          accessibilityRole="button"
+        >
+          <Text style={styles.extendBannerText}>
+            Guest wants +{booking!.extendRequestedHours}h — Tap to respond
+          </Text>
+        </TouchableOpacity>
+      )}
 
       {/* Action grid */}
       <View style={styles.grid}>
@@ -147,4 +181,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0,
   },
   actionText: { fontSize: 15, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
+  extendBanner: {
+    backgroundColor: '#4DF0FF', borderWidth: 2, borderColor: '#000',
+    padding: 16, marginBottom: 16, alignItems: 'center',
+    shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0,
+  },
+  extendBannerText: { fontSize: 16, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
 });

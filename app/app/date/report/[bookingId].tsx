@@ -3,26 +3,27 @@ import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert 
 import { useLocalSearchParams, router } from 'expo-router';
 import { activeDateApi } from '../../../src/services/activeDateApi';
 
+// Labels map to backend-accepted values: safety | behavior | scam | other
 const ISSUE_TYPES = [
-  'Inappropriate behavior',
-  'Safety concern',
-  'No show',
-  'Other',
+  { label: 'Safety Concern', value: 'safety' },
+  { label: 'Inappropriate Behavior', value: 'behavior' },
+  { label: 'Scam / Fraud', value: 'scam' },
+  { label: 'Other', value: 'other' },
 ];
 
 export default function ReportIssueScreen() {
   const { bookingId } = useLocalSearchParams<{ bookingId: string }>();
   const [type, setType] = useState('');
-  const [description, setDescription] = useState('');
+  const [text, setText] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = async () => {
     if (!type) { Alert.alert('Select an issue type'); return; }
-    if (!description.trim()) { Alert.alert('Please describe the issue'); return; }
+    if (!text.trim()) { Alert.alert('Please describe the issue'); return; }
     setSubmitting(true);
     try {
-      await activeDateApi.reportIssue(bookingId, type, description);
+      await activeDateApi.reportIssue(bookingId, type, text);
       setSubmitted(true);
       setTimeout(() => router.back(), 2500);
     } catch (e: any) {
@@ -48,22 +49,22 @@ export default function ReportIssueScreen() {
       <Text style={styles.sectionLabel}>Issue Type</Text>
       {ISSUE_TYPES.map(t => (
         <TouchableOpacity
-          key={t}
-          style={[styles.typeOption, type === t && styles.typeOptionSelected]}
-          onPress={() => setType(t)}
-          accessibilityLabel={t}
+          key={t.value}
+          style={[styles.typeOption, type === t.value && styles.typeOptionSelected]}
+          onPress={() => setType(t.value)}
+          accessibilityLabel={t.label}
           accessibilityRole="radio"
-          accessibilityState={{ selected: type === t }}
+          accessibilityState={{ selected: type === t.value }}
         >
-          <Text style={[styles.typeText, type === t && styles.typeTextSelected]}>{t}</Text>
+          <Text style={[styles.typeText, type === t.value && styles.typeTextSelected]}>{t.label}</Text>
         </TouchableOpacity>
       ))}
 
       <Text style={[styles.sectionLabel, { marginTop: 24 }]}>Description</Text>
       <TextInput
         style={styles.textarea}
-        value={description}
-        onChangeText={setDescription}
+        value={text}
+        onChangeText={setText}
         placeholder="Describe what happened..."
         multiline
         numberOfLines={5}
