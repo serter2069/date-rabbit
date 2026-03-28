@@ -259,6 +259,7 @@ export default function RegisterScreen() {
             keyboardType="email-address"
             autoCapitalize="none"
             leftIcon={<Icon name="mail" size={20} color={colors.textLight} />}
+            hint="We'll email you a one-time code to sign in. No password needed."
             testID="register-email-input"
           />
 
