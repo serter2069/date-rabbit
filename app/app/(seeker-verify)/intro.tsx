@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   ScrollView,
+  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -115,12 +116,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+    ...(Platform.OS === 'web' ? { height: '100vh' as any } : {}),
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
+    flexGrow: 1,
     paddingHorizontal: PAGE_PADDING,
+    flexGrow: 1,
   },
   heroContainer: {
     alignItems: 'center',
@@ -200,7 +204,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accent,
     borderWidth: 2,
     borderColor: colors.black,
-    borderRadius: borderRadius.full,
+    borderRadius: borderRadius.sm,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
     alignSelf: 'center',

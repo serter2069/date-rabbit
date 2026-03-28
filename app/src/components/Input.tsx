@@ -26,6 +26,7 @@ interface InputProps extends Omit<TextInputProps, 'style'> {
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   onRightIconPress?: () => void;
+  rightIconAccessibilityLabel?: string;
   containerStyle?: ViewStyle;
   inputStyle?: ViewStyle;
   variant?: 'default' | 'filled';
@@ -40,6 +41,7 @@ export function Input({
   leftIcon,
   rightIcon,
   onRightIconPress,
+  rightIconAccessibilityLabel,
   containerStyle,
   inputStyle,
   variant = 'default',
@@ -65,12 +67,8 @@ export function Input({
   };
 
   const animatedBorderStyle = useAnimatedStyle(() => {
-    const borderColor = error
-      ? colors.error
-      : colors.black;
-
+    // Note: focus animation reserved for future use
     return {
-      borderColor,
       borderWidth: borderWidth.normal,
     };
   });
@@ -112,6 +110,7 @@ export function Input({
           variant === 'filled' && styles.inputContainerFilled,
           disabled && styles.inputContainerDisabled,
           animatedBorderStyle,
+          error ? { borderColor: colors.error } : { borderColor: colors.black },
         ]}
       >
         {leftIcon && <View style={styles.leftIcon}>{leftIcon}</View>}
@@ -121,6 +120,7 @@ export function Input({
           editable={!disabled}
           onFocus={handleFocus}
           onBlur={handleBlur}
+          accessibilityLabel={label ?? (textInputProps.placeholder as string | undefined)}
           style={[
             styles.input,
             {
@@ -140,6 +140,8 @@ export function Input({
             onPress={onRightIconPress}
             style={styles.rightIcon}
             disabled={!onRightIconPress}
+            accessibilityRole="button"
+            accessibilityLabel={rightIconAccessibilityLabel}
           >
             {rightIcon}
           </Pressable>

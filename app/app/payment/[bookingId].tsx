@@ -114,7 +114,7 @@ export default function PaymentScreen() {
                 {booking.activity || 'Date'}
               </Text>
               <Text style={[styles.dateText, { color: colors.textSecondary }]}>
-                {new Date(booking.date).toLocaleDateString('en-US', {
+                {new Date(booking.date).toLocaleDateString(undefined, {
                   weekday: 'short',
                   month: 'short',
                   day: 'numeric',

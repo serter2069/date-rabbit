@@ -33,6 +33,7 @@ interface CompanionSeed {
   age: number;
   location: string;
   bio: string;
+  interests: string[];
   hourlyRate: number;
   rating: number;
   reviewCount: number;
@@ -47,6 +48,7 @@ const companionSeeds: CompanionSeed[] = [
     age: 26,
     location: 'Manhattan, NYC',
     bio: "Art lover and museum enthusiast. I studied fine arts at NYU and love exploring galleries, discussing philosophy over coffee, and trying new restaurants. I'm warm, witty, and great at making people feel comfortable.",
+    interests: ['Art', 'Museums', 'Philosophy', 'Fine Dining', 'Galleries'],
     hourlyRate: 120,
     rating: 4.9,
     reviewCount: 47,
@@ -59,6 +61,7 @@ const companionSeeds: CompanionSeed[] = [
     age: 29,
     location: 'Brooklyn, NYC',
     bio: 'Former dancer turned yoga instructor. I bring energy, laughter, and genuine curiosity to every conversation. Passionate about food, travel, and live music.',
+    interests: ['Yoga', 'Dancing', 'Travel', 'Live Music', 'Food'],
     hourlyRate: 95,
     rating: 4.7,
     reviewCount: 31,
@@ -71,6 +74,7 @@ const companionSeeds: CompanionSeed[] = [
     age: 24,
     location: 'West Village, NYC',
     bio: "Graduate student studying literature at Columbia. I love bookshops, rooftop bars, long walks in Central Park, and meaningful conversations. Let's explore the city together.",
+    interests: ['Literature', 'Bookshops', 'Rooftop Bars', 'Walking', 'Conversations'],
     hourlyRate: 75,
     rating: 4.8,
     reviewCount: 22,
@@ -83,6 +87,7 @@ const companionSeeds: CompanionSeed[] = [
     age: 31,
     location: 'Upper East Side, NYC',
     bio: 'Finance professional by day, jazz enthusiast by night. I know every great cocktail bar and jazz club in the city. Sophisticated, warm, and always up for an adventure.',
+    interests: ['Jazz', 'Cocktails', 'Finance', 'Nightlife', 'Adventure'],
     hourlyRate: 160,
     rating: 5.0,
     reviewCount: 63,
@@ -95,6 +100,7 @@ const companionSeeds: CompanionSeed[] = [
     age: 27,
     location: 'SoHo, NYC',
     bio: 'Fashion photographer with a passion for storytelling. I can recommend the best hidden gems in the city and make any evening feel special and memorable.',
+    interests: ['Photography', 'Fashion', 'Storytelling', 'Hidden Gems', 'City Life'],
     hourlyRate: 110,
     rating: 4.6,
     reviewCount: 18,
@@ -107,6 +113,7 @@ const companionSeeds: CompanionSeed[] = [
     age: 25,
     location: 'Santa Monica, LA',
     bio: "Actress and improv comedian. Every date with me is an adventure — I bring spontaneity, humor, and heart. I love beach walks, comedy shows, and discovering LA's best tacos.",
+    interests: ['Acting', 'Comedy', 'Beach', 'Tacos', 'Improv'],
     hourlyRate: 90,
     rating: 4.9,
     reviewCount: 29,
@@ -119,6 +126,7 @@ const companionSeeds: CompanionSeed[] = [
     age: 30,
     location: 'Silver Lake, LA',
     bio: 'Music producer and vinyl collector. I know every hidden record shop and intimate music venue in LA. Creative, funny, and passionate about authentic experiences.',
+    interests: ['Music Production', 'Vinyl', 'Record Shops', 'Live Music', 'Creativity'],
     hourlyRate: 130,
     rating: 4.8,
     reviewCount: 35,
@@ -131,6 +139,7 @@ const companionSeeds: CompanionSeed[] = [
     age: 23,
     location: 'Venice Beach, LA',
     bio: "Recent UCLA grad passionate about sustainability and wellness. Love paddleboarding, farmers markets, and rooftop dinners with city views. I'm adventurous, positive, and easy to talk to.",
+    interests: ['Sustainability', 'Wellness', 'Paddleboarding', 'Farmers Markets', 'Rooftop Dining'],
     hourlyRate: 70,
     rating: 4.5,
     reviewCount: 11,
@@ -143,6 +152,7 @@ const companionSeeds: CompanionSeed[] = [
     age: 28,
     location: 'Los Feliz, LA',
     bio: 'Screenwriter with a thing for vintage cinema. I love dinner conversations about movies, life, and ideas. Warm, thoughtful, and genuinely interested in people.',
+    interests: ['Screenwriting', 'Cinema', 'Dinner Conversations', 'Movies', 'Ideas'],
     hourlyRate: 105,
     rating: 4.7,
     reviewCount: 24,
@@ -155,6 +165,7 @@ const companionSeeds: CompanionSeed[] = [
     age: 33,
     location: 'Beverly Hills, LA',
     bio: 'Interior designer and travel enthusiast who has been to 40+ countries. I love fine dining, gallery openings, and conversations that go late into the night.',
+    interests: ['Interior Design', 'Travel', 'Fine Dining', 'Gallery Openings', 'Culture'],
     hourlyRate: 175,
     rating: 4.9,
     reviewCount: 58,
@@ -167,6 +178,7 @@ const companionSeeds: CompanionSeed[] = [
     age: 26,
     location: 'South Beach, Miami',
     bio: 'Marine biologist turned dive instructor. I love sunset sails, seafood dinners, and introducing people to the magic of the ocean. Fun, adventurous, and full of stories.',
+    interests: ['Marine Biology', 'Diving', 'Sailing', 'Seafood', 'Ocean'],
     hourlyRate: 85,
     rating: 4.6,
     reviewCount: 20,
@@ -179,6 +191,7 @@ const companionSeeds: CompanionSeed[] = [
     age: 29,
     location: 'Wynwood, Miami',
     bio: 'Street art curator and salsa dancer. I know every mural, gallery, and late-night spot in Miami. Vibrant, passionate, and always up for something unexpected.',
+    interests: ['Street Art', 'Salsa Dancing', 'Murals', 'Nightlife', 'Art Curation'],
     hourlyRate: 100,
     rating: 4.8,
     reviewCount: 27,
@@ -191,6 +204,7 @@ const companionSeeds: CompanionSeed[] = [
     age: 35,
     location: 'Brickell, Miami',
     bio: 'Investment banker who lives for weekend adventures. Love yacht parties, rooftop bars, and discovering new chef-driven restaurants. Sophisticated, sharp, and great fun.',
+    interests: ['Yachting', 'Rooftop Bars', 'Fine Dining', 'Adventure', 'Finance'],
     hourlyRate: 200,
     rating: 4.9,
     reviewCount: 71,
@@ -203,6 +217,7 @@ const companionSeeds: CompanionSeed[] = [
     age: 22,
     location: 'Miami Beach, Miami',
     bio: "Fashion design student with an eye for beauty and style. I love exploring art deco architecture, trying fusion cuisine, and making every moment feel effortlessly chic.",
+    interests: ['Fashion Design', 'Art Deco', 'Fusion Cuisine', 'Style', 'Architecture'],
     hourlyRate: 65,
     rating: 4.4,
     reviewCount: 8,
@@ -215,6 +230,7 @@ const companionSeeds: CompanionSeed[] = [
     age: 32,
     location: 'Midtown, NYC',
     bio: 'Broadway actress and vocal coach. I bring drama (the fun kind), warmth, and incredible restaurant knowledge to every date. Love theater, karaoke, and honest conversations.',
+    interests: ['Broadway', 'Theater', 'Karaoke', 'Restaurants', 'Vocal Coaching'],
     hourlyRate: 140,
     rating: 4.8,
     reviewCount: 42,
@@ -227,6 +243,7 @@ const companionSeeds: CompanionSeed[] = [
     age: 27,
     location: 'Chelsea, NYC',
     bio: 'Tech startup founder who unwinds through cooking classes and hiking. I love balancing ambition with adventure — great at making people feel seen and heard.',
+    interests: ['Tech', 'Cooking', 'Hiking', 'Startups', 'Adventure'],
     hourlyRate: 115,
     rating: 4.7,
     reviewCount: 19,
@@ -239,6 +256,7 @@ const companionSeeds: CompanionSeed[] = [
     age: 24,
     location: 'Astoria, NYC',
     bio: 'Pastry chef who moonlights as a food tour guide. I know the best hidden bakeries, wine bars, and dinner spots in every neighborhood. Sweet, funny, and easy to be around.',
+    interests: ['Baking', 'Food Tours', 'Wine', 'Hidden Gems', 'Culinary Arts'],
     hourlyRate: 80,
     rating: 4.6,
     reviewCount: 15,
@@ -251,6 +269,7 @@ const companionSeeds: CompanionSeed[] = [
     age: 31,
     location: 'Coral Gables, Miami',
     bio: 'Cultural diplomat and bilingual (Spanish/English) art historian. Love museum evenings, Latin jazz nights, and deep conversations about art and life over Cuban coffee.',
+    interests: ['Art History', 'Latin Jazz', 'Museums', 'Cuban Coffee', 'Culture'],
     hourlyRate: 125,
     rating: 4.9,
     reviewCount: 38,
@@ -263,6 +282,7 @@ const companionSeeds: CompanionSeed[] = [
     age: 34,
     location: 'Malibu, LA',
     bio: 'Wellness coach and surfer. I believe every great evening starts with being fully present. Love sunset dinners, breathwork sessions, and stargazing conversations.',
+    interests: ['Surfing', 'Wellness', 'Sunset Dinners', 'Breathwork', 'Stargazing'],
     hourlyRate: 155,
     rating: 3.8,
     reviewCount: 6,
@@ -275,6 +295,7 @@ const companionSeeds: CompanionSeed[] = [
     age: 28,
     location: 'Downtown LA',
     bio: 'Architect with a love for urban exploration and cocktail culture. I know the most beautiful rooftops, speakeasies, and architectural wonders across LA.',
+    interests: ['Architecture', 'Urban Exploration', 'Cocktails', 'Rooftops', 'Speakeasies'],
     hourlyRate: 135,
     rating: 4.7,
     reviewCount: 26,
@@ -537,8 +558,117 @@ async function seed() {
     const userRepo = AppDataSource.getRepository(User);
     const companions: User[] = [];
 
-    for (const c of companionSeeds) {
-      const avatarSeed = c.name.replace(/\s+/g, '');
+  // Placeholder portrait photos using Lorem Picsum (seed-based, deterministic, no auth required)
+  // Each companion gets 2 unique photos — primary + secondary
+  const companionPhotos: { primary: string; secondary: string }[] = [
+    // 0 - Sophia Chen (26, Manhattan)
+    {
+      primary: 'https://picsum.photos/seed/sophia-chen/400/400',
+      secondary: 'https://picsum.photos/seed/sophia-chen-2/400/400',
+    },
+    // 1 - Isabella Romano (29, Brooklyn)
+    {
+      primary: 'https://picsum.photos/seed/isabella-romano/400/400',
+      secondary: 'https://picsum.photos/seed/isabella-romano-2/400/400',
+    },
+    // 2 - Mia Thompson (24, West Village)
+    {
+      primary: 'https://picsum.photos/seed/mia-thompson/400/400',
+      secondary: 'https://picsum.photos/seed/mia-thompson-2/400/400',
+    },
+    // 3 - Ava Williams (31, Upper East Side)
+    {
+      primary: 'https://picsum.photos/seed/ava-williams/400/400',
+      secondary: 'https://picsum.photos/seed/ava-williams-2/400/400',
+    },
+    // 4 - Emma Davis (27, SoHo)
+    {
+      primary: 'https://picsum.photos/seed/emma-davis/400/400',
+      secondary: 'https://picsum.photos/seed/emma-davis-2/400/400',
+    },
+    // 5 - Olivia Martinez (25, Santa Monica)
+    {
+      primary: 'https://picsum.photos/seed/olivia-martinez/400/400',
+      secondary: 'https://picsum.photos/seed/olivia-martinez-2/400/400',
+    },
+    // 6 - Charlotte Lee (30, Silver Lake)
+    {
+      primary: 'https://picsum.photos/seed/charlotte-lee/400/400',
+      secondary: 'https://picsum.photos/seed/charlotte-lee-2/400/400',
+    },
+    // 7 - Luna Vasquez (23, Venice Beach)
+    {
+      primary: 'https://picsum.photos/seed/luna-vasquez/400/400',
+      secondary: 'https://picsum.photos/seed/luna-vasquez-2/400/400',
+    },
+    // 8 - Zoe Anderson (28, Los Feliz)
+    {
+      primary: 'https://picsum.photos/seed/zoe-anderson/400/400',
+      secondary: 'https://picsum.photos/seed/zoe-anderson-2/400/400',
+    },
+    // 9 - Natalie Kim (33, Beverly Hills)
+    {
+      primary: 'https://picsum.photos/seed/natalie-kim/400/400',
+      secondary: 'https://picsum.photos/seed/natalie-kim-2/400/400',
+    },
+    // 10 - Chloe Johnson (26, South Beach)
+    {
+      primary: 'https://picsum.photos/seed/chloe-johnson/400/400',
+      secondary: 'https://picsum.photos/seed/chloe-johnson-2/400/400',
+    },
+    // 11 - Aria Patel (29, Wynwood)
+    {
+      primary: 'https://picsum.photos/seed/aria-patel/400/400',
+      secondary: 'https://picsum.photos/seed/aria-patel-2/400/400',
+    },
+    // 12 - Grace Wilson (35, Brickell)
+    {
+      primary: 'https://picsum.photos/seed/grace-wilson/400/400',
+      secondary: 'https://picsum.photos/seed/grace-wilson-2/400/400',
+    },
+    // 13 - Lily Taylor (22, Miami Beach)
+    {
+      primary: 'https://picsum.photos/seed/lily-taylor/400/400',
+      secondary: 'https://picsum.photos/seed/lily-taylor-2/400/400',
+    },
+    // 14 - Harper Brown (32, Midtown)
+    {
+      primary: 'https://picsum.photos/seed/harper-brown/400/400',
+      secondary: 'https://picsum.photos/seed/harper-brown-2/400/400',
+    },
+    // 15 - Scarlett Nguyen (27, Chelsea)
+    {
+      primary: 'https://picsum.photos/seed/scarlett-nguyen/400/400',
+      secondary: 'https://picsum.photos/seed/scarlett-nguyen-2/400/400',
+    },
+    // 16 - Maya Robinson (24, Astoria)
+    {
+      primary: 'https://picsum.photos/seed/maya-robinson/400/400',
+      secondary: 'https://picsum.photos/seed/maya-robinson-2/400/400',
+    },
+    // 17 - Stella Garcia (31, Coral Gables)
+    {
+      primary: 'https://picsum.photos/seed/stella-garcia/400/400',
+      secondary: 'https://picsum.photos/seed/stella-garcia-2/400/400',
+    },
+    // 18 - Penelope Clarke (34, Malibu)
+    {
+      primary: 'https://picsum.photos/seed/penelope-clarke/400/400',
+      secondary: 'https://picsum.photos/seed/penelope-clarke-2/400/400',
+    },
+    // 19 - Victoria Scott (28, Downtown LA)
+    {
+      primary: 'https://picsum.photos/seed/victoria-scott/400/400',
+      secondary: 'https://picsum.photos/seed/victoria-scott-2/400/400',
+    },
+  ];
+
+    for (let ci = 0; ci < companionSeeds.length; ci++) {
+      const c = companionSeeds[ci];
+      const photos = companionPhotos[ci];
+      const primaryPhotoUrl = photos.primary;
+      const secondaryPhotoUrl = photos.secondary;
+
       const user = Object.assign(new User(), {
         email: c.email,
         name: c.name,
@@ -546,16 +676,17 @@ async function seed() {
         age: c.age,
         location: c.location,
         bio: c.bio,
+        interests: c.interests,
         photos: [
           {
             id: crypto.randomUUID(),
-            url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed}`,
+            url: primaryPhotoUrl,
             order: 0,
             isPrimary: true,
           },
           {
             id: crypto.randomUUID(),
-            url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed}Alt`,
+            url: secondaryPhotoUrl,
             order: 1,
             isPrimary: false,
           },
@@ -581,8 +712,18 @@ async function seed() {
 
     const seekers: User[] = [];
 
-    for (const s of seekerSeeds) {
-      const avatarSeed = s.name.replace(/['\s]+/g, '');
+  // Placeholder portrait photos using Lorem Picsum (seed-based, deterministic, no auth required)
+  const seekerPhotos = [
+    'https://picsum.photos/seed/james-mitchell/400/400', // James Mitchell
+    'https://picsum.photos/seed/david-park/400/400',     // David Park
+    'https://picsum.photos/seed/michael-torres/400/400', // Michael Torres
+    'https://picsum.photos/seed/ryan-obrien/400/400',    // Ryan O'Brien
+    'https://picsum.photos/seed/daniel-hoffman/400/400', // Daniel Hoffman
+  ];
+
+    for (let si = 0; si < seekerSeeds.length; si++) {
+      const s = seekerSeeds[si];
+
       const user = Object.assign(new User(), {
         email: s.email,
         name: s.name,
@@ -592,7 +733,7 @@ async function seed() {
         photos: [
           {
             id: crypto.randomUUID(),
-            url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed}Seeker`,
+            url: seekerPhotos[si],
             order: 0,
             isPrimary: true,
           },

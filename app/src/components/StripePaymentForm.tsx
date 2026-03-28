@@ -39,7 +39,19 @@ function WebPaymentForm({ clientSecret, amount, onSuccess, onError }: StripePaym
 
   const publishableKey =
     Constants.expoConfig?.extra?.stripePublishableKey ||
-    'pk_test_51T5TlyPIXSgCWIzOHEKqYS4Pqjt8VNkMlPx2aZ6MIqJQf1UWTEJvEdcSfrLj9z3qRzG49fQrF0FxEGqaNLNpSIX00Hb8bFncl';
+    process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ||
+    '';
+
+  if (!publishableKey) {
+    console.warn('[Stripe] EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY is not set. Stripe will not be initialized.');
+    return (
+      <View style={styles.fallback}>
+        <Text style={[styles.fallbackText, { color: colors.textSecondary }]}>
+          Payment is not available. Stripe key is missing.
+        </Text>
+      </View>
+    );
+  }
 
   const stripePromise = loadStripe(publishableKey);
 

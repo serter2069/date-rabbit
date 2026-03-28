@@ -36,7 +36,7 @@ export default function CompPendingScreen() {
   useEffect(() => {
     if (status === 'approved') {
       if (intervalRef.current) clearInterval(intervalRef.current);
-      router.replace('/(tabs)');
+      router.replace('/(tabs)/female');
     } else if (status === 'rejected') {
       if (intervalRef.current) clearInterval(intervalRef.current);
       // Stay on screen, show rejection state
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
     backgroundColor: colors.surface,
-    borderRadius: borderRadius.full,
+    borderRadius: borderRadius.sm,
     marginBottom: spacing.xl,
   },
   pollingText: {

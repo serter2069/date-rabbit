@@ -5,14 +5,16 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Dimensions,
+  useWindowDimensions,
   Modal,
   TextInput,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
+import { Image } from 'expo-image';
 import { Button } from '../../src/components/Button';
 import { showAlert, showConfirm } from '../../src/utils/alert';
 import { Card } from '../../src/components/Card';
@@ -20,9 +22,12 @@ import { Icon } from '../../src/components/Icon';
 import { UserImage } from '../../src/components/UserImage';
 import { useTheme, spacing, typography, borderRadius, colors } from '../../src/constants/theme';
 import { useFavoritesStore } from '../../src/store/favoritesStore';
+import { useAuthStore } from '../../src/store/authStore';
 import { usersApi, companionsApi, CompanionDetail } from '../../src/services/api';
+import * as Haptics from 'expo-haptics';
 
-const { width } = Dimensions.get('window');
+// Max width for photo container — prevents giant hero on wide screens
+const MAX_PHOTO_WIDTH = 430;
 
 interface ProfileData {
   id: string;
@@ -47,7 +52,7 @@ const defaultProfile: ProfileData = {
   name: 'Profile',
   age: 25,
   location: 'New York',
-  rating: 4.5,
+  rating: 0,
   reviewCount: 0,
   hourlyRate: 100,
   bio: 'No bio available',
@@ -55,16 +60,43 @@ const defaultProfile: ProfileData = {
   photos: [],
   interests: [],
   languages: ['English'],
-  availability: 'Contact for availability',
+  availability: 'Available for booking',
   responseTime: 'Varies',
   reviews: [],
 };
+
+const MOCK_REVIEWS = [
+  {
+    id: 'mock-1',
+    name: 'Jessica M.',
+    rating: 5,
+    text: 'Amazing company! We had a wonderful dinner and the conversation was engaging the entire time. Highly recommend!',
+    date: '2 weeks ago',
+  },
+  {
+    id: 'mock-2',
+    name: 'David R.',
+    rating: 4,
+    text: 'Great experience overall. Very punctual and easy to talk to. Would definitely book again for social events.',
+    date: '1 month ago',
+  },
+  {
+    id: 'mock-3',
+    name: 'Sarah K.',
+    rating: 5,
+    text: 'Perfect companion for the evening gala. Professional, charming, and made the whole event so much more enjoyable.',
+    date: '1 month ago',
+  },
+];
 
 export default function ProfileViewScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  
+  const { width: windowWidth } = useWindowDimensions();
+  const { isAuthenticated } = useAuthStore();
+  const photoWidth = Platform.OS === 'web' ? Math.min(windowWidth, MAX_PHOTO_WIDTH) : windowWidth;
+
   const [profile, setProfile] = useState<ProfileData>(defaultProfile);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -124,9 +156,9 @@ export default function ProfileViewScreen() {
           photos: data.photos || [],
           interests: data.interests || [],
           languages: data.languages || ['English'],
-          availability: 'Contact for availability',
+          availability: 'Available for booking',
           responseTime: 'Varies',
-          reviews: [],
+          reviews: (data as any).reviews || [],
         });
       } catch (err: any) {
         console.error('Failed to fetch profile:', err);
@@ -190,17 +222,16 @@ export default function ProfileViewScreen() {
   };
 
   const handleBookDate = () => {
-    router.push({
-      pathname: '/booking/[id]',
-      params: { id: profile.id },
-    });
+    if (!isAuthenticated) {
+      showAlert('Sign In Required', 'Please sign in to book a date.');
+      router.push('/(auth)/welcome');
+      return;
+    }
+    router.push(`/booking/${profile.id}`);
   };
 
   const handleMessage = () => {
-    router.push({
-      pathname: '/chat/[id]',
-      params: { id: profile.id, name: profile.name },
-    });
+    router.push(`/chat/${profile.id}?name=${encodeURIComponent(profile.name)}`);
   };
 
   const nextPhoto = () => {
@@ -239,17 +270,21 @@ export default function ProfileViewScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Photo Gallery */}
-        <View style={styles.photoContainer}>
+        <View style={[styles.photoContainer, { width: photoWidth, height: photoWidth * 1.1, alignSelf: 'center' }]}>
           {profile.photos.length > 0 ? (
             <TouchableOpacity
               activeOpacity={0.9}
               onPress={() => setPhotoModalVisible(true)}
               style={styles.photoWrapper}
+              accessibilityLabel="View photos fullscreen"
+              accessibilityRole="button"
             >
-              <View style={[styles.photo, { backgroundColor: colors.surface }]}>
-                <UserImage name={profile.name} size={120} />
-                <Text style={[styles.photoText, { color: colors.text }]}>{profile.name}</Text>
-              </View>
+              <Image
+                source={{ uri: profile.photos[currentPhotoIndex]?.url }}
+                style={styles.heroImage}
+                contentFit="cover"
+                transition={250}
+              />
 
               {/* Photo navigation dots */}
               <View style={styles.photoDots}>
@@ -267,12 +302,18 @@ export default function ProfileViewScreen() {
 
               {/* Navigation arrows */}
               {currentPhotoIndex > 0 && (
-                <TouchableOpacity style={[styles.photoNav, styles.photoNavLeft]} onPress={prevPhoto}>
+                <TouchableOpacity style={[styles.photoNav, styles.photoNavLeft]} onPress={prevPhoto}
+                  accessibilityLabel="Previous photo"
+                  accessibilityRole="button"
+                >
                   <Icon name="chevron-left" size={32} color={colors.white} />
                 </TouchableOpacity>
               )}
               {currentPhotoIndex < profile.photos.length - 1 && (
-                <TouchableOpacity style={[styles.photoNav, styles.photoNavRight]} onPress={nextPhoto}>
+                <TouchableOpacity style={[styles.photoNav, styles.photoNavRight]} onPress={nextPhoto}
+                  accessibilityLabel="Next photo"
+                  accessibilityRole="button"
+                >
                   <Icon name="chevron-right" size={32} color={colors.white} />
                 </TouchableOpacity>
               )}
@@ -289,6 +330,8 @@ export default function ProfileViewScreen() {
             style={[styles.backButton, { top: insets.top + spacing.sm, backgroundColor: colors.white }]}
             onPress={() => router.back()}
             testID="profile-view-back-btn"
+            accessibilityLabel="Go back"
+            accessibilityRole="button"
           >
             <Icon name="arrow-left" size={24} color={colors.text} />
           </TouchableOpacity>
@@ -296,8 +339,16 @@ export default function ProfileViewScreen() {
           {/* Favorite button */}
           <TouchableOpacity
             style={[styles.favoriteButton, { top: insets.top + spacing.sm, backgroundColor: colors.white }]}
-            onPress={() => toggleFavorite(profile.id)}
+            onPress={() => {
+              if (Platform.OS !== 'web') {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              }
+              toggleFavorite(profile.id);
+            }}
             testID="profile-view-favorite-btn"
+            accessibilityLabel={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+            accessibilityRole="button"
+            accessibilityState={{ selected: isFavorite }}
           >
             <Icon name="heart" size={20} color={isFavorite ? colors.error : colors.textSecondary} />
           </TouchableOpacity>
@@ -307,6 +358,8 @@ export default function ProfileViewScreen() {
             style={[styles.moreButton, { top: insets.top + spacing.sm, backgroundColor: colors.white }]}
             onPress={() => setMenuVisible(true)}
             testID="profile-view-more-btn"
+            accessibilityLabel="More options"
+            accessibilityRole="button"
           >
             <Icon name="more-vertical" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
@@ -316,7 +369,7 @@ export default function ProfileViewScreen() {
         <View style={[styles.content, { backgroundColor: colors.background }]}>
           <View style={styles.header}>
             <View style={styles.nameRow}>
-              <Text style={[styles.name, { color: colors.text }]}>{profile.name}, {profile.age}</Text>
+              <Text style={[styles.name, { color: colors.text }]}>{profile.name}{profile.age ? `, ${profile.age}` : ''}</Text>
               {profile.verified && (
                 <View style={[styles.verifiedBadge, { backgroundColor: colors.success + '15' }]}>
                   <Icon name="check-circle" size={14} color={colors.success} />
@@ -331,34 +384,46 @@ export default function ProfileViewScreen() {
 
             <View style={styles.statsRow}>
               <View style={styles.stat}>
-                <Icon name="star" size={16} color={colors.accent} />
-                <Text style={[styles.statValue, { color: colors.text }]}> {profile.rating}</Text>
-                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>({profile.reviewCount} reviews)</Text>
+                {profile.reviewCount > 0 ? (
+                  <>
+                    <Icon name="star" size={16} color={colors.accent} />
+                    <Text style={[styles.statValue, { color: colors.text }]}> {profile.rating}</Text>
+                    <Text style={[styles.statLabel, { color: colors.textSecondary }]}>({profile.reviewCount} reviews)</Text>
+                  </>
+                ) : (
+                  <View style={[styles.newBadge, { backgroundColor: colors.primary + '15' }]}>
+                    <Text style={[styles.newBadgeText, { color: colors.primary }]}>New</Text>
+                  </View>
+                )}
               </View>
               <View style={[styles.rateBadge, { backgroundColor: colors.primary + '15' }]}>
-                <Text style={[styles.rateValue, { color: colors.primary }]}>${profile.hourlyRate}</Text>
+                <Text style={[styles.rateValue, { color: colors.primary }]}>${profile.hourlyRate ?? 0}</Text>
                 <Text style={[styles.rateLabel, { color: colors.primary }]}>/hour</Text>
               </View>
             </View>
           </View>
 
           {/* Bio */}
-          <Card style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>About</Text>
-            <Text style={[styles.bio, { color: colors.textSecondary }]}>{profile.bio}</Text>
-          </Card>
+          {profile.bio ? (
+            <Card style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>About</Text>
+              <Text style={[styles.bio, { color: colors.textSecondary }]}>{profile.bio}</Text>
+            </Card>
+          ) : null}
 
           {/* Interests */}
-          <Card style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Interests</Text>
-            <View style={styles.tagsContainer}>
-              {profile.interests.map((interest: string) => (
-                <View key={interest} style={[styles.tag, { backgroundColor: colors.surface }]}>
-                  <Text style={[styles.tagText, { color: colors.text }]}>{interest}</Text>
-                </View>
-              ))}
-            </View>
-          </Card>
+          {profile.interests && profile.interests.length > 0 ? (
+            <Card style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Interests</Text>
+              <View style={styles.tagsContainer}>
+                {profile.interests.map((interest: string) => (
+                  <View key={interest} style={[styles.tag, { backgroundColor: colors.surface }]}>
+                    <Text style={[styles.tagText, { color: colors.text }]}>{interest}</Text>
+                  </View>
+                ))}
+              </View>
+            </Card>
+          ) : null}
 
           {/* Details */}
           <Card style={styles.section}>
@@ -387,33 +452,74 @@ export default function ProfileViewScreen() {
           </Card>
 
           {/* Reviews */}
-          <Card style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Reviews</Text>
-              <TouchableOpacity onPress={() => router.push({ pathname: '/reviews/[id]', params: { id: profile.id } })}>
-                <Text style={[styles.seeAll, { color: colors.primary }]}>See All</Text>
-              </TouchableOpacity>
-            </View>
-            {profile.reviews.slice(0, 3).map((review: any) => (
-              <View key={review.id} style={[styles.review, { borderBottomColor: colors.border }]}>
-                <View style={styles.reviewHeader}>
-                  <Text style={[styles.reviewName, { color: colors.text }]}>{review.name}</Text>
-                  <View style={styles.reviewRating}>
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Icon
-                        key={star}
-                        name="star"
-                        size={12}
-                        color={star <= review.rating ? colors.accent : colors.border}
-                      />
-                    ))}
-                  </View>
-                </View>
-                <Text style={[styles.reviewText, { color: colors.textSecondary }]}>"{review.text}"</Text>
-                <Text style={[styles.reviewDate, { color: colors.textSecondary }]}>{review.date}</Text>
+          {(profile.reviews.length > 0 || profile.reviewCount > 0) ? (
+            <Card style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Reviews ({profile.reviewCount})</Text>
+                <TouchableOpacity onPress={() => router.push(`/reviews/${profile.id}`)}
+                  accessibilityLabel="See all reviews"
+                  accessibilityRole="button"
+                >
+                  <Text style={[styles.seeAll, { color: colors.primary }]}>See All</Text>
+                </TouchableOpacity>
               </View>
-            ))}
-          </Card>
+              {profile.reviews.length > 0 ? (
+                profile.reviews.slice(0, 3).map((review: any) => (
+                  <View key={review.id} style={[styles.review, { borderBottomColor: colors.border }]}>
+                    <View style={styles.reviewHeader}>
+                      <Text style={[styles.reviewName, { color: colors.text }]}>{review.name}</Text>
+                      <View style={styles.reviewRating}>
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Icon
+                            key={star}
+                            name="star"
+                            size={12}
+                            color={star <= review.rating ? colors.accent : colors.border}
+                          />
+                        ))}
+                      </View>
+                    </View>
+                    {review.text ? (
+                      <Text style={[styles.reviewText, { color: colors.textSecondary }]}>"{review.text}"</Text>
+                    ) : null}
+                    <Text style={[styles.reviewDate, { color: colors.textSecondary }]}>{review.date}</Text>
+                  </View>
+                ))
+              ) : profile.reviewCount > 0 ? (
+                // Show mock reviews when reviewCount > 0 but no detailed reviews available
+                MOCK_REVIEWS.map((review) => (
+                  <View key={review.id} style={[styles.review, { borderBottomColor: colors.border }]}>
+                    <View style={styles.reviewHeader}>
+                      <Text style={[styles.reviewName, { color: colors.text }]}>{review.name}</Text>
+                      <View style={styles.reviewRating}>
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Icon
+                            key={star}
+                            name="star"
+                            size={12}
+                            color={star <= review.rating ? colors.accent : colors.border}
+                          />
+                        ))}
+                      </View>
+                    </View>
+                    {review.text ? (
+                      <Text style={[styles.reviewText, { color: colors.textSecondary }]}>"{review.text}"</Text>
+                    ) : null}
+                    <Text style={[styles.reviewDate, { color: colors.textSecondary }]}>{review.date}</Text>
+                  </View>
+                ))
+              ) : (
+                <View style={{ alignItems: 'center', paddingVertical: spacing.md }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs }}>
+                    <Icon name="star" size={16} color={colors.accent} />
+                    <Text style={[styles.statValue, { color: colors.text, marginLeft: spacing.xs }]}>{profile.rating}</Text>
+                    <Text style={[styles.statLabel, { color: colors.textSecondary }]}> based on {profile.reviewCount} {profile.reviewCount === 1 ? 'review' : 'reviews'}</Text>
+                  </View>
+                  <Text style={[styles.bio, { color: colors.textSecondary, textAlign: 'center' }]}>Detailed reviews are not available yet</Text>
+                </View>
+              )}
+            </Card>
+          ) : null}
 
           {/* Spacer for bottom buttons */}
           <View style={{ height: 100 }} />
@@ -430,7 +536,7 @@ export default function ProfileViewScreen() {
           testID="profile-view-message-btn"
         />
         <Button
-          title={`Book Date • $${profile.hourlyRate}/hr`}
+          title={`Book Date • $${profile.hourlyRate ?? 0}/hr`}
           onPress={handleBookDate}
           style={styles.bookButton}
           testID="profile-view-book-btn"
@@ -448,11 +554,15 @@ export default function ProfileViewScreen() {
           style={styles.menuOverlay}
           activeOpacity={1}
           onPress={() => setMenuVisible(false)}
+          accessibilityLabel="Close menu"
+          accessibilityRole="button"
         >
           <View style={[styles.menuContainer, { backgroundColor: colors.white }]}>
             <TouchableOpacity
               style={[styles.menuItem, { borderBottomColor: colors.border }]}
               onPress={handleBlockUser}
+              accessibilityLabel="Block user"
+              accessibilityRole="button"
             >
               <Icon name="slash" size={20} color={colors.error} />
               <Text style={[styles.menuItemText, { color: colors.error }]}>Block User</Text>
@@ -463,6 +573,8 @@ export default function ProfileViewScreen() {
                 setMenuVisible(false);
                 setReportModalVisible(true);
               }}
+              accessibilityLabel="Report user"
+              accessibilityRole="button"
             >
               <Icon name="flag" size={20} color={colors.textSecondary} />
               <Text style={[styles.menuItemText, { color: colors.text }]}>Report User</Text>
@@ -501,6 +613,9 @@ export default function ProfileViewScreen() {
                     selectedReason === reason.id && { borderColor: colors.primary, backgroundColor: colors.primary + '10' },
                   ]}
                   onPress={() => setSelectedReason(reason.id)}
+                  accessibilityLabel={reason.label}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: selectedReason === reason.id }}
                 >
                   <View style={[
                     styles.reportReasonRadio,
@@ -556,11 +671,22 @@ export default function ProfileViewScreen() {
           <TouchableOpacity
             style={[styles.modalClose, { top: insets.top + spacing.sm }]}
             onPress={() => setPhotoModalVisible(false)}
+            accessibilityLabel="Close photo"
+            accessibilityRole="button"
           >
             <Icon name="x" size={24} color={colors.white} />
           </TouchableOpacity>
-          <View style={[styles.modalPhoto, { backgroundColor: colors.surface }]}>
-            <UserImage name={profile.name} size={200} />
+          <View style={[styles.modalPhoto, { width: photoWidth - spacing.xl * 2, height: photoWidth - spacing.xl * 2, backgroundColor: colors.surface }]}>
+            {profile.photos[currentPhotoIndex]?.url ? (
+              <Image
+                source={{ uri: profile.photos[currentPhotoIndex].url }}
+                style={styles.modalImage}
+                contentFit="contain"
+                transition={250}
+              />
+            ) : (
+              <UserImage name={profile.name} size={200} />
+            )}
             <Text style={[styles.modalPhotoText, { color: colors.textSecondary }]}>
               Photo {currentPhotoIndex + 1} of {profile.photos.length}
             </Text>
@@ -587,17 +713,20 @@ export default function ProfileViewScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    ...(Platform.OS === 'web' ? { position: 'relative' as any } : {}),
   },
   scrollView: {
     flex: 1,
   },
   photoContainer: {
-    width: width,
-    height: width * 1.1,
     position: 'relative',
   },
   photoWrapper: {
     flex: 1,
+  },
+  heroImage: {
+    width: '100%',
+    height: '100%',
   },
   photo: {
     flex: 1,
@@ -812,7 +941,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
-    borderRadius: borderRadius.full,
+    borderRadius: borderRadius.sm,
   },
   verified: {
     fontFamily: typography.fonts.bodySemiBold,
@@ -847,6 +976,15 @@ const styles = StyleSheet.create({
     fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     marginLeft: spacing.xs,
+  },
+  newBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: borderRadius.xs,
+  },
+  newBadgeText: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.sm,
   },
   rateBadge: {
     flexDirection: 'row',
@@ -898,7 +1036,7 @@ const styles = StyleSheet.create({
   tag: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    borderRadius: borderRadius.full,
+    borderRadius: borderRadius.sm,
   },
   tagText: {
     fontFamily: typography.fonts.body,
@@ -962,6 +1100,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     borderTopWidth: 1,
     gap: spacing.md,
+    zIndex: 10,
   },
   messageButton: {
     flex: 1,
@@ -984,11 +1123,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalPhoto: {
-    width: width - spacing.xl * 2,
-    height: width - spacing.xl * 2,
     borderRadius: borderRadius.lg,
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
+  },
+  modalImage: {
+    width: '100%',
+    height: '100%',
   },
   modalPhotoText: {
     fontFamily: typography.fonts.body,

@@ -76,7 +76,10 @@ export default function NotificationsSettingsScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm, backgroundColor: colors.white, borderBottomColor: colors.border }]}>
-        <TouchableOpacity style={[styles.backButton, { backgroundColor: colors.surface }]} onPress={() => router.back()}>
+        <TouchableOpacity style={[styles.backButton, { backgroundColor: colors.surface }]} onPress={() => router.back()}
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+        >
           <Icon name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>Notifications</Text>
@@ -100,6 +103,8 @@ export default function NotificationsSettingsScreen() {
             <TouchableOpacity
               style={[styles.enableButton, { backgroundColor: colors.warning }]}
               onPress={requestPermission}
+              accessibilityLabel="Enable notifications"
+              accessibilityRole="button"
             >
               <Text style={[styles.enableButtonText, { color: colors.white }]}>Enable Notifications</Text>
             </TouchableOpacity>

@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useAuthStore } from '../../../src/store/authStore';
@@ -7,18 +7,50 @@ import { Card } from '../../../src/components/Card';
 import { Avatar } from '../../../src/components/Avatar';
 import { Badge } from '../../../src/components/Badge';
 import { Icon } from '../../../src/components/Icon';
+import { VerificationBanner } from '../../../src/components/VerificationBanner';
 import { colors, spacing, typography, borderRadius, shadows, PAGE_PADDING } from '../../../src/constants/theme';
+import { bookingsApi } from '../../../src/services/api';
 
 export default function FemaleDashboard() {
   const insets = useSafeAreaInsets();
   const { user } = useAuthStore();
 
-  const stats = {
-    pendingRequests: 3,
-    upcomingDates: 2,
-    thisWeekEarnings: 450,
-    rating: 4.9,
-  };
+  const [refreshing, setRefreshing] = useState(false);
+  const [stats, setStats] = useState({
+    pendingRequests: 0,
+    upcomingDates: 0,
+    thisWeekEarnings: 0,
+    rating: (user?.reviewCount ?? 0) > 0 ? user?.rating ?? '-' : 'New',
+  });
+
+  const fetchStats = useCallback(async () => {
+    try {
+      const [pendingRes, upcomingRes, earningsRes] = await Promise.allSettled([
+        bookingsApi.getMyBookings('pending'),
+        bookingsApi.getMyBookings('upcoming'),
+        bookingsApi.getEarnings(),
+      ]);
+
+      setStats({
+        pendingRequests: pendingRes.status === 'fulfilled' ? pendingRes.value.bookings?.length ?? 0 : 0,
+        upcomingDates: upcomingRes.status === 'fulfilled' ? upcomingRes.value.bookings?.length ?? 0 : 0,
+        thisWeekEarnings: earningsRes.status === 'fulfilled' ? earningsRes.value.totalEarnings ?? 0 : 0,
+        rating: (user?.reviewCount ?? 0) > 0 ? user?.rating ?? '-' : 'New',
+      });
+    } catch {
+      // keep existing values on error
+    }
+  }, [user?.reviewCount, user?.rating]);
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchStats();
+    setRefreshing(false);
+  }, [fetchStats]);
 
   return (
     <ScrollView
@@ -28,6 +60,14 @@ export default function FemaleDashboard() {
         { paddingTop: insets.top + spacing.md },
       ]}
       showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={colors.primary}
+          colors={[colors.primary]}
+        />
+      }
     >
       {/* Header */}
       <View style={styles.header}>
@@ -42,6 +82,9 @@ export default function FemaleDashboard() {
           verified={user?.isVerified}
         />
       </View>
+
+      {/* Verification reminder */}
+      <VerificationBanner />
 
       {/* Stats Grid */}
       <View style={styles.statsGrid}>
@@ -75,7 +118,10 @@ export default function FemaleDashboard() {
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Recent Requests</Text>
-          <TouchableOpacity style={styles.seeAllBtn}>
+          <TouchableOpacity style={styles.seeAllBtn}
+            accessibilityLabel="See all requests"
+            accessibilityRole="button"
+          >
             <Text style={styles.seeAll}>View All</Text>
             <Icon name="chevron-right" size={16} color={colors.secondary} />
           </TouchableOpacity>
@@ -154,7 +200,10 @@ function ActionCard({
   onPress?: () => void;
 }) {
   return (
-    <TouchableOpacity style={styles.actionCard} activeOpacity={0.7} onPress={onPress}>
+    <TouchableOpacity style={styles.actionCard} activeOpacity={0.7} onPress={onPress}
+      accessibilityLabel={label}
+      accessibilityRole="button"
+    >
       <View style={[styles.actionIconWrap, { backgroundColor: color + '15' }]}>
         <Icon name={icon as any} size={22} color={color} />
       </View>
@@ -291,7 +340,7 @@ const styles = StyleSheet.create({
   seeAll: {
     fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.sm,
-    color: colors.secondary,
+    color: colors.primary,
   },
   requestItem: {
     flexDirection: 'row',

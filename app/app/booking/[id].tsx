@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
+  BackHandler,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,7 +18,8 @@ import { UserImage } from '../../src/components/UserImage';
 import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
 import { useBookingsStore } from '../../src/store/bookingsStore';
 import { companionsApi, CompanionDetail } from '../../src/services/api';
-import { showAlert } from '../../src/utils/alert';
+import { showAlert, showConfirm } from '../../src/utils/alert';
+import { useVerificationGate } from '../../src/hooks/useVerificationGate';
 
 // Activity IDs aligned with backend ActivityType enum
 const activities = [
@@ -48,9 +50,9 @@ const generateDates = () => {
     date.setDate(today.getDate() + i);
     dates.push({
       date,
-      day: date.toLocaleDateString('en-US', { weekday: 'short' }),
+      day: date.toLocaleDateString(undefined, { weekday: 'short' }),
       dayNum: date.getDate(),
-      month: date.toLocaleDateString('en-US', { month: 'short' }),
+      month: date.toLocaleDateString(undefined, { month: 'short' }),
     });
   }
   return dates;
@@ -68,6 +70,7 @@ export default function BookingScreen() {
   const { colors } = useTheme();
 
   const { createBooking } = useBookingsStore();
+  const { requireVerification } = useVerificationGate();
 
   const availableDates = generateDates();
 
@@ -90,6 +93,46 @@ export default function BookingScreen() {
       .finally(() => setIsLoadingCompanion(false));
   }, [id]);
 
+  // Check if user has entered any data worth confirming before leaving
+  const hasUnsavedData =
+    selectedActivity !== null ||
+    selectedDate !== null ||
+    selectedTime !== null ||
+    location.length > 0 ||
+    notes.length > 0;
+
+  const handleBack = () => {
+    if (hasUnsavedData) {
+      showConfirm(
+        'Discard changes?',
+        'You have unsaved booking details. Are you sure you want to go back?',
+        () => router.back(),
+        'Discard',
+        'Keep editing',
+      );
+    } else {
+      router.back();
+    }
+  };
+
+  // Handle Android hardware back button
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (hasUnsavedData) {
+        showConfirm(
+          'Discard changes?',
+          'You have unsaved booking details. Are you sure you want to go back?',
+          () => router.back(),
+          'Discard',
+          'Keep editing',
+        );
+        return true; // prevent default back navigation
+      }
+      return false; // allow default back navigation
+    });
+    return () => subscription.remove();
+  }, [hasUnsavedData]);
+
   const serviceFee = 0.15; // 15% platform fee
   const hourlyRate = companion?.hourlyRate ?? 0;
   const subtotal = hourlyRate * selectedDuration;
@@ -99,6 +142,8 @@ export default function BookingScreen() {
   const isValid = selectedActivity && selectedDate && selectedTime && location.length > 0;
 
   const handleSubmit = async () => {
+    if (requireVerification()) return;
+
     if (!isValid || !companion) {
       showAlert('Missing Information', 'Please fill in all required fields.');
       return;
@@ -138,11 +183,12 @@ export default function BookingScreen() {
       return;
     }
 
-    showAlert(
-      'Request Sent!',
-      `Your date request has been sent to ${companion.name}. You'll be notified when they respond.`,
-      () => router.replace('/(tabs)/male/bookings'),
-    );
+    // Navigate to request-sent screen with polling
+    if (result.booking?.id) {
+      router.replace(`/booking/request-sent/${result.booking.id}`);
+    } else {
+      router.replace('/(tabs)/male/bookings');
+    }
   };
 
   if (isLoadingCompanion) {
@@ -157,7 +203,10 @@ export default function BookingScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm, backgroundColor: colors.white, borderBottomColor: colors.border }]}>
-        <TouchableOpacity style={[styles.backButton, { backgroundColor: colors.surface }]} onPress={() => router.back()} testID="booking-back-btn">
+        <TouchableOpacity style={[styles.backButton, { backgroundColor: colors.surface }]} onPress={handleBack} testID="booking-back-btn"
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+        >
           <Icon name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>Book a Date</Text>
@@ -168,7 +217,7 @@ export default function BookingScreen() {
         {/* Companion Info */}
         <Card style={styles.companionCard}>
           <View style={styles.companionInfo}>
-            <UserImage name={companion?.name ?? ''} size={56} />
+            <UserImage uri={companion?.photos?.[0]?.url ?? companion?.primaryPhoto} name={companion?.name ?? ''} size={56} />
             <View style={styles.companionDetails}>
               <Text style={[styles.companionName, { color: colors.text }]}>{companion?.name}</Text>
               <Text style={[styles.companionRate, { color: colors.primary }]}>${companion?.hourlyRate}/hour</Text>
@@ -189,6 +238,9 @@ export default function BookingScreen() {
                   selectedActivity === activity.id && { borderColor: colors.primary, backgroundColor: colors.primary + '10' },
                 ]}
                 onPress={() => setSelectedActivity(activity.id)}
+                accessibilityLabel={activity.label}
+                accessibilityRole="button"
+                accessibilityState={{ selected: selectedActivity === activity.id }}
               >
                 <Icon
                   name={activity.icon}
@@ -229,6 +281,9 @@ export default function BookingScreen() {
                   selectedDuration === duration.hours && { borderColor: colors.primary, backgroundColor: colors.primary + '10' },
                 ]}
                 onPress={() => setSelectedDuration(duration.hours)}
+                accessibilityLabel={`${duration.label}, $${hourlyRate * duration.hours}`}
+                accessibilityRole="button"
+                accessibilityState={{ selected: selectedDuration === duration.hours }}
               >
                 <Text style={[
                   styles.durationLabel,
@@ -268,6 +323,9 @@ export default function BookingScreen() {
                     isSelected && { borderColor: colors.primary, backgroundColor: colors.primary },
                   ]}
                   onPress={() => setSelectedDate(d.date)}
+                  accessibilityLabel={`${d.day} ${d.dayNum} ${d.month}`}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isSelected }}
                 >
                   <Text style={[
                     styles.dateDay,
@@ -311,6 +369,9 @@ export default function BookingScreen() {
                     isSelected && { borderColor: colors.primary, backgroundColor: colors.primary },
                   ]}
                   onPress={() => setSelectedTime(time)}
+                  accessibilityLabel={time}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isSelected }}
                 >
                   <Text style={[
                     styles.timeSlotText,

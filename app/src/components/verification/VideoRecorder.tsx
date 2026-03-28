@@ -4,12 +4,12 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Alert,
   Platform,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Icon } from '../Icon';
 import { colors, spacing, borderRadius, typography, touchTargets, shadows } from '../../constants/theme';
+import { showAlert } from '../../utils/alert';
 
 interface VideoRecorderProps {
   videoUri?: string;
@@ -48,10 +48,9 @@ export function VideoRecorder({
     if (Platform.OS !== 'web') {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert(
+        showAlert(
           'Camera Permission Required',
-          'Please allow camera access in settings to record a video.',
-          [{ text: 'OK' }]
+          'Please allow camera access in settings to record a video.'
         );
         return;
       }
@@ -112,6 +111,8 @@ export function VideoRecorder({
             style={styles.retakeButton}
             onPress={handleRetake}
             activeOpacity={0.8}
+            accessibilityLabel="Re-record video"
+            accessibilityRole="button"
           >
             <Icon name="refresh" size={18} color={colors.primary} />
             <Text style={styles.retakeButtonText}>Re-record Video</Text>
@@ -162,6 +163,9 @@ export function VideoRecorder({
             onPress={handleRecord}
             disabled={isRecording}
             activeOpacity={0.8}
+            accessibilityLabel={isRecording ? 'Stop recording' : 'Start recording'}
+            accessibilityRole="button"
+            accessibilityState={{ disabled: isRecording }}
           >
             {isRecording ? (
               <View style={styles.stopIcon} />

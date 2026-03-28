@@ -6,7 +6,7 @@ import { showAlert, showConfirm } from '../../../../src/utils/alert';
 import { Card } from '../../../../src/components/Card';
 import { Button } from '../../../../src/components/Button';
 import { Icon } from '../../../../src/components/Icon';
-import { useTheme, spacing, typography, borderRadius, colors } from '../../../../src/constants/theme';
+import { useTheme, spacing, typography, borderRadius, colors as themeColors } from '../../../../src/constants/theme';
 import { paymentsApi } from '../../../../src/services/api';
 
 interface Payout {
@@ -82,7 +82,7 @@ export default function WithdrawScreen() {
   };
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-US', {
+    return new Date(dateStr).toLocaleDateString(undefined, {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
@@ -91,11 +91,11 @@ export default function WithdrawScreen() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'paid': return colors.success;
-      case 'pending': return colors.warning;
-      case 'in_transit': return colors.primary;
-      case 'failed': return colors.error;
-      default: return colors.textSecondary;
+      case 'paid': return themeColors.success;
+      case 'pending': return themeColors.warning;
+      case 'in_transit': return themeColors.primary;
+      case 'failed': return themeColors.error;
+      default: return themeColors.textSecondary;
     }
   };
 
@@ -113,7 +113,10 @@ export default function WithdrawScreen() {
       contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.md }]}
     >
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+        >
           <Icon name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>Withdraw Funds</Text>
@@ -144,6 +147,9 @@ export default function WithdrawScreen() {
             useFullAmount && { backgroundColor: colors.primary + '15', borderColor: colors.primary },
           ]}
           onPress={() => setUseFullAmount(true)}
+          accessibilityLabel={`Withdraw full amount $${balance.available.toFixed(2)}`}
+          accessibilityRole="radio"
+          accessibilityState={{ selected: useFullAmount }}
         >
           <View style={[styles.radio, useFullAmount && { borderColor: colors.primary }]}>
             {useFullAmount && <View style={[styles.radioInner, { backgroundColor: colors.primary }]} />}
@@ -159,6 +165,9 @@ export default function WithdrawScreen() {
             !useFullAmount && { backgroundColor: colors.primary + '15', borderColor: colors.primary },
           ]}
           onPress={() => setUseFullAmount(false)}
+          accessibilityLabel="Withdraw custom amount"
+          accessibilityRole="radio"
+          accessibilityState={{ selected: !useFullAmount }}
         >
           <View style={[styles.radio, !useFullAmount && { borderColor: colors.primary }]}>
             {!useFullAmount && <View style={[styles.radioInner, { backgroundColor: colors.primary }]} />}
@@ -312,7 +321,7 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: colors.borderLight,
+    borderColor: themeColors.borderLight,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.md,

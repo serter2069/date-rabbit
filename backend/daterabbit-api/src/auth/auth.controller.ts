@@ -1,11 +1,19 @@
-import { Controller, Post, Body, HttpException, HttpStatus, Request } from '@nestjs/common';
+import { Controller, Post, Body, HttpException, HttpStatus, Request, UseGuards } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { UserRole } from '../users/entities/user.entity';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
+
+  // Alias for admin panel compatibility
+  @Post('send-otp')
+  @Throttle({ default: { limit: 20, ttl: 3600000 } })
+  async sendOtp(@Body() body: { email: string }) {
+    return this.startAuth(body);
+  }
 
   @Post('start')
   @Throttle({ default: { limit: 20, ttl: 3600000 } }) // 20 emails per hour
@@ -27,6 +35,13 @@ export class AuthController {
     return result;
   }
 
+  // Alias for admin panel compatibility
+  @Post('verify-otp')
+  @Throttle({ default: { limit: 10, ttl: 600000 } })
+  async verifyOtpAlias(@Body() body: { email: string; code: string }) {
+    return this.verifyOtp(body);
+  }
+
   @Post('verify')
   @Throttle({ default: { limit: 10, ttl: 600000 } }) // 10 OTP attempts per 10 min
   async verifyOtp(@Body() body: { email: string; code: string }) {
@@ -44,10 +59,10 @@ export class AuthController {
   }
 
   @Post('register')
+  @UseGuards(JwtAuthGuard)
   async register(
     @Request() req,
     @Body() body: {
-      email?: string;
       name: string;
       role: 'seeker' | 'companion';
       age?: number;
@@ -60,24 +75,18 @@ export class AuthController {
       throw new HttpException('Name is required', HttpStatus.BAD_REQUEST);
     }
 
-    // If JWT provided, use email from token (more secure)
-    // Otherwise require email in body (frontend compat)
-    let email: string;
-    const authHeader = req.headers?.authorization;
-    if (authHeader?.startsWith('Bearer ')) {
-      const decoded = this.authService.validateToken(authHeader.slice(7));
-      if (decoded) {
-        email = decoded.email;
-      } else if (body.email) {
-        email = body.email.toLowerCase();
-      } else {
-        throw new HttpException('Authentication required', HttpStatus.UNAUTHORIZED);
+    if (body.bio !== undefined) {
+      const bioTrimmed = (body.bio || '').trim();
+      if (bioTrimmed.length < 20) {
+        throw new HttpException('Bio must be at least 20 characters', HttpStatus.BAD_REQUEST);
       }
-    } else if (body.email) {
-      email = body.email.toLowerCase();
-    } else {
-      throw new HttpException('Email is required', HttpStatus.BAD_REQUEST);
+      if (bioTrimmed.length > 500) {
+        throw new HttpException('Bio must be 500 characters or less', HttpStatus.BAD_REQUEST);
+      }
     }
+
+    // Email always from JWT token (set by JwtAuthGuard)
+    const email: string = req.user.email;
 
     const result = await this.authService.register({
       email,
