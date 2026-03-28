@@ -86,6 +86,7 @@ export default function RegisterScreen() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showFormError, setShowFormError] = useState(false);
+  const [apiError, setApiError] = useState('');
   const [yearPickerVisible, setYearPickerVisible] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -146,6 +147,7 @@ export default function RegisterScreen() {
     if (!validate()) return;
 
     setLoading(true);
+    setApiError('');
 
     const onboardingData = {
       name: formData.name,
@@ -160,28 +162,13 @@ export default function RegisterScreen() {
 
     const result = await completeOnboarding(onboardingData);
 
-    if (!result.success) {
-      const { setUser, setOnboardingSeen } = useAuthStore.getState();
-      setUser({
-        id: 'demo-' + Date.now(),
-        email: formData.email,
-        name: formData.name,
-        role: (role || 'seeker') as 'seeker' | 'companion',
-        age: onboardingData.age,
-        location: formData.location || 'New York',
-        bio: '',
-        photos: [] as { id: string; url: string; order: number; isPrimary: boolean }[],
-        hourlyRate: onboardingData.hourlyRate,
-        rating: 5.0,
-        reviewCount: 0,
-        isVerified: false,
-        verificationStatus: 'not_started',
-        createdAt: new Date().toISOString(),
-      });
-      setOnboardingSeen();
-    }
-
     setLoading(false);
+
+    if (!result.success) {
+      setApiError(result.error || 'Something went wrong. Please try again.');
+      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+      return;
+    }
 
     // Route to verification flow
     if (isFemale) {
@@ -246,6 +233,14 @@ export default function RegisterScreen() {
             <Text style={styles.errorBannerText}>
               Please fix the highlighted fields below
             </Text>
+          </View>
+        )}
+
+        {/* API error banner */}
+        {!!apiError && (
+          <View style={styles.errorBanner} testID="register-api-error-banner">
+            <Icon name="alert-circle" size={18} color={colors.error} />
+            <Text style={styles.errorBannerText}>{apiError}</Text>
           </View>
         )}
 
