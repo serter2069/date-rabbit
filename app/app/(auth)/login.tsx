@@ -81,7 +81,13 @@ export default function LoginScreen() {
         {/* Back button */}
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => router.back()}
+          onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace('/(auth)/welcome');
+            }
+          }}
           testID="login-back-btn"
           accessibilityLabel="Go back"
           accessibilityRole="button"
