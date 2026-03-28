@@ -9,7 +9,9 @@ import {
   Platform,
   Modal,
   FlatList,
+  Image,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 
 // Web-only: native <select> for birth year (RN Modal doesn't work well on web)
 const WebYearSelect = Platform.OS === 'web'
@@ -57,6 +59,7 @@ const WebYearSelect = Platform.OS === 'web'
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../src/store/authStore';
+import { usersApi } from '../../src/services/api';
 import { Button } from '../../src/components/Button';
 import { Input } from '../../src/components/Input';
 import { Icon } from '../../src/components/Icon';
@@ -83,11 +86,28 @@ export default function RegisterScreen() {
     location: '',
     hourlyRate: '',
   });
+  const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showFormError, setShowFormError] = useState(false);
   const [yearPickerVisible, setYearPickerVisible] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
+
+  const pickAvatar = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.85,
+    });
+    if (!result.canceled && result.assets[0]?.uri) {
+      setAvatarUri(result.assets[0].uri);
+    }
+  };
 
   const isFemale = role === 'companion';
 
@@ -168,6 +188,15 @@ export default function RegisterScreen() {
       return;
     }
 
+    // Non-blocking avatar upload after auth is established
+    if (avatarUri) {
+      try {
+        await usersApi.uploadProfilePhoto(avatarUri);
+      } catch {
+        // Avatar upload failure should not block registration
+      }
+    }
+
     setLoading(false);
 
     // Route to verification flow
@@ -225,6 +254,27 @@ export default function RegisterScreen() {
             }
           </Text>
         </View>
+
+        {/* Avatar picker */}
+        <TouchableOpacity
+          style={styles.avatarContainer}
+          onPress={pickAvatar}
+          activeOpacity={0.7}
+          accessibilityLabel={avatarUri ? 'Change profile photo' : 'Add profile photo'}
+          accessibilityRole="button"
+          testID="register-avatar-picker"
+        >
+          {avatarUri ? (
+            <Image source={{ uri: avatarUri }} style={styles.avatarImage} />
+          ) : (
+            <View style={styles.avatarPlaceholder}>
+              <Icon name="camera" size={24} color={colors.textLight} />
+            </View>
+          )}
+          <Text style={styles.avatarHint}>
+            {avatarUri ? 'Change photo' : 'Add photo'}
+          </Text>
+        </TouchableOpacity>
 
         {/* Validation error banner */}
         {showFormError && Object.keys(errors).length > 0 && (
@@ -444,6 +494,34 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.md,
     color: colors.textMuted,
     lineHeight: 24,
+  },
+  avatarContainer: {
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  avatarImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: borderWidth.normal,
+    borderColor: colors.border,
+  },
+  avatarPlaceholder: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.surface,
+    borderWidth: borderWidth.normal,
+    borderColor: colors.border,
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarHint: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.xs,
+    color: colors.textMuted,
+    marginTop: spacing.xs,
   },
   errorBanner: {
     flexDirection: 'row',

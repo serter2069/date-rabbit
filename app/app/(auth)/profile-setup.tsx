@@ -8,11 +8,14 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { showAlert } from '../../src/utils/alert';
 import { useAuthStore } from '../../src/store/authStore';
+import { usersApi } from '../../src/services/api';
 import { Button } from '../../src/components/Button';
 import { Icon } from '../../src/components/Icon';
 import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
@@ -33,6 +36,23 @@ export default function ProfileSetupScreen() {
   const [location, setLocation] = useState('');
   const [bio, setBio] = useState('');
   const [hourlyRate, setHourlyRate] = useState('');
+  const [avatarUri, setAvatarUri] = useState<string | null>(null);
+
+  const pickAvatar = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.85,
+    });
+    if (!result.canceled && result.assets[0]?.uri) {
+      setAvatarUri(result.assets[0].uri);
+    }
+  };
 
   const handleRoleSelect = (selectedRole: UserRole) => {
     setRole(selectedRole);
@@ -87,6 +107,15 @@ export default function ProfileSetupScreen() {
     if (!result.success) {
       showAlert('Error', result.error || 'Failed to complete setup. Please try again.');
       return;
+    }
+
+    // Non-blocking avatar upload after auth is established
+    if (avatarUri) {
+      try {
+        await usersApi.uploadProfilePhoto(avatarUri);
+      } catch {
+        // Avatar upload failure should not block registration
+      }
     }
 
     // Navigate to verification flow based on role
@@ -174,6 +203,27 @@ export default function ProfileSetupScreen() {
           <>
             <Text style={[styles.title, { color: colors.text }]}>Tell us about yourself</Text>
             <Text style={[styles.subtitle, { color: colors.textSecondary }]}>This helps others get to know you</Text>
+
+            {/* Avatar picker */}
+            <TouchableOpacity
+              style={styles.avatarContainer}
+              onPress={pickAvatar}
+              activeOpacity={0.7}
+              accessibilityLabel={avatarUri ? 'Change profile photo' : 'Add profile photo'}
+              accessibilityRole="button"
+              testID="setup-avatar-picker"
+            >
+              {avatarUri ? (
+                <Image source={{ uri: avatarUri }} style={[styles.avatarImage, { borderColor: colors.border }]} />
+              ) : (
+                <View style={[styles.avatarPlaceholder, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                  <Icon name="camera" size={24} color={colors.textSecondary} />
+                </View>
+              )}
+              <Text style={[styles.avatarHint, { color: colors.textSecondary }]}>
+                {avatarUri ? 'Change photo' : 'Add photo'}
+              </Text>
+            </TouchableOpacity>
 
             <View style={styles.form}>
               <View style={styles.inputGroup}>
@@ -357,6 +407,29 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  avatarContainer: {
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  avatarImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 2,
+  },
+  avatarPlaceholder: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarHint: {
+    fontSize: typography.sizes.xs,
+    marginTop: spacing.xs,
   },
   form: {
     marginBottom: spacing.xl,
