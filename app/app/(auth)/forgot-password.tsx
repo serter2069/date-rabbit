@@ -7,9 +7,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Alert,
 } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../src/store/authStore';
 import { Button } from '../../src/components/Button';
@@ -17,22 +16,20 @@ import { Input } from '../../src/components/Input';
 import { Icon } from '../../src/components/Icon';
 import { colors, spacing, typography, borderRadius, PAGE_PADDING } from '../../src/constants/theme';
 
-export default function LoginScreen() {
+export default function ForgotPasswordScreen() {
   const insets = useSafeAreaInsets();
-  const { role } = useLocalSearchParams<{ role?: string }>();
   const { startAuth, isLoading, error, clearError, authStep } = useAuthStore();
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
-  const isSeeker = role === 'seeker';
 
   useEffect(() => {
     if (authStep === 'otp') {
-      router.push(`/(auth)/otp?email=${encodeURIComponent(email.trim().toLowerCase())}${role ? `&role=${role}` : ''}`);
+      router.push(`/(auth)/otp?email=${encodeURIComponent(email.trim().toLowerCase())}`);
     }
   }, [authStep]);
 
-  const validateEmail = (email: string) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const validateEmail = (value: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
   };
 
   const handleSendCode = async () => {
@@ -52,16 +49,7 @@ export default function LoginScreen() {
 
     if (!result.success) {
       setEmailError(result.error || 'Failed to send code. Please try again.');
-      return;
     }
-  };
-
-  const handleGoogleLogin = () => {
-    Alert.alert(
-      'Coming Soon',
-      'Google login will be available in a future update.',
-      [{ text: 'OK' }]
-    );
   };
 
   return (
@@ -85,10 +73,9 @@ export default function LoginScreen() {
             if (router.canGoBack()) {
               router.back();
             } else {
-              router.replace('/(auth)/welcome');
+              router.replace('/(auth)/login');
             }
           }}
-          testID="login-back-btn"
           accessibilityLabel="Go back"
           accessibilityRole="button"
         >
@@ -97,11 +84,17 @@ export default function LoginScreen() {
 
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>{isSeeker ? 'Find Companions' : 'Welcome back'}</Text>
+          <Text style={styles.title}>Trouble signing in?</Text>
           <Text style={styles.subtitle}>
-            {isSeeker
-              ? 'Sign in to browse and book verified companions'
-              : 'Enter your email to sign in or create an account'}
+            We use email codes, not passwords. Enter your email and we'll send you a sign-in code.
+          </Text>
+        </View>
+
+        {/* Info box */}
+        <View style={styles.infoBox}>
+          <Icon name="info" size={18} color={colors.primary} />
+          <Text style={styles.infoText}>
+            No password needed — just enter your email and use the 6-digit code we send you to sign in instantly.
           </Text>
         </View>
 
@@ -123,46 +116,27 @@ export default function LoginScreen() {
             autoCorrect={false}
             size="lg"
             leftIcon={<Icon name="mail" size={20} color={colors.textLight} />}
-            testID="login-email-input"
+            testID="forgot-password-email-input"
           />
         </View>
 
-        {/* Button */}
         <Button
-          title="Continue"
+          title="Send code"
           onPress={handleSendCode}
           loading={isLoading}
           fullWidth
           size="lg"
-          testID="login-continue-btn"
+          testID="forgot-password-send-btn"
         />
 
-        {/* Trouble signing in */}
+        {/* Back to login */}
         <TouchableOpacity
-          style={styles.troubleLink}
-          onPress={() => router.push('/(auth)/forgot-password')}
+          style={styles.backToLogin}
+          onPress={() => router.replace('/(auth)/login')}
           accessibilityRole="button"
-          testID="login-trouble-btn"
         >
-          <Text style={styles.troubleLinkText}>Trouble signing in?</Text>
+          <Text style={styles.backToLoginText}>Back to sign in</Text>
         </TouchableOpacity>
-
-        {/* Divider */}
-        <View style={styles.divider}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>or</Text>
-          <View style={styles.dividerLine} />
-        </View>
-
-        {/* Social login */}
-        <Button
-          title="Continue with Google"
-          onPress={handleGoogleLogin}
-          variant="secondary"
-          fullWidth
-          size="lg"
-          icon={<Icon name="google" size={20} color={colors.text} />}
-        />
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -190,7 +164,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
   },
   header: {
-    marginBottom: spacing.xl + spacing.md,
+    marginBottom: spacing.lg,
   },
   title: {
     fontFamily: typography.fonts.heading,
@@ -204,32 +178,32 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     lineHeight: 24,
   },
+  infoBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: colors.primary + '12',
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    marginBottom: spacing.xl,
+    gap: spacing.sm,
+  },
+  infoText: {
+    flex: 1,
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.sm,
+    color: colors.text,
+    lineHeight: 20,
+  },
   form: {
     marginBottom: spacing.lg,
   },
-  divider: {
-    flexDirection: 'row',
+  backToLogin: {
     alignItems: 'center',
-    marginVertical: spacing.xl,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.divider,
-  },
-  dividerText: {
-    fontFamily: typography.fonts.body,
-    fontSize: typography.sizes.sm,
-    color: colors.textLight,
-    paddingHorizontal: spacing.md,
-  },
-  troubleLink: {
-    alignItems: 'center',
-    marginTop: spacing.md,
+    marginTop: spacing.xl,
     minHeight: 44,
     justifyContent: 'center',
   },
-  troubleLinkText: {
+  backToLoginText: {
     fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     color: colors.textMuted,
