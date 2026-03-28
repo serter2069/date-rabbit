@@ -210,8 +210,8 @@ const styles = StyleSheet.create({
   },
   hint: {
     fontFamily: typography.fonts.body,
-    fontSize: typography.sizes.xs,
-    color: colors.textMuted,
+    fontSize: 14,
+    color: colors.textSecondary,
     marginTop: spacing.xs,
   },
   hintError: {
