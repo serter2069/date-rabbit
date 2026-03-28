@@ -43,6 +43,7 @@ export default function CalendarScreen() {
       setBookings(bookingsData.bookings);
     } catch (error) {
       console.error('Failed to fetch calendar data:', error);
+      showAlert('Error', 'Failed to load calendar data. Please try again.');
     } finally {
       setLoading(false);
     }
