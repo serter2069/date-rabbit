@@ -14,6 +14,7 @@ export enum NotificationType {
   BOOKING_CANCELLED = 'booking_cancelled',
   BOOKING_COMPLETED = 'booking_completed',
   NEW_MESSAGE = 'new_message',
+  NO_SHOW = 'no_show',
 }
 
 @Entity('notifications')
