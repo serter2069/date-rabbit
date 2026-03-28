@@ -16,6 +16,8 @@ export interface ActiveBooking {
   activeDateEndedAt?: string;
   actualDurationHours?: number;
   sosTriggeredAt?: string;
+  sosTriggeredBy?: string;
+  safetyCheckinAt?: string;
   noShowReason?: string;
   extendRequestedHours?: number;
   extendRequestedAt?: string;
