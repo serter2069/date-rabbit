@@ -12,6 +12,19 @@ export default function Root({ children }: { children: React.ReactNode }) {
           name="viewport"
           content="width=device-width, initial-scale=1, shrink-to-fit=no, maximum-scale=1"
         />
+        <title>DateRabbit — Find Your Perfect Date</title>
+        <meta name="description" content="DateRabbit connects seekers with companions for memorable date experiences. Find, book, and enjoy amazing dates." />
+        {/* Open Graph */}
+        <meta property="og:title" content="DateRabbit — Find Your Perfect Date" />
+        <meta property="og:description" content="Connect with companions for memorable date experiences." />
+        <meta property="og:image" content="https://daterabbit.smartlaunchhub.com/og-image.png" />
+        <meta property="og:url" content="https://daterabbit.smartlaunchhub.com" />
+        <meta property="og:type" content="website" />
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="DateRabbit" />
+        <meta name="twitter:description" content="Connect with companions for memorable date experiences." />
+        <meta name="twitter:image" content="https://daterabbit.smartlaunchhub.com/og-image.png" />
         {/* Reset default browser scroll styles so ScrollView works properly */}
         <ScrollViewStyleReset />
         <style dangerouslySetInnerHTML={{ __html: webStyles }} />
