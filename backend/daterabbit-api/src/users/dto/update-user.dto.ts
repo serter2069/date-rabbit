@@ -3,6 +3,7 @@ import {
   IsBoolean,
   IsInt,
   IsNumber,
+  IsObject,
   IsOptional,
   IsString,
   IsUUID,
@@ -71,4 +72,22 @@ export class UpdateUserDto {
   @Max(9999, { message: 'hourlyRate must be less than 10000' })
   @Type(() => Number)
   hourlyRate?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  notificationsEnabled?: boolean;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  expoPushToken?: string;
+
+  @IsOptional()
+  @IsObject()
+  notificationPreferences?: {
+    bookings: boolean;
+    messages: boolean;
+    reminders: boolean;
+    payments: boolean;
+  };
 }

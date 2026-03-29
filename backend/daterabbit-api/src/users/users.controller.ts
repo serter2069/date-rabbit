@@ -27,7 +27,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Put('me')
   async updateProfile(@Request() req, @Body() body: UpdateUserDto) {
-    const { name, age, location, bio, photos, hourlyRate } = body;
+    const { name, age, location, bio, photos, hourlyRate, notificationsEnabled, expoPushToken, notificationPreferences } = body;
 
     // Validate hourlyRate if provided
     if (hourlyRate !== undefined && hourlyRate !== null) {
@@ -49,6 +49,9 @@ export class UsersController {
       bio,
       photos,
       hourlyRate,
+      notificationsEnabled,
+      expoPushToken,
+      notificationPreferences,
     });
     if (!updated) {
       return { error: 'User not found' };

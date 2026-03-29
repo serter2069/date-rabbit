@@ -43,6 +43,12 @@ export interface User {
   stripeOnboardingComplete?: boolean;
   expoPushToken?: string;
   notificationsEnabled?: boolean;
+  notificationPreferences?: {
+    bookings: boolean;
+    messages: boolean;
+    reminders: boolean;
+    payments: boolean;
+  };
   latitude?: number;
   longitude?: number;
   createdAt: string;
