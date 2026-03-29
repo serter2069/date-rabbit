@@ -1,40 +1,124 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
+  FlatList,
+  ActivityIndicator,
 } from 'react-native';
-import { router } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Icon } from '../../src/components/Icon';
-import { EmptyState } from '../../src/components/EmptyState';
-import { useTheme, spacing, typography } from '../../src/constants/theme';
+import { useLocalSearchParams, router } from 'expo-router';
+import { apiRequest } from '../../src/services/api';
 
-export default function ReviewsScreen() {
-  const insets = useSafeAreaInsets();
-  const { colors } = useTheme();
+interface ReviewItem {
+  id: string;
+  rating: number;
+  comment?: string;
+  reviewer?: { id: string; name: string };
+  createdAt: string;
+}
+
+interface ReviewsResponse {
+  reviews: ReviewItem[];
+  total: number;
+}
+
+function StarRating({ rating }: { rating: number }) {
+  return (
+    <View style={styles.starsRow}>
+      {[1, 2, 3, 4, 5].map((star) => (
+        <Text key={star} style={[styles.star, star <= rating && styles.starFilled]}>
+          ★
+        </Text>
+      ))}
+    </View>
+  );
+}
+
+function ReviewCard({ item }: { item: ReviewItem }) {
+  const date = new Date(item.createdAt).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { paddingTop: insets.top + spacing.sm, backgroundColor: colors.white, borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}
+    <View style={styles.card}>
+      <View style={styles.cardHeader}>
+        <Text style={styles.reviewerName}>{item.reviewer?.name ?? 'Anonymous'}</Text>
+        <Text style={styles.dateText}>{date}</Text>
+      </View>
+      <StarRating rating={item.rating} />
+      {!!item.comment && <Text style={styles.comment}>{item.comment}</Text>}
+    </View>
+  );
+}
+
+export default function ReviewDetailScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const [reviews, setReviews] = useState<ReviewItem[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!id) {
+      setError('Invalid page.');
+      setLoading(false);
+      return;
+    }
+
+    apiRequest<ReviewsResponse>(`/reviews/users/${id}`)
+      .then((data) => {
+        setReviews(data.reviews);
+        setTotal(data.total);
+      })
+      .catch((e: any) => {
+        setError(e?.message ?? 'Could not load reviews.');
+      })
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  return (
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
           accessibilityLabel="Go back"
           accessibilityRole="button"
         >
-          <Icon name="arrow-left" size={24} color={colors.text} />
+          <Text style={styles.backArrow}>←</Text>
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>Reviews</Text>
+        <Text style={styles.title}>Reviews{total > 0 ? ` (${total})` : ''}</Text>
         <View style={{ width: 44 }} />
       </View>
 
-      <View style={styles.emptyContainer}>
-        <EmptyState
-          icon="star"
-          title="Reviews coming soon"
-          description="The reviews feature is not yet available. Check back later!"
+      {/* Body */}
+      {loading ? (
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color="#FF2A5F" />
+        </View>
+      ) : error ? (
+        <View style={styles.center}>
+          <Text style={styles.stateTitle}>Couldn't load reviews</Text>
+          <Text style={styles.stateBody}>{error}</Text>
+        </View>
+      ) : reviews.length === 0 ? (
+        <View style={styles.center}>
+          <Text style={styles.stateTitle}>No reviews yet</Text>
+          <Text style={styles.stateBody}>Be the first to leave a review!</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={reviews}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => <ReviewCard item={item} />}
+          contentContainerStyle={styles.list}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
         />
-      </View>
+      )}
     </View>
   );
 }
@@ -42,14 +126,18 @@ export default function ReviewsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#F4F0EA',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.md,
-    borderBottomWidth: 1,
+    paddingHorizontal: 16,
+    paddingTop: 56,
+    paddingBottom: 16,
+    backgroundColor: '#fff',
+    borderBottomWidth: 2,
+    borderBottomColor: '#000',
   },
   backButton: {
     width: 44,
@@ -57,13 +145,82 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  title: {
-    fontFamily: typography.fonts.heading,
-    fontSize: typography.sizes.lg,
-    fontWeight: '600',
+  backArrow: {
+    fontSize: 24,
+    color: '#000',
   },
-  emptyContainer: {
+  title: {
+    fontSize: 20,
+    fontFamily: 'SpaceGrotesk-Bold',
+    fontWeight: '700',
+    color: '#000',
+  },
+  center: {
     flex: 1,
+    alignItems: 'center',
     justifyContent: 'center',
+    padding: 24,
+  },
+  stateTitle: {
+    fontSize: 22,
+    fontFamily: 'SpaceGrotesk-Bold',
+    fontWeight: '700',
+    color: '#000',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  stateBody: {
+    fontSize: 15,
+    color: '#666',
+    textAlign: 'center',
+  },
+  list: {
+    padding: 16,
+  },
+  separator: {
+    height: 12,
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderWidth: 2,
+    borderColor: '#000',
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  reviewerName: {
+    fontSize: 16,
+    fontFamily: 'SpaceGrotesk-Bold',
+    fontWeight: '700',
+    color: '#000',
+  },
+  dateText: {
+    fontSize: 13,
+    color: '#888',
+  },
+  starsRow: {
+    flexDirection: 'row',
+    marginBottom: 8,
+    gap: 2,
+  },
+  star: {
+    fontSize: 22,
+    color: '#ccc',
+  },
+  starFilled: {
+    color: '#FF2A5F',
+  },
+  comment: {
+    fontSize: 15,
+    color: '#333',
+    lineHeight: 22,
   },
 });
