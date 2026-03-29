@@ -69,7 +69,7 @@ export default function BookingScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
 
-  const { createBooking } = useBookingsStore();
+  const { createBooking, isCreatingBooking } = useBookingsStore();
   const { requireVerification } = useVerificationGate();
 
   const availableDates = generateDates();
@@ -82,7 +82,6 @@ export default function BookingScreen() {
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [location, setLocation] = useState('');
   const [notes, setNotes] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [companionPackages, setCompanionPackages] = useState<DatePackage[]>([]);
   const [selectedPackage, setSelectedPackage] = useState<DatePackage | null>(null);
 
@@ -167,8 +166,6 @@ export default function BookingScreen() {
       return;
     }
 
-    setIsSubmitting(true);
-
     // Combine selected date and time slot into a single ISO dateTime string
     const dateTime = (() => {
       const base = new Date(selectedDate!);
@@ -194,8 +191,6 @@ export default function BookingScreen() {
       notes,
       ...(selectedPackage ? { packageId: selectedPackage.id } : {}),
     });
-
-    setIsSubmitting(false);
 
     if (!result.success) {
       showAlert('Error', result.error || 'Failed to send request');
@@ -537,10 +532,10 @@ export default function BookingScreen() {
           <Text style={[styles.bottomLabel, { color: colors.textSecondary }]}>Total</Text>
         </View>
         <Button
-          title={isSubmitting ? 'Sending...' : 'Send Request'}
+          title={isCreatingBooking ? 'Sending...' : 'Send Request'}
           onPress={handleSubmit}
-          loading={isSubmitting}
-          disabled={!isValid || isSubmitting}
+          loading={isCreatingBooking}
+          disabled={!isValid || isCreatingBooking}
           style={styles.submitButton}
           testID="booking-submit-btn"
         />

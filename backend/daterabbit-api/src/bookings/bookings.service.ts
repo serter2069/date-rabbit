@@ -70,6 +70,24 @@ export class BookingsService {
       totalPrice = (companion.hourlyRate || 100) * duration;
     }
 
+    // Check for exact duplicate: same seeker + companion + dateTime with active status
+    const duplicate = await this.bookingsRepository
+      .createQueryBuilder('b')
+      .where('b.seekerId = :seekerId', { seekerId: data.seekerId })
+      .andWhere('b.companionId = :companionId', { companionId: data.companionId })
+      .andWhere('b.dateTime = :dateTime', { dateTime: new Date(data.dateTime) })
+      .andWhere('b.status IN (:...statuses)', {
+        statuses: [BookingStatus.PENDING, BookingStatus.CONFIRMED, BookingStatus.PAID],
+      })
+      .getOne();
+
+    if (duplicate) {
+      throw new HttpException(
+        'A booking request for this companion at the same time already exists',
+        HttpStatus.CONFLICT,
+      );
+    }
+
     // Check for overlapping bookings for this companion (race condition guard)
     const bookingStart = new Date(data.dateTime);
     const bookingEnd = new Date(bookingStart.getTime() + duration * 60 * 60 * 1000);

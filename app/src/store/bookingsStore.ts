@@ -8,6 +8,7 @@ interface BookingsState {
   requests: Booking[]; // For companions - incoming requests
   total: number;
   isLoading: boolean;
+  isCreatingBooking: boolean;
   error: string | null;
   currentFilter: BookingFilter;
 
@@ -38,22 +39,29 @@ export const useBookingsStore = create<BookingsState>((set, get) => ({
   requests: [],
   total: 0,
   isLoading: false,
+  isCreatingBooking: false,
   error: null,
   currentFilter: 'all',
 
   createBooking: async (data) => {
-    set({ isLoading: true, error: null });
+    // Guard against concurrent calls (double-tap protection)
+    if (get().isCreatingBooking) {
+      return { success: false, error: 'Booking creation already in progress' };
+    }
+
+    set({ isCreatingBooking: true, isLoading: true, error: null });
 
     try {
       const booking = await bookingsApi.create(data);
       set((state) => ({
         bookings: [booking, ...state.bookings],
         isLoading: false,
+        isCreatingBooking: false,
       }));
       return { success: true, booking };
     } catch (err) {
       const message = err instanceof ApiError ? err.message : 'Failed to create booking';
-      set({ error: message, isLoading: false });
+      set({ error: message, isLoading: false, isCreatingBooking: false });
       return { success: false, error: message };
     }
   },
