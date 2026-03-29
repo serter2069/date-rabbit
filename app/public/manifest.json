@@ -1,0 +1,10 @@
+{
+  "name": "DateRabbit",
+  "short_name": "DateRabbit",
+  "description": "Find your perfect date experience",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0A0A0A",
+  "theme_color": "#FF2A5F",
+  "icons": [{"src": "/favicon.ico", "sizes": "any", "type": "image/x-icon"}]
+}
