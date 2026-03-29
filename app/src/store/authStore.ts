@@ -201,16 +201,15 @@ export const useAuthStore = create<AuthState>()(
               useFavoritesStore.getState().syncFromServer();
             }
           } catch {
-            // Could not fetch profile, but we have token - assume existing user
+            // Could not fetch profile - clear token and reset auth state
+            await setToken(null);
             set({
-              authStep: 'authenticated',
-              isAuthenticated: true,
-              hasCompletedOnboarding: true,
-              hasSeenOnboarding: true,
+              isAuthenticated: false,
+              user: null,
+              authStep: 'idle',
               isLoading: false,
+              error: 'Failed to load profile. Please try again.',
             });
-            // Sync favorites from server
-            useFavoritesStore.getState().syncFromServer();
           }
           return { success: true };
         } catch (err) {
