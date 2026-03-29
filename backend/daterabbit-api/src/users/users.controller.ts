@@ -68,7 +68,7 @@ export class UsersController {
       throw new BadRequestException('No file provided');
     }
     this.uploadsService.validateImageFile(file);
-    const url = this.uploadsService.getFileUrl('profile-photos', file.filename);
+    const url = await this.uploadsService.uploadFile(file, 'profile-photos');
     return { url };
   }
 
