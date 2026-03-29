@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { apiRequest } from '../../../src/services/api';
+import { colors, typography, shadows } from '../../../src/constants/theme';
 
 export default function WriteReviewScreen() {
   const { bookingId } = useLocalSearchParams<{ bookingId: string }>();
@@ -69,15 +70,15 @@ export default function WriteReviewScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F0EA' },
+  container: { flex: 1, backgroundColor: colors.background },
   content: { padding: 24, paddingTop: 40 },
-  title: { fontSize: 36, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000', lineHeight: 44, marginBottom: 32 },
+  title: { fontSize: 36, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.text, lineHeight: 44, marginBottom: 32 },
   starsRow: { flexDirection: 'row', marginBottom: 32, gap: 8 },
   starBtn: { padding: 4 },
-  star: { fontSize: 48, color: '#ccc' },
-  starFilled: { color: '#FF2A5F' },
-  textarea: { borderWidth: 2, borderColor: '#000', backgroundColor: '#fff', padding: 16, fontSize: 16, minHeight: 140, marginBottom: 32 },
-  submitBtn: { backgroundColor: '#FF2A5F', borderWidth: 2, borderColor: '#000', paddingVertical: 18, alignItems: 'center', shadowOffset: { width: 4, height: 4 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
-  submitBtnText: { fontSize: 18, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#fff' },
+  star: { fontSize: 48, color: colors.textLight },
+  starFilled: { color: colors.primary },
+  textarea: { borderWidth: 2, borderColor: colors.border, backgroundColor: colors.surface, padding: 16, fontSize: 16, minHeight: 140, marginBottom: 32 },
+  submitBtn: { backgroundColor: colors.primary, borderWidth: 2, borderColor: colors.border, paddingVertical: 18, alignItems: 'center', ...shadows.md },
+  submitBtnText: { fontSize: 18, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.textInverse },
   btnDisabled: { opacity: 0.5 },
 });

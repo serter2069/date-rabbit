@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, FlatList }
 import { useLocalSearchParams, router } from 'expo-router';
 import { activeDateApi, ActiveBooking } from '../../../src/services/activeDateApi';
 import { useAuthStore } from '../../../src/store/authStore';
+import { colors, typography, shadows } from '../../../src/constants/theme';
 
 const STARS = [1, 2, 3, 4, 5];
 
@@ -141,29 +142,29 @@ export default function DateSummaryScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F0EA' },
+  container: { flex: 1, backgroundColor: colors.background },
   content: { padding: 24, paddingTop: 40 },
-  banner: { backgroundColor: '#FF5A85', borderWidth: 2, borderColor: '#000', padding: 20, alignItems: 'center', marginBottom: 32, shadowOffset: { width: 4, height: 4 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
-  bannerText: { fontSize: 32, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
-  earlyBadge: { backgroundColor: '#000', paddingHorizontal: 12, paddingVertical: 4, marginTop: 8 },
-  earlyBadgeText: { fontSize: 12, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#FF5A85', letterSpacing: 1 },
-  card: { backgroundColor: '#fff', borderWidth: 2, borderColor: '#000', marginBottom: 32, shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
+  banner: { backgroundColor: colors.primaryLight, borderWidth: 2, borderColor: colors.border, padding: 20, alignItems: 'center', marginBottom: 32, ...shadows.md },
+  bannerText: { fontSize: 32, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.text },
+  earlyBadge: { backgroundColor: colors.text, paddingHorizontal: 12, paddingVertical: 4, marginTop: 8 },
+  earlyBadgeText: { fontSize: 12, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.primaryLight, letterSpacing: 1 },
+  card: { backgroundColor: colors.surface, borderWidth: 2, borderColor: colors.border, marginBottom: 32, ...shadows.sm },
   row: { flexDirection: 'row', justifyContent: 'space-between', padding: 16 },
-  divider: { height: 2, backgroundColor: '#000' },
-  label: { fontSize: 14, color: '#555' },
-  value: { fontSize: 15, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000', flexShrink: 1, textAlign: 'right', marginLeft: 8 },
-  price: { fontSize: 18, color: '#FF2A5F' },
+  divider: { height: 2, backgroundColor: colors.border },
+  label: { fontSize: 14, color: colors.textMuted },
+  value: { fontSize: 15, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.text, flexShrink: 1, textAlign: 'right', marginLeft: 8 },
+  price: { fontSize: 18, color: colors.primary },
   ratingSection: { marginBottom: 32 },
-  sectionTitle: { fontSize: 20, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000', marginBottom: 12 },
+  sectionTitle: { fontSize: 20, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.text, marginBottom: 12 },
   starsRow: { flexDirection: 'row', gap: 8 },
-  star: { fontSize: 40, color: '#ccc' },
-  starActive: { color: '#FF2A5F' },
+  star: { fontSize: 40, color: colors.textLight },
+  starActive: { color: colors.primary },
   photosSection: { marginBottom: 32 },
-  photo: { width: 120, height: 120, borderWidth: 2, borderColor: '#000', marginRight: 12 },
-  reviewBtn: { backgroundColor: '#FF2A5F', borderWidth: 2, borderColor: '#000', paddingVertical: 18, alignItems: 'center', marginBottom: 12, shadowOffset: { width: 4, height: 4 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
-  reviewBtnText: { fontSize: 18, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#fff' },
-  bookAgainBtn: { backgroundColor: '#4DF0FF', borderWidth: 2, borderColor: '#000', paddingVertical: 16, alignItems: 'center', marginBottom: 12, shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
-  bookAgainBtnText: { fontSize: 16, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
-  homeBtn: { backgroundColor: '#fff', borderWidth: 2, borderColor: '#000', paddingVertical: 16, alignItems: 'center' },
-  homeBtnText: { fontSize: 16, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
+  photo: { width: 120, height: 120, borderWidth: 2, borderColor: colors.border, marginRight: 12 },
+  reviewBtn: { backgroundColor: colors.primary, borderWidth: 2, borderColor: colors.border, paddingVertical: 18, alignItems: 'center', marginBottom: 12, ...shadows.md },
+  reviewBtnText: { fontSize: 18, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.textInverse },
+  bookAgainBtn: { backgroundColor: colors.accent, borderWidth: 2, borderColor: colors.border, paddingVertical: 16, alignItems: 'center', marginBottom: 12, ...shadows.sm },
+  bookAgainBtnText: { fontSize: 16, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.text },
+  homeBtn: { backgroundColor: colors.surface, borderWidth: 2, borderColor: colors.border, paddingVertical: 16, alignItems: 'center' },
+  homeBtnText: { fontSize: 16, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.text },
 });

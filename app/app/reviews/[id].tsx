@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
+import { colors, typography, shadows } from '../../src/constants/theme';
 import { apiRequest } from '../../src/services/api';
 
 interface ReviewItem {
@@ -98,7 +99,7 @@ export default function ReviewDetailScreen() {
       {/* Body */}
       {loading ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color="#FF2A5F" />
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
       ) : error ? (
         <View style={styles.center}>
@@ -126,7 +127,7 @@ export default function ReviewDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F4F0EA',
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -135,9 +136,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 56,
     paddingBottom: 16,
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     borderBottomWidth: 2,
-    borderBottomColor: '#000',
+    borderBottomColor: colors.border,
   },
   backButton: {
     width: 44,
@@ -147,13 +148,13 @@ const styles = StyleSheet.create({
   },
   backArrow: {
     fontSize: 24,
-    color: '#000',
+    color: colors.text,
   },
   title: {
     fontSize: 20,
-    fontFamily: 'SpaceGrotesk-Bold',
+    fontFamily: typography.fonts.heading,
     fontWeight: '700',
-    color: '#000',
+    color: colors.text,
   },
   center: {
     flex: 1,
@@ -163,15 +164,15 @@ const styles = StyleSheet.create({
   },
   stateTitle: {
     fontSize: 22,
-    fontFamily: 'SpaceGrotesk-Bold',
+    fontFamily: typography.fonts.heading,
     fontWeight: '700',
-    color: '#000',
+    color: colors.text,
     marginBottom: 8,
     textAlign: 'center',
   },
   stateBody: {
     fontSize: 15,
-    color: '#666',
+    color: colors.textMuted,
     textAlign: 'center',
   },
   list: {
@@ -181,14 +182,11 @@ const styles = StyleSheet.create({
     height: 12,
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     borderWidth: 2,
-    borderColor: '#000',
+    borderColor: colors.border,
     padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
+    ...shadows.md,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -198,13 +196,13 @@ const styles = StyleSheet.create({
   },
   reviewerName: {
     fontSize: 16,
-    fontFamily: 'SpaceGrotesk-Bold',
+    fontFamily: typography.fonts.heading,
     fontWeight: '700',
-    color: '#000',
+    color: colors.text,
   },
   dateText: {
     fontSize: 13,
-    color: '#888',
+    color: colors.textLight,
   },
   starsRow: {
     flexDirection: 'row',
@@ -213,14 +211,14 @@ const styles = StyleSheet.create({
   },
   star: {
     fontSize: 22,
-    color: '#ccc',
+    color: colors.textLight,
   },
   starFilled: {
-    color: '#FF2A5F',
+    color: colors.primary,
   },
   comment: {
     fontSize: 15,
-    color: '#333',
+    color: colors.textSecondary,
     lineHeight: 22,
   },
 });

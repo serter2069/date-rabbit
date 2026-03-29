@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Linking, Alert } from 'react-
 import { useLocalSearchParams, router } from 'expo-router';
 import * as Location from 'expo-location';
 import { activeDateApi } from '../../../src/services/activeDateApi';
+import { colors, typography, shadows } from '../../../src/constants/theme';
 
 export default function SOSScreen() {
   const { bookingId } = useLocalSearchParams<{ bookingId: string }>();
@@ -81,19 +82,19 @@ export default function SOSScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F0EA', padding: 24, paddingTop: 60 },
-  header: { backgroundColor: '#FF0000', borderWidth: 3, borderColor: '#000', padding: 24, alignItems: 'center', marginBottom: 24, shadowOffset: { width: 5, height: 5 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
-  sosLabel: { fontSize: 14, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#fff', letterSpacing: 4, marginBottom: 4 },
-  title: { fontSize: 48, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#fff' },
-  subtitle: { fontSize: 18, color: '#000', textAlign: 'center', marginBottom: 40, fontFamily: 'SpaceGrotesk-Bold' },
-  callBtn: { backgroundColor: '#FF0000', borderWidth: 2, borderColor: '#000', paddingVertical: 20, alignItems: 'center', marginBottom: 16, shadowOffset: { width: 4, height: 4 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
-  callBtnText: { fontSize: 24, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#fff', letterSpacing: 2 },
-  alertBtn: { backgroundColor: '#000', borderWidth: 2, borderColor: '#000', paddingVertical: 18, alignItems: 'center', marginBottom: 16 },
-  alertBtnText: { fontSize: 16, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#fff' },
+  container: { flex: 1, backgroundColor: colors.background, padding: 24, paddingTop: 60 },
+  header: { backgroundColor: colors.error, borderWidth: 3, borderColor: colors.border, padding: 24, alignItems: 'center', marginBottom: 24, ...shadows.lg },
+  sosLabel: { fontSize: 14, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.textInverse, letterSpacing: 4, marginBottom: 4 },
+  title: { fontSize: 48, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.textInverse },
+  subtitle: { fontSize: 18, color: colors.text, textAlign: 'center', marginBottom: 40, fontFamily: typography.fonts.heading },
+  callBtn: { backgroundColor: colors.error, borderWidth: 2, borderColor: colors.border, paddingVertical: 20, alignItems: 'center', marginBottom: 16, ...shadows.md },
+  callBtnText: { fontSize: 24, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.textInverse, letterSpacing: 2 },
+  alertBtn: { backgroundColor: colors.text, borderWidth: 2, borderColor: colors.border, paddingVertical: 18, alignItems: 'center', marginBottom: 16 },
+  alertBtnText: { fontSize: 16, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.textInverse },
   btnDisabled: { opacity: 0.5 },
-  confirmedCard: { backgroundColor: '#4DF0FF', borderWidth: 2, borderColor: '#000', padding: 20, alignItems: 'center', marginBottom: 16 },
-  confirmedText: { fontSize: 18, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
-  confirmedSubtext: { fontSize: 14, color: '#000', marginTop: 8, textAlign: 'center' },
-  cancelBtn: { marginTop: 24, alignItems: 'center', padding: 16, borderWidth: 1, borderColor: '#ccc' },
-  cancelText: { fontSize: 16, color: '#555' },
+  confirmedCard: { backgroundColor: colors.accent, borderWidth: 2, borderColor: colors.border, padding: 20, alignItems: 'center', marginBottom: 16 },
+  confirmedText: { fontSize: 18, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.text },
+  confirmedSubtext: { fontSize: 14, color: colors.text, marginTop: 8, textAlign: 'center' },
+  cancelBtn: { marginTop: 24, alignItems: 'center', padding: 16, borderWidth: 1, borderColor: colors.borderLight },
+  cancelText: { fontSize: 16, color: colors.textMuted },
 });
