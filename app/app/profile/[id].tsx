@@ -10,6 +10,7 @@ import {
   TextInput,
   ActivityIndicator,
   Platform,
+  Share,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -234,6 +235,18 @@ export default function ProfileViewScreen() {
     router.push(`/chat/${profile.id}?name=${encodeURIComponent(profile.name)}`);
   };
 
+  const handleShare = async () => {
+    try {
+      const url = `https://daterabbit.smartlaunchhub.com/profile/${profile.id}`;
+      await Share.share({
+        message: `Check out ${profile.name}'s profile on DateRabbit: ${url}`,
+        url,
+      });
+    } catch {
+      // Silent fail on web or if user cancels
+    }
+  };
+
   const nextPhoto = () => {
     if (currentPhotoIndex < profile.photos.length - 1) {
       setCurrentPhotoIndex(currentPhotoIndex + 1);
@@ -334,6 +347,17 @@ export default function ProfileViewScreen() {
             accessibilityRole="button"
           >
             <Icon name="arrow-left" size={24} color={colors.text} />
+          </TouchableOpacity>
+
+          {/* Share button */}
+          <TouchableOpacity
+            style={[styles.shareButton, { top: insets.top + spacing.sm, backgroundColor: colors.white }]}
+            onPress={handleShare}
+            testID="profile-view-share-btn"
+            accessibilityLabel="Share profile"
+            accessibilityRole="button"
+          >
+            <Icon name="share-2" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
 
           {/* Favorite button */}
@@ -774,6 +798,22 @@ const styles = StyleSheet.create({
   backButton: {
     position: 'absolute',
     left: spacing.lg,
+    width: 44,
+    height: 44,
+    borderRadius: borderRadius.sm,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.border,
+    shadowColor: '#000000',
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 3,
+  },
+  shareButton: {
+    position: 'absolute',
+    left: spacing.lg + 52,
     width: 44,
     height: 44,
     borderRadius: borderRadius.sm,
