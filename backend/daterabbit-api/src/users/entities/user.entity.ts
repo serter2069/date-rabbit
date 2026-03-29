@@ -87,6 +87,9 @@ export class User {
   stripeOnboardingComplete: boolean;
 
   @Column({ nullable: true })
+  stripeCustomerId: string;
+
+  @Column({ nullable: true })
   otpCode: string;
 
   @Column({ nullable: true })

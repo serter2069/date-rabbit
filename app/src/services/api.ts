@@ -527,6 +527,27 @@ export const paymentsApi = {
         createdAt: string;
       }[];
     }>(`/payments/payouts/history?limit=${limit}`),
+
+  createSetupIntent: () =>
+    apiRequest<{ clientSecret: string }>('/payments/methods/setup', {
+      method: 'POST',
+    }),
+
+  listPaymentMethods: () =>
+    apiRequest<{
+      paymentMethods: {
+        id: string;
+        brand: string;
+        last4: string;
+        expMonth: number;
+        expYear: number;
+      }[];
+    }>('/payments/methods'),
+
+  deletePaymentMethod: (paymentMethodId: string) =>
+    apiRequest<{ success: boolean }>(`/payments/methods/${paymentMethodId}`, {
+      method: 'DELETE',
+    }),
 };
 
 // Calendar API

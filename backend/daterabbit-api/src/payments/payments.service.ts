@@ -395,6 +395,91 @@ export class PaymentsService {
     };
   }
 
+  // --- Payment Methods (saved cards via SetupIntent) ---
+
+  private async getOrCreateStripeCustomer(userId: string): Promise<string> {
+    this.ensureStripe();
+    const user = await this.usersRepo.findOne({ where: { id: userId } });
+    if (!user) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+
+    if (user.stripeCustomerId) {
+      return user.stripeCustomerId;
+    }
+
+    const customer = await this.stripe.customers.create({
+      email: user.email,
+      name: user.name,
+      metadata: { userId: user.id },
+    });
+
+    await this.usersRepo.update(userId, { stripeCustomerId: customer.id });
+    return customer.id;
+  }
+
+  async createSetupIntent(userId: string): Promise<{ clientSecret: string }> {
+    this.ensureStripe();
+    const customerId = await this.getOrCreateStripeCustomer(userId);
+
+    const setupIntent = await this.stripe.setupIntents.create({
+      customer: customerId,
+      payment_method_types: ['card'],
+      usage: 'off_session',
+    });
+
+    return { clientSecret: setupIntent.client_secret! };
+  }
+
+  async listPaymentMethods(userId: string): Promise<{
+    paymentMethods: {
+      id: string;
+      brand: string;
+      last4: string;
+      expMonth: number;
+      expYear: number;
+    }[];
+  }> {
+    this.ensureStripe();
+    const user = await this.usersRepo.findOne({ where: { id: userId } });
+    if (!user?.stripeCustomerId) {
+      return { paymentMethods: [] };
+    }
+
+    const pms = await this.stripe.paymentMethods.list({
+      customer: user.stripeCustomerId,
+      type: 'card',
+    });
+
+    return {
+      paymentMethods: pms.data.map((pm) => ({
+        id: pm.id,
+        brand: pm.card?.brand ?? 'unknown',
+        last4: pm.card?.last4 ?? '****',
+        expMonth: pm.card?.exp_month ?? 0,
+        expYear: pm.card?.exp_year ?? 0,
+      })),
+    };
+  }
+
+  async deletePaymentMethod(
+    userId: string,
+    paymentMethodId: string,
+  ): Promise<{ success: boolean }> {
+    this.ensureStripe();
+    const user = await this.usersRepo.findOne({ where: { id: userId } });
+    if (!user?.stripeCustomerId) {
+      throw new HttpException('No payment account found', HttpStatus.NOT_FOUND);
+    }
+
+    // Verify ownership: PM must belong to this user's customer (IDOR protection)
+    const pm = await this.stripe.paymentMethods.retrieve(paymentMethodId);
+    if (pm.customer !== user.stripeCustomerId) {
+      throw new HttpException('Payment method not found', HttpStatus.NOT_FOUND);
+    }
+
+    await this.stripe.paymentMethods.detach(paymentMethodId);
+    return { success: true };
+  }
+
   // --- Webhooks ---
 
   async handleWebhook(payload: Buffer, signature: string): Promise<void> {
