@@ -43,6 +43,10 @@ export class UsersService {
     return this.findById(id);
   }
 
+  async updateLastSeen(userId: string): Promise<void> {
+    await this.usersRepository.update(userId, { lastSeen: new Date() });
+  }
+
   async setOtp(userId: string, code: string, expiresAt: Date): Promise<void> {
     await this.usersRepository.update(userId, {
       otpCode: code,

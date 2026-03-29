@@ -103,6 +103,9 @@ export class User {
     payments: boolean;
   };
 
+  @Column({ type: 'timestamp', nullable: true })
+  lastSeen: Date;
+
   @Column({ nullable: true })
   otpCode: string;
 

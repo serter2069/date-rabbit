@@ -25,6 +25,7 @@ import { useTheme, spacing, typography, borderRadius, colors } from '../../src/c
 import { useFavoritesStore } from '../../src/store/favoritesStore';
 import { useAuthStore } from '../../src/store/authStore';
 import { usersApi, companionsApi, CompanionDetail } from '../../src/services/api';
+import { formatLastSeen } from '../../src/utils/formatLastSeen';
 import * as Haptics from 'expo-haptics';
 
 // Max width for photo container — prevents giant hero on wide screens
@@ -45,6 +46,7 @@ interface ProfileData {
   languages?: string[];
   availability?: string;
   responseTime?: string;
+  lastSeen?: string | null;
   reviews: { id: string; name: string; rating: number; text: string; date: string }[];
 }
 
@@ -63,6 +65,7 @@ const defaultProfile: ProfileData = {
   languages: ['English'],
   availability: 'Available for booking',
   responseTime: 'Varies',
+  lastSeen: null,
   reviews: [],
 };
 
@@ -159,6 +162,7 @@ export default function ProfileViewScreen() {
           languages: data.languages || ['English'],
           availability: 'Available for booking',
           responseTime: 'Varies',
+          lastSeen: (data as any).lastSeen || null,
           reviews: (data as any).reviews || [],
         });
       } catch (err: any) {
@@ -405,6 +409,17 @@ export default function ProfileViewScreen() {
               <Icon name="map-pin" size={16} color={colors.textSecondary} />
               <Text style={[styles.location, { color: colors.textSecondary }]}> {profile.location}</Text>
             </View>
+            {(() => {
+              const status = formatLastSeen(profile.lastSeen);
+              if (!status) return null;
+              const isOnline = status === 'Online';
+              return (
+                <View style={styles.onlineStatusRow}>
+                  <View style={[styles.onlineDot, { backgroundColor: isOnline ? colors.success : colors.textSecondary + '60' }]} />
+                  <Text style={[styles.onlineText, { color: isOnline ? colors.success : colors.textSecondary }]}>{status}</Text>
+                </View>
+              );
+            })()}
 
             <View style={styles.statsRow}>
               <View style={styles.stat}>
@@ -992,6 +1007,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: spacing.xs,
+  },
+  onlineStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: spacing.xs,
+    gap: spacing.xs,
+  },
+  onlineDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  onlineText: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.sm,
   },
   location: {
     fontFamily: typography.fonts.body,

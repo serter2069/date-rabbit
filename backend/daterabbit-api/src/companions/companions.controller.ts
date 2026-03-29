@@ -71,6 +71,7 @@ export class CompanionsController {
         reviewCount: c.reviewCount || 0,
         isVerified: c.isVerified || false,
         distance: c.distance != null ? Math.round(c.distance * 10) / 10 : undefined,
+        lastSeen: c.lastSeen ? c.lastSeen.toISOString() : null,
       })),
       total,
       page: currentPage,
@@ -100,6 +101,7 @@ export class CompanionsController {
       rating: user.rating ? Number(user.rating) : null,
       reviewCount: user.reviewCount || 0,
       isVerified: user.isVerified || false,
+      lastSeen: user.lastSeen ? user.lastSeen.toISOString() : null,
       reviews: reviews.map((r) => ({
         id: r.id,
         name: r.reviewer?.name || 'Anonymous',

@@ -130,6 +130,9 @@ export const authApi = {
 
 // Users API
 export const usersApi = {
+  heartbeat: () =>
+    apiRequest<{ success: boolean }>('/users/heartbeat', { method: 'PATCH' }),
+
   getMe: () =>
     apiRequest<User>('/users/me'),
 
@@ -243,6 +246,7 @@ export interface CompanionListItem {
   primaryPhoto?: string;
   distance?: number;
   shortBio?: string;
+  lastSeen?: string | null;
 }
 
 export interface CompanionDetail extends CompanionListItem {
@@ -251,6 +255,7 @@ export interface CompanionDetail extends CompanionListItem {
   interests?: string[];
   languages?: string[];
   reviews?: { id: string; name: string; rating: number; text: string; date: string }[];
+  lastSeen?: string | null;
   createdAt: string;
 }
 
