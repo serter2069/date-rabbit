@@ -162,6 +162,33 @@ export class UsersController {
     return { success: true, message: 'Report submitted successfully' };
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('watch-online')
+  async getWatchedOnline(@Request() req) {
+    const watchedIds = await this.usersService.getWatchedCompanionIds(req.user.id);
+    return { watchedIds };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/watch-online')
+  async watchOnline(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Request() req,
+  ) {
+    await this.usersService.watchCompanion(req.user.id, id);
+    return { success: true };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id/watch-online')
+  async unwatchOnline(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Request() req,
+  ) {
+    await this.usersService.unwatchCompanion(req.user.id, id);
+    return { success: true };
+  }
+
   @Get(':id')
   async getUserById(@Param('id', ParseUUIDPipe) id: string) {
     const user = await this.usersService.findById(id);

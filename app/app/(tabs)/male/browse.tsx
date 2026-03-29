@@ -16,6 +16,7 @@ import { showAlert } from '../../../src/utils/alert';
 
 import { useAuthStore } from '../../../src/store/authStore';
 import { useFavoritesStore } from '../../../src/store/favoritesStore';
+import { useWatchOnlineStore } from '../../../src/store/watchOnlineStore';
 import * as Haptics from 'expo-haptics';
 
 const quickFilters = ['All', 'Nearby', 'Top Rated', 'New'];
@@ -34,6 +35,7 @@ export default function BrowseScreen() {
   const { colors } = useTheme();
   const { isAuthenticated } = useAuthStore();
   const { favorites, toggleFavorite } = useFavoritesStore();
+  const { watchedIds } = useWatchOnlineStore();
   const [activeFilter, setActiveFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterModalVisible, setFilterModalVisible] = useState(false);
@@ -355,6 +357,12 @@ export default function BrowseScreen() {
                 <Icon name="heart" size={18} color={favorites.includes(companion.id) ? colors.error : colors.textSecondary} />
               </TouchableOpacity>
 
+              {watchedIds.includes(companion.id) && (
+                <View style={[styles.bellBadge, { backgroundColor: colors.primary }]}>
+                  <Icon name="bell" size={10} color={colors.white} />
+                </View>
+              )}
+
               {companion.distance !== undefined && (
                 <View style={[styles.distanceBadge, { backgroundColor: colors.success + '15' }]}>
                   <Icon name="navigation" size={12} color={colors.success} />
@@ -576,6 +584,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 1,
     shadowRadius: 0,
     elevation: 2,
+    zIndex: 10,
+  },
+  bellBadge: {
+    position: 'absolute',
+    top: spacing.md,
+    right: spacing.md + 36 + spacing.xs,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
     zIndex: 10,
   },
   cardHeader: {
