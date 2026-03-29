@@ -35,6 +35,7 @@ interface AuthState {
   isLoading: boolean;
   hasCompletedOnboarding: boolean;
   hasSeenOnboarding: boolean; // Intro slides (not profile setup)
+  hasSeenTour: boolean; // Post-registration onboarding tour (modal cards)
   _hasHydrated: boolean; // True once zustand persist has loaded from AsyncStorage
   authStep: AuthStep;
   pendingEmail: string | null;
@@ -57,6 +58,7 @@ interface AuthState {
   logout: () => Promise<void>;
   clearError: () => void;
   setOnboardingSeen: () => void;
+  setTourSeen: () => void;
   setHasHydrated: (value: boolean) => void;
   refreshUser: () => Promise<void>;
   initialize: () => Promise<void>;
@@ -96,6 +98,7 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
       hasCompletedOnboarding: false,
       hasSeenOnboarding: false,
+      hasSeenTour: false,
       _hasHydrated: false,
       authStep: 'idle',
       pendingEmail: null,
@@ -317,6 +320,7 @@ export const useAuthStore = create<AuthState>()(
           user: null,
           isAuthenticated: false,
           hasCompletedOnboarding: false,
+          hasSeenTour: false,
           authStep: 'idle',
           pendingEmail: null,
           error: null,
@@ -327,6 +331,8 @@ export const useAuthStore = create<AuthState>()(
 
       setOnboardingSeen: () => set({ hasSeenOnboarding: true }),
 
+      setTourSeen: () => set({ hasSeenTour: true }),
+
       setHasHydrated: (value) => set({ _hasHydrated: value }),
 
       setPendingEmail: (email) => set({ pendingEmail: email }),
@@ -336,6 +342,7 @@ export const useAuthStore = create<AuthState>()(
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
         hasSeenOnboarding: state.hasSeenOnboarding,
+        hasSeenTour: state.hasSeenTour,
         hasCompletedOnboarding: state.hasCompletedOnboarding,
       }),
       onRehydrateStorage: () => (_state, error) => {

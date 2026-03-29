@@ -15,6 +15,7 @@ import {
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../../src/store/authStore';
+import { OnboardingTour, SEEKER_TOUR_STEPS } from '../../../src/components/OnboardingTour';
 import { Card } from '../../../src/components/Card';
 import { Avatar } from '../../../src/components/Avatar';
 import { UserImage } from '../../../src/components/UserImage';
@@ -33,8 +34,9 @@ const CARD_GAP = spacing.md;
 export default function MaleDashboard() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const { user } = useAuthStore();
+  const { user, isAuthenticated, hasSeenTour, _hasHydrated, setTourSeen } = useAuthStore();
   const { width: screenWidth } = useWindowDimensions();
+  const showTour = isAuthenticated && _hasHydrated && !hasSeenTour;
   const isWideScreen = Platform.OS === 'web' && screenWidth >= WEB_GRID_BREAKPOINT;
 
   // Data state
@@ -112,6 +114,7 @@ export default function MaleDashboard() {
   };
 
   return (
+    <>
     <ScrollView
       style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={[
@@ -269,6 +272,12 @@ export default function MaleDashboard() {
       </View>
 
     </ScrollView>
+    <OnboardingTour
+      visible={showTour}
+      steps={SEEKER_TOUR_STEPS}
+      onDone={setTourSeen}
+    />
+    </>
   );
 }
 
