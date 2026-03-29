@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useAuthStore } from '../../../src/store/authStore';
+import { OnboardingTour, COMPANION_TOUR_STEPS } from '../../../src/components/OnboardingTour';
 import { Card } from '../../../src/components/Card';
 import { Avatar } from '../../../src/components/Avatar';
 import { Badge } from '../../../src/components/Badge';
@@ -13,7 +14,8 @@ import { bookingsApi, Booking } from '../../../src/services/api';
 
 export default function FemaleDashboard() {
   const insets = useSafeAreaInsets();
-  const { user } = useAuthStore();
+  const { user, isAuthenticated, hasSeenTour, _hasHydrated, setTourSeen } = useAuthStore();
+  const showTour = isAuthenticated && _hasHydrated && !hasSeenTour;
 
   const [refreshing, setRefreshing] = useState(false);
   const [recentRequests, setRecentRequests] = useState<Booking[]>([]);
@@ -59,6 +61,7 @@ export default function FemaleDashboard() {
   }, [fetchStats]);
 
   return (
+    <>
     <ScrollView
       style={styles.container}
       contentContainerStyle={[
@@ -169,6 +172,12 @@ export default function FemaleDashboard() {
         </View>
       </View>
     </ScrollView>
+    <OnboardingTour
+      visible={showTour}
+      steps={COMPANION_TOUR_STEPS}
+      onDone={setTourSeen}
+    />
+    </>
   );
 }
 
