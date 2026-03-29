@@ -283,12 +283,21 @@ function BookingCard({ booking, type, colors, onCancel, formatDate }: BookingCar
               <Icon key={i} name="star" size={24} color={i < Number(companion.rating || 0) ? colors.accent : colors.border} />
             ))}
           </View>
-          <Button
-            title="Leave Review"
-            onPress={() => router.push(`/reviews/${booking.id}`)}
-            size="sm"
-            style={{ marginTop: spacing.sm }}
-          />
+          <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm }}>
+            <Button
+              title="View Summary"
+              onPress={() => router.push(`/date/summary/${booking.id}`)}
+              variant="outline"
+              size="sm"
+              style={{ flex: 1 }}
+            />
+            <Button
+              title="Leave Review"
+              onPress={() => router.push(`/reviews/${booking.id}`)}
+              size="sm"
+              style={{ flex: 1 }}
+            />
+          </View>
         </View>
       )}
     </Card>

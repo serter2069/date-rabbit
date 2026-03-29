@@ -243,6 +243,13 @@ function RequestCard({ request, type, colors, onAccept, onDecline, formatDate }:
           <Text style={[styles.ratingText, { color: colors.textSecondary }]}>
             {request.isPaid ? 'Payment received' : 'Awaiting payment'}
           </Text>
+          <Button
+            title="View Summary"
+            onPress={() => router.push(`/date/summary/${request.id}`)}
+            variant="outline"
+            size="sm"
+            style={{ marginTop: spacing.sm, alignSelf: 'stretch' }}
+          />
         </View>
       )}
     </Card>

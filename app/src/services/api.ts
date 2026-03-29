@@ -289,6 +289,8 @@ export type BookingStatus =
   | 'accepted'
   | 'declined'
   | 'confirmed'
+  | 'checkin_ready'
+  | 'active'
   | 'cancelled'
   | 'completed';
 
