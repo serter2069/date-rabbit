@@ -54,7 +54,7 @@ function useCleanUrl() {
 }
 
 // Public routes accessible without authentication
-const PUBLIC_ROUTES = ['terms', 'privacy', 'safety', 'onboarding', '(auth)', '(dev)'];
+const PUBLIC_ROUTES = ['terms', 'privacy', 'safety', 'onboarding', '(auth)', '(dev)', 'landing'];
 
 // Authenticated non-tab routes — accessible to all authenticated users (verified or not)
 const NON_TAB_AUTH_ROUTES = [
@@ -99,7 +99,15 @@ function NavigationGuard() {
         const isCompanion = user?.role === 'companion';
         router.replace(isCompanion ? '/(tabs)/female' : '/(tabs)/male');
       }
-      // terms, privacy — always accessible, never redirect
+      // terms, privacy, landing — always accessible, never redirect
+      return;
+    }
+
+    // Web-only: unauthenticated users see landing page before onboarding
+    if (Platform.OS === 'web' && !isAuthenticated) {
+      if (currentSegment !== 'landing') {
+        router.replace('/landing');
+      }
       return;
     }
 
@@ -208,6 +216,7 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="index" options={{ animation: 'fade' }} />
+        <Stack.Screen name="landing/index" options={{ headerShown: false, animation: 'fade' }} />
         <Stack.Screen name="onboarding" options={{ animation: 'fade' }} />
         <Stack.Screen name="(auth)" options={{ animation: 'fade' }} />
         <Stack.Screen name="(auth)/forgot-password" />
