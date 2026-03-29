@@ -30,6 +30,17 @@ jobs:
           cd app
           npm ci --legacy-peer-deps
           npx expo export --platform web --clear
+          python3 -c "
+import re
+with open('dist/index.html', 'r') as f:
+    html = f.read()
+og = '<meta name=\"description\" content=\"DateRabbit connects seekers with companions for memorable date experiences. Find, book, and enjoy amazing dates.\"><meta property=\"og:title\" content=\"DateRabbit — Find Your Perfect Date\"><meta property=\"og:description\" content=\"Connect with companions for memorable date experiences.\"><meta property=\"og:image\" content=\"https://daterabbit.smartlaunchhub.com/og-image.png\"><meta property=\"og:url\" content=\"https://daterabbit.smartlaunchhub.com\"><meta property=\"og:type\" content=\"website\"><meta name=\"twitter:card\" content=\"summary_large_image\"><meta name=\"twitter:title\" content=\"DateRabbit\"><meta name=\"twitter:description\" content=\"Connect with companions for memorable date experiences.\"><meta name=\"twitter:image\" content=\"https://daterabbit.smartlaunchhub.com/og-image.png\">'
+html = html.replace('<title>DateRabbit</title>', '<title>DateRabbit — Find Your Perfect Date</title>')
+html = html.replace('</head>', og + '</head>', 1)
+with open('dist/index.html', 'w') as f:
+    f.write(html)
+print('OG tags injected')
+"
           cat > dist/version.json << VEOF
           {
             "version": "$(git rev-parse --short HEAD)",
@@ -262,6 +273,17 @@ jobs:
           cd app
           npm ci --legacy-peer-deps
           npx expo export --platform web --clear
+          python3 -c "
+import re
+with open('dist/index.html', 'r') as f:
+    html = f.read()
+og = '<meta name=\"description\" content=\"DateRabbit connects seekers with companions for memorable date experiences. Find, book, and enjoy amazing dates.\"><meta property=\"og:title\" content=\"DateRabbit — Find Your Perfect Date\"><meta property=\"og:description\" content=\"Connect with companions for memorable date experiences.\"><meta property=\"og:image\" content=\"https://daterabbit.smartlaunchhub.com/og-image.png\"><meta property=\"og:url\" content=\"https://daterabbit.smartlaunchhub.com\"><meta property=\"og:type\" content=\"website\"><meta name=\"twitter:card\" content=\"summary_large_image\"><meta name=\"twitter:title\" content=\"DateRabbit\"><meta name=\"twitter:description\" content=\"Connect with companions for memorable date experiences.\"><meta name=\"twitter:image\" content=\"https://daterabbit.smartlaunchhub.com/og-image.png\">'
+html = html.replace('<title>DateRabbit</title>', '<title>DateRabbit — Find Your Perfect Date</title>')
+html = html.replace('</head>', og + '</head>', 1)
+with open('dist/index.html', 'w') as f:
+    f.write(html)
+print('OG tags injected')
+"
           cat > dist/version.json << VEOF
           {
             "version": "$(git rev-parse --short HEAD)",
