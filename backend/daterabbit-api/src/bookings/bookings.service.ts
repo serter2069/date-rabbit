@@ -10,6 +10,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '../notifications/entities/notification.entity';
 import { ReferralService } from '../referral/referral.service';
 import { sanitizeText } from '../common/sanitize';
+import { PackagesService } from '../packages/packages.service';
 
 @Injectable()
 export class BookingsService {
@@ -25,6 +26,7 @@ export class BookingsService {
     private notificationsService: NotificationsService,
     @Inject(forwardRef(() => ReferralService))
     private referralService: ReferralService,
+    private packagesService: PackagesService,
   ) {}
 
   async create(data: {
@@ -35,15 +37,42 @@ export class BookingsService {
     activity: ActivityType;
     location?: string;
     notes?: string;
+    packageId?: string;
   }): Promise<Booking> {
     const companion = await this.usersService.findById(data.companionId);
     if (!companion) {
       throw new HttpException('Companion not found', HttpStatus.NOT_FOUND);
     }
 
+    // If packageId provided, validate and override price/duration/activity
+    let totalPrice: number;
+    let duration = data.duration;
+    let activity = data.activity;
+    let packageId: string | undefined;
+
+    if (data.packageId) {
+      const pkg = await this.packagesService.findById(data.packageId);
+      if (!pkg) {
+        throw new HttpException('Package not found', HttpStatus.NOT_FOUND);
+      }
+      if (pkg.companionId !== data.companionId) {
+        throw new HttpException('Package does not belong to this companion', HttpStatus.BAD_REQUEST);
+      }
+      if (!pkg.isActive) {
+        throw new HttpException('Package is not active', HttpStatus.BAD_REQUEST);
+      }
+      // Package price is TOTAL (not hourly)
+      totalPrice = Number(pkg.price);
+      duration = pkg.template.defaultDuration;
+      activity = pkg.template.defaultActivity;
+      packageId = data.packageId;
+    } else {
+      totalPrice = (companion.hourlyRate || 100) * duration;
+    }
+
     // Check for overlapping bookings for this companion (race condition guard)
     const bookingStart = new Date(data.dateTime);
-    const bookingEnd = new Date(bookingStart.getTime() + data.duration * 60 * 60 * 1000);
+    const bookingEnd = new Date(bookingStart.getTime() + duration * 60 * 60 * 1000);
 
     const existing = await this.bookingsRepository
       .createQueryBuilder('b')
@@ -65,10 +94,11 @@ export class BookingsService {
       );
     }
 
-    const totalPrice = (companion.hourlyRate || 100) * data.duration;
-
     const booking = this.bookingsRepository.create({
       ...data,
+      duration,
+      activity,
+      packageId,
       notes: data.notes ? sanitizeText(data.notes) : data.notes,
       location: data.location ? sanitizeText(data.location) : data.location,
       totalPrice,

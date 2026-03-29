@@ -125,6 +125,9 @@ export class Booking {
   @Column({ nullable: true })
   reportIssueType: string;
 
+  @Column({ nullable: true })
+  packageId: string;
+
   @Column({ type: 'boolean', default: false })
   selfieVerified: boolean;
 

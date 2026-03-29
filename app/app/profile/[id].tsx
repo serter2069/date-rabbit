@@ -24,7 +24,7 @@ import { UserImage } from '../../src/components/UserImage';
 import { useTheme, spacing, typography, borderRadius, colors } from '../../src/constants/theme';
 import { useFavoritesStore } from '../../src/store/favoritesStore';
 import { useAuthStore } from '../../src/store/authStore';
-import { usersApi, companionsApi, CompanionDetail } from '../../src/services/api';
+import { usersApi, companionsApi, CompanionDetail, packagesApi, DatePackage } from '../../src/services/api';
 import { formatLastSeen } from '../../src/utils/formatLastSeen';
 import * as Haptics from 'expo-haptics';
 
@@ -105,6 +105,7 @@ export default function ProfileViewScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  const [datePackages, setDatePackages] = useState<DatePackage[]>([]);
   const [photoModalVisible, setPhotoModalVisible] = useState(false);
 
   const { favorites, toggleFavorite } = useFavoritesStore();
@@ -165,6 +166,9 @@ export default function ProfileViewScreen() {
           lastSeen: (data as any).lastSeen || null,
           reviews: (data as any).reviews || [],
         });
+
+        // Fetch companion's date packages (fire-and-forget for profile load)
+        packagesApi.getCompanionPackages(id).then(setDatePackages).catch(() => {});
       } catch (err: any) {
         console.error('Failed to fetch profile:', err);
         setError(err.message || 'Failed to load profile');
@@ -172,7 +176,7 @@ export default function ProfileViewScreen() {
         setIsLoading(false);
       }
     };
-    
+
     fetchProfile();
   }, [id]);
 
@@ -441,6 +445,45 @@ export default function ProfileViewScreen() {
               </View>
             </View>
           </View>
+
+          {/* Date Packages */}
+          {datePackages.length > 0 && (
+            <Card style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Date Packages</Text>
+              {datePackages.map((pkg) => (
+                <TouchableOpacity
+                  key={pkg.id}
+                  style={[styles.packageItem, { borderBottomColor: colors.border }]}
+                  onPress={() => {
+                    if (!isAuthenticated) {
+                      showAlert('Sign In Required', 'Please sign in to book a date.');
+                      router.push('/(auth)/welcome');
+                      return;
+                    }
+                    router.push(`/booking/${profile.id}?packageId=${pkg.id}`);
+                  }}
+                  accessibilityLabel={`${pkg.template?.name} package, $${Number(pkg.price)} total`}
+                  accessibilityRole="button"
+                >
+                  <View style={[styles.packageIconWrap, { backgroundColor: colors.primary + '15' }]}>
+                    <Icon name={pkg.template?.icon || 'package'} size={20} color={colors.primary} />
+                  </View>
+                  <View style={styles.packageDetails}>
+                    <Text style={[styles.packageTitle, { color: colors.text }]}>
+                      {pkg.template?.name || 'Package'}
+                    </Text>
+                    <Text style={[styles.packageMeta, { color: colors.textSecondary }]}>
+                      {pkg.template?.defaultDuration}h — {pkg.customDescription || pkg.template?.description}
+                    </Text>
+                  </View>
+                  <View style={styles.packagePriceWrap}>
+                    <Text style={[styles.packagePriceText, { color: colors.primary }]}>${Number(pkg.price)}</Text>
+                    <Text style={[styles.packagePriceLabel, { color: colors.textSecondary }]}>total</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </Card>
+          )}
 
           {/* Bio */}
           {profile.bio ? (
@@ -1075,6 +1118,46 @@ const styles = StyleSheet.create({
   },
   section: {
     marginBottom: spacing.md,
+  },
+  packageItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+  },
+  packageIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.md,
+  },
+  packageDetails: {
+    flex: 1,
+  },
+  packageTitle: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.md,
+    fontWeight: '600',
+  },
+  packageMeta: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.sm,
+    marginTop: 2,
+  },
+  packagePriceWrap: {
+    alignItems: 'flex-end',
+    marginLeft: spacing.sm,
+  },
+  packagePriceText: {
+    fontFamily: typography.fonts.heading,
+    fontSize: typography.sizes.lg,
+    fontWeight: '700',
+  },
+  packagePriceLabel: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.xs,
   },
   sectionHeader: {
     flexDirection: 'row',

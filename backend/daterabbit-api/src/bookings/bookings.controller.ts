@@ -31,6 +31,7 @@ export class BookingsController {
       activity: string;
       location?: string;
       notes?: string;
+      packageId?: string;
     },
   ) {
     if (!body.companionId || !body.dateTime || !body.duration || !body.activity) {
@@ -73,6 +74,7 @@ export class BookingsController {
       activity: body.activity as ActivityType,
       location: body.location,
       notes: body.notes,
+      packageId: body.packageId,
     });
 
     return booking;
@@ -459,6 +461,7 @@ export class BookingsController {
       extendApproved: booking.extendApproved !== null && booking.extendApproved !== undefined ? booking.extendApproved : undefined,
       reportIssueType: booking.reportIssueType || undefined,
       reportIssueText: booking.reportIssueText || undefined,
+      packageId: booking.packageId || undefined,
       selfieVerified: booking.selfieVerified || false,
       seeker: booking.seeker ? {
         id: booking.seeker.id,

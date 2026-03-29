@@ -119,6 +119,18 @@ export default function SettingsScreen() {
                 />
               </>
             )}
+            {user?.role === 'companion' && (
+              <>
+                <View style={[styles.divider, { backgroundColor: colors.divider }]} />
+                <SettingsMenuItem
+                  icon="package"
+                  label="My Packages"
+                  description="Create date packages with fixed pricing"
+                  onPress={() => router.push('/settings/my-packages')}
+                  colors={colors}
+                />
+              </>
+            )}
           </Card>
         </View>
 
