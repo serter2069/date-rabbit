@@ -8,6 +8,7 @@ import {
   UseGuards,
   Request,
   ParseUUIDPipe,
+  ForbiddenException,
 } from '@nestjs/common';
 import { ReviewsService } from './reviews.service';
 import { CreateReviewDto } from './dto/create-review.dto';
@@ -39,8 +40,32 @@ export class ReviewsController {
     };
   }
 
+  /**
+   * GET /reviews/seeker-rating/:seekerId
+   * Returns this companion's private rating of a specific seeker.
+   * 403 if caller IS the seeker (seekers cannot see their own private rating).
+   */
+  @Get('seeker-rating/:seekerId')
+  @UseGuards(JwtAuthGuard)
+  async getSeekerPrivateRating(
+    @Request() req,
+    @Param('seekerId', new ParseUUIDPipe()) seekerId: string,
+  ) {
+    if (req.user.id === seekerId) {
+      throw new ForbiddenException('Cannot view your own private rating');
+    }
+    return this.reviewsService.getSeekerPrivateRating(req.user.id, seekerId);
+  }
+
+  /**
+   * GET /reviews/users/:userId
+   * Privacy: when a seeker views their own reviews, hide companion->seeker reviews
+   * (those are private and only visible to the companion who left them).
+   */
   @Get('users/:userId')
+  @UseGuards(JwtAuthGuard)
   async getReviewsForUser(
+    @Request() req,
     @Param('userId', new ParseUUIDPipe()) userId: string,
     @Query('page') page = 1,
     @Query('limit') limit = 20,
@@ -51,8 +76,15 @@ export class ReviewsController {
       +limit,
     );
 
+    // If the caller is viewing their own reviews, filter out companion->seeker reviews
+    // (private ratings that only the reviewing companion should see)
+    const isOwnProfile = req.user.id === userId;
+    const filtered = isOwnProfile
+      ? reviews.filter((r) => r.reviewer?.role !== 'companion')
+      : reviews;
+
     return {
-      reviews: reviews.map((r) => ({
+      reviews: filtered.map((r) => ({
         id: r.id,
         rating: r.rating,
         comment: r.comment,
@@ -61,9 +93,9 @@ export class ReviewsController {
           : undefined,
         createdAt: r.createdAt,
       })),
-      total,
+      total: filtered.length,
       page: +page,
-      totalPages: Math.ceil(total / +limit),
+      totalPages: Math.ceil(filtered.length / +limit),
     };
   }
 }

@@ -325,6 +325,7 @@ export interface Booking {
     photo?: string;
     rating: number;
   };
+  seekerRating?: { average: number; count: number } | null;
   createdAt: string;
 }
 

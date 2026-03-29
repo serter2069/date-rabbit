@@ -91,6 +91,59 @@ export class ReviewsService {
     }
   }
 
+  /**
+   * Get a companion's private rating of a specific seeker.
+   * Returns only reviews where this companion reviewed this seeker.
+   */
+  async getSeekerPrivateRating(
+    companionId: string,
+    seekerId: string,
+  ): Promise<{ average: number; count: number }> {
+    const result = await this.reviewsRepo
+      .createQueryBuilder('review')
+      .select('AVG(review.rating)', 'avg')
+      .addSelect('COUNT(*)', 'count')
+      .where('review.reviewerId = :companionId', { companionId })
+      .andWhere('review.revieweeId = :seekerId', { seekerId })
+      .getRawOne();
+
+    return {
+      average: parseFloat(result.avg) || 0,
+      count: parseInt(result.count) || 0,
+    };
+  }
+
+  /**
+   * Batch-query companion's private ratings for multiple seekers.
+   * Returns a map of seekerId -> { average, count }.
+   */
+  async getSeekerPrivateRatingsBatch(
+    companionId: string,
+    seekerIds: string[],
+  ): Promise<Map<string, { average: number; count: number }>> {
+    const map = new Map<string, { average: number; count: number }>();
+    if (seekerIds.length === 0) return map;
+
+    const results = await this.reviewsRepo
+      .createQueryBuilder('review')
+      .select('review.revieweeId', 'seekerId')
+      .addSelect('AVG(review.rating)', 'avg')
+      .addSelect('COUNT(*)', 'count')
+      .where('review.reviewerId = :companionId', { companionId })
+      .andWhere('review.revieweeId IN (:...seekerIds)', { seekerIds })
+      .groupBy('review.revieweeId')
+      .getRawMany();
+
+    for (const row of results) {
+      map.set(row.seekerId, {
+        average: parseFloat(row.avg) || 0,
+        count: parseInt(row.count) || 0,
+      });
+    }
+
+    return map;
+  }
+
   private async updateUserRating(userId: string): Promise<void> {
     const result = await this.reviewsRepo
       .createQueryBuilder('review')
