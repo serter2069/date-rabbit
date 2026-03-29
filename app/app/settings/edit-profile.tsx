@@ -16,6 +16,7 @@ import { Icon } from '../../src/components/Icon';
 import { PhotoUpload } from '../../src/components/PhotoUpload';
 import { useAuthStore } from '../../src/store/authStore';
 import { useImagePicker } from '../../src/hooks/useImagePicker';
+import { usersApi } from '../../src/services/api';
 import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
 import { showAlert } from '../../src/utils/alert';
 
@@ -73,13 +74,26 @@ export default function EditProfileScreen() {
 
     setLoading(true);
     try {
-      // TODO: Photo upload will be handled separately via the API
-      // For now, just update text fields
+      // Upload new photos (local URIs) and keep existing MinIO URLs as-is
+      const uploadedPhotos: { id: string; url: string; order: number; isPrimary: boolean }[] = [];
+      for (let i = 0; i < images.length; i++) {
+        const uri = images[i];
+        if (uri.startsWith('http')) {
+          // Already a MinIO URL — preserve it without re-uploading
+          uploadedPhotos.push({ id: String(i), url: uri, order: i, isPrimary: i === 0 });
+        } else {
+          // Local URI — upload to MinIO
+          const result = await usersApi.uploadProfilePhoto(uri);
+          uploadedPhotos.push({ id: String(i), url: result.url, order: i, isPrimary: i === 0 });
+        }
+      }
+
       await updateProfile({
         name: formData.name,
         bio: formData.bio,
         location: formData.location,
         hourlyRate: formData.hourlyRate ? parseInt(formData.hourlyRate, 10) : undefined,
+        photos: uploadedPhotos as any,
       });
       router.back();
     } catch {
