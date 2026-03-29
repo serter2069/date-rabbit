@@ -22,7 +22,7 @@ const quickFilters = ['All', 'Nearby', 'Top Rated', 'New'];
 const defaultFilterOptions: FilterOptions = {
   priceRange: [50, 200],
   maxDistance: 25,
-  minRating: 4.0,
+  minRating: 0.0,
   availability: 'any',
   ageRange: [21, 45],
   sortBy: 'recommended',
