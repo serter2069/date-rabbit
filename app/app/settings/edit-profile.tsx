@@ -18,6 +18,7 @@ import { useAuthStore } from '../../src/store/authStore';
 import { useImagePicker } from '../../src/hooks/useImagePicker';
 import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
 import { showAlert } from '../../src/utils/alert';
+import { usersApi } from '../../src/services/api';
 
 export default function EditProfileScreen() {
   const insets = useSafeAreaInsets();
@@ -73,13 +74,33 @@ export default function EditProfileScreen() {
 
     setLoading(true);
     try {
-      // TODO: Photo upload will be handled separately via the API
-      // For now, just update text fields
+      // Upload new local photos and build photos array
+      const uploadedPhotos: { id: string; url: string; order: number; isPrimary: boolean }[] = [];
+      for (let i = 0; i < images.length; i++) {
+        const uri = images[i];
+        let url: string;
+        if (uri.startsWith('http')) {
+          // Already uploaded (existing MinIO URL), keep as-is
+          url = uri;
+        } else {
+          // Local file, upload to server
+          const result = await usersApi.uploadProfilePhoto(uri);
+          url = result.url;
+        }
+        uploadedPhotos.push({
+          id: String(i),
+          url,
+          order: i,
+          isPrimary: i === 0,
+        });
+      }
+
       await updateProfile({
         name: formData.name,
         bio: formData.bio,
         location: formData.location,
         hourlyRate: formData.hourlyRate ? parseInt(formData.hourlyRate, 10) : undefined,
+        photos: uploadedPhotos as any,
       });
       router.back();
     } catch {
