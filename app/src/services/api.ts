@@ -1,6 +1,6 @@
 // API Client for DateRabbit Backend
 import * as SecureStore from 'expo-secure-store';
-import type { Verification, VerificationReference } from '../types';
+import type { Verification, VerificationReference, PreChatStatus } from '../types';
 import { useNetworkStore } from '../store/networkStore';
 
 const API_BASE_URL = 'https://daterabbit-api.smartlaunchhub.com/api';
@@ -465,6 +465,9 @@ export const messagesApi = {
 
   getUnreadCount: () =>
     apiRequest<{ count: number }>('/messages/unread-count'),
+
+  getPreChatStatus: (userId: string) =>
+    apiRequest<PreChatStatus>(`/messages/${userId}/pre-chat`),
 };
 
 // Payments API

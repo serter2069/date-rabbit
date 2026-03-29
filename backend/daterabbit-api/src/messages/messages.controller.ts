@@ -54,6 +54,18 @@ export class MessagesController {
     return { unread: count };
   }
 
+  /**
+   * UC-037: Get pre-chat status (how many messages can be sent before booking).
+   * MUST be declared before @Get(':userId') to prevent route collision.
+   */
+  @Get(':userId/pre-chat')
+  async getPreChatStatus(
+    @Param('userId', ParseUUIDPipe) companionId: string,
+    @Request() req,
+  ) {
+    return this.messagesService.getPreChatStatus(req.user.id, companionId);
+  }
+
   @Get(':userId')
   async getMessages(
     @Param('userId', ParseUUIDPipe) otherUserId: string,
@@ -81,17 +93,6 @@ export class MessagesController {
     }));
   }
 
-  /**
-   * UC-037: Get pre-chat status (how many messages can be sent before booking).
-   */
-  @Get(':userId/pre-chat')
-  async getPreChatStatus(
-    @Param('userId', ParseUUIDPipe) companionId: string,
-    @Request() req,
-  ) {
-    return this.messagesService.getPreChatStatus(req.user.id, companionId);
-  }
-
   @Post(':userId')
   async sendMessage(
     @Param('userId', ParseUUIDPipe) receiverId: string,
@@ -116,9 +117,9 @@ export class MessagesController {
 
     // UC-037: Enforce pre-chat message limit
     const preChatStatus = await this.messagesService.getPreChatStatus(req.user.id, receiverId);
-    if (!preChatStatus.allowed) {
+    if (!preChatStatus.canSend) {
       throw new HttpException(
-        `Pre-chat limit reached (${preChatStatus.limit} messages). Create a booking to continue chatting.`,
+        'Pre-chat limit reached. Create a booking to continue chatting.',
         HttpStatus.FORBIDDEN,
       );
     }

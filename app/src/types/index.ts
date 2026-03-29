@@ -123,3 +123,11 @@ export interface Chat {
   lastMessageAt?: string;
   unreadCount?: number;
 }
+
+export interface PreChatStatus {
+  hasBooking: boolean;
+  companionReplied: boolean;
+  messageCount: number;
+  canSend: boolean;
+  messagesLeft: number;
+}
