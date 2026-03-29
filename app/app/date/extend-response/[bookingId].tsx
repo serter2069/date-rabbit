@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { activeDateApi, ActiveBooking } from '../../../src/services/activeDateApi';
+import { colors, typography, shadows } from '../../../src/constants/theme';
 
 export default function ExtendResponseScreen() {
   const { bookingId } = useLocalSearchParams<{ bookingId: string }>();
@@ -36,7 +37,7 @@ export default function ExtendResponseScreen() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator color="#FF2A5F" size="large" />
+        <ActivityIndicator color={colors.primary} size="large" />
       </View>
     );
   }
@@ -102,32 +103,32 @@ export default function ExtendResponseScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F0EA', padding: 24, paddingTop: 60 },
-  center: { flex: 1, backgroundColor: '#F4F0EA', justifyContent: 'center', alignItems: 'center', padding: 24 },
-  title: { fontSize: 36, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000', marginBottom: 32 },
+  container: { flex: 1, backgroundColor: colors.background, padding: 24, paddingTop: 60 },
+  center: { flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center', padding: 24 },
+  title: { fontSize: 36, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.text, marginBottom: 32 },
   requestCard: {
-    backgroundColor: '#fff', borderWidth: 2, borderColor: '#000',
+    backgroundColor: colors.surface, borderWidth: 2, borderColor: colors.border,
     padding: 32, alignItems: 'center', marginBottom: 40,
-    shadowOffset: { width: 4, height: 4 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0,
+    ...shadows.md,
   },
-  requestLabel: { fontSize: 14, color: '#555', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 },
-  requestHours: { fontSize: 72, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#FF2A5F', lineHeight: 80 },
-  requestSubtext: { fontSize: 14, color: '#555', marginTop: 8, textAlign: 'center' },
+  requestLabel: { fontSize: 14, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 },
+  requestHours: { fontSize: 72, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.primary, lineHeight: 80 },
+  requestSubtext: { fontSize: 14, color: colors.textMuted, marginTop: 8, textAlign: 'center' },
   buttonRow: { flexDirection: 'row', gap: 12, marginBottom: 24 },
   rejectBtn: {
     flex: 1, paddingVertical: 18, alignItems: 'center',
-    borderWidth: 2, borderColor: '#000', backgroundColor: '#fff',
-    shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0,
+    borderWidth: 2, borderColor: colors.border, backgroundColor: colors.surface,
+    ...shadows.sm,
   },
-  rejectText: { fontSize: 18, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
+  rejectText: { fontSize: 18, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.text },
   approveBtn: {
     flex: 1, paddingVertical: 18, alignItems: 'center',
-    borderWidth: 2, borderColor: '#000', backgroundColor: '#4DF0FF',
-    shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0,
+    borderWidth: 2, borderColor: colors.border, backgroundColor: colors.accent,
+    ...shadows.sm,
   },
-  approveText: { fontSize: 18, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
+  approveText: { fontSize: 18, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.text },
   btnDisabled: { opacity: 0.6 },
-  noRequest: { fontSize: 18, fontFamily: 'SpaceGrotesk-Bold', color: '#000', textAlign: 'center', marginBottom: 24 },
+  noRequest: { fontSize: 18, fontFamily: typography.fonts.heading, color: colors.text, textAlign: 'center', marginBottom: 24 },
   backBtn: { alignItems: 'center', padding: 12 },
-  backText: { fontSize: 16, color: '#555', textDecorationLine: 'underline' },
+  backText: { fontSize: 16, color: colors.textMuted, textDecorationLine: 'underline' },
 });

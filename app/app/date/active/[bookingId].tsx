@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, Modal } fr
 import { useLocalSearchParams, router } from 'expo-router';
 import { activeDateApi, ActiveBooking } from '../../../src/services/activeDateApi';
 import { useAuthStore } from '../../../src/store/authStore';
+import { colors, typography, shadows } from '../../../src/constants/theme';
 
 const SAFETY_CHECKIN_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
 
@@ -138,15 +139,15 @@ export default function ActiveDateScreen() {
   const actions = [
     ...(isCompanion
       ? hasExtendRequest
-        ? [{ label: `Respond to +${booking!.extendRequestedHours}h Request`, color: '#4DF0FF', route: `/date/extend-response/${bookingId}` }]
+        ? [{ label: `Respond to +${booking!.extendRequestedHours}h Request`, color: colors.accent, route: `/date/extend-response/${bookingId}` }]
         : []
-      : [{ label: 'Extend Time', color: '#4DF0FF', route: `/date/extend/${bookingId}` }]
+      : [{ label: 'Extend Time', color: colors.accent, route: `/date/extend/${bookingId}` }]
     ),
-    { label: 'End Early', color: '#FF5A85', onPress: handleEndEarly },
-    { label: 'Date Plan', color: '#fff', route: `/date/plan/${bookingId}` },
-    { label: 'Photos', color: '#fff', route: `/date/photos/${bookingId}` },
-    { label: 'Report Issue', color: '#fff', route: `/date/report/${bookingId}` },
-    { label: 'SOS', color: '#FF0000', textColor: '#fff', route: `/date/sos/${bookingId}` },
+    { label: 'End Early', color: colors.primaryLight, onPress: handleEndEarly },
+    { label: 'Date Plan', color: colors.surface, route: `/date/plan/${bookingId}` },
+    { label: 'Photos', color: colors.surface, route: `/date/photos/${bookingId}` },
+    { label: 'Report Issue', color: colors.surface, route: `/date/report/${bookingId}` },
+    { label: 'SOS', color: colors.error, textColor: colors.textInverse, route: `/date/sos/${bookingId}` },
   ];
 
   return (
@@ -223,36 +224,36 @@ export default function ActiveDateScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F0EA' },
+  container: { flex: 1, backgroundColor: colors.background },
   content: { padding: 24, paddingTop: 16 },
-  center: { flex: 1, backgroundColor: '#F4F0EA', justifyContent: 'center', alignItems: 'center' },
-  loadingText: { fontFamily: 'SpaceGrotesk-Bold', fontSize: 18, color: '#000' },
+  center: { flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' },
+  loadingText: { fontFamily: typography.fonts.heading, fontSize: 18, color: colors.text },
   header: { marginBottom: 32 },
-  headerName: { fontSize: 22, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
-  headerActivity: { fontSize: 14, color: '#555', marginTop: 4 },
+  headerName: { fontSize: 22, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.text },
+  headerActivity: { fontSize: 14, color: colors.textMuted, marginTop: 4 },
   timerCard: {
-    backgroundColor: '#000', borderWidth: 2, borderColor: '#000',
+    backgroundColor: colors.text, borderWidth: 2, borderColor: colors.border,
     padding: 32, alignItems: 'center', marginBottom: 32,
-    shadowOffset: { width: 4, height: 4 }, shadowColor: '#FF2A5F', shadowOpacity: 1, shadowRadius: 0,
+    shadowColor: colors.primary, shadowOffset: { width: 4, height: 4 }, shadowOpacity: 1, shadowRadius: 0,
   },
-  timerCardLow: { backgroundColor: '#FF2A5F' },
-  timerText: { fontSize: 64, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#FF5A85', letterSpacing: 4 },
-  timerTextLow: { color: '#fff' },
-  timerLabel: { fontSize: 12, fontFamily: 'SpaceGrotesk-Bold', color: '#fff', marginTop: 8, letterSpacing: 2 },
+  timerCardLow: { backgroundColor: colors.primary },
+  timerText: { fontSize: 64, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.primaryLight, letterSpacing: 4 },
+  timerTextLow: { color: colors.textInverse },
+  timerLabel: { fontSize: 12, fontFamily: typography.fonts.heading, color: colors.textInverse, marginTop: 8, letterSpacing: 2 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   actionBtn: {
     width: '47%', paddingVertical: 20, alignItems: 'center',
-    borderWidth: 2, borderColor: '#000',
-    shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0,
+    borderWidth: 2, borderColor: colors.border,
+    ...shadows.sm,
   },
-  actionText: { fontSize: 15, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
+  actionText: { fontSize: 15, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.text },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: 24 },
-  modalCard: { backgroundColor: '#F4F0EA', borderWidth: 3, borderColor: '#000', padding: 32, width: '100%', maxWidth: 400, shadowOffset: { width: 5, height: 5 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
-  modalTitle: { fontSize: 26, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000', marginBottom: 12 },
-  modalBody: { fontSize: 16, color: '#333', marginBottom: 32 },
-  modalOkBtn: { backgroundColor: '#4DF0FF', borderWidth: 2, borderColor: '#000', paddingVertical: 18, alignItems: 'center', marginBottom: 12, shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
-  modalOkText: { fontSize: 18, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
-  modalSosBtn: { backgroundColor: '#FF0000', borderWidth: 2, borderColor: '#000', paddingVertical: 14, alignItems: 'center' },
-  modalSosText: { fontSize: 16, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#fff' },
+  modalCard: { backgroundColor: colors.background, borderWidth: 3, borderColor: colors.border, padding: 32, width: '100%', maxWidth: 400, ...shadows.lg },
+  modalTitle: { fontSize: 26, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.text, marginBottom: 12 },
+  modalBody: { fontSize: 16, color: colors.textSecondary, marginBottom: 32 },
+  modalOkBtn: { backgroundColor: colors.accent, borderWidth: 2, borderColor: colors.border, paddingVertical: 18, alignItems: 'center', marginBottom: 12, ...shadows.sm },
+  modalOkText: { fontSize: 18, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.text },
+  modalSosBtn: { backgroundColor: colors.error, borderWidth: 2, borderColor: colors.border, paddingVertical: 14, alignItems: 'center' },
+  modalSosText: { fontSize: 16, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.textInverse },
   btnDisabled: { opacity: 0.5 },
 });
