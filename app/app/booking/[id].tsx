@@ -17,7 +17,7 @@ import { Icon } from '../../src/components/Icon';
 import { UserImage } from '../../src/components/UserImage';
 import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
 import { useBookingsStore } from '../../src/store/bookingsStore';
-import { companionsApi, CompanionDetail } from '../../src/services/api';
+import { companionsApi, CompanionDetail, packagesApi, DatePackage } from '../../src/services/api';
 import { showAlert, showConfirm } from '../../src/utils/alert';
 import { useVerificationGate } from '../../src/hooks/useVerificationGate';
 
@@ -65,7 +65,7 @@ const timeSlots = [
 ];
 
 export default function BookingScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, packageId: initialPackageId } = useLocalSearchParams<{ id: string; packageId?: string }>();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
 
@@ -83,6 +83,8 @@ export default function BookingScreen() {
   const [location, setLocation] = useState('');
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [companionPackages, setCompanionPackages] = useState<DatePackage[]>([]);
+  const [selectedPackage, setSelectedPackage] = useState<DatePackage | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -91,6 +93,20 @@ export default function BookingScreen() {
       .then((data) => setCompanion(data))
       .catch(() => showAlert('Error', 'Could not load companion profile.'))
       .finally(() => setIsLoadingCompanion(false));
+
+    // Load companion packages
+    packagesApi.getCompanionPackages(id).then((pkgs) => {
+      setCompanionPackages(pkgs);
+      // Auto-select package if passed via URL
+      if (initialPackageId) {
+        const match = pkgs.find((p) => p.id === initialPackageId);
+        if (match) {
+          setSelectedPackage(match);
+          setSelectedActivity(match.template?.defaultActivity || null);
+          setSelectedDuration(match.template?.defaultDuration || 2);
+        }
+      }
+    }).catch(() => {});
   }, [id]);
 
   // Check if user has entered any data worth confirming before leaving
@@ -136,7 +152,8 @@ export default function BookingScreen() {
 
   const serviceFee = 0.15; // 15% platform fee
   const hourlyRate = companion?.hourlyRate ?? 0;
-  const subtotal = hourlyRate * selectedDuration;
+  const isPackageBooking = !!selectedPackage;
+  const subtotal = isPackageBooking ? Number(selectedPackage!.price) : hourlyRate * selectedDuration;
   const fee = Math.round(subtotal * serviceFee);
   const total = subtotal + fee;
 
@@ -175,6 +192,7 @@ export default function BookingScreen() {
       duration: selectedDuration,
       location,
       notes,
+      ...(selectedPackage ? { packageId: selectedPackage.id } : {}),
     });
 
     setIsSubmitting(false);
@@ -225,6 +243,77 @@ export default function BookingScreen() {
             </View>
           </View>
         </Card>
+
+        {/* Package Selection */}
+        {companionPackages.length > 0 && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Choose a Package (optional)</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -spacing.lg, paddingHorizontal: spacing.lg }}>
+              {selectedPackage && (
+                <TouchableOpacity
+                  style={[
+                    styles.packageCard,
+                    { backgroundColor: colors.surface, borderColor: colors.border },
+                  ]}
+                  onPress={() => {
+                    setSelectedPackage(null);
+                    setSelectedActivity(null);
+                    setSelectedDuration(2);
+                  }}
+                >
+                  <Icon name="x" size={20} color={colors.textSecondary} />
+                  <Text style={[styles.packageCardLabel, { color: colors.textSecondary }]}>No package</Text>
+                </TouchableOpacity>
+              )}
+              {companionPackages.map((pkg) => {
+                const isSelected = selectedPackage?.id === pkg.id;
+                return (
+                  <TouchableOpacity
+                    key={pkg.id}
+                    style={[
+                      styles.packageCard,
+                      { backgroundColor: colors.white, borderColor: colors.border },
+                      isSelected && { borderColor: colors.primary, backgroundColor: colors.primary + '10' },
+                    ]}
+                    onPress={() => {
+                      if (isSelected) {
+                        setSelectedPackage(null);
+                        setSelectedActivity(null);
+                        setSelectedDuration(2);
+                      } else {
+                        setSelectedPackage(pkg);
+                        setSelectedActivity(pkg.template?.defaultActivity || null);
+                        setSelectedDuration(pkg.template?.defaultDuration || 2);
+                      }
+                    }}
+                    accessibilityLabel={`${pkg.template?.name} package, $${Number(pkg.price)} total`}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: isSelected }}
+                  >
+                    <Icon name={pkg.template?.icon || 'package'} size={24} color={isSelected ? colors.primary : colors.textSecondary} />
+                    <Text style={[styles.packageCardLabel, { color: colors.text }, isSelected && { color: colors.primary }]}>
+                      {pkg.template?.name}
+                    </Text>
+                    <Text style={[styles.packageCardDuration, { color: colors.textSecondary }, isSelected && { color: colors.primary }]}>
+                      {pkg.template?.defaultDuration}h
+                    </Text>
+                    <Text style={[styles.packageCardPrice, { color: colors.primary }]}>
+                      ${Number(pkg.price)} total
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+            {selectedPackage && (
+              <View style={[styles.packageNote, { backgroundColor: colors.primary + '10' }]}>
+                <Icon name="info" size={14} color={colors.primary} />
+                <Text style={[styles.packageNoteText, { color: colors.primary }]}>
+                  Package selected: {selectedPackage.template?.defaultDuration}h {selectedPackage.template?.defaultActivity}. Price is fixed at ${Number(selectedPackage.price)}.
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
 
         {/* Activity Selection */}
         <View style={styles.section}>
@@ -421,7 +510,9 @@ export default function BookingScreen() {
           <Text style={[styles.summaryTitle, { color: colors.text }]}>Price Summary</Text>
           <View style={styles.summaryRow}>
             <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-              ${hourlyRate} × {selectedDuration} hours
+              {isPackageBooking
+                ? `${selectedPackage!.template?.name} (${selectedPackage!.template?.defaultDuration}h)`
+                : `$${hourlyRate} x ${selectedDuration} hours`}
             </Text>
             <Text style={[styles.summaryValue, { color: colors.text }]}>${subtotal}</Text>
           </View>
@@ -702,5 +793,46 @@ const styles = StyleSheet.create({
   submitButton: {
     flex: 1,
     marginLeft: spacing.lg,
+  },
+  packageCard: {
+    padding: spacing.md,
+    borderRadius: borderRadius.lg,
+    borderWidth: 2,
+    marginRight: spacing.sm,
+    alignItems: 'center',
+    minWidth: 120,
+    minHeight: 100,
+    justifyContent: 'center',
+  },
+  packageCardLabel: {
+    fontFamily: typography.fonts.bodyMedium,
+    fontSize: typography.sizes.sm,
+    fontWeight: '500',
+    marginTop: spacing.xs,
+    textAlign: 'center',
+  },
+  packageCardDuration: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.xs,
+    marginTop: 2,
+  },
+  packageCardPrice: {
+    fontFamily: typography.fonts.heading,
+    fontSize: typography.sizes.md,
+    fontWeight: '700',
+    marginTop: spacing.xs,
+  },
+  packageNote: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.sm,
+    borderRadius: borderRadius.sm,
+    marginTop: spacing.sm,
+    gap: spacing.xs,
+  },
+  packageNoteText: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.sm,
+    flex: 1,
   },
 });

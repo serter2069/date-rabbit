@@ -338,6 +338,7 @@ export interface CreateBookingData {
   latitude?: number;
   longitude?: number;
   notes?: string;
+  packageId?: string;
 }
 
 export const bookingsApi = {
@@ -702,6 +703,59 @@ export const referralApi = {
 
   getMyStats: () =>
     apiRequest<{ invited: number; credited: number }>('/referral/my-stats'),
+};
+
+// Packages API
+export interface DatePackageTemplate {
+  id: string;
+  slug: string;
+  name: string;
+  nameRu: string;
+  description: string;
+  descriptionRu: string;
+  defaultDuration: number;
+  defaultActivity: string;
+  icon: string;
+}
+
+export interface DatePackage {
+  id: string;
+  companionId: string;
+  templateId: string;
+  price: number;
+  customDescription?: string;
+  isActive: boolean;
+  template?: DatePackageTemplate;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const packagesApi = {
+  getTemplates: () =>
+    apiRequest<DatePackageTemplate[]>('/packages/templates'),
+
+  getCompanionPackages: (companionId: string) =>
+    apiRequest<DatePackage[]>(`/packages/companion/${companionId}`),
+
+  getMyPackages: () =>
+    apiRequest<DatePackage[]>('/packages/my'),
+
+  createPackage: (data: { templateId: string; price: number; customDescription?: string }) =>
+    apiRequest<DatePackage>('/packages/my', {
+      method: 'POST',
+      body: data,
+    }),
+
+  updatePackage: (id: string, data: { price?: number; customDescription?: string; isActive?: boolean }) =>
+    apiRequest<DatePackage>(`/packages/my/${id}`, {
+      method: 'PUT',
+      body: data,
+    }),
+
+  deletePackage: (id: string) =>
+    apiRequest<{ success: boolean }>(`/packages/my/${id}`, {
+      method: 'DELETE',
+    }),
 };
 
 // Types

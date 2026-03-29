@@ -16,6 +16,7 @@ import { AdminModule } from './admin/admin.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { CalendarModule } from './calendar/calendar.module';
 import { ReferralModule } from './referral/referral.module';
+import { PackagesModule } from './packages/packages.module';
 
 @Module({
   imports: [
@@ -64,6 +65,7 @@ import { ReferralModule } from './referral/referral.module';
     NotificationsModule,
     CalendarModule,
     ReferralModule,
+    PackagesModule,
   ],
   providers: [
     {

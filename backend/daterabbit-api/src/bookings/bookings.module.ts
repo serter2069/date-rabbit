@@ -15,6 +15,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
 import { ReferralModule } from '../referral/referral.module';
 import { UploadsModule } from '../uploads/uploads.module';
 import { ReviewsModule } from '../reviews/reviews.module';
+import { PackagesModule } from '../packages/packages.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { ReviewsModule } from '../reviews/reviews.module';
     ReferralModule,
     UploadsModule,
     forwardRef(() => ReviewsModule),
+    PackagesModule,
   ],
   providers: [BookingsService, BookingsCron],
   controllers: [BookingsController],
