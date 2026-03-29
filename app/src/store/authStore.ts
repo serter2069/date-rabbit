@@ -312,6 +312,7 @@ export const useAuthStore = create<AuthState>()(
 
       logout: async () => {
         await setToken(null);
+        useFavoritesStore.getState().clearFavorites();
         set({
           user: null,
           isAuthenticated: false,

@@ -14,6 +14,7 @@ import { companionsApi, CompanionListItem } from '../../../src/services/api';
 import { showAlert } from '../../../src/utils/alert';
 
 import { useAuthStore } from '../../../src/store/authStore';
+import { useFavoritesStore } from '../../../src/store/favoritesStore';
 import * as Haptics from 'expo-haptics';
 
 const quickFilters = ['All', 'Nearby', 'Top Rated', 'New'];
@@ -31,6 +32,7 @@ export default function BrowseScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const { isAuthenticated } = useAuthStore();
+  const { favorites, toggleFavorite } = useFavoritesStore();
   const [activeFilter, setActiveFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterModalVisible, setFilterModalVisible] = useState(false);
@@ -325,6 +327,22 @@ export default function BrowseScreen() {
                 </View>
               </View>
 
+              <TouchableOpacity
+                style={[styles.heartButton, { backgroundColor: colors.white }]}
+                onPress={() => {
+                  if (Platform.OS !== 'web') {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  }
+                  toggleFavorite(companion.id);
+                }}
+                testID={`browse-favorite-${companion.id}`}
+                accessibilityLabel={favorites.includes(companion.id) ? 'Remove from favorites' : 'Add to favorites'}
+                accessibilityRole="button"
+                accessibilityState={{ selected: favorites.includes(companion.id) }}
+              >
+                <Icon name="heart" size={18} color={favorites.includes(companion.id) ? colors.error : colors.textSecondary} />
+              </TouchableOpacity>
+
               {companion.distance !== undefined && (
                 <View style={[styles.distanceBadge, { backgroundColor: colors.success + '15' }]}>
                   <Icon name="navigation" size={12} color={colors.success} />
@@ -528,6 +546,25 @@ const styles = StyleSheet.create({
   },
   companionCard: {
     marginBottom: spacing.sm,
+    position: 'relative',
+  },
+  heartButton: {
+    position: 'absolute',
+    top: spacing.md,
+    right: spacing.md,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: colors.border,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 2,
+    zIndex: 10,
   },
   cardHeader: {
     flexDirection: 'row',
