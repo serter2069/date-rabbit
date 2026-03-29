@@ -16,27 +16,30 @@ import { PackagesService } from './packages.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('packages')
-@UseGuards(JwtAuthGuard)
 export class PackagesController {
   constructor(private packagesService: PackagesService) {}
 
+  // Public — no auth required
   @Get('templates')
   async getTemplates() {
     return this.packagesService.getTemplates();
   }
 
+  // Public — anyone can view a companion's packages on their profile
   @Get('companion/:id')
   async getCompanionPackages(@Param('id', ParseUUIDPipe) id: string) {
     const packages = await this.packagesService.getCompanionPackages(id);
     return packages.map((p) => this.formatPackage(p));
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('my')
   async getMyPackages(@Request() req) {
     const packages = await this.packagesService.getMyPackages(req.user.id);
     return packages.map((p) => this.formatPackage(p));
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('my')
   async createPackage(
     @Request() req,
@@ -54,6 +57,7 @@ export class PackagesController {
     return this.formatPackage(pkg);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Put('my/:id')
   async updatePackage(
     @Param('id', ParseUUIDPipe) id: string,
@@ -64,6 +68,7 @@ export class PackagesController {
     return this.formatPackage(pkg);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete('my/:id')
   async deletePackage(@Param('id', ParseUUIDPipe) id: string, @Request() req) {
     await this.packagesService.deletePackage(id, req.user.id);
