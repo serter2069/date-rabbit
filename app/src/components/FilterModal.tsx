@@ -18,7 +18,7 @@ export interface FilterOptions {
   minRating: number;
   availability: 'any' | 'today' | 'this_week' | 'weekend';
   ageRange: [number, number];
-  sortBy: 'recommended' | 'price_low' | 'price_high' | 'rating' | 'distance';
+  sortBy: 'recommended' | 'price_low' | 'price_high' | 'rating' | 'distance' | 'new';
 }
 
 interface FilterModalProps {
@@ -50,6 +50,7 @@ const sortOptions = [
   { value: 'price_high', label: 'Price: High to Low' },
   { value: 'rating', label: 'Highest Rated' },
   { value: 'distance', label: 'Nearest First' },
+  { value: 'new', label: 'Newest First' },
 ] as const;
 
 export function FilterModal({
@@ -177,7 +178,7 @@ export function FilterModal({
             </View>
             <Slider
               style={styles.slider}
-              minimumValue={3.0}
+              minimumValue={0.0}
               maximumValue={5.0}
               step={0.1}
               value={filters.minRating}
