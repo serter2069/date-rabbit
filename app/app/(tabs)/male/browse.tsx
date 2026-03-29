@@ -11,6 +11,7 @@ import { EmptyState } from '../../../src/components/EmptyState';
 import { FilterModal, FilterOptions } from '../../../src/components/FilterModal';
 import { useTheme, colors, spacing, typography, borderRadius } from '../../../src/constants/theme';
 import { companionsApi, CompanionListItem } from '../../../src/services/api';
+import { formatLastSeen } from '../../../src/utils/formatLastSeen';
 import { showAlert } from '../../../src/utils/alert';
 
 import { useAuthStore } from '../../../src/store/authStore';
@@ -320,6 +321,17 @@ export default function BrowseScreen() {
                       </View>
                     )}
                   </View>
+                  {(() => {
+                    const status = formatLastSeen(companion.lastSeen);
+                    if (!status) return null;
+                    const isOnline = status === 'Online';
+                    return (
+                      <View style={styles.onlineStatusRow}>
+                        <View style={[styles.onlineDot, { backgroundColor: isOnline ? colors.success : colors.textSecondary + '60' }]} />
+                        <Text style={[styles.onlineText, { color: isOnline ? colors.success : colors.textSecondary }]}>{status}</Text>
+                      </View>
+                    );
+                  })()}
                 </View>
                 <View style={[styles.rateBox, { backgroundColor: colors.primary + '15' }]}>
                   <Text style={[styles.rateValue, { color: colors.primary }]}>${companion.hourlyRate ?? 0}</Text>
@@ -604,6 +616,21 @@ const styles = StyleSheet.create({
   },
   newBadgeText: {
     fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.xs,
+  },
+  onlineStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: spacing.xs,
+    gap: spacing.xs,
+  },
+  onlineDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  onlineText: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.xs,
   },
   rateBox: {

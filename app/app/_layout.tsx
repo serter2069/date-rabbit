@@ -1,8 +1,9 @@
 import { Stack, useRouter, useSegments, usePathname } from 'expo-router';
 import Head from 'expo-router/head';
 import { StatusBar } from 'expo-status-bar';
-import { Platform, View, ActivityIndicator, StyleSheet } from 'react-native';
+import { Platform, View, ActivityIndicator, StyleSheet, AppState } from 'react-native';
 import { useAuthStore } from '../src/store/authStore';
+import { usersApi } from '../src/services/api';
 import { useFonts } from 'expo-font';
 import {
   SpaceGrotesk_400Regular,
@@ -10,7 +11,7 @@ import {
   SpaceGrotesk_600SemiBold,
   SpaceGrotesk_700Bold,
 } from '@expo-google-fonts/space-grotesk';
-import { useEffect } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { colors } from '../src/constants/theme';
 import { StripeProvider } from '../src/components/StripeProvider';
 import { OfflineBanner } from '../src/components/OfflineBanner';
@@ -32,6 +33,39 @@ function useWebNetworkStatus() {
       window.removeEventListener('offline', handleOffline);
     };
   }, [setOffline, setOnline]);
+}
+
+// Send heartbeat to update lastSeen (debounced, max once per 60s)
+const HEARTBEAT_INTERVAL_MS = 60_000;
+
+function useHeartbeat() {
+  const { isAuthenticated } = useAuthStore();
+  const lastHeartbeatRef = useRef(0);
+
+  const sendHeartbeat = useCallback(() => {
+    if (!isAuthenticated) return;
+    const now = Date.now();
+    if (now - lastHeartbeatRef.current < HEARTBEAT_INTERVAL_MS) return;
+    lastHeartbeatRef.current = now;
+    usersApi.heartbeat().catch(() => {
+      // Silently ignore heartbeat failures
+    });
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    // Send on mount
+    sendHeartbeat();
+
+    // Listen for app returning to foreground (native only)
+    if (Platform.OS !== 'web') {
+      const subscription = AppState.addEventListener('change', (state) => {
+        if (state === 'active') {
+          sendHeartbeat();
+        }
+      });
+      return () => subscription.remove();
+    }
+  }, [sendHeartbeat]);
 }
 
 // Strip __EXPO_ROUTER_key from browser URL bar (Expo Router internal param)
@@ -169,6 +203,8 @@ export default function RootLayout() {
   useCleanUrl();
   // Track web browser online/offline events
   useWebNetworkStatus();
+  // Send heartbeat to update online status
+  useHeartbeat();
 
   // Load Neo-Brutalism font
   const [fontsLoaded] = useFonts({

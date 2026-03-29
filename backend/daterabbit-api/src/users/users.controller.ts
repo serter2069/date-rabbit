@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, UseGuards, Request, Param, BadRequestException, ParseUUIDPipe, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Put, Patch, Delete, Body, UseGuards, Request, Param, BadRequestException, ParseUUIDPipe, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UsersService } from './users.service';
 import { UploadsService } from '../uploads/uploads.service';
@@ -11,6 +11,13 @@ export class UsersController {
     private usersService: UsersService,
     private uploadsService: UploadsService,
   ) {}
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('heartbeat')
+  async heartbeat(@Request() req) {
+    await this.usersService.updateLastSeen(req.user.id);
+    return { success: true };
+  }
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
@@ -174,6 +181,7 @@ export class UsersController {
       rating: user.rating,
       reviewCount: user.reviewCount,
       isVerified: user.isVerified,
+      lastSeen: user.lastSeen ? user.lastSeen.toISOString() : null,
     };
   }
 }
