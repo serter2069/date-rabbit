@@ -106,6 +106,12 @@ export class User {
   @Column({ type: 'timestamp', nullable: true })
   lastSeen: Date;
 
+  @Column({ type: 'varchar', unique: true, nullable: true })
+  referralCode: string;
+
+  @Column({ type: 'uuid', nullable: true })
+  referredBy: string;
+
   @Column({ nullable: true })
   otpCode: string;
 

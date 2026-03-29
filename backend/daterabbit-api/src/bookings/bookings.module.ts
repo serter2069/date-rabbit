@@ -12,6 +12,7 @@ import { UsersModule } from '../users/users.module';
 import { EmailModule } from '../email/email.module';
 import { PaymentsModule } from '../payments/payments.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { ReferralModule } from '../referral/referral.module';
 import { UploadsModule } from '../uploads/uploads.module';
 
 @Module({
@@ -25,6 +26,7 @@ import { UploadsModule } from '../uploads/uploads.module';
     EmailModule,
     PaymentsModule,
     NotificationsModule,
+    ReferralModule,
     UploadsModule,
   ],
   providers: [BookingsService, BookingsCron],

@@ -34,8 +34,26 @@ export class UsersService {
   }
 
   async create(data: Partial<User>): Promise<User> {
-    const user = this.usersRepository.create(data);
+    const referralCode = await this.generateUniqueReferralCode();
+    const user = this.usersRepository.create({ ...data, referralCode });
     return this.usersRepository.save(user);
+  }
+
+  private async generateUniqueReferralCode(): Promise<string> {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    for (let attempt = 0; attempt < 3; attempt++) {
+      let suffix = '';
+      for (let i = 0; i < 5; i++) {
+        suffix += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      const code = `DR-${suffix}`;
+      const existing = await this.usersRepository.findOne({ where: { referralCode: code } });
+      if (!existing) {
+        return code;
+      }
+    }
+    // Extremely unlikely — return null and let it be generated later via referral endpoint
+    return `DR-${Date.now().toString(36).slice(-5).toUpperCase()}`;
   }
 
   async update(id: string, data: Partial<User>): Promise<User | null> {

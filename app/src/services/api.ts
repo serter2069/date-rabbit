@@ -685,6 +685,24 @@ export const verificationApi = {
     apiRequest<Verification>('/verification/submit', { method: 'POST' }),
 };
 
+// Referral API
+export const referralApi = {
+  getMyCode: () =>
+    apiRequest<{ code: string }>('/referral/my-code'),
+
+  applyCode: (code: string) =>
+    apiRequest<{ success: boolean; message: string }>('/referral/apply', {
+      method: 'POST',
+      body: { code },
+    }),
+
+  getMyBonus: () =>
+    apiRequest<{ hasBgcDiscount: boolean; discountPercent: number }>('/referral/my-bonus'),
+
+  getMyStats: () =>
+    apiRequest<{ invited: number; credited: number }>('/referral/my-stats'),
+};
+
 // Types
 export interface User {
   id: string;

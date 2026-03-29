@@ -107,6 +107,18 @@ export default function SettingsScreen() {
               onPress={() => router.push('/settings/verification')}
               colors={colors}
             />
+            {user?.role === 'seeker' && (
+              <>
+                <View style={[styles.divider, { backgroundColor: colors.divider }]} />
+                <SettingsMenuItem
+                  icon="gift"
+                  label="Invite Friends"
+                  description="Get 50% off Background Check"
+                  onPress={() => router.push('/settings/referral')}
+                  colors={colors}
+                />
+              </>
+            )}
           </Card>
         </View>
 

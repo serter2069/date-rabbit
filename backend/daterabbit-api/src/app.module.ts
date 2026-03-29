@@ -15,6 +15,7 @@ import { PaymentsModule } from './payments/payments.module';
 import { AdminModule } from './admin/admin.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { CalendarModule } from './calendar/calendar.module';
+import { ReferralModule } from './referral/referral.module';
 
 @Module({
   imports: [
@@ -62,6 +63,7 @@ import { CalendarModule } from './calendar/calendar.module';
     AdminModule,
     NotificationsModule,
     CalendarModule,
+    ReferralModule,
   ],
   providers: [
     {
