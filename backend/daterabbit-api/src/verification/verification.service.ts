@@ -80,13 +80,10 @@ export class VerificationService {
     const verification = await this.getOrFail(userId);
 
     if (verification.idPhotoUrl) {
-      this.uploadsService.deleteFile(verification.idPhotoUrl);
+      await this.uploadsService.deleteFile(verification.idPhotoUrl);
     }
 
-    verification.idPhotoUrl = this.uploadsService.getFileUrl(
-      'id-photos',
-      file.filename,
-    );
+    verification.idPhotoUrl = await this.uploadsService.uploadFile(file, 'id-photos');
     return this.verificationRepository.save(verification);
   }
 
@@ -98,13 +95,10 @@ export class VerificationService {
     const verification = await this.getOrFail(userId);
 
     if (verification.selfieUrl) {
-      this.uploadsService.deleteFile(verification.selfieUrl);
+      await this.uploadsService.deleteFile(verification.selfieUrl);
     }
 
-    verification.selfieUrl = this.uploadsService.getFileUrl(
-      'selfies',
-      file.filename,
-    );
+    verification.selfieUrl = await this.uploadsService.uploadFile(file, 'selfies');
     return this.verificationRepository.save(verification);
   }
 
@@ -121,13 +115,10 @@ export class VerificationService {
     this.uploadsService.validateVideoFile(file);
 
     if (verification.videoUrl) {
-      this.uploadsService.deleteFile(verification.videoUrl);
+      await this.uploadsService.deleteFile(verification.videoUrl);
     }
 
-    verification.videoUrl = this.uploadsService.getFileUrl(
-      'videos',
-      file.filename,
-    );
+    verification.videoUrl = await this.uploadsService.uploadFile(file, 'videos');
     return this.verificationRepository.save(verification);
   }
 

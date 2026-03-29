@@ -296,7 +296,7 @@ export class BookingsController {
       throw new BadRequestException('No file provided');
     }
     this.uploadsService.validateImageFile(file);
-    const url = this.uploadsService.getFileUrl('date-photos', file.filename);
+    const url = await this.uploadsService.uploadFile(file, 'date-photos');
     return this.bookingsService.addPhoto(id, req.user.id, url);
   }
 
@@ -381,7 +381,7 @@ export class BookingsController {
       throw new BadRequestException('No file provided');
     }
     this.uploadsService.validateImageFile(file);
-    const photoUrl = this.uploadsService.getFileUrl('selfies', file.filename);
+    const photoUrl = await this.uploadsService.uploadFile(file, 'selfies');
     return this.bookingsService.submitSelfie(id, req.user.id, photoUrl);
   }
 
