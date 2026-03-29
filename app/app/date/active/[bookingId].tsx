@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, Modal } from 'react-native';
+import { MessageCircle } from 'lucide-react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { activeDateApi, ActiveBooking } from '../../../src/services/activeDateApi';
 import { useAuthStore } from '../../../src/store/authStore';
@@ -26,6 +27,7 @@ export default function ActiveDateScreen() {
   const lastCheckinRef = useRef<number>(Date.now());
   const user = useAuthStore(s => s.user);
   const isCompanion = user?.role === 'companion';
+  const otherUser = isCompanion ? booking?.seeker : booking?.companion;
 
   const loadBooking = useCallback(async () => {
     try {
@@ -151,6 +153,7 @@ export default function ActiveDateScreen() {
   ];
 
   return (
+    <View style={styles.screen}>
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Header */}
       <View style={styles.header}>
@@ -220,10 +223,24 @@ export default function ActiveDateScreen() {
         </View>
       </Modal>
     </ScrollView>
+
+    {/* Chat FAB — navigate to chat with the other participant */}
+    {booking && otherUser && (
+      <TouchableOpacity
+        style={styles.chatFab}
+        onPress={() => router.push(`/chat/${otherUser.id}?name=${encodeURIComponent(otherUser.name || '')}` as any)}
+        accessibilityLabel="Open chat"
+        accessibilityRole="button"
+      >
+        <MessageCircle size={26} color="#000" strokeWidth={2.5} />
+      </TouchableOpacity>
+    )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: { flex: 1 },
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: 24, paddingTop: 16 },
   center: { flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' },
@@ -256,4 +273,19 @@ const styles = StyleSheet.create({
   modalSosBtn: { backgroundColor: colors.error, borderWidth: 2, borderColor: colors.border, paddingVertical: 14, alignItems: 'center' },
   modalSosText: { fontSize: 16, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.textInverse },
   btnDisabled: { opacity: 0.5 },
+  chatFab: {
+    position: 'absolute',
+    bottom: 90,
+    right: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: colors.accent,
+    borderWidth: 2,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shadows.sm,
+    elevation: 4,
+  },
 });
