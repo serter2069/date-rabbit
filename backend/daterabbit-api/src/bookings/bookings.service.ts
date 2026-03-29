@@ -1,4 +1,4 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThanOrEqual, LessThan } from 'typeorm';
 import { Booking, BookingStatus, ActivityType } from './entities/booking.entity';
@@ -8,6 +8,7 @@ import { UsersService } from '../users/users.service';
 import { EmailService } from '../email/email.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '../notifications/entities/notification.entity';
+import { ReferralService } from '../referral/referral.service';
 import { sanitizeText } from '../common/sanitize';
 
 @Injectable()
@@ -22,6 +23,8 @@ export class BookingsService {
     private usersService: UsersService,
     private emailService: EmailService,
     private notificationsService: NotificationsService,
+    @Inject(forwardRef(() => ReferralService))
+    private referralService: ReferralService,
   ) {}
 
   async create(data: {
@@ -270,6 +273,18 @@ export class BookingsService {
     if (!updated) {
       throw new HttpException('Failed to update booking', HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    // Credit referral bonus if seeker was referred and has no credited referral yet
+    try {
+      const seeker = await this.usersService.findById(updated.seekerId);
+      if (seeker?.referredBy) {
+        await this.referralService.creditBonus(updated.seekerId);
+      }
+    } catch (err) {
+      // Referral credit failure must not break booking completion
+      console.error('[REFERRAL] Failed to credit bonus:', err);
+    }
+
     return updated;
   }
 

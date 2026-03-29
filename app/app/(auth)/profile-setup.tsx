@@ -15,7 +15,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { showAlert } from '../../src/utils/alert';
 import { useAuthStore } from '../../src/store/authStore';
-import { usersApi } from '../../src/services/api';
+import { usersApi, referralApi } from '../../src/services/api';
 import { Button } from '../../src/components/Button';
 import { Icon } from '../../src/components/Icon';
 import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
@@ -37,6 +37,7 @@ export default function ProfileSetupScreen() {
   const [bio, setBio] = useState('');
   const [hourlyRate, setHourlyRate] = useState('');
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
+  const [referralCode, setReferralCode] = useState('');
 
   const pickAvatar = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -107,6 +108,15 @@ export default function ProfileSetupScreen() {
     if (!result.success) {
       showAlert('Error', result.error || 'Failed to complete setup. Please try again.');
       return;
+    }
+
+    // Non-blocking referral code application after auth is established
+    if (referralCode.trim()) {
+      try {
+        await referralApi.applyCode(referralCode.trim().toUpperCase());
+      } catch {
+        // Referral code failure should not block registration
+      }
     }
 
     // Non-blocking avatar upload after auth is established
@@ -304,6 +314,25 @@ export default function ProfileSetupScreen() {
                   testID="setup-bio-input"
                 />
               </View>
+
+              {role === 'seeker' && (
+                <View style={styles.inputGroup}>
+                  <Text style={[styles.label, { color: colors.text }]}>Referral Code (optional)</Text>
+                  <TextInput
+                    style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
+                    placeholder="e.g. DR-ABC12"
+                    placeholderTextColor={colors.textSecondary}
+                    value={referralCode}
+                    onChangeText={setReferralCode}
+                    autoCapitalize="characters"
+                    maxLength={8}
+                    testID="setup-referral-input"
+                  />
+                  <Text style={[styles.hint, { color: colors.textSecondary }]}>
+                    Have a friend's code? Get 50% off your Background Check.
+                  </Text>
+                </View>
+              )}
 
               {role === 'companion' && (
                 <View style={styles.inputGroup}>
