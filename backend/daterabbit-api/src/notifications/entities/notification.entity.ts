@@ -18,6 +18,7 @@ export enum NotificationType {
   SOS_ALERT = 'sos_alert',
   SAFETY_ALERT = 'safety_alert',
   REPORT_ISSUE = 'report_issue',
+  COMPANION_ONLINE = 'companion_online',
 }
 
 @Entity('notifications')

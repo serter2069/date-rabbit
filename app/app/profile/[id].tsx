@@ -24,6 +24,7 @@ import { UserImage } from '../../src/components/UserImage';
 import { useTheme, spacing, typography, borderRadius, colors } from '../../src/constants/theme';
 import { useFavoritesStore } from '../../src/store/favoritesStore';
 import { useAuthStore } from '../../src/store/authStore';
+import { useWatchOnlineStore } from '../../src/store/watchOnlineStore';
 import { usersApi, companionsApi, CompanionDetail, packagesApi, DatePackage } from '../../src/services/api';
 import { formatLastSeen } from '../../src/utils/formatLastSeen';
 import * as Haptics from 'expo-haptics';
@@ -110,6 +111,9 @@ export default function ProfileViewScreen() {
 
   const { favorites, toggleFavorite } = useFavoritesStore();
   const isFavorite = favorites.includes(profile.id);
+  const { user: currentUser } = useAuthStore();
+  const { isWatching, toggleWatch } = useWatchOnlineStore();
+  const isSelf = currentUser?.id === profile.id;
   const [menuVisible, setMenuVisible] = useState(false);
   const [reportModalVisible, setReportModalVisible] = useState(false);
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
@@ -418,10 +422,30 @@ export default function ProfileViewScreen() {
               if (!status) return null;
               const isOnline = status === 'Online';
               return (
-                <View style={styles.onlineStatusRow}>
-                  <View style={[styles.onlineDot, { backgroundColor: isOnline ? colors.success : colors.textSecondary + '60' }]} />
-                  <Text style={[styles.onlineText, { color: isOnline ? colors.success : colors.textSecondary }]}>{status}</Text>
-                </View>
+                <>
+                  <View style={styles.onlineStatusRow}>
+                    <View style={[styles.onlineDot, { backgroundColor: isOnline ? colors.success : colors.textSecondary + '60' }]} />
+                    <Text style={[styles.onlineText, { color: isOnline ? colors.success : colors.textSecondary }]}>{status}</Text>
+                  </View>
+                  {!isOnline && !isSelf && isAuthenticated && (
+                    <TouchableOpacity
+                      style={[styles.notifyOnlineButton, { borderColor: isWatching(profile.id) ? colors.primary : colors.border, backgroundColor: isWatching(profile.id) ? colors.primary + '10' : 'transparent' }]}
+                      onPress={() => {
+                        if (Platform.OS !== 'web') {
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        }
+                        toggleWatch(profile.id);
+                      }}
+                      accessibilityLabel={isWatching(profile.id) ? 'Cancel online notification' : 'Notify me when online'}
+                      accessibilityRole="button"
+                    >
+                      <Icon name="bell" size={14} color={isWatching(profile.id) ? colors.primary : colors.textSecondary} />
+                      <Text style={[styles.notifyOnlineText, { color: isWatching(profile.id) ? colors.primary : colors.textSecondary }]}>
+                        {isWatching(profile.id) ? 'Watching — tap to cancel' : 'Notify when online'}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </>
               );
             })()}
 
@@ -1065,6 +1089,21 @@ const styles = StyleSheet.create({
   onlineText: {
     fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
+  },
+  notifyOnlineButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    marginTop: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.sm,
+    borderWidth: 1,
+    gap: spacing.xs,
+  },
+  notifyOnlineText: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.xs,
   },
   location: {
     fontFamily: typography.fonts.body,

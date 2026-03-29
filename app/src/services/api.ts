@@ -192,6 +192,19 @@ export const usersApi = {
       method: 'DELETE',
     }),
 
+  watchOnline: (companionId: string) =>
+    apiRequest<{ success: boolean }>(`/users/${companionId}/watch-online`, {
+      method: 'POST',
+    }),
+
+  unwatchOnline: (companionId: string) =>
+    apiRequest<{ success: boolean }>(`/users/${companionId}/watch-online`, {
+      method: 'DELETE',
+    }),
+
+  getWatchedOnline: () =>
+    apiRequest<{ watchedIds: string[] }>('/users/watch-online'),
+
   uploadProfilePhoto: async (uri: string): Promise<{ url: string }> => {
     const token = await getToken();
     const formData = new FormData();

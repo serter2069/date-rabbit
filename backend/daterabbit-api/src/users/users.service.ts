@@ -1,11 +1,17 @@
-import { Injectable, BadRequestException, ConflictException } from '@nestjs/common';
+import { Injectable, BadRequestException, ConflictException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { User, UserRole } from './entities/user.entity';
 import { BlockedUser } from './entities/blocked-user.entity';
 import { UserReport } from './entities/user-report.entity';
 import { Favorite } from './entities/favorite.entity';
+import { OnlineWatcher } from './entities/online-watcher.entity';
 import { sanitizeText } from '../common/sanitize';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '../notifications/entities/notification.entity';
+
+// Threshold (ms) to consider user offline: 5 minutes
+const OFFLINE_THRESHOLD_MS = 5 * 60 * 1000;
 
 @Injectable()
 export class UsersService {
@@ -18,6 +24,10 @@ export class UsersService {
     private userReportsRepository: Repository<UserReport>,
     @InjectRepository(Favorite)
     private favoritesRepository: Repository<Favorite>,
+    @InjectRepository(OnlineWatcher)
+    private onlineWatchersRepository: Repository<OnlineWatcher>,
+    @Inject(forwardRef(() => NotificationsService))
+    private notificationsService: NotificationsService,
   ) {}
 
   async findByEmail(email: string): Promise<User | null> {
@@ -62,7 +72,42 @@ export class UsersService {
   }
 
   async updateLastSeen(userId: string): Promise<void> {
+    // Check if user was offline before updating — needed to know whether to notify watchers
+    const user = await this.usersRepository.findOne({ where: { id: userId }, select: ['id', 'name', 'lastSeen'] });
+    const wasOffline =
+      !user ||
+      !user.lastSeen ||
+      Date.now() - new Date(user.lastSeen).getTime() > OFFLINE_THRESHOLD_MS;
+
     await this.usersRepository.update(userId, { lastSeen: new Date() });
+
+    // Notify watchers only when transitioning from offline → online
+    if (wasOffline && user) {
+      // Atomically fetch-and-delete watchers to avoid duplicate notifications
+      const watchers = await this.onlineWatchersRepository.find({
+        where: { companionId: userId },
+        select: ['id', 'watcherId'],
+      });
+
+      if (watchers.length > 0) {
+        const watcherIds = watchers.map((w) => w.id);
+        await this.onlineWatchersRepository.delete(watcherIds);
+
+        // Create a notification for each watcher (fire all in parallel)
+        const userName = user.name || 'Your companion';
+        await Promise.all(
+          watchers.map((w) =>
+            this.notificationsService.create({
+              userId: w.watcherId,
+              type: NotificationType.COMPANION_ONLINE,
+              title: `${userName} is now online`,
+              body: `${userName} just came online. Book them before they get busy!`,
+              data: { companionId: userId },
+            }).catch(() => {/* swallow — notification failure must not break heartbeat */}),
+          ),
+        );
+      }
+    }
   }
 
   async setOtp(userId: string, code: string, expiresAt: Date): Promise<void> {
@@ -309,5 +354,35 @@ export class UsersService {
 
   async removeFavorite(userId: string, companionId: string): Promise<void> {
     await this.favoritesRepository.delete({ userId, companionId });
+  }
+
+  // --- Online watchers ---
+
+  async watchCompanion(watcherId: string, companionId: string): Promise<void> {
+    if (watcherId === companionId) {
+      throw new BadRequestException('You cannot watch yourself');
+    }
+
+    const existing = await this.onlineWatchersRepository.findOne({
+      where: { watcherId, companionId },
+    });
+    if (existing) {
+      return; // Idempotent
+    }
+
+    const watcher = this.onlineWatchersRepository.create({ watcherId, companionId });
+    await this.onlineWatchersRepository.save(watcher);
+  }
+
+  async unwatchCompanion(watcherId: string, companionId: string): Promise<void> {
+    await this.onlineWatchersRepository.delete({ watcherId, companionId });
+  }
+
+  async getWatchedCompanionIds(watcherId: string): Promise<string[]> {
+    const watchers = await this.onlineWatchersRepository.find({
+      where: { watcherId },
+      select: ['companionId'],
+    });
+    return watchers.map((w) => w.companionId);
   }
 }
