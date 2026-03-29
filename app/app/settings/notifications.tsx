@@ -29,12 +29,13 @@ export default function NotificationsSettingsScreen() {
   const { user, updateProfile } = useAuthStore();
 
   const [permissionStatus, setPermissionStatus] = useState<'granted' | 'denied' | 'undetermined'>('undetermined');
+  const prefs = user?.notificationPreferences ?? { bookings: true, messages: true, reminders: true, payments: true };
   const [masterEnabled, setMasterEnabled] = useState(user?.notificationsEnabled ?? true);
   const [settings, setSettings] = useState<NotificationSetting[]>([
-    { id: 'bookings', title: 'Booking Updates', description: 'New requests, acceptances, and cancellations', enabled: true },
-    { id: 'messages', title: 'New Messages', description: 'When someone sends you a message', enabled: true },
-    { id: 'reminders', title: 'Date Reminders', description: 'Reminders before upcoming dates', enabled: true },
-    { id: 'payments', title: 'Payment Updates', description: 'Payment confirmations and earnings', enabled: true },
+    { id: 'bookings', title: 'Booking Updates', description: 'New requests, acceptances, and cancellations', enabled: prefs.bookings },
+    { id: 'messages', title: 'New Messages', description: 'When someone sends you a message', enabled: prefs.messages },
+    { id: 'reminders', title: 'Date Reminders', description: 'Reminders before upcoming dates', enabled: prefs.reminders },
+    { id: 'payments', title: 'Payment Updates', description: 'Payment confirmations and earnings', enabled: prefs.payments },
   ]);
 
   useEffect(() => {
@@ -63,14 +64,31 @@ export default function NotificationsSettingsScreen() {
   };
 
   const toggleMaster = async (value: boolean) => {
+    const prev = masterEnabled;
     setMasterEnabled(value);
-    await updateProfile({ notificationsEnabled: value });
+    const result = await updateProfile({ notificationsEnabled: value });
+    if (!result.success) {
+      setMasterEnabled(prev);
+      showAlert('Error', result.error || 'Failed to update notification settings.');
+    }
   };
 
-  const toggleSetting = (id: string) => {
-    setSettings(prev =>
-      prev.map(s => (s.id === id ? { ...s, enabled: !s.enabled } : s))
-    );
+  const toggleSetting = async (id: string) => {
+    const prevSettings = [...settings];
+    const updated = settings.map(s => (s.id === id ? { ...s, enabled: !s.enabled } : s));
+    setSettings(updated);
+
+    const newPrefs = {
+      bookings: updated.find(s => s.id === 'bookings')!.enabled,
+      messages: updated.find(s => s.id === 'messages')!.enabled,
+      reminders: updated.find(s => s.id === 'reminders')!.enabled,
+      payments: updated.find(s => s.id === 'payments')!.enabled,
+    };
+    const result = await updateProfile({ notificationPreferences: newPrefs });
+    if (!result.success) {
+      setSettings(prevSettings);
+      showAlert('Error', result.error || 'Failed to update notification preferences.');
+    }
   };
 
   return (

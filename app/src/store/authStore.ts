@@ -27,6 +27,12 @@ interface ProfileUpdateData {
   hourlyRate?: number;
   notificationsEnabled?: boolean;
   expoPushToken?: string;
+  notificationPreferences?: {
+    bookings: boolean;
+    messages: boolean;
+    reminders: boolean;
+    payments: boolean;
+  };
 }
 
 interface AuthState {
@@ -86,6 +92,7 @@ function mapApiUserToUser(apiUser: ApiUser): User {
     longitude: apiUser.longitude,
     notificationsEnabled: apiUser.notificationsEnabled,
     expoPushToken: apiUser.expoPushToken,
+    notificationPreferences: apiUser.notificationPreferences,
     createdAt: apiUser.createdAt,
   };
 }

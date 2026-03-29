@@ -89,6 +89,20 @@ export class User {
   @Column({ nullable: true })
   stripeCustomerId: string;
 
+  @Column({ default: true })
+  notificationsEnabled: boolean;
+
+  @Column({ type: 'varchar', nullable: true })
+  expoPushToken: string;
+
+  @Column({ type: 'simple-json', nullable: true })
+  notificationPreferences: {
+    bookings: boolean;
+    messages: boolean;
+    reminders: boolean;
+    payments: boolean;
+  };
+
   @Column({ nullable: true })
   otpCode: string;
 
