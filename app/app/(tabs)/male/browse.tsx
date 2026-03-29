@@ -99,6 +99,7 @@ export default function BrowseScreen() {
         'price_high': 'price_high',
         'rating': 'rating',
         'distance': 'distance',
+        'new': 'new',
       };
 
       let sortBy: 'recommended' | 'price_low' | 'price_high' | 'rating' | 'distance' | 'new' =
