@@ -166,6 +166,17 @@ function RequestCard({ request, type, colors, onAccept, onDecline, formatDate }:
         <UserImage name={seeker.name} uri={seeker.photo} size={56} />
         <View style={styles.cardInfo}>
           <Text style={[styles.cardName, { color: colors.text }]}>{seeker.name}</Text>
+          {request.seekerRating && request.seekerRating.count > 0 && (
+            <View style={styles.seekerRatingRow}>
+              <Text style={styles.seekerRatingStars}>
+                {'★'.repeat(Math.round(request.seekerRating.average))}
+                {'☆'.repeat(5 - Math.round(request.seekerRating.average))}
+              </Text>
+              <Text style={[styles.seekerRatingCount, { color: colors.textSecondary }]}>
+                ({request.seekerRating.count})
+              </Text>
+            </View>
+          )}
           <Text style={[styles.cardActivity, { color: colors.text }]}>{request.activity || 'Date'}</Text>
           <Text style={[styles.cardDate, { color: colors.textSecondary }]}>{formatDate(request.date)} • {request.duration}h</Text>
         </View>
@@ -307,6 +318,20 @@ const styles = StyleSheet.create({
   cardName: {
     fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.md,
+  },
+  seekerRatingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+    gap: 4,
+  },
+  seekerRatingStars: {
+    fontSize: typography.sizes.sm,
+    color: '#FF2A5F',
+  },
+  seekerRatingCount: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.xs,
   },
   cardActivity: {
     fontFamily: typography.fonts.body,

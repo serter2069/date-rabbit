@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Body, Param, Query, UseGuards, Request, HttpException, HttpStatus, ParseUUIDPipe, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Put, Body, Param, Query, UseGuards, Request, HttpException, HttpStatus, ParseUUIDPipe, UseInterceptors, UploadedFile, BadRequestException, Inject, forwardRef } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { BookingsService } from './bookings.service';
 import { PaymentsService } from '../payments/payments.service';
@@ -7,6 +7,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { BookingStatus, ActivityType } from './entities/booking.entity';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '../notifications/entities/notification.entity';
+import { ReviewsService } from '../reviews/reviews.service';
 
 @Controller('bookings')
 @UseGuards(JwtAuthGuard)
@@ -16,6 +17,8 @@ export class BookingsController {
     private paymentsService: PaymentsService,
     private notificationsService: NotificationsService,
     private uploadsService: UploadsService,
+    @Inject(forwardRef(() => ReviewsService))
+    private reviewsService: ReviewsService,
   ) {}
 
   @Post()
@@ -107,8 +110,21 @@ export class BookingsController {
 
   @Get('requests')
   async getPendingRequests(@Request() req) {
-    const requests = await this.bookingsService.getPendingRequests(req.user.id);
-    return requests.map((b) => this.formatBooking(b));
+    const companionId = req.user.id;
+    const requests = await this.bookingsService.getPendingRequests(companionId);
+
+    // Batch-query seeker ratings to avoid N+1
+    const seekerIds = [...new Set(requests.map((b) => b.seekerId).filter(Boolean))];
+    const ratingsMap = await this.reviewsService.getSeekerPrivateRatingsBatch(companionId, seekerIds);
+
+    return requests.map((b) => {
+      const formatted = this.formatBooking(b);
+      const seekerRating = ratingsMap.get(b.seekerId);
+      return {
+        ...formatted,
+        seekerRating: seekerRating && seekerRating.count > 0 ? seekerRating : null,
+      };
+    });
   }
 
   @Get('active')

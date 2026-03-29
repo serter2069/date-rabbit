@@ -73,26 +73,24 @@ export default function DateSummaryScreen() {
         </View>
       )}
 
-      {/* Star rating prompt — for seekers only */}
-      {!isCompanion && (
-        <View style={styles.ratingSection}>
-          <Text style={styles.sectionTitle}>How was your date?</Text>
-          <View style={styles.starsRow}>
-            {STARS.map(star => (
-              <TouchableOpacity
-                key={star}
-                onPress={() => setRating(star)}
-                accessibilityLabel={`Rate ${star} star${star > 1 ? 's' : ''}`}
-                accessibilityRole="button"
-              >
-                <Text style={[styles.star, rating >= star && styles.starActive]}>
-                  {rating >= star ? '★' : '☆'}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+      {/* Star rating prompt — both seekers and companions can rate */}
+      <View style={styles.ratingSection}>
+        <Text style={styles.sectionTitle}>How was your date?</Text>
+        <View style={styles.starsRow}>
+          {STARS.map(star => (
+            <TouchableOpacity
+              key={star}
+              onPress={() => setRating(star)}
+              accessibilityLabel={`Rate ${star} star${star > 1 ? 's' : ''}`}
+              accessibilityRole="button"
+            >
+              <Text style={[styles.star, rating >= star && styles.starActive]}>
+                {rating >= star ? '★' : '☆'}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
-      )}
+      </View>
 
       {photos.length > 0 && (
         <View style={styles.photosSection}>

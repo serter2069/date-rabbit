@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MulterModule } from '@nestjs/platform-express';
 import * as multer from 'multer';
@@ -14,6 +14,7 @@ import { PaymentsModule } from '../payments/payments.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { ReferralModule } from '../referral/referral.module';
 import { UploadsModule } from '../uploads/uploads.module';
+import { ReviewsModule } from '../reviews/reviews.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { UploadsModule } from '../uploads/uploads.module';
     NotificationsModule,
     ReferralModule,
     UploadsModule,
+    forwardRef(() => ReviewsModule),
   ],
   providers: [BookingsService, BookingsCron],
   controllers: [BookingsController],
