@@ -24,6 +24,7 @@ export class CompanionsController {
     @Query('ageMax') ageMax?: string,
     @Query('sortBy') sortBy?: string,
     @Query('search') search?: string,
+    @Query('activityTypes') activityTypesRaw?: string,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
     @Query('page') page?: string,
@@ -36,6 +37,12 @@ export class CompanionsController {
       : offset
         ? parseInt(offset)
         : 0;
+
+    // Parse activityTypes from comma-separated string (e.g. "coffee,dinner")
+    const activityTypes =
+      activityTypesRaw && activityTypesRaw.trim()
+        ? activityTypesRaw.split(',').map((s) => s.trim()).filter(Boolean)
+        : undefined;
 
     // Exclude blocked users (req.user is guaranteed by JwtAuthGuard)
     const excludeUserIds = await this.usersService.getBlockedUserIds(req.user.id);
@@ -51,6 +58,7 @@ export class CompanionsController {
       ageMax: ageMax ? parseInt(ageMax) : undefined,
       sortBy,
       search,
+      activityTypes,
       limit: parsedLimit,
       offset: parsedOffset,
       excludeUserIds,

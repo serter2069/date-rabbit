@@ -27,6 +27,7 @@ const defaultFilterOptions: FilterOptions = {
   availability: 'any',
   ageRange: [21, 45],
   sortBy: 'recommended',
+  activityTypes: [],
 };
 
 export default function BrowseScreen() {
@@ -128,6 +129,7 @@ export default function BrowseScreen() {
         latitude: userLocation?.latitude,
         longitude: userLocation?.longitude,
         search: searchQuery.trim() || undefined,
+        activityTypes: appliedFilters.activityTypes.length > 0 ? appliedFilters.activityTypes : undefined,
       });
 
       // Only update state if this is still the latest fetch (prevents stale overwrites)
@@ -180,6 +182,7 @@ export default function BrowseScreen() {
     if (appliedFilters.ageRange[0] !== defaultFilterOptions.ageRange[0] ||
         appliedFilters.ageRange[1] !== defaultFilterOptions.ageRange[1]) count++;
     if (appliedFilters.sortBy !== defaultFilterOptions.sortBy) count++;
+    if (appliedFilters.activityTypes.length > 0) count++;
     return count;
   }, [appliedFilters]);
 

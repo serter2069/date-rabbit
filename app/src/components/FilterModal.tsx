@@ -11,6 +11,7 @@ import Slider from '@react-native-community/slider';
 import { X, Star } from 'lucide-react-native';
 import { Button } from './Button';
 import { colors, spacing, typography, borderRadius } from '../constants/theme';
+import { ActivityType } from '../types';
 
 export interface FilterOptions {
   priceRange: [number, number];
@@ -19,6 +20,7 @@ export interface FilterOptions {
   availability: 'any' | 'today' | 'this_week' | 'weekend';
   ageRange: [number, number];
   sortBy: 'recommended' | 'price_low' | 'price_high' | 'rating' | 'distance' | 'new';
+  activityTypes: ActivityType[];
 }
 
 interface FilterModalProps {
@@ -35,7 +37,18 @@ const defaultFilters: FilterOptions = {
   availability: 'any',
   ageRange: [21, 45],
   sortBy: 'recommended',
+  activityTypes: [],
 };
+
+const activityTypeOptions: { value: ActivityType; label: string }[] = [
+  { value: ActivityType.COFFEE, label: 'Coffee' },
+  { value: ActivityType.DINNER, label: 'Dinner' },
+  { value: ActivityType.DRINKS, label: 'Drinks' },
+  { value: ActivityType.EVENTS, label: 'Events' },
+  { value: ActivityType.MUSEUMS, label: 'Museums' },
+  { value: ActivityType.WALK, label: 'Walk' },
+  { value: ActivityType.OTHER, label: 'Other' },
+];
 
 const availabilityOptions = [
   { value: 'any', label: 'Any time' },
@@ -258,6 +271,35 @@ export function FilterModal({
                   </Text>
                 </TouchableOpacity>
               ))}
+            </View>
+          </View>
+
+          {/* Activity Type */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Activity Type</Text>
+            <View style={styles.chipGroup}>
+              {activityTypeOptions.map((option) => {
+                const isSelected = filters.activityTypes.includes(option.value);
+                return (
+                  <TouchableOpacity
+                    key={option.value}
+                    style={[styles.chip, isSelected && styles.chipActive]}
+                    onPress={() => {
+                      const next = isSelected
+                        ? filters.activityTypes.filter((t) => t !== option.value)
+                        : [...filters.activityTypes, option.value];
+                      updateFilter('activityTypes', next);
+                    }}
+                    accessibilityLabel={option.label}
+                    accessibilityRole="checkbox"
+                    accessibilityState={{ checked: isSelected }}
+                  >
+                    <Text style={[styles.chipText, isSelected && styles.chipTextActive]}>
+                      {option.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
 

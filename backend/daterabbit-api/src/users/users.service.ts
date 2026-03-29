@@ -98,6 +98,7 @@ export class UsersService {
     ageMax?: number;
     sortBy?: string;
     search?: string;
+    activityTypes?: string[];
     limit?: number;
     offset?: number;
     excludeUserIds?: string[];
@@ -138,6 +139,20 @@ export class UsersService {
       query.andWhere('(user.name ILIKE :search OR user.location ILIKE :search)', {
         search: `%${filters.search}%`,
       });
+    }
+
+    if (filters.activityTypes && filters.activityTypes.length > 0) {
+      // Filter companions who have at least one active package with a matching defaultActivity
+      query.andWhere(
+        `EXISTS (
+          SELECT 1 FROM date_packages dp
+          INNER JOIN date_package_templates dpt ON dpt.id = dp."templateId"
+          WHERE dp."companionId" = user.id
+            AND dp."isActive" = true
+            AND dpt."defaultActivity" IN (:...activityTypes)
+        )`,
+        { activityTypes: filters.activityTypes },
+      );
     }
 
     if (hasLocation && filters.maxDistance) {

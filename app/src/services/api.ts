@@ -232,6 +232,7 @@ export interface SearchCompanionsParams {
   search?: string;
   page?: number;
   limit?: number;
+  activityTypes?: string[];
 }
 
 export interface CompanionListItem {
@@ -269,11 +270,16 @@ export interface CompanionsResponse {
 export const companionsApi = {
   search: (params: SearchCompanionsParams = {}) => {
     const query = new URLSearchParams();
-    Object.entries(params).forEach(([key, value]) => {
+    const { activityTypes, ...rest } = params;
+    Object.entries(rest).forEach(([key, value]) => {
       if (value !== undefined) {
         query.append(key, String(value));
       }
     });
+    // Serialize activityTypes as a single comma-separated param (only if non-empty)
+    if (activityTypes && activityTypes.length > 0) {
+      query.append('activityTypes', activityTypes.join(','));
+    }
     return apiRequest<CompanionsResponse>(`/companions?${query}`);
   },
 
