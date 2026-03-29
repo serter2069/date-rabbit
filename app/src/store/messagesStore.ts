@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { messagesApi, Message, Chat, ApiError } from '../services/api';
+import type { PreChatStatus } from '../types';
 
 // Shared polling interval for all chat-related screens
 export const POLL_INTERVAL = 5000;
@@ -11,12 +12,14 @@ interface MessagesState {
   isSending: boolean;
   unreadCount: number;
   error: string | null;
+  preChatStatus: PreChatStatus | null;
 
   // Actions
   fetchChats: (silent?: boolean) => Promise<void>;
   fetchMessages: (otherUserId: string, page?: number, silent?: boolean) => Promise<void>;
   sendMessage: (otherUserId: string, content: string) => Promise<{ success: boolean; error?: string }>;
   refreshUnreadCount: () => Promise<void>;
+  fetchPreChatStatus: (otherUserId: string) => Promise<void>;
 
   // Utility
   getChat: (otherUserId: string) => Chat | undefined;
@@ -31,6 +34,7 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
   isSending: false,
   unreadCount: 0,
   error: null,
+  preChatStatus: null,
 
   fetchChats: async (silent = false) => {
     if (!silent) set({ isLoading: true, error: null });
@@ -132,6 +136,16 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
       set({ unreadCount: response.count });
     } catch {
       // Silent fail
+    }
+  },
+
+  fetchPreChatStatus: async (otherUserId) => {
+    try {
+      const status = await messagesApi.getPreChatStatus(otherUserId);
+      set({ preChatStatus: status });
+    } catch {
+      // Silent fail — pre-chat banner won't show
+      set({ preChatStatus: null });
     }
   },
 

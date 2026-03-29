@@ -27,7 +27,7 @@ interface FailedMessage {
 }
 
 export default function ChatScreen() {
-  const { id, name } = useLocalSearchParams<{ id: string; name: string }>();
+  const { id, name, preBooking } = useLocalSearchParams<{ id: string; name: string; preBooking?: string }>();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const scrollViewRef = useRef<ScrollView>(null);
@@ -35,7 +35,7 @@ export default function ChatScreen() {
   const [failedMessages, setFailedMessages] = useState<FailedMessage[]>([])
 
   const { user } = useAuthStore();
-  const { messages, sendMessage, getMessages, fetchMessages, fetchChats, chats, isSending } = useMessagesStore();
+  const { messages, sendMessage, getMessages, fetchMessages, fetchChats, chats, isSending, preChatStatus, fetchPreChatStatus } = useMessagesStore();
   const { requireVerification } = useVerificationGate();
 
   // id param is the otherUser's id
@@ -46,6 +46,16 @@ export default function ChatScreen() {
   // Resolve companion name: prefer URL param, fall back to chat data
   const companionName = name || chat?.otherUser?.name || '';
 
+  const isPreBooking = preBooking === '1';
+  const isCompanion = user?.role === 'companion';
+
+  // Whether to show the pre-booking banner
+  const showPreBookingBanner = isPreBooking && preChatStatus && !preChatStatus.hasBooking && !preChatStatus.companionReplied;
+  // Whether input is disabled due to pre-chat limit
+  const preChatLimitReached = showPreBookingBanner && !preChatStatus.canSend;
+  // Whether companion sees "Pre-booking request" label
+  const showCompanionPreBookingLabel = isPreBooking && isCompanion && preChatStatus && !preChatStatus.hasBooking;
+
   // Poll messages every 5 seconds while screen is focused
   useFocusEffect(
     useCallback(() => {
@@ -53,14 +63,17 @@ export default function ChatScreen() {
       fetchMessages(otherUserId);
       // Ensure chats are loaded so companion name resolves from store
       if (!chat) fetchChats(true);
+      // Fetch pre-chat status if navigated from profile
+      if (isPreBooking) fetchPreChatStatus(otherUserId);
 
       // Poll every 5s silently (no loading spinner)
       const interval = setInterval(() => {
         fetchMessages(otherUserId, 1, true);
+        if (isPreBooking) fetchPreChatStatus(otherUserId);
       }, POLL_INTERVAL);
 
       return () => clearInterval(interval);
-    }, [otherUserId])
+    }, [otherUserId, isPreBooking])
   );
 
   useEffect(() => {
@@ -87,6 +100,8 @@ export default function ChatScreen() {
     setMessageText('');
     try {
       await sendMessage(otherUserId, text);
+      // Refresh pre-chat status so counter updates immediately
+      if (isPreBooking) fetchPreChatStatus(otherUserId);
     } catch {
       // Show failed message bubble with retry instead of alert
       const tempId = `failed-${Date.now()}`;
@@ -203,7 +218,11 @@ export default function ChatScreen() {
           <UserImage name={companionName} size={40} />
           <View style={styles.headerInfo}>
             <Text style={[styles.headerName, { color: colors.text }]}>{companionName}</Text>
-            <Text style={[styles.headerStatus, { color: colors.textSecondary }]}>Tap to view profile</Text>
+            {showCompanionPreBookingLabel ? (
+              <Text style={[styles.headerStatus, { color: colors.accent }]}>Pre-booking request</Text>
+            ) : (
+              <Text style={[styles.headerStatus, { color: colors.textSecondary }]}>Tap to view profile</Text>
+            )}
           </View>
         </TouchableOpacity>
 
@@ -217,6 +236,19 @@ export default function ChatScreen() {
           <Text style={[styles.bookButtonText, { color: colors.white }]}>Book</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Pre-booking banner */}
+      {showPreBookingBanner && (
+        <View style={[styles.preBookingBanner, { backgroundColor: '#FFF3CD', borderBottomColor: '#FFEAA7' }]}>
+          <Icon name="message-circle" size={16} color="#856404" />
+          <Text style={styles.preBookingBannerText}>
+            {preChatLimitReached
+              ? 'Message limit reached. Book a date to continue chatting.'
+              : `Pre-booking conversation — ${preChatStatus.messagesLeft} message${preChatStatus.messagesLeft !== 1 ? 's' : ''} remaining`
+            }
+          </Text>
+        </View>
+      )}
 
       {/* Messages */}
       <ScrollView
@@ -362,35 +394,50 @@ export default function ChatScreen() {
       </ScrollView>
 
       {/* Input Area */}
-      <View style={[styles.inputContainer, { backgroundColor: colors.white, borderTopColor: colors.border, paddingBottom: insets.bottom || spacing.md }]}>
-        <View style={[styles.inputWrapper, { backgroundColor: colors.background }]}>
-          <TextInput
-            style={[styles.input, { color: colors.text }]}
-            placeholder="Type a message..."
-            placeholderTextColor={colors.textSecondary}
-            value={messageText}
-            onChangeText={setMessageText}
-            multiline
-            maxLength={1000}
-            testID="chat-message-input"
-          />
+      {preChatLimitReached ? (
+        <View style={[styles.inputContainer, { backgroundColor: colors.white, borderTopColor: colors.border, paddingBottom: insets.bottom || spacing.md }]}>
+          <TouchableOpacity
+            style={[styles.bookDateCta, { backgroundColor: colors.primary }]}
+            onPress={handleBook}
+            testID="chat-book-date-cta"
+            accessibilityLabel="Book a date to continue chatting"
+            accessibilityRole="button"
+          >
+            <Icon name="calendar" size={20} color={colors.white} />
+            <Text style={[styles.bookDateCtaText, { color: colors.white }]}>Book Date to Continue</Text>
+          </TouchableOpacity>
         </View>
+      ) : (
+        <View style={[styles.inputContainer, { backgroundColor: colors.white, borderTopColor: colors.border, paddingBottom: insets.bottom || spacing.md }]}>
+          <View style={[styles.inputWrapper, { backgroundColor: colors.background }]}>
+            <TextInput
+              style={[styles.input, { color: colors.text }]}
+              placeholder="Type a message..."
+              placeholderTextColor={colors.textSecondary}
+              value={messageText}
+              onChangeText={setMessageText}
+              multiline
+              maxLength={1000}
+              testID="chat-message-input"
+            />
+          </View>
 
-        <TouchableOpacity
-          style={[
-            styles.sendButton,
-            { backgroundColor: messageText.trim() ? colors.primary : colors.border }
-          ]}
-          onPress={handleSend}
-          disabled={!messageText.trim()}
-          testID="chat-send-btn"
-          accessibilityLabel="Send message"
-          accessibilityRole="button"
-          accessibilityState={{ disabled: !messageText.trim() }}
-        >
-          <Icon name="send" size={20} color={colors.white} />
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity
+            style={[
+              styles.sendButton,
+              { backgroundColor: messageText.trim() ? colors.primary : colors.border }
+            ]}
+            onPress={handleSend}
+            disabled={!messageText.trim()}
+            testID="chat-send-btn"
+            accessibilityLabel="Send message"
+            accessibilityRole="button"
+            accessibilityState={{ disabled: !messageText.trim() }}
+          >
+            <Icon name="send" size={20} color={colors.white} />
+          </TouchableOpacity>
+        </View>
+      )}
     </KeyboardAvoidingView>
   );
 }
@@ -530,5 +577,34 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.xs,
     marginTop: 4,
     marginRight: spacing.xs,
+  },
+  preBookingBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderBottomWidth: 1,
+    gap: spacing.sm,
+  },
+  preBookingBannerText: {
+    fontFamily: typography.fonts.bodyMedium,
+    fontSize: typography.sizes.sm,
+    color: '#856404',
+    flex: 1,
+  },
+  bookDateCta: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.lg,
+    gap: spacing.sm,
+    minHeight: 44,
+  },
+  bookDateCtaText: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.md,
+    fontWeight: '600',
   },
 });

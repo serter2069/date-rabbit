@@ -240,7 +240,7 @@ export default function ProfileViewScreen() {
   };
 
   const handleMessage = () => {
-    router.push(`/chat/${profile.id}?name=${encodeURIComponent(profile.name)}`);
+    router.push(`/chat/${profile.id}?name=${encodeURIComponent(profile.name)}&preBooking=1`);
   };
 
   const handleShare = async () => {
