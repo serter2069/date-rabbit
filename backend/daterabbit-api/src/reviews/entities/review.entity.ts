@@ -43,4 +43,10 @@ export class Review {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @Column({ type: 'text', nullable: true })
+  replyText: string | null;
+
+  @Column({ nullable: true })
+  repliedAt: Date | null;
 }
