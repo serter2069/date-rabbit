@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Platform, ScrollView, TouchableOpacity } from '
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Icon } from '../../src/components/Icon';
+import { Icon, IconName } from '../../src/components/Icon';
 import { Button } from '../../src/components/Button';
 import {
   colors,
@@ -16,6 +16,8 @@ import {
 } from '../../src/constants/theme';
 import { useAuthStore } from '../../src/store/authStore';
 import { useEffect } from 'react';
+
+const SECTION_GAP = spacing.xl * 2;
 
 export default function LandingScreen() {
   const insets = useSafeAreaInsets();
@@ -40,10 +42,6 @@ export default function LandingScreen() {
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      {/* Decorative blobs */}
-      <View style={styles.decoBlob1} />
-      <View style={styles.decoBlob2} />
-
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={[
@@ -52,7 +50,7 @@ export default function LandingScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header / Logo */}
+        {/* 1. Header / Nav */}
         <View style={styles.header}>
           <View style={styles.logo}>
             <LinearGradient
@@ -65,84 +63,174 @@ export default function LandingScreen() {
             </LinearGradient>
             <Text style={styles.logoText}>DateRabbit</Text>
           </View>
+          <TouchableOpacity
+            onPress={() => router.push('/(auth)/login')}
+            accessibilityLabel="Sign In"
+            accessibilityRole="button"
+          >
+            <Text style={styles.signInNav}>Sign In</Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Hero */}
+        {/* 2. Hero */}
         <View style={styles.hero}>
           <Text style={styles.headline}>
-            Find your{'\n'}
-            <Text style={styles.headlineHighlight}>perfect date</Text>
-            {'\n'}companion.
+            Find Your{'\n'}
+            <Text style={styles.headlineHighlight}>Perfect Date</Text>
+            {'\n'}Companion.
           </Text>
 
           <Text style={styles.subtitle}>
-            Book verified companions for dates, events, or great company.
-            Safe, transparent, and on your schedule.
+            Browse verified companions for dates, events, and great company. Safe, transparent, and on your schedule.
           </Text>
+
+          <View style={styles.heroButtons}>
+            <View style={styles.heroButtonWrap}>
+              <Button
+                title="Find a Companion"
+                variant="primary"
+                onPress={() => router.push('/onboarding?roleHint=seeker')}
+              />
+            </View>
+            <View style={styles.heroButtonWrap}>
+              <Button
+                title="Become a Companion"
+                variant="outline"
+                onPress={() => router.push('/onboarding?roleHint=companion')}
+              />
+            </View>
+          </View>
         </View>
 
-        {/* Role Cards */}
-        <View style={styles.roleCards}>
-          <TouchableOpacity
-            style={[styles.roleCard, styles.roleCardSeeker]}
-            onPress={() => router.push('/onboarding?roleHint=seeker')}
-            activeOpacity={0.85}
-            accessibilityLabel="Looking for a Date"
-            accessibilityRole="button"
-          >
-            <View style={styles.roleIconWrap}>
-              <Icon name="heart" size={28} color={colors.primary} />
-            </View>
-            <Text style={styles.roleTitle}>Looking for a Date</Text>
-            <Text style={styles.roleDesc}>
-              Browse verified companions and book your perfect date
-            </Text>
-            <View style={styles.roleArrow}>
-              <Icon name="chevron-right" size={20} color={colors.text} />
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.roleCard, styles.roleCardCompanion]}
-            onPress={() => router.push('/onboarding?roleHint=companion')}
-            activeOpacity={0.85}
-            accessibilityLabel="Become a Companion"
-            accessibilityRole="button"
-          >
-            <View style={[styles.roleIconWrap, styles.roleIconWrapAccent]}>
-              <Icon name="sparkles" size={28} color={colors.accentDark} />
-            </View>
-            <Text style={styles.roleTitle}>Become a Companion</Text>
-            <Text style={styles.roleDesc}>
-              Set your own rates, schedule, and start earning
-            </Text>
-            <View style={styles.roleArrow}>
-              <Icon name="chevron-right" size={20} color={colors.text} />
-            </View>
-          </TouchableOpacity>
+        {/* 3. Stats Strip */}
+        <View style={styles.statsStrip}>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>1,000+</Text>
+            <Text style={styles.statLabel}>Companions</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>50+</Text>
+            <Text style={styles.statLabel}>Cities</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>4.9</Text>
+            <Text style={styles.statLabel}>Avg Rating</Text>
+          </View>
         </View>
 
-        {/* Value props */}
-        <View style={styles.valueProps}>
-          <ValueItem text="All profiles verified with ID" />
-          <ValueItem text="Secure payments via Stripe" />
-          <ValueItem text="24/7 safety & support team" />
+        {/* 4. How It Works */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>How It Works</Text>
+          <View style={styles.stepsRow}>
+            <View style={styles.stepItem}>
+              <View style={styles.stepCircle}>
+                <Text style={styles.stepNumber}>1</Text>
+              </View>
+              <Text style={styles.stepTitle}>Create Profile</Text>
+              <Text style={styles.stepDesc}>Sign up and complete your profile in minutes</Text>
+            </View>
+            <View style={styles.stepItem}>
+              <View style={styles.stepCircle}>
+                <Text style={styles.stepNumber}>2</Text>
+              </View>
+              <Text style={styles.stepTitle}>Browse & Connect</Text>
+              <Text style={styles.stepDesc}>Browse verified companions and chat before booking</Text>
+            </View>
+            <View style={styles.stepItem}>
+              <View style={styles.stepCircle}>
+                <Text style={styles.stepNumber}>3</Text>
+              </View>
+              <Text style={styles.stepTitle}>Enjoy Your Date</Text>
+              <Text style={styles.stepDesc}>Meet up and enjoy a great time, safely and on your terms</Text>
+            </View>
+          </View>
         </View>
 
-        {/* Sign in link */}
-        <View style={styles.signinWrap}>
-          <Text style={styles.signinLink}>
-            Already have an account?{' '}
-            <Text
-              style={styles.signinLinkAction}
-              onPress={() => router.push('/(auth)/login')}
+        {/* 5. Why DateRabbit -- 6 Feature Cards */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Why DateRabbit?</Text>
+          <View style={styles.featureGrid}>
+            <FeatureCard icon="shield" title="Verified Profiles" desc="Every companion verified with government ID" />
+            <FeatureCard icon="lock" title="Secure Payments" desc="Stripe-powered payments, never stored on our servers" />
+            <FeatureCard icon="star" title="Real Reviews" desc="Honest ratings from verified bookings only" />
+            <FeatureCard icon="message-circle" title="Chat First" desc="Message companions before committing to a booking" />
+            <FeatureCard icon="calendar" title="Flexible Scheduling" desc="Book for any date, time, and activity you choose" />
+            <FeatureCard icon="help-circle" title="24/7 Support" desc="Our safety team is available around the clock" />
+          </View>
+        </View>
+
+        {/* 6. For Companions -- Dark Block */}
+        <View style={styles.companionBlock}>
+          <Text style={styles.companionHeadline}>Earn on Your Terms</Text>
+          <Text style={styles.companionSubtitle}>
+            Set your own rates, choose your schedule, and build a client base on your terms
+          </Text>
+          <View style={styles.companionStats}>
+            <View style={styles.companionStatItem}>
+              <Text style={styles.companionStatValue}>Set Your Rate</Text>
+            </View>
+            <View style={styles.companionStatItem}>
+              <Text style={styles.companionStatValue}>Keep 85%</Text>
+            </View>
+            <View style={styles.companionStatItem}>
+              <Text style={styles.companionStatValue}>You Decide</Text>
+            </View>
+          </View>
+          <View style={styles.companionButtonWrap}>
+            <TouchableOpacity
+              style={styles.companionButton}
+              onPress={() => router.push('/onboarding?roleHint=companion')}
+              activeOpacity={0.85}
             >
-              Sign in
-            </Text>
-          </Text>
+              <Text style={styles.companionButtonText}>START EARNING TODAY</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
-        {/* Footer */}
+        {/* 7. Testimonials */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>What People Say</Text>
+          <View style={styles.testimonialGrid}>
+            <TestimonialCard
+              quote="DateRabbit made it so easy to find a great companion for a work event. Professional and fun!"
+              name="Michael R., New York"
+            />
+            <TestimonialCard
+              quote="I've been a companion for 3 months and it's been incredible. The platform is safe and the earnings are great."
+              name="Sofia M., Companion"
+            />
+            <TestimonialCard
+              quote="The verification process gave me confidence. Great experience from start to finish."
+              name="James K., Chicago"
+            />
+          </View>
+        </View>
+
+        {/* 8. Final CTA */}
+        <View style={styles.ctaSection}>
+          <Text style={styles.ctaHeadline}>Ready to Find Your Perfect Match?</Text>
+          <Text style={styles.ctaSubtitle}>Join thousands of people already using DateRabbit</Text>
+          <View style={styles.ctaButtons}>
+            <View style={styles.heroButtonWrap}>
+              <Button
+                title="Get Started"
+                variant="primary"
+                onPress={() => router.push('/onboarding?roleHint=seeker')}
+              />
+            </View>
+            <View style={styles.heroButtonWrap}>
+              <Button
+                title="Sign In"
+                variant="outline"
+                onPress={() => router.push('/(auth)/login')}
+              />
+            </View>
+          </View>
+        </View>
+
+        {/* 9. Footer */}
         <View style={styles.footer}>
           <TouchableOpacity
             onPress={() => router.push('/terms')}
@@ -171,19 +259,31 @@ export default function LandingScreen() {
   );
 }
 
-function ValueItem({ text }: { text: string }) {
+// -- Sub-components --
+
+function FeatureCard({ icon, title, desc }: { icon: IconName; title: string; desc: string }) {
   return (
-    <View style={styles.valueItem}>
-      <LinearGradient
-        colors={colors.gradient.primary as readonly [string, string, ...string[]]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.valueDot}
-      />
-      <Text style={styles.valueText}>{text}</Text>
+    <View style={styles.featureCard}>
+      <View style={styles.featureIconWrap}>
+        <Icon name={icon} size={22} color={colors.primary} />
+      </View>
+      <Text style={styles.featureTitle}>{title}</Text>
+      <Text style={styles.featureDesc}>{desc}</Text>
     </View>
   );
 }
+
+function TestimonialCard({ quote, name }: { quote: string; name: string }) {
+  return (
+    <View style={styles.testimonialCard}>
+      <Text style={styles.testimonialStars}>★★★★★</Text>
+      <Text style={styles.testimonialQuote}>"{quote}"</Text>
+      <Text style={styles.testimonialName}>{name}</Text>
+    </View>
+  );
+}
+
+// -- Styles --
 
 const styles = StyleSheet.create({
   container: {
@@ -198,31 +298,7 @@ const styles = StyleSheet.create({
     paddingTop: spacing.xl,
   },
 
-  // Decorative blobs
-  decoBlob1: {
-    position: 'absolute',
-    width: 300,
-    height: 300,
-    backgroundColor: colors.primaryLight,
-    opacity: 0.12,
-    borderRadius: 150,
-    top: -100,
-    right: -120,
-    transform: [{ scaleX: 1.2 }],
-  },
-  decoBlob2: {
-    position: 'absolute',
-    width: 200,
-    height: 200,
-    backgroundColor: colors.accent,
-    opacity: 0.1,
-    borderRadius: 100,
-    bottom: 150,
-    left: -80,
-    transform: [{ scaleX: 1.3 }],
-  },
-
-  // Header
+  // 1. Header
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -247,119 +323,294 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: colors.text,
   },
+  signInNav: {
+    fontFamily: typography.fonts.bodyMedium,
+    fontSize: typography.sizes.md,
+    color: colors.text,
+    ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
+  } as any,
 
-  // Hero
+  // 2. Hero
   hero: {
     paddingVertical: spacing.md,
+    marginBottom: SECTION_GAP,
   },
   headline: {
     fontFamily: typography.fonts.heading,
-    fontSize: 36,
-    lineHeight: 42,
+    fontSize: 48,
+    lineHeight: 54,
     color: colors.text,
     marginBottom: spacing.md,
+    letterSpacing: -1,
   },
   headlineHighlight: {
     fontFamily: typography.fonts.headingItalic,
     color: colors.primary,
+    fontStyle: 'italic',
   },
   subtitle: {
     fontFamily: typography.fonts.body,
     fontSize: typography.sizes.md,
     lineHeight: 26,
     color: colors.textMuted,
-    maxWidth: 340,
+    maxWidth: 420,
     marginBottom: spacing.lg,
   },
-
-  // Role cards
-  roleCards: {
+  heroButtons: {
+    flexDirection: 'row',
     gap: spacing.md,
-    marginBottom: spacing.xl,
+    flexWrap: 'wrap',
   },
-  roleCard: {
+  heroButtonWrap: {
+    minWidth: 180,
+  },
+
+  // 3. Stats Strip
+  statsStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.surface,
+    borderWidth: borderWidth.normal,
+    borderColor: colors.border,
+    borderRadius: borderRadius.lg,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.md,
+    marginBottom: SECTION_GAP,
+    ...shadows.md,
+  },
+  statItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  statNumber: {
+    fontFamily: typography.fonts.heading,
+    fontSize: typography.sizes.xl,
+    color: colors.primary,
+    marginBottom: spacing.xs,
+  },
+  statLabel: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.sm,
+    color: colors.textMuted,
+  },
+  statDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: colors.borderLight,
+  },
+
+  // 4. How It Works
+  section: {
+    marginBottom: SECTION_GAP,
+  },
+  sectionTitle: {
+    fontFamily: typography.fonts.heading,
+    fontSize: 30,
+    color: colors.text,
+    marginBottom: spacing.xl,
+    letterSpacing: -0.5,
+  },
+  stepsRow: {
+    flexDirection: 'row',
+    gap: spacing.lg,
+    flexWrap: 'wrap',
+  },
+  stepItem: {
+    flex: 1,
+    minWidth: 200,
+    alignItems: 'center',
+  },
+  stepCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+  },
+  stepNumber: {
+    fontFamily: typography.fonts.heading,
+    fontSize: typography.sizes.lg,
+    color: colors.white,
+  },
+  stepTitle: {
+    fontFamily: typography.fonts.heading,
+    fontSize: typography.sizes.lg,
+    color: colors.text,
+    marginBottom: spacing.xs,
+    textAlign: 'center',
+  },
+  stepDesc: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.sm,
+    color: colors.textMuted,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+
+  // 5. Feature Grid
+  featureGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.md,
+  },
+  featureCard: {
     backgroundColor: colors.surface,
     borderWidth: borderWidth.normal,
     borderColor: colors.border,
     borderRadius: borderRadius.lg,
     padding: spacing.lg,
     ...shadows.md,
+    width: '48%' as any,
+    minWidth: 160,
   },
-  roleCardSeeker: {
-    // default styling
-  },
-  roleCardCompanion: {
-    // default styling
-  },
-  roleIconWrap: {
-    width: 48,
-    height: 48,
+  featureIconWrap: {
+    width: 44,
+    height: 44,
     borderRadius: borderRadius.md,
     backgroundColor: colors.primaryLight + '20',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.sm,
   },
-  roleIconWrapAccent: {
-    backgroundColor: colors.accentLight + '30',
-  },
-  roleTitle: {
+  featureTitle: {
     fontFamily: typography.fonts.heading,
-    fontSize: typography.sizes.lg,
+    fontSize: typography.sizes.md,
     color: colors.text,
     marginBottom: spacing.xs,
   },
-  roleDesc: {
-    fontFamily: typography.fonts.body,
-    fontSize: typography.sizes.sm,
-    color: colors.textSecondary,
-    lineHeight: 20,
-  },
-  roleArrow: {
-    position: 'absolute',
-    right: spacing.lg,
-    top: spacing.lg,
-  },
-
-  // Value props
-  valueProps: {
-    gap: spacing.md,
-    marginBottom: spacing.xl,
-  },
-  valueItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  valueDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  valueText: {
-    fontFamily: typography.fonts.bodyMedium,
-    fontSize: typography.sizes.sm + 1,
-    color: colors.textSecondary,
-  },
-
-  // Sign in
-  signinWrap: {
-    alignItems: 'center',
-    marginBottom: spacing.lg,
-  },
-  signinLink: {
+  featureDesc: {
     fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     color: colors.textMuted,
-    textAlign: 'center',
+    lineHeight: 20,
   },
-  signinLinkAction: {
-    fontFamily: typography.fonts.bodyMedium,
-    color: colors.text,
-    ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
-  } as any,
 
-  // Footer
+  // 6. Companion Block (dark)
+  companionBlock: {
+    backgroundColor: colors.text,
+    borderRadius: borderRadius.lg,
+    padding: spacing.xl,
+    marginBottom: SECTION_GAP,
+    marginHorizontal: -PAGE_PADDING,
+    paddingHorizontal: PAGE_PADDING + spacing.md,
+  },
+  companionHeadline: {
+    fontFamily: typography.fonts.heading,
+    fontSize: 30,
+    color: colors.white,
+    marginBottom: spacing.md,
+    letterSpacing: -0.5,
+  },
+  companionSubtitle: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.md,
+    color: colors.white,
+    opacity: 0.7,
+    lineHeight: 24,
+    marginBottom: spacing.xl,
+    maxWidth: 460,
+  },
+  companionStats: {
+    flexDirection: 'row',
+    gap: spacing.lg,
+    marginBottom: spacing.xl,
+    flexWrap: 'wrap',
+  },
+  companionStatItem: {
+    flex: 1,
+    minWidth: 100,
+    alignItems: 'center',
+  },
+  companionStatValue: {
+    fontFamily: typography.fonts.heading,
+    fontSize: typography.sizes.lg,
+    color: colors.white,
+  },
+  companionButtonWrap: {
+    alignItems: 'flex-start',
+  },
+  companionButton: {
+    backgroundColor: colors.white,
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl,
+    borderWidth: borderWidth.normal,
+    borderColor: colors.border,
+    ...shadows.md,
+  },
+  companionButtonText: {
+    fontFamily: typography.fonts.heading,
+    fontSize: typography.sizes.sm,
+    color: colors.text,
+    letterSpacing: 1,
+  },
+
+  // 7. Testimonials
+  testimonialGrid: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    flexWrap: 'wrap',
+  },
+  testimonialCard: {
+    backgroundColor: colors.surface,
+    borderWidth: borderWidth.normal,
+    borderColor: colors.border,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    ...shadows.md,
+    flex: 1,
+    minWidth: 240,
+  },
+  testimonialStars: {
+    fontSize: typography.sizes.lg,
+    color: colors.primary,
+    marginBottom: spacing.sm,
+    letterSpacing: 2,
+  },
+  testimonialQuote: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.md,
+    color: colors.textSecondary,
+    lineHeight: 24,
+    marginBottom: spacing.md,
+  },
+  testimonialName: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.sm,
+    color: colors.text,
+  },
+
+  // 8. Final CTA
+  ctaSection: {
+    alignItems: 'center',
+    marginBottom: SECTION_GAP,
+  },
+  ctaHeadline: {
+    fontFamily: typography.fonts.heading,
+    fontSize: 30,
+    color: colors.text,
+    textAlign: 'center',
+    marginBottom: spacing.md,
+    letterSpacing: -0.5,
+  },
+  ctaSubtitle: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.md,
+    color: colors.textMuted,
+    textAlign: 'center',
+    marginBottom: spacing.lg,
+  },
+  ctaButtons: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+
+  // 9. Footer
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
