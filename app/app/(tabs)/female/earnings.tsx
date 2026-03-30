@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Platform, Linking } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -6,7 +6,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { Card } from '../../../src/components/Card';
 import { Button } from '../../../src/components/Button';
 import { Icon } from '../../../src/components/Icon';
-import { useTheme, spacing, typography, borderRadius } from '../../../src/constants/theme';
+import { useTheme, spacing, typography, borderRadius, colors as themeColors } from '../../../src/constants/theme';
 import { useEarningsStore } from '../../../src/store/earningsStore';
 import { paymentsApi } from '../../../src/services/api';
 
@@ -20,6 +20,164 @@ interface Transaction {
   activity?: string;
   createdAt: string;
 }
+
+// Aggregate transactions by day for the last N days.
+// Returns array of { label: string, total: number } with length === days.
+function aggregateByDay(txs: Transaction[], days: number): { label: string; total: number }[] {
+  const result: { label: string; total: number }[] = [];
+  const now = new Date();
+
+  const DAY_LABELS_7 = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+
+  for (let i = days - 1; i >= 0; i--) {
+    const day = new Date(now);
+    day.setHours(0, 0, 0, 0);
+    day.setDate(day.getDate() - i);
+
+    const dayStr = day.toISOString().slice(0, 10);
+
+    const total = txs
+      .filter((tx) => {
+        const txDate = new Date(tx.createdAt).toISOString().slice(0, 10);
+        return txDate === dayStr;
+      })
+      .reduce((sum, tx) => sum + tx.amount, 0);
+
+    let label: string;
+    if (days === 7) {
+      // dayOfWeek: 0=Sun,1=Mon,...,6=Sat
+      const dow = day.getDay();
+      // Shift so Mon=0
+      const mondayBased = (dow + 6) % 7;
+      label = DAY_LABELS_7[mondayBased];
+    } else {
+      // 30-day: show every 5th label (index 0,5,10,15,20,25,29)
+      const idx = days - 1 - i; // 0-indexed from left
+      const dayNum = idx + 1; // 1-indexed
+      const showLabel = dayNum === 1 || dayNum % 5 === 1 || dayNum === days;
+      label = showLabel ? String(dayNum) : '';
+    }
+
+    result.push({ label, total });
+  }
+
+  return result;
+}
+
+function getAverageBooking(txs: Transaction[]): string {
+  if (txs.length === 0) return '$0';
+  const avg = txs.reduce((sum, tx) => sum + tx.amount, 0) / txs.length;
+  return `$${avg.toFixed(0)}`;
+}
+
+function getBestWeekday(txs: Transaction[]): string {
+  if (txs.length === 0) return '—';
+  const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const totals = new Array(7).fill(0);
+  txs.forEach((tx) => {
+    const dow = new Date(tx.createdAt).getDay();
+    totals[dow] += tx.amount;
+  });
+  const bestDow = totals.indexOf(Math.max(...totals));
+  return DAY_NAMES[bestDow];
+}
+
+function getMonthTotal(txs: Transaction[]): string {
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const total = txs
+    .filter((tx) => new Date(tx.createdAt) >= monthStart)
+    .reduce((sum, tx) => sum + tx.amount, 0);
+  return `$${total.toFixed(0)}`;
+}
+
+// Inline bar sparkline component
+interface BarSparklineProps {
+  data: { label: string; total: number }[];
+  primaryColor: string;
+  textSecondaryColor: string;
+}
+
+function BarSparkline({ data, primaryColor, textSecondaryColor }: BarSparklineProps) {
+  const maxTotal = Math.max(...data.map((d) => d.total));
+  const BAR_MAX_HEIGHT = 80;
+  const noData = maxTotal === 0;
+
+  return (
+    <View style={sparklineStyles.container}>
+      <View style={sparklineStyles.barsRow}>
+        {data.map((d, idx) => {
+          const barHeight = noData ? 2 : Math.max(2, (d.total / maxTotal) * BAR_MAX_HEIGHT);
+          return (
+            <View key={idx} style={sparklineStyles.barWrapper}>
+              <View style={sparklineStyles.barColumn}>
+                <View
+                  style={[
+                    sparklineStyles.bar,
+                    {
+                      height: barHeight,
+                      backgroundColor: noData ? textSecondaryColor + '40' : primaryColor,
+                      opacity: d.total === 0 && !noData ? 0.25 : 1,
+                    },
+                  ]}
+                />
+              </View>
+              <Text style={[sparklineStyles.barLabel, { color: textSecondaryColor }]}>
+                {d.label}
+              </Text>
+            </View>
+          );
+        })}
+      </View>
+      {noData && (
+        <Text style={[sparklineStyles.noDataText, { color: textSecondaryColor }]}>
+          No data yet
+        </Text>
+      )}
+    </View>
+  );
+}
+
+const sparklineStyles = StyleSheet.create({
+  container: {
+    marginTop: spacing.sm,
+  },
+  barsRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    height: 100,
+    gap: 2,
+  },
+  barWrapper: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    height: 100,
+  },
+  barColumn: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    width: '100%',
+    alignItems: 'center',
+  },
+  bar: {
+    width: '80%',
+    borderRadius: 3,
+    minHeight: 2,
+  },
+  barLabel: {
+    fontFamily: typography.fonts.body,
+    fontSize: 9,
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  noDataText: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.xs,
+    textAlign: 'center',
+    marginTop: spacing.xs,
+  },
+});
 
 export default function EarningsScreen() {
   const insets = useSafeAreaInsets();
@@ -36,8 +194,10 @@ export default function EarningsScreen() {
   } = useEarningsStore();
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [chartTransactions, setChartTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [onboardingLoading, setOnboardingLoading] = useState(false);
+  const [chartPeriod, setChartPeriod] = useState<'7d' | '30d'>('7d');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -45,8 +205,16 @@ export default function EarningsScreen() {
         await Promise.all([
           fetchEarnings(),
           fetchConnectStatus(),
+          // Fetch last 4 for recent transactions display
           paymentsApi.getEarningsHistory(1, 4).then((data) => {
             setTransactions(data.transactions);
+          }),
+          // Fetch up to 100 for chart aggregation
+          paymentsApi.getEarningsHistory(1, 100).then((data) => {
+            const earningTxs = (data.transactions as Transaction[]).filter(
+              (tx) => tx.type === 'earning' && tx.status === 'completed'
+            );
+            setChartTransactions(earningTxs);
           }),
         ]);
       } catch (error) {
@@ -58,6 +226,16 @@ export default function EarningsScreen() {
 
     fetchData();
   }, []);
+
+  // Aggregate chart data based on selected period — client-side only, no re-fetch
+  const chartData = useMemo(() => {
+    const days = chartPeriod === '7d' ? 7 : 30;
+    return aggregateByDay(chartTransactions, days);
+  }, [chartTransactions, chartPeriod]);
+
+  const avgBooking = useMemo(() => getAverageBooking(chartTransactions), [chartTransactions]);
+  const bestWeekday = useMemo(() => getBestWeekday(chartTransactions), [chartTransactions]);
+  const monthTotal = useMemo(() => getMonthTotal(chartTransactions), [chartTransactions]);
 
   const handleSetupPayments = async () => {
     setOnboardingLoading(true);
@@ -84,7 +262,7 @@ export default function EarningsScreen() {
     if (diffDays === 1) return 'Yesterday';
     if (diffDays < 7) return `${diffDays} days ago`;
 
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   };
 
   if (loading) {
@@ -108,7 +286,7 @@ export default function EarningsScreen() {
       {!isConnected && (
         <Card style={[styles.setupBanner, { backgroundColor: colors.primary }]}>
           <View style={[styles.setupIcon, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-            <Icon name="credit-card" size={28} color="#fff" />
+            <Icon name="credit-card" size={28} color={colors.white} />
           </View>
           <Text style={styles.setupTitle}>Set Up Payments</Text>
           <Text style={styles.setupDescription}>
@@ -171,10 +349,75 @@ export default function EarningsScreen() {
             </Card>
           </View>
 
+          {/* Earnings Sparkline Chart */}
+          <Card style={[styles.chartCard, { borderColor: colors.border }]}>
+            <View style={styles.chartHeader}>
+              <Text style={[styles.chartTitle, { color: colors.text }]}>Earnings Overview</Text>
+              <View style={[styles.toggleRow, { backgroundColor: colors.backgroundSecondary || colors.background }]}>
+                <TouchableOpacity
+                  style={[
+                    styles.toggleBtn,
+                    chartPeriod === '7d' && { backgroundColor: colors.primary },
+                  ]}
+                  onPress={() => setChartPeriod('7d')}
+                  accessibilityLabel="Show 7 day chart"
+                  accessibilityRole="button"
+                >
+                  <Text style={[
+                    styles.toggleBtnText,
+                    { color: chartPeriod === '7d' ? colors.white : colors.textSecondary },
+                  ]}>
+                    7D
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.toggleBtn,
+                    chartPeriod === '30d' && { backgroundColor: colors.primary },
+                  ]}
+                  onPress={() => setChartPeriod('30d')}
+                  accessibilityLabel="Show 30 day chart"
+                  accessibilityRole="button"
+                >
+                  <Text style={[
+                    styles.toggleBtnText,
+                    { color: chartPeriod === '30d' ? colors.white : colors.textSecondary },
+                  ]}>
+                    30D
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+            <BarSparkline
+              data={chartData}
+              primaryColor={colors.primary}
+              textSecondaryColor={colors.textSecondary}
+            />
+          </Card>
+
+          {/* Analytics Cards */}
+          <View style={styles.analyticsRow}>
+            <Card style={styles.analyticsCard}>
+              <Text style={[styles.analyticsLabel, { color: colors.textSecondary }]}>Avg Booking</Text>
+              <Text style={[styles.analyticsValue, { color: colors.text }]}>{avgBooking}</Text>
+            </Card>
+            <Card style={styles.analyticsCard}>
+              <Text style={[styles.analyticsLabel, { color: colors.textSecondary }]}>Best Day</Text>
+              <Text style={[styles.analyticsValue, { color: colors.text }]}>{bestWeekday}</Text>
+            </Card>
+            <Card style={styles.analyticsCard}>
+              <Text style={[styles.analyticsLabel, { color: colors.textSecondary }]}>This Month</Text>
+              <Text style={[styles.analyticsValue, { color: colors.text }]}>{monthTotal}</Text>
+            </Card>
+          </View>
+
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>Recent Transactions</Text>
-              <TouchableOpacity onPress={() => router.push('/female/earnings/history')}>
+              <TouchableOpacity onPress={() => router.push('/female/earnings/history')}
+                accessibilityLabel="View earnings history"
+                accessibilityRole="button"
+              >
                 <Text style={[styles.seeAll, { color: colors.primary }]}>See All</Text>
               </TouchableOpacity>
             </View>
@@ -263,7 +506,7 @@ const styles = StyleSheet.create({
   setupTitle: {
     fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.xl,
-    color: '#fff',
+    color: themeColors.white,
     marginBottom: spacing.xs,
   },
   setupDescription: {
@@ -322,7 +565,7 @@ const styles = StyleSheet.create({
   statsRow: {
     flexDirection: 'row',
     gap: spacing.md,
-    marginBottom: spacing.xl,
+    marginBottom: spacing.lg,
   },
   statCard: {
     flex: 1,
@@ -338,6 +581,60 @@ const styles = StyleSheet.create({
     fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.xl,
   },
+  // Chart
+  chartCard: {
+    marginBottom: spacing.md,
+    borderWidth: 1,
+  },
+  chartHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+  },
+  chartTitle: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.md,
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    borderRadius: borderRadius.sm,
+    overflow: 'hidden',
+    padding: 2,
+    gap: 2,
+  },
+  toggleBtn: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: borderRadius.sm,
+  },
+  toggleBtnText: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.xs,
+  },
+  // Analytics cards
+  analyticsRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginBottom: spacing.xl,
+  },
+  analyticsCard: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+  },
+  analyticsLabel: {
+    fontFamily: typography.fonts.body,
+    fontSize: 10,
+    marginBottom: spacing.xs,
+    textAlign: 'center',
+  },
+  analyticsValue: {
+    fontFamily: typography.fonts.heading,
+    fontSize: typography.sizes.md,
+    textAlign: 'center',
+  },
+  // Sections
   section: {
     marginBottom: spacing.xl,
   },

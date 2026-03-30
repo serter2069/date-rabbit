@@ -10,6 +10,7 @@ import { StripePaymentForm } from '../../src/components/StripePaymentForm';
 import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
 import { useEarningsStore } from '../../src/store/earningsStore';
 import { useBookingsStore } from '../../src/store/bookingsStore';
+import { Booking } from '../../src/services/api';
 import { showAlert } from '../../src/utils/alert';
 
 export default function PaymentScreen() {
@@ -18,22 +19,25 @@ export default function PaymentScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const { createPaymentIntent } = useEarningsStore();
-  const { bookings, fetchMyBookings } = useBookingsStore();
+  const { fetchMyBookings, getBookingById } = useBookingsStore();
 
+  const [booking, setBooking] = useState<Booking | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const booking = bookings.find((b) => b.id === bookingId);
 
   useEffect(() => {
     const init = async () => {
       if (!bookingId) return;
 
-      // Fetch bookings if we don't have them
-      if (!booking) {
-        await fetchMyBookings('upcoming');
+      // Load booking directly from API — avoids race when navigating via deep link
+      const found = await getBookingById(bookingId);
+      if (!found) {
+        setError('Booking not found');
+        setLoading(false);
+        return;
       }
+      setBooking(found);
 
       // Create payment intent
       const result = await createPaymentIntent(bookingId);
@@ -114,7 +118,7 @@ export default function PaymentScreen() {
                 {booking.activity || 'Date'}
               </Text>
               <Text style={[styles.dateText, { color: colors.textSecondary }]}>
-                {new Date(booking.date).toLocaleDateString('en-US', {
+                {new Date(booking.date).toLocaleDateString(undefined, {
                   weekday: 'short',
                   month: 'short',
                   day: 'numeric',

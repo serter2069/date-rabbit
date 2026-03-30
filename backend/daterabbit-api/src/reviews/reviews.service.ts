@@ -1,9 +1,10 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus, ForbiddenException, ConflictException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Review } from './entities/review.entity';
 import { Booking, BookingStatus } from '../bookings/entities/booking.entity';
 import { User } from '../users/entities/user.entity';
+import { sanitizeText } from '../common/sanitize';
 
 @Injectable()
 export class ReviewsService {
@@ -58,7 +59,7 @@ export class ReviewsService {
       revieweeId,
       bookingId,
       rating,
-      comment,
+      comment: comment ? sanitizeText(comment) : comment,
     });
 
     const saved = await this.reviewsRepo.save(review);
@@ -74,15 +75,96 @@ export class ReviewsService {
     page = 1,
     limit = 20,
   ): Promise<{ reviews: Review[]; total: number }> {
-    const [reviews, total] = await this.reviewsRepo.findAndCount({
-      where: { revieweeId: userId },
-      relations: ['reviewer'],
-      order: { createdAt: 'DESC' },
-      skip: (page - 1) * limit,
-      take: limit,
+    try {
+      const [reviews, total] = await this.reviewsRepo.findAndCount({
+        where: { revieweeId: userId },
+        relations: ['reviewer'],
+        order: { createdAt: 'DESC' },
+        skip: (page - 1) * limit,
+        take: limit,
+      });
+
+      return { reviews, total };
+    } catch {
+      // Return empty result if query fails (e.g. user not found)
+      return { reviews: [], total: 0 };
+    }
+  }
+
+  /**
+   * Get a companion's private rating of a specific seeker.
+   * Returns only reviews where this companion reviewed this seeker.
+   */
+  async getSeekerPrivateRating(
+    companionId: string,
+    seekerId: string,
+  ): Promise<{ average: number; count: number }> {
+    const result = await this.reviewsRepo
+      .createQueryBuilder('review')
+      .select('AVG(review.rating)', 'avg')
+      .addSelect('COUNT(*)', 'count')
+      .where('review.reviewerId = :companionId', { companionId })
+      .andWhere('review.revieweeId = :seekerId', { seekerId })
+      .getRawOne();
+
+    return {
+      average: parseFloat(result.avg) || 0,
+      count: parseInt(result.count) || 0,
+    };
+  }
+
+  /**
+   * Batch-query companion's private ratings for multiple seekers.
+   * Returns a map of seekerId -> { average, count }.
+   */
+  async getSeekerPrivateRatingsBatch(
+    companionId: string,
+    seekerIds: string[],
+  ): Promise<Map<string, { average: number; count: number }>> {
+    const map = new Map<string, { average: number; count: number }>();
+    if (seekerIds.length === 0) return map;
+
+    const results = await this.reviewsRepo
+      .createQueryBuilder('review')
+      .select('review.revieweeId', 'seekerId')
+      .addSelect('AVG(review.rating)', 'avg')
+      .addSelect('COUNT(*)', 'count')
+      .where('review.reviewerId = :companionId', { companionId })
+      .andWhere('review.revieweeId IN (:...seekerIds)', { seekerIds })
+      .groupBy('review.revieweeId')
+      .getRawMany();
+
+    for (const row of results) {
+      map.set(row.seekerId, {
+        average: parseFloat(row.avg) || 0,
+        count: parseInt(row.count) || 0,
+      });
+    }
+
+    return map;
+  }
+
+  async replyToReview(reviewId: string, userId: string, text: string): Promise<Review> {
+    const review = await this.reviewsRepo.findOne({
+      where: { id: reviewId },
     });
 
-    return { reviews, total };
+    if (!review) {
+      throw new NotFoundException('Review not found');
+    }
+
+    if (review.revieweeId !== userId) {
+      throw new ForbiddenException('Only the companion can reply');
+    }
+
+    if (review.replyText !== null) {
+      throw new ConflictException('Reply already exists');
+    }
+
+    review.replyText = sanitizeText(text.trim());
+    review.repliedAt = new Date();
+
+    return this.reviewsRepo.save(review);
   }
 
   private async updateUserRating(userId: string): Promise<void> {
@@ -94,7 +176,7 @@ export class ReviewsService {
       .getRawOne();
 
     await this.usersRepo.update(userId, {
-      rating: parseFloat(result.avg) || 5.0,
+      rating: parseFloat(result.avg) || 0,
       reviewCount: parseInt(result.count) || 0,
     });
   }

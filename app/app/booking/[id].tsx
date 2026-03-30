@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
+  BackHandler,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,8 +17,9 @@ import { Icon } from '../../src/components/Icon';
 import { UserImage } from '../../src/components/UserImage';
 import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
 import { useBookingsStore } from '../../src/store/bookingsStore';
-import { companionsApi, CompanionDetail } from '../../src/services/api';
-import { showAlert } from '../../src/utils/alert';
+import { companionsApi, CompanionDetail, packagesApi, DatePackage } from '../../src/services/api';
+import { showAlert, showConfirm } from '../../src/utils/alert';
+import { useVerificationGate } from '../../src/hooks/useVerificationGate';
 
 // Activity IDs aligned with backend ActivityType enum
 const activities = [
@@ -48,9 +50,9 @@ const generateDates = () => {
     date.setDate(today.getDate() + i);
     dates.push({
       date,
-      day: date.toLocaleDateString('en-US', { weekday: 'short' }),
+      day: date.toLocaleDateString(undefined, { weekday: 'short' }),
       dayNum: date.getDate(),
-      month: date.toLocaleDateString('en-US', { month: 'short' }),
+      month: date.toLocaleDateString(undefined, { month: 'short' }),
     });
   }
   return dates;
@@ -63,23 +65,25 @@ const timeSlots = [
 ];
 
 export default function BookingScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, packageId: initialPackageId, activity: initialActivity } = useLocalSearchParams<{ id: string; packageId?: string; activity?: string }>();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
 
-  const { createBooking } = useBookingsStore();
+  const { createBooking, isCreatingBooking } = useBookingsStore();
+  const { requireVerification } = useVerificationGate();
 
   const availableDates = generateDates();
 
   const [companion, setCompanion] = useState<CompanionDetail | null>(null);
   const [isLoadingCompanion, setIsLoadingCompanion] = useState(true);
-  const [selectedActivity, setSelectedActivity] = useState<string | null>(null);
+  const [selectedActivity, setSelectedActivity] = useState<string | null>(initialActivity || null);
   const [selectedDuration, setSelectedDuration] = useState<number>(2);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [location, setLocation] = useState('');
   const [notes, setNotes] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [companionPackages, setCompanionPackages] = useState<DatePackage[]>([]);
+  const [selectedPackage, setSelectedPackage] = useState<DatePackage | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -88,23 +92,79 @@ export default function BookingScreen() {
       .then((data) => setCompanion(data))
       .catch(() => showAlert('Error', 'Could not load companion profile.'))
       .finally(() => setIsLoadingCompanion(false));
+
+    // Load companion packages
+    packagesApi.getCompanionPackages(id).then((pkgs) => {
+      setCompanionPackages(pkgs);
+      // Auto-select package if passed via URL
+      if (initialPackageId) {
+        const match = pkgs.find((p) => p.id === initialPackageId);
+        if (match) {
+          setSelectedPackage(match);
+          setSelectedActivity(match.template?.defaultActivity || null);
+          setSelectedDuration(match.template?.defaultDuration || 2);
+        }
+      }
+    }).catch(() => {});
   }, [id]);
+
+  // Check if user has entered any data worth confirming before leaving
+  const hasUnsavedData =
+    selectedActivity !== null ||
+    selectedDate !== null ||
+    selectedTime !== null ||
+    selectedDuration !== 2 ||
+    location.length > 0 ||
+    notes.length > 0;
+
+  const handleBack = () => {
+    if (hasUnsavedData) {
+      showConfirm(
+        'Discard changes?',
+        'You have unsaved booking details. Are you sure you want to go back?',
+        () => router.back(),
+        'Discard',
+        'Keep editing',
+      );
+    } else {
+      router.back();
+    }
+  };
+
+  // Handle Android hardware back button
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (hasUnsavedData) {
+        showConfirm(
+          'Discard changes?',
+          'You have unsaved booking details. Are you sure you want to go back?',
+          () => router.back(),
+          'Discard',
+          'Keep editing',
+        );
+        return true; // prevent default back navigation
+      }
+      return false; // allow default back navigation
+    });
+    return () => subscription.remove();
+  }, [hasUnsavedData]);
 
   const serviceFee = 0.15; // 15% platform fee
   const hourlyRate = companion?.hourlyRate ?? 0;
-  const subtotal = hourlyRate * selectedDuration;
+  const isPackageBooking = !!selectedPackage;
+  const subtotal = isPackageBooking ? Number(selectedPackage!.price) : hourlyRate * selectedDuration;
   const fee = Math.round(subtotal * serviceFee);
   const total = subtotal + fee;
 
   const isValid = selectedActivity && selectedDate && selectedTime && location.length > 0;
 
   const handleSubmit = async () => {
+    if (requireVerification()) return;
+
     if (!isValid || !companion) {
       showAlert('Missing Information', 'Please fill in all required fields.');
       return;
     }
-
-    setIsSubmitting(true);
 
     // Combine selected date and time slot into a single ISO dateTime string
     const dateTime = (() => {
@@ -129,20 +189,20 @@ export default function BookingScreen() {
       duration: selectedDuration,
       location,
       notes,
+      ...(selectedPackage ? { packageId: selectedPackage.id } : {}),
     });
-
-    setIsSubmitting(false);
 
     if (!result.success) {
       showAlert('Error', result.error || 'Failed to send request');
       return;
     }
 
-    showAlert(
-      'Request Sent!',
-      `Your date request has been sent to ${companion.name}. You'll be notified when they respond.`,
-      () => router.replace('/(tabs)/male/bookings'),
-    );
+    // Navigate to request-sent screen with polling
+    if (result.booking?.id) {
+      router.replace(`/booking/request-sent/${result.booking.id}`);
+    } else {
+      router.replace('/(tabs)/male/bookings');
+    }
   };
 
   if (isLoadingCompanion) {
@@ -157,7 +217,10 @@ export default function BookingScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm, backgroundColor: colors.white, borderBottomColor: colors.border }]}>
-        <TouchableOpacity style={[styles.backButton, { backgroundColor: colors.surface }]} onPress={() => router.back()} testID="booking-back-btn">
+        <TouchableOpacity style={[styles.backButton, { backgroundColor: colors.surface }]} onPress={handleBack} testID="booking-back-btn"
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+        >
           <Icon name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>Book a Date</Text>
@@ -168,13 +231,84 @@ export default function BookingScreen() {
         {/* Companion Info */}
         <Card style={styles.companionCard}>
           <View style={styles.companionInfo}>
-            <UserImage name={companion?.name ?? ''} size={56} />
+            <UserImage uri={companion?.photos?.[0]?.url ?? companion?.primaryPhoto} name={companion?.name ?? ''} size={56} />
             <View style={styles.companionDetails}>
               <Text style={[styles.companionName, { color: colors.text }]}>{companion?.name}</Text>
               <Text style={[styles.companionRate, { color: colors.primary }]}>${companion?.hourlyRate}/hour</Text>
             </View>
           </View>
         </Card>
+
+        {/* Package Selection */}
+        {companionPackages.length > 0 && (
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Choose a Package (optional)</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -spacing.lg, paddingHorizontal: spacing.lg }}>
+              {selectedPackage && (
+                <TouchableOpacity
+                  style={[
+                    styles.packageCard,
+                    { backgroundColor: colors.surface, borderColor: colors.border },
+                  ]}
+                  onPress={() => {
+                    setSelectedPackage(null);
+                    setSelectedActivity(null);
+                    setSelectedDuration(2);
+                  }}
+                >
+                  <Icon name="x" size={20} color={colors.textSecondary} />
+                  <Text style={[styles.packageCardLabel, { color: colors.textSecondary }]}>No package</Text>
+                </TouchableOpacity>
+              )}
+              {companionPackages.map((pkg) => {
+                const isSelected = selectedPackage?.id === pkg.id;
+                return (
+                  <TouchableOpacity
+                    key={pkg.id}
+                    style={[
+                      styles.packageCard,
+                      { backgroundColor: colors.white, borderColor: colors.border },
+                      isSelected && { borderColor: colors.primary, backgroundColor: colors.primary + '10' },
+                    ]}
+                    onPress={() => {
+                      if (isSelected) {
+                        setSelectedPackage(null);
+                        setSelectedActivity(null);
+                        setSelectedDuration(2);
+                      } else {
+                        setSelectedPackage(pkg);
+                        setSelectedActivity(pkg.template?.defaultActivity || null);
+                        setSelectedDuration(pkg.template?.defaultDuration || 2);
+                      }
+                    }}
+                    accessibilityLabel={`${pkg.template?.name} package, $${Number(pkg.price)} total`}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: isSelected }}
+                  >
+                    <Icon name={pkg.template?.icon || 'package'} size={24} color={isSelected ? colors.primary : colors.textSecondary} />
+                    <Text style={[styles.packageCardLabel, { color: colors.text }, isSelected && { color: colors.primary }]}>
+                      {pkg.template?.name}
+                    </Text>
+                    <Text style={[styles.packageCardDuration, { color: colors.textSecondary }, isSelected && { color: colors.primary }]}>
+                      {pkg.template?.defaultDuration}h
+                    </Text>
+                    <Text style={[styles.packageCardPrice, { color: colors.primary }]}>
+                      ${Number(pkg.price)} total
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+            {selectedPackage && (
+              <View style={[styles.packageNote, { backgroundColor: colors.primary + '10' }]}>
+                <Icon name="info" size={14} color={colors.primary} />
+                <Text style={[styles.packageNoteText, { color: colors.primary }]}>
+                  Package selected: {selectedPackage.template?.defaultDuration}h {selectedPackage.template?.defaultActivity}. Price is fixed at ${Number(selectedPackage.price)}.
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
 
         {/* Activity Selection */}
         <View style={styles.section}>
@@ -189,6 +323,9 @@ export default function BookingScreen() {
                   selectedActivity === activity.id && { borderColor: colors.primary, backgroundColor: colors.primary + '10' },
                 ]}
                 onPress={() => setSelectedActivity(activity.id)}
+                accessibilityLabel={activity.label}
+                accessibilityRole="button"
+                accessibilityState={{ selected: selectedActivity === activity.id }}
               >
                 <Icon
                   name={activity.icon}
@@ -229,6 +366,9 @@ export default function BookingScreen() {
                   selectedDuration === duration.hours && { borderColor: colors.primary, backgroundColor: colors.primary + '10' },
                 ]}
                 onPress={() => setSelectedDuration(duration.hours)}
+                accessibilityLabel={`${duration.label}, $${hourlyRate * duration.hours}`}
+                accessibilityRole="button"
+                accessibilityState={{ selected: selectedDuration === duration.hours }}
               >
                 <Text style={[
                   styles.durationLabel,
@@ -268,6 +408,9 @@ export default function BookingScreen() {
                     isSelected && { borderColor: colors.primary, backgroundColor: colors.primary },
                   ]}
                   onPress={() => setSelectedDate(d.date)}
+                  accessibilityLabel={`${d.day} ${d.dayNum} ${d.month}`}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isSelected }}
                 >
                   <Text style={[
                     styles.dateDay,
@@ -311,6 +454,9 @@ export default function BookingScreen() {
                     isSelected && { borderColor: colors.primary, backgroundColor: colors.primary },
                   ]}
                   onPress={() => setSelectedTime(time)}
+                  accessibilityLabel={time}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isSelected }}
                 >
                   <Text style={[
                     styles.timeSlotText,
@@ -359,7 +505,9 @@ export default function BookingScreen() {
           <Text style={[styles.summaryTitle, { color: colors.text }]}>Price Summary</Text>
           <View style={styles.summaryRow}>
             <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
-              ${hourlyRate} × {selectedDuration} hours
+              {isPackageBooking
+                ? `${selectedPackage!.template?.name} (${selectedPackage!.template?.defaultDuration}h)`
+                : `$${hourlyRate} x ${selectedDuration} hours`}
             </Text>
             <Text style={[styles.summaryValue, { color: colors.text }]}>${subtotal}</Text>
           </View>
@@ -384,10 +532,10 @@ export default function BookingScreen() {
           <Text style={[styles.bottomLabel, { color: colors.textSecondary }]}>Total</Text>
         </View>
         <Button
-          title={isSubmitting ? 'Sending...' : 'Send Request'}
+          title={isCreatingBooking ? 'Sending...' : 'Send Request'}
           onPress={handleSubmit}
-          loading={isSubmitting}
-          disabled={!isValid || isSubmitting}
+          loading={isCreatingBooking}
+          disabled={!isValid || isCreatingBooking}
           style={styles.submitButton}
           testID="booking-submit-btn"
         />
@@ -640,5 +788,46 @@ const styles = StyleSheet.create({
   submitButton: {
     flex: 1,
     marginLeft: spacing.lg,
+  },
+  packageCard: {
+    padding: spacing.md,
+    borderRadius: borderRadius.lg,
+    borderWidth: 2,
+    marginRight: spacing.sm,
+    alignItems: 'center',
+    minWidth: 120,
+    minHeight: 100,
+    justifyContent: 'center',
+  },
+  packageCardLabel: {
+    fontFamily: typography.fonts.bodyMedium,
+    fontSize: typography.sizes.sm,
+    fontWeight: '500',
+    marginTop: spacing.xs,
+    textAlign: 'center',
+  },
+  packageCardDuration: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.xs,
+    marginTop: 2,
+  },
+  packageCardPrice: {
+    fontFamily: typography.fonts.heading,
+    fontSize: typography.sizes.md,
+    fontWeight: '700',
+    marginTop: spacing.xs,
+  },
+  packageNote: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.sm,
+    borderRadius: borderRadius.sm,
+    marginTop: spacing.sm,
+    gap: spacing.xs,
+  },
+  packageNoteText: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.sm,
+    flex: 1,
   },
 });

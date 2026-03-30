@@ -1,262 +1,249 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
-  Modal,
+  FlatList,
+  ActivityIndicator,
   TextInput,
+  Alert,
 } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Card } from '../../src/components/Card';
-import { Button } from '../../src/components/Button';
-import { showAlert } from '../../src/utils/alert';
-import { Icon } from '../../src/components/Icon';
-import { EmptyState } from '../../src/components/EmptyState';
-import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
+import { useLocalSearchParams, router } from 'expo-router';
+import { colors, typography, shadows } from '../../src/constants/theme';
+import { apiRequest } from '../../src/services/api';
+import { useAuthStore } from '../../src/store/authStore';
 
-// Mock reviews data
-const reviewsData: Record<string, {
-  profileName: string;
-  averageRating: number;
-  totalReviews: number;
-  reviews: Array<{
-    id: string;
-    reviewerName: string;
-    rating: number;
-    text: string;
-    date: string;
-    helpful: number;
-  }>;
-}> = {
-  '1': {
-    profileName: 'Sarah',
-    averageRating: 4.9,
-    totalReviews: 24,
-    reviews: [
-      { id: 'r1', reviewerName: 'Michael', rating: 5, text: 'Amazing evening! Sarah is a wonderful companion. We had great conversations over dinner and she made the whole experience memorable.', date: '2 weeks ago', helpful: 12 },
-      { id: 'r2', reviewerName: 'James', rating: 5, text: 'Great conversation and very professional. Sarah arrived on time and was engaging throughout our dinner meeting.', date: '1 month ago', helpful: 8 },
-      { id: 'r3', reviewerName: 'David', rating: 5, text: 'Highly recommend! Made the dinner so enjoyable. Would definitely book again.', date: '1 month ago', helpful: 5 },
-      { id: 'r4', reviewerName: 'William', rating: 4, text: 'Pleasant evening. Sarah is knowledgeable about art and we had interesting discussions.', date: '2 months ago', helpful: 3 },
-      { id: 'r5', reviewerName: 'Alexander', rating: 5, text: 'Perfect companion for my business dinner. Very articulate and charming.', date: '2 months ago', helpful: 7 },
-    ],
-  },
-  '2': {
-    profileName: 'Emma',
-    averageRating: 4.8,
-    totalReviews: 18,
-    reviews: [
-      { id: 'r1', reviewerName: 'Thomas', rating: 5, text: 'Emma is so easy to talk to. Highly recommended! She has great energy and makes you feel comfortable.', date: '1 week ago', helpful: 10 },
-      { id: 'r2', reviewerName: 'Robert', rating: 4, text: 'Pleasant company, very thoughtful. Enjoyed our coffee date.', date: '3 weeks ago', helpful: 4 },
-    ],
-  },
-};
+interface ReviewItem {
+  id: string;
+  rating: number;
+  comment?: string;
+  replyText?: string | null;
+  repliedAt?: string | null;
+  revieweeId?: string;
+  reviewer?: { id: string; name: string };
+  createdAt: string;
+}
 
-const defaultData = {
-  profileName: 'Profile',
-  averageRating: 0,
-  totalReviews: 0,
-  reviews: [],
-};
+interface ReviewsResponse {
+  reviews: ReviewItem[];
+  total: number;
+}
 
-export default function ReviewsScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const insets = useSafeAreaInsets();
-  const { colors } = useTheme();
-  const data = reviewsData[id || ''] || defaultData;
+function StarRating({ rating }: { rating: number }) {
+  return (
+    <View style={styles.starsRow}>
+      {[1, 2, 3, 4, 5].map((star) => (
+        <Text key={star} style={[styles.star, star <= rating && styles.starFilled]}>
+          ★
+        </Text>
+      ))}
+    </View>
+  );
+}
 
-  const [writeReviewVisible, setWriteReviewVisible] = useState(false);
-  const [reviewRating, setReviewRating] = useState(5);
-  const [reviewText, setReviewText] = useState('');
-  const [sortBy, setSortBy] = useState<'recent' | 'helpful'>('recent');
+function ReviewCard({
+  item,
+  currentUserId,
+  onReplySubmitted,
+}: {
+  item: ReviewItem;
+  currentUserId: string | null;
+  onReplySubmitted: (reviewId: string, replyText: string, repliedAt: string) => void;
+}) {
+  const [showReplyForm, setShowReplyForm] = useState(false);
+  const [replyDraft, setReplyDraft] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmitReview = () => {
-    if (reviewText.trim().length < 10) {
-      showAlert('Error', 'Please write at least 10 characters');
-      return;
-    }
-    // In production, this would submit to API
-    showAlert('Success', 'Your review has been submitted!', () => setWriteReviewVisible(false));
-    setReviewText('');
-    setReviewRating(5);
-  };
-
-  const sortedReviews = [...data.reviews].sort((a, b) => {
-    if (sortBy === 'helpful') {
-      return b.helpful - a.helpful;
-    }
-    return 0; // Keep original order for recent
+  const date = new Date(item.createdAt).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
   });
 
-  const ratingDistribution = [5, 4, 3, 2, 1].map(rating => ({
-    rating,
-    count: data.reviews.filter(r => r.rating === rating).length,
-    percentage: data.reviews.length > 0
-      ? (data.reviews.filter(r => r.rating === rating).length / data.reviews.length) * 100
-      : 0,
-  }));
+  const canReply =
+    currentUserId &&
+    item.revieweeId === currentUserId &&
+    !item.replyText;
+
+  const handleSubmitReply = async () => {
+    const text = replyDraft.trim();
+    if (!text) return;
+    setSubmitting(true);
+    try {
+      const result = await apiRequest<{ replyText: string; repliedAt: string }>(
+        `/reviews/${item.id}/reply`,
+        { method: 'POST', body: { text } },
+      );
+      onReplySubmitted(item.id, result.replyText, result.repliedAt);
+      setShowReplyForm(false);
+      setReplyDraft('');
+    } catch (e: any) {
+      Alert.alert('Error', e?.message ?? 'Could not submit reply.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { paddingTop: insets.top + spacing.sm, backgroundColor: colors.white, borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Icon name="arrow-left" size={24} color={colors.text} />
+    <View style={styles.card}>
+      <View style={styles.cardHeader}>
+        <Text style={styles.reviewerName}>{item.reviewer?.name ?? 'Anonymous'}</Text>
+        <Text style={styles.dateText}>{date}</Text>
+      </View>
+      <StarRating rating={item.rating} />
+      {!!item.comment && <Text style={styles.comment}>{item.comment}</Text>}
+
+      {/* Reply display */}
+      {!!item.replyText && (
+        <View style={styles.replyBlock}>
+          <Text style={styles.replyLabel}>Companion replied</Text>
+          {item.repliedAt && (
+            <Text style={styles.replyDate}>
+              {new Date(item.repliedAt).toLocaleDateString(undefined, {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+              })}
+            </Text>
+          )}
+          <Text style={styles.replyText}>{item.replyText}</Text>
+        </View>
+      )}
+
+      {/* Reply button */}
+      {canReply && !showReplyForm && (
+        <TouchableOpacity
+          style={styles.replyButton}
+          onPress={() => setShowReplyForm(true)}
+        >
+          <Text style={styles.replyButtonText}>Reply</Text>
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>Reviews</Text>
+      )}
+
+      {/* Reply form */}
+      {showReplyForm && (
+        <View style={styles.replyForm}>
+          <TextInput
+            style={styles.replyInput}
+            placeholder="Write your reply..."
+            placeholderTextColor="#999"
+            value={replyDraft}
+            onChangeText={setReplyDraft}
+            maxLength={2000}
+            multiline
+          />
+          <View style={styles.replyFormActions}>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => {
+                setShowReplyForm(false);
+                setReplyDraft('');
+              }}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.submitButton, submitting && { opacity: 0.6 }]}
+              onPress={handleSubmitReply}
+              disabled={submitting || !replyDraft.trim()}
+            >
+              {submitting ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={styles.submitButtonText}>Submit</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+    </View>
+  );
+}
+
+export default function ReviewDetailScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const [reviews, setReviews] = useState<ReviewItem[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const currentUserId = useAuthStore((s) => s.user?.id ?? null);
+
+  useEffect(() => {
+    if (!id) {
+      setError('Invalid page.');
+      setLoading(false);
+      return;
+    }
+
+    apiRequest<ReviewsResponse>(`/reviews/users/${id}`)
+      .then((data) => {
+        setReviews(data.reviews);
+        setTotal(data.total);
+      })
+      .catch((e: any) => {
+        setError(e?.message ?? 'Could not load reviews.');
+      })
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  const handleReplySubmitted = useCallback(
+    (reviewId: string, replyText: string, repliedAt: string) => {
+      setReviews((prev) =>
+        prev.map((r) =>
+          r.id === reviewId ? { ...r, replyText, repliedAt } : r,
+        ),
+      );
+    },
+    [],
+  );
+
+  return (
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+        >
+          <Text style={styles.backArrow}>←</Text>
+        </TouchableOpacity>
+        <Text style={styles.title}>Reviews{total > 0 ? ` (${total})` : ''}</Text>
         <View style={{ width: 44 }} />
       </View>
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
-        {/* Summary Card */}
-        <Card style={styles.summaryCard}>
-          <View style={styles.summaryHeader}>
-            <View style={[styles.ratingBig, { borderRightColor: colors.border }]}>
-              <Text style={[styles.ratingNumber, { color: colors.text }]}>{data.averageRating.toFixed(1)}</Text>
-              <View style={styles.starsRow}>
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <Icon
-                    key={star}
-                    name="star"
-                    size={16}
-                    color={star <= Math.round(data.averageRating) ? colors.accent : colors.border}
-                  />
-                ))}
-              </View>
-              <Text style={[styles.totalReviews, { color: colors.textSecondary }]}>{data.totalReviews} reviews</Text>
-            </View>
-            <View style={styles.ratingBars}>
-              {ratingDistribution.map(({ rating, count, percentage }) => (
-                <View key={rating} style={styles.ratingBarRow}>
-                  <Text style={[styles.ratingBarLabel, { color: colors.textSecondary }]}>{rating}</Text>
-                  <View style={[styles.ratingBarTrack, { backgroundColor: colors.surface }]}>
-                    <View style={[styles.ratingBarFill, { width: `${percentage}%`, backgroundColor: colors.warning }]} />
-                  </View>
-                  <Text style={[styles.ratingBarCount, { color: colors.textSecondary }]}>{count}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        </Card>
-
-        {/* Sort Options */}
-        <View style={styles.sortRow}>
-          <TouchableOpacity
-            style={[styles.sortButton, { backgroundColor: sortBy === 'recent' ? colors.primary : colors.surface }]}
-            onPress={() => setSortBy('recent')}
-          >
-            <Text style={[styles.sortButtonText, { color: sortBy === 'recent' ? colors.white : colors.textSecondary }]}>
-              Most Recent
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.sortButton, { backgroundColor: sortBy === 'helpful' ? colors.primary : colors.surface }]}
-            onPress={() => setSortBy('helpful')}
-          >
-            <Text style={[styles.sortButtonText, { color: sortBy === 'helpful' ? colors.white : colors.textSecondary }]}>
-              Most Helpful
-            </Text>
-          </TouchableOpacity>
+      {/* Body */}
+      {loading ? (
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color={colors.primary} />
         </View>
-
-        {/* Reviews List */}
-        {sortedReviews.length === 0 ? (
-          <EmptyState
-            icon="edit-3"
-            title="No reviews yet"
-            description="Be the first to leave a review!"
-          />
-        ) : (
-          sortedReviews.map((review) => (
-            <Card key={review.id} style={styles.reviewCard}>
-              <View style={styles.reviewHeader}>
-                <View style={styles.reviewerInfo}>
-                  <Text style={[styles.reviewerName, { color: colors.text }]}>{review.reviewerName}</Text>
-                  <Text style={[styles.reviewDate, { color: colors.textSecondary }]}>{review.date}</Text>
-                </View>
-                <View style={styles.reviewRating}>
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Icon
-                      key={star}
-                      name="star"
-                      size={14}
-                      color={star <= review.rating ? colors.accent : colors.border}
-                    />
-                  ))}
-                </View>
-              </View>
-              <Text style={[styles.reviewText, { color: colors.textSecondary }]}>{review.text}</Text>
-              <View style={[styles.reviewFooter, { borderTopColor: colors.border }]}>
-                <TouchableOpacity style={styles.helpfulButton}>
-                  <Icon name="thumbs-up" size={16} color={colors.textSecondary} />
-                  <Text style={[styles.helpfulText, { color: colors.textSecondary }]}> Helpful ({review.helpful})</Text>
-                </TouchableOpacity>
-              </View>
-            </Card>
-          ))
-        )}
-
-        <View style={{ height: 100 }} />
-      </ScrollView>
-
-      {/* Write Review Button */}
-      <View style={[styles.bottomBar, { backgroundColor: colors.white, borderTopColor: colors.border, paddingBottom: insets.bottom || spacing.xl }]}>
-        <Button
-          title="Write a Review"
-          onPress={() => setWriteReviewVisible(true)}
-          fullWidth
-        />
-      </View>
-
-      {/* Write Review Modal */}
-      <Modal
-        visible={writeReviewVisible}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setWriteReviewVisible(false)}
-      >
-        <View style={[styles.modalContainer, { backgroundColor: colors.white }]}>
-          <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
-            <TouchableOpacity onPress={() => setWriteReviewVisible(false)} style={styles.modalButton}>
-              <Text style={[styles.modalCancel, { color: colors.textSecondary }]}>Cancel</Text>
-            </TouchableOpacity>
-            <Text style={[styles.modalTitle, { color: colors.text }]}>Write Review</Text>
-            <TouchableOpacity onPress={handleSubmitReview} style={styles.modalButton}>
-              <Text style={[styles.modalSubmit, { color: colors.primary }]}>Submit</Text>
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView style={styles.modalContent}>
-            <Text style={[styles.modalLabel, { color: colors.text }]}>Rate your experience with {data.profileName}</Text>
-            <View style={styles.ratingSelector}>
-              {[1, 2, 3, 4, 5].map((star) => (
-                <TouchableOpacity key={star} onPress={() => setReviewRating(star)} style={styles.ratingStarButton}>
-                  <Icon
-                    name="star"
-                    size={40}
-                    color={star <= reviewRating ? colors.accent : colors.border}
-                  />
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <Text style={[styles.modalLabel, { color: colors.text }]}>Share your experience</Text>
-            <TextInput
-              style={[styles.reviewInput, { backgroundColor: colors.surface, color: colors.text }]}
-              value={reviewText}
-              onChangeText={setReviewText}
-              placeholder="What was your experience like? Share details to help others..."
-              placeholderTextColor={colors.textSecondary}
-              multiline
-              numberOfLines={6}
-              textAlignVertical="top"
-              maxLength={500}
+      ) : error ? (
+        <View style={styles.center}>
+          <Text style={styles.stateTitle}>Couldn't load reviews</Text>
+          <Text style={styles.stateBody}>{error}</Text>
+        </View>
+      ) : reviews.length === 0 ? (
+        <View style={styles.center}>
+          <Text style={styles.stateTitle}>No reviews yet</Text>
+          <Text style={styles.stateBody}>Be the first to leave a review!</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={reviews}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <ReviewCard
+              item={item}
+              currentUserId={currentUserId}
+              onReplySubmitted={handleReplySubmitted}
             />
-            <Text style={[styles.charCount, { color: colors.textSecondary }]}>{reviewText.length}/500</Text>
-          </ScrollView>
-        </View>
-      </Modal>
+          )}
+          contentContainerStyle={styles.list}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+        />
+      )}
     </View>
   );
 }
@@ -264,14 +251,18 @@ export default function ReviewsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.md,
-    borderBottomWidth: 1,
+    paddingHorizontal: 16,
+    paddingTop: 56,
+    paddingBottom: 16,
+    backgroundColor: colors.surface,
+    borderBottomWidth: 2,
+    borderBottomColor: colors.border,
   },
   backButton: {
     width: 44,
@@ -279,197 +270,162 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  backArrow: {
+    fontSize: 24,
+    color: colors.text,
+  },
   title: {
+    fontSize: 20,
     fontFamily: typography.fonts.heading,
-    fontSize: typography.sizes.lg,
-    fontWeight: '600',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  content: {
-    padding: spacing.lg,
-  },
-  summaryCard: {
-    marginBottom: spacing.lg,
-  },
-  summaryHeader: {
-    flexDirection: 'row',
-  },
-  ratingBig: {
-    alignItems: 'center',
-    paddingRight: spacing.lg,
-    borderRightWidth: 1,
-  },
-  ratingNumber: {
-    fontFamily: typography.fonts.heading,
-    fontSize: 48,
     fontWeight: '700',
+    color: colors.text,
+  },
+  center: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  stateTitle: {
+    fontSize: 22,
+    fontFamily: typography.fonts.heading,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  stateBody: {
+    fontSize: 15,
+    color: colors.textMuted,
+    textAlign: 'center',
+  },
+  list: {
+    padding: 16,
+  },
+  separator: {
+    height: 12,
+  },
+  card: {
+    backgroundColor: colors.surface,
+    borderWidth: 2,
+    borderColor: colors.border,
+    padding: 16,
+    ...shadows.md,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  reviewerName: {
+    fontSize: 16,
+    fontFamily: typography.fonts.heading,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  dateText: {
+    fontSize: 13,
+    color: colors.textLight,
   },
   starsRow: {
     flexDirection: 'row',
-    marginTop: spacing.xs,
+    marginBottom: 8,
     gap: 2,
   },
-  totalReviews: {
-    fontSize: typography.sizes.sm,
-    marginTop: spacing.xs,
+  star: {
+    fontSize: 22,
+    color: colors.textLight,
   },
-  ratingBars: {
-    flex: 1,
-    paddingLeft: spacing.lg,
-    justifyContent: 'center',
+  starFilled: {
+    color: colors.primary,
   },
-  ratingBarRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  ratingBarLabel: {
-    width: 16,
-    fontSize: typography.sizes.sm,
-  },
-  ratingBarTrack: {
-    flex: 1,
-    height: 8,
-    borderRadius: 4,
-    marginHorizontal: spacing.sm,
-  },
-  ratingBarFill: {
-    height: 8,
-    borderRadius: 4,
-  },
-  ratingBarCount: {
-    width: 20,
-    fontSize: typography.sizes.sm,
-    textAlign: 'right',
-  },
-  sortRow: {
-    flexDirection: 'row',
-    marginBottom: spacing.md,
-    gap: spacing.sm,
-  },
-  sortButton: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.full,
-    minHeight: 44,
-    justifyContent: 'center',
-  },
-  sortButtonText: {
-    fontFamily: typography.fonts.bodySemiBold,
-    fontSize: typography.sizes.sm,
-    fontWeight: '600',
-  },
-  reviewCard: {
-    marginBottom: spacing.md,
-  },
-  reviewHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: spacing.sm,
-  },
-  reviewerInfo: {
-    flex: 1,
-  },
-  reviewerName: {
-    fontFamily: typography.fonts.bodySemiBold,
-    fontSize: typography.sizes.md,
-    fontWeight: '600',
-  },
-  reviewDate: {
-    fontSize: typography.sizes.xs,
-    marginTop: 2,
-  },
-  reviewRating: {
-    flexDirection: 'row',
-    gap: 2,
-  },
-  reviewText: {
-    fontSize: typography.sizes.md,
+  comment: {
+    fontSize: 15,
+    color: colors.textSecondary,
     lineHeight: 22,
   },
-  reviewFooter: {
-    marginTop: spacing.md,
-    paddingTop: spacing.sm,
-    borderTopWidth: 1,
+  replyBlock: {
+    marginTop: 12,
+    paddingLeft: 12,
+    borderLeftWidth: 3,
+    borderLeftColor: '#FF2A5F',
+    backgroundColor: '#F9F6F1',
+    padding: 12,
   },
-  helpfulButton: {
+  replyLabel: {
+    fontSize: 13,
+    fontFamily: 'SpaceGrotesk-Bold',
+    fontWeight: '700',
+    color: '#FF2A5F',
+    marginBottom: 2,
+  },
+  replyDate: {
+    fontSize: 12,
+    color: '#888',
+    marginBottom: 6,
+  },
+  replyText: {
+    fontSize: 14,
+    color: '#333',
+    lineHeight: 20,
+  },
+  replyButton: {
+    marginTop: 10,
     alignSelf: 'flex-start',
-    flexDirection: 'row',
-    alignItems: 'center',
-    minHeight: 44,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderWidth: 2,
+    borderColor: '#000',
+    backgroundColor: '#fff',
   },
-  helpfulText: {
-    fontSize: typography.sizes.sm,
+  replyButtonText: {
+    fontSize: 14,
+    fontFamily: 'SpaceGrotesk-Bold',
+    fontWeight: '700',
+    color: '#000',
   },
-  bottomBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: spacing.lg,
-    borderTopWidth: 1,
+  replyForm: {
+    marginTop: 12,
   },
-  modalContainer: {
-    flex: 1,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: spacing.lg,
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.md,
-    borderBottomWidth: 1,
-  },
-  modalButton: {
-    minWidth: 60,
-    minHeight: 44,
-    justifyContent: 'center',
-  },
-  modalCancel: {
-    fontSize: typography.sizes.md,
-  },
-  modalTitle: {
-    fontFamily: typography.fonts.heading,
-    fontSize: typography.sizes.lg,
-    fontWeight: '600',
-  },
-  modalSubmit: {
-    fontFamily: typography.fonts.bodySemiBold,
-    fontSize: typography.sizes.md,
-    fontWeight: '600',
-    textAlign: 'right',
-  },
-  modalContent: {
-    padding: spacing.lg,
-  },
-  modalLabel: {
-    fontFamily: typography.fonts.bodySemiBold,
-    fontSize: typography.sizes.md,
-    fontWeight: '600',
-    marginBottom: spacing.md,
-  },
-  ratingSelector: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: spacing.xl,
-    gap: spacing.md,
-  },
-  ratingStarButton: {
-    padding: spacing.xs,
-  },
-  reviewInput: {
-    borderRadius: borderRadius.lg,
-    padding: spacing.md,
-    fontSize: typography.sizes.md,
-    height: 150,
+  replyInput: {
+    borderWidth: 2,
+    borderColor: '#000',
+    padding: 10,
+    fontSize: 14,
+    color: '#000',
+    minHeight: 80,
     textAlignVertical: 'top',
+    backgroundColor: '#fff',
   },
-  charCount: {
-    fontSize: typography.sizes.xs,
-    textAlign: 'right',
-    marginTop: spacing.xs,
+  replyFormActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 8,
+    marginTop: 8,
+  },
+  cancelButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderWidth: 2,
+    borderColor: '#000',
+    backgroundColor: '#fff',
+  },
+  cancelButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000',
+  },
+  submitButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderWidth: 2,
+    borderColor: '#000',
+    backgroundColor: '#FF2A5F',
+  },
+  submitButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#fff',
   },
 });

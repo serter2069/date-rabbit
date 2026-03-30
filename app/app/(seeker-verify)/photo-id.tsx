@@ -26,11 +26,15 @@ const ACCEPTED_FORMATS = [
 export default function SeekerPhotoIDScreen() {
   const insets = useSafeAreaInsets();
   const [imageUri, setImageUri] = useState<string | undefined>();
-  const { uploadId, isLoading } = useVerificationStore();
+  const { uploadId, isLoading, error: apiError } = useVerificationStore();
 
   const handleContinue = async () => {
     if (!imageUri) return;
-    await uploadId(imageUri);
+    const success = await uploadId(imageUri);
+    if (!success) {
+      Alert.alert('Upload Failed', apiError || 'Failed to upload ID photo. Please try again.');
+      return;
+    }
     router.push('/(seeker-verify)/selfie');
   };
 

@@ -16,6 +16,7 @@ import { Icon } from '../../src/components/Icon';
 import { PhotoUpload } from '../../src/components/PhotoUpload';
 import { useAuthStore } from '../../src/store/authStore';
 import { useImagePicker } from '../../src/hooks/useImagePicker';
+import { usersApi } from '../../src/services/api';
 import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
 import { showAlert } from '../../src/utils/alert';
 
@@ -59,15 +60,40 @@ export default function EditProfileScreen() {
       return;
     }
 
+    if (formData.hourlyRate) {
+      const rate = parseInt(formData.hourlyRate, 10);
+      if (isNaN(rate) || rate <= 0) {
+        showAlert('Invalid Rate', 'Hourly rate must be greater than 0');
+        return;
+      }
+      if (rate >= 10000) {
+        showAlert('Invalid Rate', 'Hourly rate must be less than $10,000');
+        return;
+      }
+    }
+
     setLoading(true);
     try {
-      // TODO: Photo upload will be handled separately via the API
-      // For now, just update text fields
+      // Upload new photos (local URIs) and keep existing MinIO URLs as-is
+      const uploadedPhotos: { id: string; url: string; order: number; isPrimary: boolean }[] = [];
+      for (let i = 0; i < images.length; i++) {
+        const uri = images[i];
+        if (uri.startsWith('http')) {
+          // Already a MinIO URL — preserve it without re-uploading
+          uploadedPhotos.push({ id: String(i), url: uri, order: i, isPrimary: i === 0 });
+        } else {
+          // Local URI — upload to MinIO
+          const result = await usersApi.uploadProfilePhoto(uri);
+          uploadedPhotos.push({ id: String(i), url: result.url, order: i, isPrimary: i === 0 });
+        }
+      }
+
       await updateProfile({
         name: formData.name,
         bio: formData.bio,
         location: formData.location,
-        hourlyRate: formData.hourlyRate ? parseInt(formData.hourlyRate) : undefined,
+        hourlyRate: formData.hourlyRate ? parseInt(formData.hourlyRate, 10) : undefined,
+        photos: uploadedPhotos as any,
       });
       router.back();
     } catch {
@@ -89,7 +115,10 @@ export default function EditProfileScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm, backgroundColor: colors.white, borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+        >
           <Icon name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>Edit Profile</Text>

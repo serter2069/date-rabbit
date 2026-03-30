@@ -5,14 +5,17 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Dimensions,
+  useWindowDimensions,
   Modal,
   TextInput,
   ActivityIndicator,
+  Platform,
+  Share,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
+import { Image } from 'expo-image';
 import { Button } from '../../src/components/Button';
 import { showAlert, showConfirm } from '../../src/utils/alert';
 import { Card } from '../../src/components/Card';
@@ -20,9 +23,14 @@ import { Icon } from '../../src/components/Icon';
 import { UserImage } from '../../src/components/UserImage';
 import { useTheme, spacing, typography, borderRadius, colors } from '../../src/constants/theme';
 import { useFavoritesStore } from '../../src/store/favoritesStore';
-import { usersApi, companionsApi, CompanionDetail } from '../../src/services/api';
+import { useAuthStore } from '../../src/store/authStore';
+import { useWatchOnlineStore } from '../../src/store/watchOnlineStore';
+import { usersApi, companionsApi, CompanionDetail, packagesApi, DatePackage } from '../../src/services/api';
+import { formatLastSeen } from '../../src/utils/formatLastSeen';
+import * as Haptics from 'expo-haptics';
 
-const { width } = Dimensions.get('window');
+// Max width for photo container — prevents giant hero on wide screens
+const MAX_PHOTO_WIDTH = 430;
 
 interface ProfileData {
   id: string;
@@ -39,6 +47,7 @@ interface ProfileData {
   languages?: string[];
   availability?: string;
   responseTime?: string;
+  lastSeen?: string | null;
   reviews: { id: string; name: string; rating: number; text: string; date: string }[];
 }
 
@@ -47,7 +56,7 @@ const defaultProfile: ProfileData = {
   name: 'Profile',
   age: 25,
   location: 'New York',
-  rating: 4.5,
+  rating: 0,
   reviewCount: 0,
   hourlyRate: 100,
   bio: 'No bio available',
@@ -55,24 +64,56 @@ const defaultProfile: ProfileData = {
   photos: [],
   interests: [],
   languages: ['English'],
-  availability: 'Contact for availability',
+  availability: 'Available for booking',
   responseTime: 'Varies',
+  lastSeen: null,
   reviews: [],
 };
+
+const MOCK_REVIEWS = [
+  {
+    id: 'mock-1',
+    name: 'Jessica M.',
+    rating: 5,
+    text: 'Amazing company! We had a wonderful dinner and the conversation was engaging the entire time. Highly recommend!',
+    date: '2 weeks ago',
+  },
+  {
+    id: 'mock-2',
+    name: 'David R.',
+    rating: 4,
+    text: 'Great experience overall. Very punctual and easy to talk to. Would definitely book again for social events.',
+    date: '1 month ago',
+  },
+  {
+    id: 'mock-3',
+    name: 'Sarah K.',
+    rating: 5,
+    text: 'Perfect companion for the evening gala. Professional, charming, and made the whole event so much more enjoyable.',
+    date: '1 month ago',
+  },
+];
 
 export default function ProfileViewScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  
+  const { width: windowWidth } = useWindowDimensions();
+  const { isAuthenticated } = useAuthStore();
+  const photoWidth = Platform.OS === 'web' ? Math.min(windowWidth, MAX_PHOTO_WIDTH) : windowWidth;
+
   const [profile, setProfile] = useState<ProfileData>(defaultProfile);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  const [datePackages, setDatePackages] = useState<DatePackage[]>([]);
   const [photoModalVisible, setPhotoModalVisible] = useState(false);
 
   const { favorites, toggleFavorite } = useFavoritesStore();
   const isFavorite = favorites.includes(profile.id);
+  const { user: currentUser } = useAuthStore();
+  const { isWatching, toggleWatch } = useWatchOnlineStore();
+  const isSelf = currentUser?.id === profile.id;
   const [menuVisible, setMenuVisible] = useState(false);
   const [reportModalVisible, setReportModalVisible] = useState(false);
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
@@ -124,10 +165,14 @@ export default function ProfileViewScreen() {
           photos: data.photos || [],
           interests: data.interests || [],
           languages: data.languages || ['English'],
-          availability: 'Contact for availability',
+          availability: 'Available for booking',
           responseTime: 'Varies',
-          reviews: [],
+          lastSeen: (data as any).lastSeen || null,
+          reviews: (data as any).reviews || [],
         });
+
+        // Fetch companion's date packages (fire-and-forget for profile load)
+        packagesApi.getCompanionPackages(id).then(setDatePackages).catch(() => {});
       } catch (err: any) {
         console.error('Failed to fetch profile:', err);
         setError(err.message || 'Failed to load profile');
@@ -135,7 +180,7 @@ export default function ProfileViewScreen() {
         setIsLoading(false);
       }
     };
-    
+
     fetchProfile();
   }, [id]);
 
@@ -190,17 +235,28 @@ export default function ProfileViewScreen() {
   };
 
   const handleBookDate = () => {
-    router.push({
-      pathname: '/booking/[id]',
-      params: { id: profile.id },
-    });
+    if (!isAuthenticated) {
+      showAlert('Sign In Required', 'Please sign in to book a date.');
+      router.push('/(auth)/welcome');
+      return;
+    }
+    router.push(`/booking/${profile.id}`);
   };
 
   const handleMessage = () => {
-    router.push({
-      pathname: '/chat/[id]',
-      params: { id: profile.id, name: profile.name },
-    });
+    router.push(`/chat/${profile.id}?name=${encodeURIComponent(profile.name)}&preBooking=1`);
+  };
+
+  const handleShare = async () => {
+    try {
+      const url = `https://daterabbit.smartlaunchhub.com/profile/${profile.id}`;
+      await Share.share({
+        message: `Check out ${profile.name}'s profile on DateRabbit: ${url}`,
+        url,
+      });
+    } catch {
+      // Silent fail on web or if user cancels
+    }
   };
 
   const nextPhoto = () => {
@@ -239,17 +295,21 @@ export default function ProfileViewScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Photo Gallery */}
-        <View style={styles.photoContainer}>
+        <View style={[styles.photoContainer, { width: photoWidth, height: photoWidth * 1.1, alignSelf: 'center' }]}>
           {profile.photos.length > 0 ? (
             <TouchableOpacity
               activeOpacity={0.9}
               onPress={() => setPhotoModalVisible(true)}
               style={styles.photoWrapper}
+              accessibilityLabel="View photos fullscreen"
+              accessibilityRole="button"
             >
-              <View style={[styles.photo, { backgroundColor: colors.surface }]}>
-                <UserImage name={profile.name} size={120} />
-                <Text style={[styles.photoText, { color: colors.text }]}>{profile.name}</Text>
-              </View>
+              <Image
+                source={{ uri: profile.photos[currentPhotoIndex]?.url }}
+                style={styles.heroImage}
+                contentFit="cover"
+                transition={250}
+              />
 
               {/* Photo navigation dots */}
               <View style={styles.photoDots}>
@@ -267,12 +327,18 @@ export default function ProfileViewScreen() {
 
               {/* Navigation arrows */}
               {currentPhotoIndex > 0 && (
-                <TouchableOpacity style={[styles.photoNav, styles.photoNavLeft]} onPress={prevPhoto}>
+                <TouchableOpacity style={[styles.photoNav, styles.photoNavLeft]} onPress={prevPhoto}
+                  accessibilityLabel="Previous photo"
+                  accessibilityRole="button"
+                >
                   <Icon name="chevron-left" size={32} color={colors.white} />
                 </TouchableOpacity>
               )}
               {currentPhotoIndex < profile.photos.length - 1 && (
-                <TouchableOpacity style={[styles.photoNav, styles.photoNavRight]} onPress={nextPhoto}>
+                <TouchableOpacity style={[styles.photoNav, styles.photoNavRight]} onPress={nextPhoto}
+                  accessibilityLabel="Next photo"
+                  accessibilityRole="button"
+                >
                   <Icon name="chevron-right" size={32} color={colors.white} />
                 </TouchableOpacity>
               )}
@@ -289,15 +355,36 @@ export default function ProfileViewScreen() {
             style={[styles.backButton, { top: insets.top + spacing.sm, backgroundColor: colors.white }]}
             onPress={() => router.back()}
             testID="profile-view-back-btn"
+            accessibilityLabel="Go back"
+            accessibilityRole="button"
           >
             <Icon name="arrow-left" size={24} color={colors.text} />
+          </TouchableOpacity>
+
+          {/* Share button */}
+          <TouchableOpacity
+            style={[styles.shareButton, { top: insets.top + spacing.sm, backgroundColor: colors.white }]}
+            onPress={handleShare}
+            testID="profile-view-share-btn"
+            accessibilityLabel="Share profile"
+            accessibilityRole="button"
+          >
+            <Icon name="share-2" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
 
           {/* Favorite button */}
           <TouchableOpacity
             style={[styles.favoriteButton, { top: insets.top + spacing.sm, backgroundColor: colors.white }]}
-            onPress={() => toggleFavorite(profile.id)}
+            onPress={() => {
+              if (Platform.OS !== 'web') {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              }
+              toggleFavorite(profile.id);
+            }}
             testID="profile-view-favorite-btn"
+            accessibilityLabel={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+            accessibilityRole="button"
+            accessibilityState={{ selected: isFavorite }}
           >
             <Icon name="heart" size={20} color={isFavorite ? colors.error : colors.textSecondary} />
           </TouchableOpacity>
@@ -307,6 +394,8 @@ export default function ProfileViewScreen() {
             style={[styles.moreButton, { top: insets.top + spacing.sm, backgroundColor: colors.white }]}
             onPress={() => setMenuVisible(true)}
             testID="profile-view-more-btn"
+            accessibilityLabel="More options"
+            accessibilityRole="button"
           >
             <Icon name="more-vertical" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
@@ -316,7 +405,7 @@ export default function ProfileViewScreen() {
         <View style={[styles.content, { backgroundColor: colors.background }]}>
           <View style={styles.header}>
             <View style={styles.nameRow}>
-              <Text style={[styles.name, { color: colors.text }]}>{profile.name}, {profile.age}</Text>
+              <Text style={[styles.name, { color: colors.text }]}>{profile.name}{profile.age ? `, ${profile.age}` : ''}</Text>
               {profile.verified && (
                 <View style={[styles.verifiedBadge, { backgroundColor: colors.success + '15' }]}>
                   <Icon name="check-circle" size={14} color={colors.success} />
@@ -328,37 +417,119 @@ export default function ProfileViewScreen() {
               <Icon name="map-pin" size={16} color={colors.textSecondary} />
               <Text style={[styles.location, { color: colors.textSecondary }]}> {profile.location}</Text>
             </View>
+            {(() => {
+              const status = formatLastSeen(profile.lastSeen);
+              if (!status) return null;
+              const isOnline = status === 'Online';
+              return (
+                <>
+                  <View style={styles.onlineStatusRow}>
+                    <View style={[styles.onlineDot, { backgroundColor: isOnline ? colors.success : colors.textSecondary + '60' }]} />
+                    <Text style={[styles.onlineText, { color: isOnline ? colors.success : colors.textSecondary }]}>{status}</Text>
+                  </View>
+                  {!isOnline && !isSelf && isAuthenticated && (
+                    <TouchableOpacity
+                      style={[styles.notifyOnlineButton, { borderColor: isWatching(profile.id) ? colors.primary : colors.border, backgroundColor: isWatching(profile.id) ? colors.primary + '10' : 'transparent' }]}
+                      onPress={() => {
+                        if (Platform.OS !== 'web') {
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        }
+                        toggleWatch(profile.id);
+                      }}
+                      accessibilityLabel={isWatching(profile.id) ? 'Cancel online notification' : 'Notify me when online'}
+                      accessibilityRole="button"
+                    >
+                      <Icon name="bell" size={14} color={isWatching(profile.id) ? colors.primary : colors.textSecondary} />
+                      <Text style={[styles.notifyOnlineText, { color: isWatching(profile.id) ? colors.primary : colors.textSecondary }]}>
+                        {isWatching(profile.id) ? 'Watching — tap to cancel' : 'Notify when online'}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </>
+              );
+            })()}
 
             <View style={styles.statsRow}>
               <View style={styles.stat}>
-                <Icon name="star" size={16} color={colors.accent} />
-                <Text style={[styles.statValue, { color: colors.text }]}> {profile.rating}</Text>
-                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>({profile.reviewCount} reviews)</Text>
+                {profile.reviewCount > 0 ? (
+                  <>
+                    <Icon name="star" size={16} color={colors.accent} />
+                    <Text style={[styles.statValue, { color: colors.text }]}> {profile.rating}</Text>
+                    <Text style={[styles.statLabel, { color: colors.textSecondary }]}>({profile.reviewCount} reviews)</Text>
+                  </>
+                ) : (
+                  <View style={[styles.newBadge, { backgroundColor: colors.primary + '15' }]}>
+                    <Text style={[styles.newBadgeText, { color: colors.primary }]}>New</Text>
+                  </View>
+                )}
               </View>
               <View style={[styles.rateBadge, { backgroundColor: colors.primary + '15' }]}>
-                <Text style={[styles.rateValue, { color: colors.primary }]}>${profile.hourlyRate}</Text>
+                <Text style={[styles.rateValue, { color: colors.primary }]}>${profile.hourlyRate ?? 0}</Text>
                 <Text style={[styles.rateLabel, { color: colors.primary }]}>/hour</Text>
               </View>
             </View>
           </View>
 
+          {/* Date Packages */}
+          {datePackages.length > 0 && (
+            <Card style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Date Packages</Text>
+              {datePackages.map((pkg) => (
+                <TouchableOpacity
+                  key={pkg.id}
+                  style={[styles.packageItem, { borderBottomColor: colors.border }]}
+                  onPress={() => {
+                    if (!isAuthenticated) {
+                      showAlert('Sign In Required', 'Please sign in to book a date.');
+                      router.push('/(auth)/welcome');
+                      return;
+                    }
+                    router.push(`/booking/${profile.id}?packageId=${pkg.id}`);
+                  }}
+                  accessibilityLabel={`${pkg.template?.name} package, $${Number(pkg.price)} total`}
+                  accessibilityRole="button"
+                >
+                  <View style={[styles.packageIconWrap, { backgroundColor: colors.primary + '15' }]}>
+                    <Icon name={pkg.template?.icon || 'package'} size={20} color={colors.primary} />
+                  </View>
+                  <View style={styles.packageDetails}>
+                    <Text style={[styles.packageTitle, { color: colors.text }]}>
+                      {pkg.template?.name || 'Package'}
+                    </Text>
+                    <Text style={[styles.packageMeta, { color: colors.textSecondary }]}>
+                      {pkg.template?.defaultDuration}h — {pkg.customDescription || pkg.template?.description}
+                    </Text>
+                  </View>
+                  <View style={styles.packagePriceWrap}>
+                    <Text style={[styles.packagePriceText, { color: colors.primary }]}>${Number(pkg.price)}</Text>
+                    <Text style={[styles.packagePriceLabel, { color: colors.textSecondary }]}>total</Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </Card>
+          )}
+
           {/* Bio */}
-          <Card style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>About</Text>
-            <Text style={[styles.bio, { color: colors.textSecondary }]}>{profile.bio}</Text>
-          </Card>
+          {profile.bio ? (
+            <Card style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>About</Text>
+              <Text style={[styles.bio, { color: colors.textSecondary }]}>{profile.bio}</Text>
+            </Card>
+          ) : null}
 
           {/* Interests */}
-          <Card style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>Interests</Text>
-            <View style={styles.tagsContainer}>
-              {profile.interests.map((interest: string) => (
-                <View key={interest} style={[styles.tag, { backgroundColor: colors.surface }]}>
-                  <Text style={[styles.tagText, { color: colors.text }]}>{interest}</Text>
-                </View>
-              ))}
-            </View>
-          </Card>
+          {profile.interests && profile.interests.length > 0 ? (
+            <Card style={styles.section}>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Interests</Text>
+              <View style={styles.tagsContainer}>
+                {profile.interests.map((interest: string) => (
+                  <View key={interest} style={[styles.tag, { backgroundColor: colors.surface }]}>
+                    <Text style={[styles.tagText, { color: colors.text }]}>{interest}</Text>
+                  </View>
+                ))}
+              </View>
+            </Card>
+          ) : null}
 
           {/* Details */}
           <Card style={styles.section}>
@@ -387,33 +558,74 @@ export default function ProfileViewScreen() {
           </Card>
 
           {/* Reviews */}
-          <Card style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Reviews</Text>
-              <TouchableOpacity onPress={() => router.push({ pathname: '/reviews/[id]', params: { id: profile.id } })}>
-                <Text style={[styles.seeAll, { color: colors.primary }]}>See All</Text>
-              </TouchableOpacity>
-            </View>
-            {profile.reviews.slice(0, 3).map((review: any) => (
-              <View key={review.id} style={[styles.review, { borderBottomColor: colors.border }]}>
-                <View style={styles.reviewHeader}>
-                  <Text style={[styles.reviewName, { color: colors.text }]}>{review.name}</Text>
-                  <View style={styles.reviewRating}>
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Icon
-                        key={star}
-                        name="star"
-                        size={12}
-                        color={star <= review.rating ? colors.accent : colors.border}
-                      />
-                    ))}
-                  </View>
-                </View>
-                <Text style={[styles.reviewText, { color: colors.textSecondary }]}>"{review.text}"</Text>
-                <Text style={[styles.reviewDate, { color: colors.textSecondary }]}>{review.date}</Text>
+          {(profile.reviews.length > 0 || profile.reviewCount > 0) ? (
+            <Card style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>Reviews ({profile.reviewCount})</Text>
+                <TouchableOpacity onPress={() => router.push(`/reviews/${profile.id}`)}
+                  accessibilityLabel="See all reviews"
+                  accessibilityRole="button"
+                >
+                  <Text style={[styles.seeAll, { color: colors.primary }]}>See All</Text>
+                </TouchableOpacity>
               </View>
-            ))}
-          </Card>
+              {profile.reviews.length > 0 ? (
+                profile.reviews.slice(0, 3).map((review: any) => (
+                  <View key={review.id} style={[styles.review, { borderBottomColor: colors.border }]}>
+                    <View style={styles.reviewHeader}>
+                      <Text style={[styles.reviewName, { color: colors.text }]}>{review.name}</Text>
+                      <View style={styles.reviewRating}>
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Icon
+                            key={star}
+                            name="star"
+                            size={12}
+                            color={star <= review.rating ? colors.accent : colors.border}
+                          />
+                        ))}
+                      </View>
+                    </View>
+                    {review.text ? (
+                      <Text style={[styles.reviewText, { color: colors.textSecondary }]}>"{review.text}"</Text>
+                    ) : null}
+                    <Text style={[styles.reviewDate, { color: colors.textSecondary }]}>{review.date}</Text>
+                  </View>
+                ))
+              ) : profile.reviewCount > 0 ? (
+                // Show mock reviews when reviewCount > 0 but no detailed reviews available
+                MOCK_REVIEWS.map((review) => (
+                  <View key={review.id} style={[styles.review, { borderBottomColor: colors.border }]}>
+                    <View style={styles.reviewHeader}>
+                      <Text style={[styles.reviewName, { color: colors.text }]}>{review.name}</Text>
+                      <View style={styles.reviewRating}>
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Icon
+                            key={star}
+                            name="star"
+                            size={12}
+                            color={star <= review.rating ? colors.accent : colors.border}
+                          />
+                        ))}
+                      </View>
+                    </View>
+                    {review.text ? (
+                      <Text style={[styles.reviewText, { color: colors.textSecondary }]}>"{review.text}"</Text>
+                    ) : null}
+                    <Text style={[styles.reviewDate, { color: colors.textSecondary }]}>{review.date}</Text>
+                  </View>
+                ))
+              ) : (
+                <View style={{ alignItems: 'center', paddingVertical: spacing.md }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs }}>
+                    <Icon name="star" size={16} color={colors.accent} />
+                    <Text style={[styles.statValue, { color: colors.text, marginLeft: spacing.xs }]}>{profile.rating}</Text>
+                    <Text style={[styles.statLabel, { color: colors.textSecondary }]}> based on {profile.reviewCount} {profile.reviewCount === 1 ? 'review' : 'reviews'}</Text>
+                  </View>
+                  <Text style={[styles.bio, { color: colors.textSecondary, textAlign: 'center' }]}>Detailed reviews are not available yet</Text>
+                </View>
+              )}
+            </Card>
+          ) : null}
 
           {/* Spacer for bottom buttons */}
           <View style={{ height: 100 }} />
@@ -430,7 +642,7 @@ export default function ProfileViewScreen() {
           testID="profile-view-message-btn"
         />
         <Button
-          title={`Book Date • $${profile.hourlyRate}/hr`}
+          title={`Book Date • $${profile.hourlyRate ?? 0}/hr`}
           onPress={handleBookDate}
           style={styles.bookButton}
           testID="profile-view-book-btn"
@@ -448,11 +660,15 @@ export default function ProfileViewScreen() {
           style={styles.menuOverlay}
           activeOpacity={1}
           onPress={() => setMenuVisible(false)}
+          accessibilityLabel="Close menu"
+          accessibilityRole="button"
         >
           <View style={[styles.menuContainer, { backgroundColor: colors.white }]}>
             <TouchableOpacity
               style={[styles.menuItem, { borderBottomColor: colors.border }]}
               onPress={handleBlockUser}
+              accessibilityLabel="Block user"
+              accessibilityRole="button"
             >
               <Icon name="slash" size={20} color={colors.error} />
               <Text style={[styles.menuItemText, { color: colors.error }]}>Block User</Text>
@@ -463,6 +679,8 @@ export default function ProfileViewScreen() {
                 setMenuVisible(false);
                 setReportModalVisible(true);
               }}
+              accessibilityLabel="Report user"
+              accessibilityRole="button"
             >
               <Icon name="flag" size={20} color={colors.textSecondary} />
               <Text style={[styles.menuItemText, { color: colors.text }]}>Report User</Text>
@@ -501,6 +719,9 @@ export default function ProfileViewScreen() {
                     selectedReason === reason.id && { borderColor: colors.primary, backgroundColor: colors.primary + '10' },
                   ]}
                   onPress={() => setSelectedReason(reason.id)}
+                  accessibilityLabel={reason.label}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: selectedReason === reason.id }}
                 >
                   <View style={[
                     styles.reportReasonRadio,
@@ -556,11 +777,22 @@ export default function ProfileViewScreen() {
           <TouchableOpacity
             style={[styles.modalClose, { top: insets.top + spacing.sm }]}
             onPress={() => setPhotoModalVisible(false)}
+            accessibilityLabel="Close photo"
+            accessibilityRole="button"
           >
             <Icon name="x" size={24} color={colors.white} />
           </TouchableOpacity>
-          <View style={[styles.modalPhoto, { backgroundColor: colors.surface }]}>
-            <UserImage name={profile.name} size={200} />
+          <View style={[styles.modalPhoto, { width: photoWidth - spacing.xl * 2, height: photoWidth - spacing.xl * 2, backgroundColor: colors.surface }]}>
+            {profile.photos[currentPhotoIndex]?.url ? (
+              <Image
+                source={{ uri: profile.photos[currentPhotoIndex].url }}
+                style={styles.modalImage}
+                contentFit="contain"
+                transition={250}
+              />
+            ) : (
+              <UserImage name={profile.name} size={200} />
+            )}
             <Text style={[styles.modalPhotoText, { color: colors.textSecondary }]}>
               Photo {currentPhotoIndex + 1} of {profile.photos.length}
             </Text>
@@ -587,17 +819,20 @@ export default function ProfileViewScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    ...(Platform.OS === 'web' ? { position: 'relative' as any } : {}),
   },
   scrollView: {
     flex: 1,
   },
   photoContainer: {
-    width: width,
-    height: width * 1.1,
     position: 'relative',
   },
   photoWrapper: {
     flex: 1,
+  },
+  heroImage: {
+    width: '100%',
+    height: '100%',
   },
   photo: {
     flex: 1,
@@ -645,6 +880,22 @@ const styles = StyleSheet.create({
   backButton: {
     position: 'absolute',
     left: spacing.lg,
+    width: 44,
+    height: 44,
+    borderRadius: borderRadius.sm,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.border,
+    shadowColor: '#000000',
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 3,
+  },
+  shareButton: {
+    position: 'absolute',
+    left: spacing.lg + 52,
     width: 44,
     height: 44,
     borderRadius: borderRadius.sm,
@@ -812,7 +1063,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
-    borderRadius: borderRadius.full,
+    borderRadius: borderRadius.sm,
   },
   verified: {
     fontFamily: typography.fonts.bodySemiBold,
@@ -823,6 +1074,36 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: spacing.xs,
+  },
+  onlineStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: spacing.xs,
+    gap: spacing.xs,
+  },
+  onlineDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  onlineText: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.sm,
+  },
+  notifyOnlineButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    marginTop: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.sm,
+    borderWidth: 1,
+    gap: spacing.xs,
+  },
+  notifyOnlineText: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.xs,
   },
   location: {
     fontFamily: typography.fonts.body,
@@ -848,6 +1129,15 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     marginLeft: spacing.xs,
   },
+  newBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: borderRadius.xs,
+  },
+  newBadgeText: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.sm,
+  },
   rateBadge: {
     flexDirection: 'row',
     alignItems: 'baseline',
@@ -867,6 +1157,46 @@ const styles = StyleSheet.create({
   },
   section: {
     marginBottom: spacing.md,
+  },
+  packageItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+  },
+  packageIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.md,
+  },
+  packageDetails: {
+    flex: 1,
+  },
+  packageTitle: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.md,
+    fontWeight: '600',
+  },
+  packageMeta: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.sm,
+    marginTop: 2,
+  },
+  packagePriceWrap: {
+    alignItems: 'flex-end',
+    marginLeft: spacing.sm,
+  },
+  packagePriceText: {
+    fontFamily: typography.fonts.heading,
+    fontSize: typography.sizes.lg,
+    fontWeight: '700',
+  },
+  packagePriceLabel: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.xs,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -898,7 +1228,7 @@ const styles = StyleSheet.create({
   tag: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    borderRadius: borderRadius.full,
+    borderRadius: borderRadius.sm,
   },
   tagText: {
     fontFamily: typography.fonts.body,
@@ -962,6 +1292,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     borderTopWidth: 1,
     gap: spacing.md,
+    zIndex: 10,
   },
   messageButton: {
     flex: 1,
@@ -984,11 +1315,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalPhoto: {
-    width: width - spacing.xl * 2,
-    height: width - spacing.xl * 2,
     borderRadius: borderRadius.lg,
     justifyContent: 'center',
     alignItems: 'center',
+    overflow: 'hidden',
+  },
+  modalImage: {
+    width: '100%',
+    height: '100%',
   },
   modalPhotoText: {
     fontFamily: typography.fonts.body,

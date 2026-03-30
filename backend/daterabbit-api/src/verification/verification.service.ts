@@ -17,7 +17,7 @@ import { UploadsService } from '../uploads/uploads.service';
 import { SubmitSsnDto } from './dto/submit-ssn.dto';
 import { SubmitReferencesDto } from './dto/submit-references.dto';
 import { SubmitConsentDto } from './dto/submit-consent.dto';
-import { UserRole } from '../users/entities/user.entity';
+import { UserRole, UserVerificationStatus } from '../users/entities/user.entity';
 
 @Injectable()
 export class VerificationService {
@@ -80,13 +80,10 @@ export class VerificationService {
     const verification = await this.getOrFail(userId);
 
     if (verification.idPhotoUrl) {
-      this.uploadsService.deleteFile(verification.idPhotoUrl);
+      await this.uploadsService.deleteFile(verification.idPhotoUrl);
     }
 
-    verification.idPhotoUrl = this.uploadsService.getFileUrl(
-      'id-photos',
-      file.filename,
-    );
+    verification.idPhotoUrl = await this.uploadsService.uploadFile(file, 'id-photos');
     return this.verificationRepository.save(verification);
   }
 
@@ -98,13 +95,10 @@ export class VerificationService {
     const verification = await this.getOrFail(userId);
 
     if (verification.selfieUrl) {
-      this.uploadsService.deleteFile(verification.selfieUrl);
+      await this.uploadsService.deleteFile(verification.selfieUrl);
     }
 
-    verification.selfieUrl = this.uploadsService.getFileUrl(
-      'selfies',
-      file.filename,
-    );
+    verification.selfieUrl = await this.uploadsService.uploadFile(file, 'selfies');
     return this.verificationRepository.save(verification);
   }
 
@@ -121,13 +115,10 @@ export class VerificationService {
     this.uploadsService.validateVideoFile(file);
 
     if (verification.videoUrl) {
-      this.uploadsService.deleteFile(verification.videoUrl);
+      await this.uploadsService.deleteFile(verification.videoUrl);
     }
 
-    verification.videoUrl = this.uploadsService.getFileUrl(
-      'videos',
-      file.filename,
-    );
+    verification.videoUrl = await this.uploadsService.uploadFile(file, 'videos');
     return this.verificationRepository.save(verification);
   }
 
@@ -218,7 +209,10 @@ export class VerificationService {
 
     verification.status = VerificationStatus.APPROVED;
     await this.verificationRepository.save(verification);
-    await this.usersService.update(userId, { isVerified: true });
+    await this.usersService.update(userId, {
+      isVerified: true,
+      verificationStatus: UserVerificationStatus.APPROVED,
+    });
   }
 
   private async getOrFail(userId: string): Promise<Verification> {

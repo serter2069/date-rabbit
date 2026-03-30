@@ -2,6 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Message, Conversation } from './entities/message.entity';
+import { BookingsService } from '../bookings/bookings.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '../notifications/entities/notification.entity';
+import { sanitizeText } from '../common/sanitize';
+
+// Max messages a seeker can send to a companion before booking
+const PRE_CHAT_LIMIT = 3;
 
 @Injectable()
 export class MessagesService {
@@ -10,6 +17,8 @@ export class MessagesService {
     private messagesRepository: Repository<Message>,
     @InjectRepository(Conversation)
     private conversationsRepository: Repository<Conversation>,
+    private bookingsService: BookingsService,
+    private notificationsService: NotificationsService,
   ) {}
 
   async getOrCreateConversation(user1Id: string, user2Id: string): Promise<Conversation> {
@@ -39,7 +48,7 @@ export class MessagesService {
     const message = this.messagesRepository.create({
       senderId,
       receiverId,
-      content,
+      content: sanitizeText(content),
     });
 
     const saved = await this.messagesRepository.save(message);
@@ -50,6 +59,19 @@ export class MessagesService {
       lastMessageAt: saved.createdAt,
     });
 
+    // Create notification for receiver (non-blocking)
+    try {
+      await this.notificationsService.create({
+        userId: receiverId,
+        type: NotificationType.NEW_MESSAGE,
+        title: 'New Message',
+        body: content.length > 100 ? content.slice(0, 100) + '...' : content,
+        data: { senderId, conversationId: conversation.id },
+      });
+    } catch {
+      // Notification failure must NOT break message delivery
+    }
+
     return saved;
   }
 
@@ -59,7 +81,7 @@ export class MessagesService {
         { user1Id: userId },
         { user2Id: userId },
       ],
-      relations: ['user1', 'user2'],
+      relations: ['user1', 'user2', 'lastMessage'],
       order: { lastMessageAt: 'DESC' },
     });
   }
@@ -87,5 +109,51 @@ export class MessagesService {
     return this.messagesRepository.count({
       where: { receiverId: userId, isRead: false },
     });
+  }
+
+  /**
+   * UC-037: Check if seeker can send pre-chat message to companion.
+   * Returns status indicating whether the seeker can send messages
+   * before creating a booking. Limit is lifted when companion replies.
+   */
+  async getPreChatStatus(
+    seekerId: string,
+    companionId: string,
+  ): Promise<{
+    hasBooking: boolean;
+    companionReplied: boolean;
+    messageCount: number;
+    canSend: boolean;
+    messagesLeft: number;
+  }> {
+    // Check if any booking exists between these users
+    const hasBooking = await this.bookingsService.hasAnyBooking(seekerId, companionId);
+    if (hasBooking) {
+      return { hasBooking: true, companionReplied: false, messageCount: 0, canSend: true, messagesLeft: PRE_CHAT_LIMIT };
+    }
+
+    // Check if companion has replied (companion sent message to seeker)
+    const companionReplyCount = await this.messagesRepository.count({
+      where: { senderId: companionId, receiverId: seekerId },
+    });
+    const companionReplied = companionReplyCount > 0;
+
+    if (companionReplied) {
+      // Companion replied — no limit applies
+      return { hasBooking: false, companionReplied: true, messageCount: 0, canSend: true, messagesLeft: PRE_CHAT_LIMIT };
+    }
+
+    // Count messages sent by seeker to companion
+    const messageCount = await this.messagesRepository.count({
+      where: { senderId: seekerId, receiverId: companionId },
+    });
+
+    return {
+      hasBooking: false,
+      companionReplied: false,
+      messageCount,
+      canSend: messageCount < PRE_CHAT_LIMIT,
+      messagesLeft: Math.max(0, PRE_CHAT_LIMIT - messageCount),
+    };
   }
 }

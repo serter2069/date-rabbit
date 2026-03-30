@@ -118,6 +118,7 @@ export class PaymentsService {
     const paymentIntent = await this.stripe.paymentIntents.create({
       amount,
       currency: 'usd',
+      capture_method: 'manual',
       application_fee_amount: platformFee,
       transfer_data: {
         destination: companion.stripeAccountId,
@@ -134,6 +135,73 @@ export class PaymentsService {
     });
 
     return { clientSecret: paymentIntent.client_secret! };
+  }
+
+  // --- Capture / Cancel (escrow) ---
+
+  async capturePayment(bookingId: string): Promise<void> {
+    const booking = await this.bookingsRepo.findOne({ where: { id: bookingId } });
+    if (!booking?.paymentIntentId) return;
+    this.ensureStripe();
+    try {
+      await this.stripe.paymentIntents.capture(booking.paymentIntentId);
+    } catch (err: any) {
+      // already captured or cancelled — log but don't throw
+      console.error('Stripe capture error:', err.message);
+    }
+  }
+
+  async cancelPaymentHold(bookingId: string): Promise<void> {
+    const booking = await this.bookingsRepo.findOne({ where: { id: bookingId } });
+    if (!booking?.paymentIntentId) return;
+    this.ensureStripe();
+    try {
+      const pi = await this.stripe.paymentIntents.retrieve(booking.paymentIntentId);
+      if (pi.status === 'requires_capture') {
+        // Cancel the hold (no charge)
+        await this.stripe.paymentIntents.cancel(booking.paymentIntentId);
+      } else if (pi.status === 'succeeded') {
+        // Already captured — create refund
+        await this.stripe.refunds.create({ payment_intent: booking.paymentIntentId });
+      }
+      // other statuses (canceled, etc.) — do nothing
+    } catch (err: any) {
+      console.error('Stripe cancel/refund error:', err.message);
+    }
+  }
+
+  // --- Partial refund for end-early ---
+
+  async partialRefundForEndEarly(bookingId: string, actualHours: number): Promise<void> {
+    const booking = await this.bookingsRepo.findOne({ where: { id: bookingId } });
+    if (!booking?.paymentIntentId) return;
+
+    const totalPrice = Number(booking.totalPrice);
+    const bookedDuration = Number(booking.duration);
+
+    // No refund if ended at or beyond booked duration
+    if (actualHours >= bookedDuration) return;
+
+    const refundFraction = 1 - actualHours / bookedDuration;
+    const refundAmountCents = Math.round(totalPrice * refundFraction * 100);
+
+    // Stripe minimum charge is 50 cents
+    if (refundAmountCents < 50) return;
+
+    if (!this.stripe) return; // Stripe not configured — skip silently
+
+    try {
+      const pi = await this.stripe.paymentIntents.retrieve(booking.paymentIntentId);
+      if (pi.status === 'succeeded') {
+        await this.stripe.refunds.create({
+          payment_intent: booking.paymentIntentId,
+          amount: refundAmountCents,
+        });
+      }
+      // requires_capture or other status — refund not applicable
+    } catch (err: any) {
+      console.error('Stripe partial refund error for end-early:', err.message);
+    }
   }
 
   // --- Earnings ---
@@ -325,6 +393,91 @@ export class PaymentsService {
         createdAt: new Date(p.created * 1000).toISOString(),
       })),
     };
+  }
+
+  // --- Payment Methods (saved cards via SetupIntent) ---
+
+  private async getOrCreateStripeCustomer(userId: string): Promise<string> {
+    this.ensureStripe();
+    const user = await this.usersRepo.findOne({ where: { id: userId } });
+    if (!user) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+
+    if (user.stripeCustomerId) {
+      return user.stripeCustomerId;
+    }
+
+    const customer = await this.stripe.customers.create({
+      email: user.email,
+      name: user.name,
+      metadata: { userId: user.id },
+    });
+
+    await this.usersRepo.update(userId, { stripeCustomerId: customer.id });
+    return customer.id;
+  }
+
+  async createSetupIntent(userId: string): Promise<{ clientSecret: string }> {
+    this.ensureStripe();
+    const customerId = await this.getOrCreateStripeCustomer(userId);
+
+    const setupIntent = await this.stripe.setupIntents.create({
+      customer: customerId,
+      payment_method_types: ['card'],
+      usage: 'off_session',
+    });
+
+    return { clientSecret: setupIntent.client_secret! };
+  }
+
+  async listPaymentMethods(userId: string): Promise<{
+    paymentMethods: {
+      id: string;
+      brand: string;
+      last4: string;
+      expMonth: number;
+      expYear: number;
+    }[];
+  }> {
+    this.ensureStripe();
+    const user = await this.usersRepo.findOne({ where: { id: userId } });
+    if (!user?.stripeCustomerId) {
+      return { paymentMethods: [] };
+    }
+
+    const pms = await this.stripe.paymentMethods.list({
+      customer: user.stripeCustomerId,
+      type: 'card',
+    });
+
+    return {
+      paymentMethods: pms.data.map((pm) => ({
+        id: pm.id,
+        brand: pm.card?.brand ?? 'unknown',
+        last4: pm.card?.last4 ?? '****',
+        expMonth: pm.card?.exp_month ?? 0,
+        expYear: pm.card?.exp_year ?? 0,
+      })),
+    };
+  }
+
+  async deletePaymentMethod(
+    userId: string,
+    paymentMethodId: string,
+  ): Promise<{ success: boolean }> {
+    this.ensureStripe();
+    const user = await this.usersRepo.findOne({ where: { id: userId } });
+    if (!user?.stripeCustomerId) {
+      throw new HttpException('No payment account found', HttpStatus.NOT_FOUND);
+    }
+
+    // Verify ownership: PM must belong to this user's customer (IDOR protection)
+    const pm = await this.stripe.paymentMethods.retrieve(paymentMethodId);
+    if (pm.customer !== user.stripeCustomerId) {
+      throw new HttpException('Payment method not found', HttpStatus.NOT_FOUND);
+    }
+
+    await this.stripe.paymentMethods.detach(paymentMethodId);
+    return { success: true };
   }
 
   // --- Webhooks ---

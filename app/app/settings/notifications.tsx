@@ -29,12 +29,13 @@ export default function NotificationsSettingsScreen() {
   const { user, updateProfile } = useAuthStore();
 
   const [permissionStatus, setPermissionStatus] = useState<'granted' | 'denied' | 'undetermined'>('undetermined');
+  const prefs = user?.notificationPreferences ?? { bookings: true, messages: true, reminders: true, payments: true };
   const [masterEnabled, setMasterEnabled] = useState(user?.notificationsEnabled ?? true);
   const [settings, setSettings] = useState<NotificationSetting[]>([
-    { id: 'bookings', title: 'Booking Updates', description: 'New requests, acceptances, and cancellations', enabled: true },
-    { id: 'messages', title: 'New Messages', description: 'When someone sends you a message', enabled: true },
-    { id: 'reminders', title: 'Date Reminders', description: 'Reminders before upcoming dates', enabled: true },
-    { id: 'payments', title: 'Payment Updates', description: 'Payment confirmations and earnings', enabled: true },
+    { id: 'bookings', title: 'Booking Updates', description: 'New requests, acceptances, and cancellations', enabled: prefs.bookings },
+    { id: 'messages', title: 'New Messages', description: 'When someone sends you a message', enabled: prefs.messages },
+    { id: 'reminders', title: 'Date Reminders', description: 'Reminders before upcoming dates', enabled: prefs.reminders },
+    { id: 'payments', title: 'Payment Updates', description: 'Payment confirmations and earnings', enabled: prefs.payments },
   ]);
 
   useEffect(() => {
@@ -63,20 +64,40 @@ export default function NotificationsSettingsScreen() {
   };
 
   const toggleMaster = async (value: boolean) => {
+    const prev = masterEnabled;
     setMasterEnabled(value);
-    await updateProfile({ notificationsEnabled: value });
+    const result = await updateProfile({ notificationsEnabled: value });
+    if (!result.success) {
+      setMasterEnabled(prev);
+      showAlert('Error', result.error || 'Failed to update notification settings.');
+    }
   };
 
-  const toggleSetting = (id: string) => {
-    setSettings(prev =>
-      prev.map(s => (s.id === id ? { ...s, enabled: !s.enabled } : s))
-    );
+  const toggleSetting = async (id: string) => {
+    const prevSettings = [...settings];
+    const updated = settings.map(s => (s.id === id ? { ...s, enabled: !s.enabled } : s));
+    setSettings(updated);
+
+    const newPrefs = {
+      bookings: updated.find(s => s.id === 'bookings')!.enabled,
+      messages: updated.find(s => s.id === 'messages')!.enabled,
+      reminders: updated.find(s => s.id === 'reminders')!.enabled,
+      payments: updated.find(s => s.id === 'payments')!.enabled,
+    };
+    const result = await updateProfile({ notificationPreferences: newPrefs });
+    if (!result.success) {
+      setSettings(prevSettings);
+      showAlert('Error', result.error || 'Failed to update notification preferences.');
+    }
   };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm, backgroundColor: colors.white, borderBottomColor: colors.border }]}>
-        <TouchableOpacity style={[styles.backButton, { backgroundColor: colors.surface }]} onPress={() => router.back()}>
+        <TouchableOpacity style={[styles.backButton, { backgroundColor: colors.surface }]} onPress={() => router.back()}
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+        >
           <Icon name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.text }]}>Notifications</Text>
@@ -100,6 +121,8 @@ export default function NotificationsSettingsScreen() {
             <TouchableOpacity
               style={[styles.enableButton, { backgroundColor: colors.warning }]}
               onPress={requestPermission}
+              accessibilityLabel="Enable notifications"
+              accessibilityRole="button"
             >
               <Text style={[styles.enableButtonText, { color: colors.white }]}>Enable Notifications</Text>
             </TouchableOpacity>

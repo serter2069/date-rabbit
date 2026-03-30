@@ -53,7 +53,10 @@ export default function DeleteAccountScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm, backgroundColor: colors.white, borderBottomColor: colors.border }]}>
-        <TouchableOpacity style={[styles.backButton, { backgroundColor: colors.surface }]} onPress={() => router.back()}>
+        <TouchableOpacity style={[styles.backButton, { backgroundColor: colors.surface }]} onPress={() => router.back()}
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+        >
           <Icon name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, { color: colors.error }]}>Delete Account</Text>
@@ -135,6 +138,8 @@ export default function DeleteAccountScreen() {
         <TouchableOpacity
           style={styles.cancelLink}
           onPress={() => router.back()}
+          accessibilityLabel="Keep my account"
+          accessibilityRole="button"
         >
           <Text style={[styles.cancelText, { color: colors.textSecondary }]}>
             Keep my account

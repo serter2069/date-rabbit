@@ -7,8 +7,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Alert,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../src/store/authStore';
 import { Button } from '../../src/components/Button';
@@ -18,13 +19,15 @@ import { colors, spacing, typography, borderRadius, PAGE_PADDING } from '../../s
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
+  const { role } = useLocalSearchParams<{ role?: string }>();
   const { startAuth, isLoading, error, clearError, authStep } = useAuthStore();
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
+  const isSeeker = role === 'seeker';
 
   useEffect(() => {
     if (authStep === 'otp') {
-      router.push('/(auth)/otp');
+      router.push(`/(auth)/otp?email=${encodeURIComponent(email.trim().toLowerCase())}${role ? `&role=${role}` : ''}`);
     }
   }, [authStep]);
 
@@ -48,28 +51,17 @@ export default function LoginScreen() {
     const result = await startAuth(email.trim().toLowerCase());
 
     if (!result.success) {
-      const { setUser, setOnboardingSeen } = useAuthStore.getState();
-
-      const demoUser = {
-        id: 'demo-' + Date.now(),
-        email: email.trim().toLowerCase(),
-        name: email.split('@')[0],
-        role: 'seeker' as 'seeker' | 'companion',
-        age: 28,
-        location: 'New York',
-        bio: '',
-        photos: [] as { id: string; url: string; order: number; isPrimary: boolean }[],
-        rating: 5.0,
-        reviewCount: 0,
-        isVerified: false,
-        createdAt: new Date().toISOString(),
-      };
-
-      setUser(demoUser);
-      setOnboardingSeen();
-      router.replace('/male');
+      setEmailError(result.error || 'Failed to send code. Please try again.');
       return;
     }
+  };
+
+  const handleGoogleLogin = () => {
+    Alert.alert(
+      'Coming Soon',
+      'Google login will be available in a future update.',
+      [{ text: 'OK' }]
+    );
   };
 
   return (
@@ -89,17 +81,27 @@ export default function LoginScreen() {
         {/* Back button */}
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => router.back()}
+          onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace('/(auth)/welcome');
+            }
+          }}
           testID="login-back-btn"
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
         >
           <Icon name="arrow-left" size={20} color={colors.text} />
         </TouchableOpacity>
 
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Welcome back</Text>
+          <Text style={styles.title}>{isSeeker ? 'Find Companions' : 'Welcome back'}</Text>
           <Text style={styles.subtitle}>
-            Enter your email to sign in or create an account
+            {isSeeker
+              ? 'Sign in to browse and book verified companions'
+              : 'Enter your email to sign in or create an account'}
           </Text>
         </View>
 
@@ -135,6 +137,16 @@ export default function LoginScreen() {
           testID="login-continue-btn"
         />
 
+        {/* Trouble signing in */}
+        <TouchableOpacity
+          style={styles.troubleLink}
+          onPress={() => router.push('/(auth)/forgot-password')}
+          accessibilityRole="button"
+          testID="login-trouble-btn"
+        >
+          <Text style={styles.troubleLinkText}>Trouble signing in?</Text>
+        </TouchableOpacity>
+
         {/* Divider */}
         <View style={styles.divider}>
           <View style={styles.dividerLine} />
@@ -145,7 +157,7 @@ export default function LoginScreen() {
         {/* Social login */}
         <Button
           title="Continue with Google"
-          onPress={() => {}}
+          onPress={handleGoogleLogin}
           variant="secondary"
           fullWidth
           size="lg"
@@ -210,5 +222,16 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     color: colors.textLight,
     paddingHorizontal: spacing.md,
+  },
+  troubleLink: {
+    alignItems: 'center',
+    marginTop: spacing.md,
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  troubleLinkText: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.sm,
+    color: colors.textMuted,
   },
 });

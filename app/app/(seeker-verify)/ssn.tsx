@@ -23,7 +23,7 @@ export default function SeekerSSNScreen() {
   const insets = useSafeAreaInsets();
   const [ssn, setSsn] = useState('');
   const [error, setError] = useState('');
-  const { submitSSN, isLoading } = useVerificationStore();
+  const { submitSSN, isLoading, error: apiError } = useVerificationStore();
 
   const handleContinue = async () => {
     if (ssn.length !== 4) {
@@ -31,8 +31,11 @@ export default function SeekerSSNScreen() {
       return;
     }
     setError('');
-    await submitSSN(ssn);
-    // Navigate forward regardless — API may fail for demo users
+    const success = await submitSSN(ssn);
+    if (!success) {
+      setError(apiError || 'Failed to submit SSN. Please try again.');
+      return;
+    }
     router.push('/(seeker-verify)/photo-id');
   };
 

@@ -46,7 +46,10 @@ function DigitBox({
   }));
 
   return (
-    <Pressable onPress={onPress} style={styles.digitPressable}>
+    <Pressable onPress={onPress} style={styles.digitPressable}
+      accessibilityLabel={digit ? `SSN digit ${isMasked ? 'hidden' : digit}` : 'SSN digit empty'}
+      accessibilityRole="button"
+    >
       <AnimatedView style={[styles.digitBox, animatedStyle]}>
         {digit ? (
           isMasked ? (

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { showAlert, showConfirm } from '../../../src/utils/alert';
@@ -11,6 +11,7 @@ import { EmptyState } from '../../../src/components/EmptyState';
 import { useTheme, spacing, typography, borderRadius } from '../../../src/constants/theme';
 import { useBookingsStore } from '../../../src/store/bookingsStore';
 import { Booking } from '../../../src/services/api';
+import * as Haptics from 'expo-haptics';
 
 type TabType = 'pending' | 'accepted' | 'completed';
 
@@ -68,7 +69,7 @@ export default function RequestsScreen() {
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleDateString(undefined, {
       weekday: 'short',
       month: 'short',
       day: 'numeric',
@@ -92,8 +93,16 @@ export default function RequestsScreen() {
               { backgroundColor: colors.surface },
               activeTab === tab && { backgroundColor: colors.primary },
             ]}
-            onPress={() => setActiveTab(tab)}
+            onPress={() => {
+              if (Platform.OS !== 'web') {
+                Haptics.selectionAsync();
+              }
+              setActiveTab(tab);
+            }}
             testID={`requests-tab-${tab}`}
+            accessibilityLabel={`${tab.charAt(0).toUpperCase() + tab.slice(1)} requests`}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: activeTab === tab }}
           >
             <Text style={[
               styles.tabText,
@@ -157,6 +166,17 @@ function RequestCard({ request, type, colors, onAccept, onDecline, formatDate }:
         <UserImage name={seeker.name} uri={seeker.photo} size={56} />
         <View style={styles.cardInfo}>
           <Text style={[styles.cardName, { color: colors.text }]}>{seeker.name}</Text>
+          {request.seekerRating && request.seekerRating.count > 0 && (
+            <View style={styles.seekerRatingRow}>
+              <Text style={styles.seekerRatingStars}>
+                {'★'.repeat(Math.round(request.seekerRating.average))}
+                {'☆'.repeat(5 - Math.round(request.seekerRating.average))}
+              </Text>
+              <Text style={[styles.seekerRatingCount, { color: colors.textSecondary }]}>
+                ({request.seekerRating.count})
+              </Text>
+            </View>
+          )}
           <Text style={[styles.cardActivity, { color: colors.text }]}>{request.activity || 'Date'}</Text>
           <Text style={[styles.cardDate, { color: colors.textSecondary }]}>{formatDate(request.date)} • {request.duration}h</Text>
         </View>
@@ -195,17 +215,34 @@ function RequestCard({ request, type, colors, onAccept, onDecline, formatDate }:
         <View style={styles.actions}>
           <Button
             title="Message"
-            onPress={() => router.push({
-              pathname: '/chat/[id]',
-              params: { id: request.seeker.id, name: request.seeker.name },
-            })}
+            onPress={() => router.push(`/chat/${request.seeker.id}?name=${encodeURIComponent(request.seeker.name)}`)}
             variant="outline"
             size="sm"
             style={{ flex: 1 }}
           />
+          {request.isPaid ? (
+            <Button
+              title="Start Date"
+              onPress={() => router.push(`/date/companion-checkin/${request.id}`)}
+              size="sm"
+              style={{ flex: 1 }}
+            />
+          ) : (
+            <Button
+              title="View Details"
+              onPress={() => router.push(`/booking/${request.id}`)}
+              size="sm"
+              style={{ flex: 1 }}
+            />
+          )}
+        </View>
+      )}
+
+      {request.status === 'active' && (
+        <View style={styles.actions}>
           <Button
-            title="View Details"
-            onPress={() => router.push(`/booking/${request.id}`)}
+            title="Resume Date"
+            onPress={() => router.push(`/date/active/${request.id}`)}
             size="sm"
             style={{ flex: 1 }}
           />
@@ -217,6 +254,13 @@ function RequestCard({ request, type, colors, onAccept, onDecline, formatDate }:
           <Text style={[styles.ratingText, { color: colors.textSecondary }]}>
             {request.isPaid ? 'Payment received' : 'Awaiting payment'}
           </Text>
+          <Button
+            title="View Summary"
+            onPress={() => router.push(`/date/summary/${request.id}`)}
+            variant="outline"
+            size="sm"
+            style={{ marginTop: spacing.sm, alignSelf: 'stretch' }}
+          />
         </View>
       )}
     </Card>
@@ -274,6 +318,20 @@ const styles = StyleSheet.create({
   cardName: {
     fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.md,
+  },
+  seekerRatingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+    gap: 4,
+  },
+  seekerRatingStars: {
+    fontSize: typography.sizes.sm,
+    color: '#FF2A5F',
+  },
+  seekerRatingCount: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.xs,
   },
   cardActivity: {
     fontFamily: typography.fonts.body,

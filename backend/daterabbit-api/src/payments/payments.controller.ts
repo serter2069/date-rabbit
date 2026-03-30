@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Delete,
   Body,
   Param,
   Query,
@@ -11,6 +12,7 @@ import {
   Req,
   HttpException,
   HttpStatus,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import type { Request as ExpressRequest } from 'express';
 import { SkipThrottle } from '@nestjs/throttler';
@@ -41,7 +43,7 @@ export class PaymentsController {
   @UseGuards(JwtAuthGuard)
   async createPaymentIntent(
     @Request() req,
-    @Param('bookingId') bookingId: string,
+    @Param('bookingId', ParseUUIDPipe) bookingId: string,
   ) {
     return this.paymentsService.createPaymentIntent(req.user.id, bookingId);
   }
@@ -77,6 +79,11 @@ export class PaymentsController {
   @Post('payouts/create')
   @UseGuards(JwtAuthGuard)
   async createPayout(@Request() req, @Body() body: { amount?: number }) {
+    if (body.amount !== undefined) {
+      if (typeof body.amount !== 'number' || body.amount <= 0) {
+        throw new HttpException('Amount must be a positive number', HttpStatus.BAD_REQUEST);
+      }
+    }
     return this.paymentsService.createPayout(req.user.id, body.amount);
   }
 
@@ -87,6 +94,29 @@ export class PaymentsController {
     @Query('limit') limit = 10,
   ) {
     return this.paymentsService.getPayoutHistory(req.user.id, +limit);
+  }
+
+  // --- Payment Methods ---
+
+  @Post('methods/setup')
+  @UseGuards(JwtAuthGuard)
+  async createSetupIntent(@Request() req) {
+    return this.paymentsService.createSetupIntent(req.user.id);
+  }
+
+  @Get('methods')
+  @UseGuards(JwtAuthGuard)
+  async listPaymentMethods(@Request() req) {
+    return this.paymentsService.listPaymentMethods(req.user.id);
+  }
+
+  @Delete('methods/:paymentMethodId')
+  @UseGuards(JwtAuthGuard)
+  async deletePaymentMethod(
+    @Request() req,
+    @Param('paymentMethodId') paymentMethodId: string,
+  ) {
+    return this.paymentsService.deletePaymentMethod(req.user.id, paymentMethodId);
   }
 }
 

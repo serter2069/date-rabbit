@@ -1,24 +1,27 @@
 // API Client for DateRabbit Backend
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { Verification, VerificationReference } from '../types';
+import * as SecureStore from 'expo-secure-store';
+import type { Verification, VerificationReference, PreChatStatus } from '../types';
+import { useNetworkStore } from '../store/networkStore';
 
 const API_BASE_URL = 'https://daterabbit-api.smartlaunchhub.com/api';
+const API_TIMEOUT_MS = 10_000; // 10 seconds
 
-// Token management
+// Token management — stored in SecureStore (iOS Keychain / Android Keystore)
+const TOKEN_KEY = 'authToken';
 let authToken: string | null = null;
 
 export async function getToken(): Promise<string | null> {
   if (authToken) return authToken;
-  authToken = await AsyncStorage.getItem('authToken');
+  authToken = await SecureStore.getItemAsync(TOKEN_KEY);
   return authToken;
 }
 
 export async function setToken(token: string | null): Promise<void> {
   authToken = token;
   if (token) {
-    await AsyncStorage.setItem('authToken', token);
+    await SecureStore.setItemAsync(TOKEN_KEY, token);
   } else {
-    await AsyncStorage.removeItem('authToken');
+    await SecureStore.deleteItemAsync(TOKEN_KEY);
   }
 }
 
@@ -56,11 +59,31 @@ export async function apiRequest<T>(
     }
   }
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    method,
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  // 10-second timeout to prevent infinite loading states
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+      signal: controller.signal,
+    });
+  } catch (err: any) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') {
+      throw new ApiError('Request timed out. Please try again.', 408);
+    }
+    // Network error (no connection, DNS failure, etc.)
+    useNetworkStore.getState().setOffline();
+    throw new ApiError('Network error. Please check your connection.', 0);
+  }
+  clearTimeout(timeoutId);
+
+  // Successful network response — mark as online
+  useNetworkStore.getState().setOnline();
 
   const data = await response.json().catch(() => ({}));
 
@@ -107,6 +130,9 @@ export const authApi = {
 
 // Users API
 export const usersApi = {
+  heartbeat: () =>
+    apiRequest<{ success: boolean }>('/users/heartbeat', { method: 'PATCH' }),
+
   getMe: () =>
     apiRequest<User>('/users/me'),
 
@@ -114,18 +140,6 @@ export const usersApi = {
     apiRequest<User>('/users/me', {
       method: 'PUT',
       body: data,
-    }),
-
-  updateLocation: (latitude: number, longitude: number) =>
-    apiRequest<{ success: boolean }>('/users/me/location', {
-      method: 'PATCH',
-      body: { latitude, longitude },
-    }),
-
-  savePushToken: (pushToken: string) =>
-    apiRequest<{ success: boolean }>('/users/me/push-token', {
-      method: 'POST',
-      body: { pushToken },
     }),
 
   blockUser: (userId: string, reason?: string) =>
@@ -164,6 +178,57 @@ export const usersApi = {
       method: 'POST',
       body: { reason, description },
     }),
+
+  getFavorites: () =>
+    apiRequest<{ favorites: string[] }>('/users/favorites'),
+
+  addFavorite: (companionId: string) =>
+    apiRequest<{ success: boolean }>(`/users/favorites/${companionId}`, {
+      method: 'POST',
+    }),
+
+  removeFavorite: (companionId: string) =>
+    apiRequest<{ success: boolean }>(`/users/favorites/${companionId}`, {
+      method: 'DELETE',
+    }),
+
+  watchOnline: (companionId: string) =>
+    apiRequest<{ success: boolean }>(`/users/${companionId}/watch-online`, {
+      method: 'POST',
+    }),
+
+  unwatchOnline: (companionId: string) =>
+    apiRequest<{ success: boolean }>(`/users/${companionId}/watch-online`, {
+      method: 'DELETE',
+    }),
+
+  getWatchedOnline: () =>
+    apiRequest<{ watchedIds: string[] }>('/users/watch-online'),
+
+  uploadProfilePhoto: async (uri: string): Promise<{ url: string }> => {
+    const token = await getToken();
+    const formData = new FormData();
+    const extension = uri.split('.').pop()?.split('?')[0] || 'jpg';
+    const mimeType = `image/${extension === 'jpg' ? 'jpeg' : extension}`;
+    formData.append('file', {
+      uri,
+      type: mimeType,
+      name: `profile-photo.${extension}`,
+    } as unknown as Blob);
+    const response = await fetch(`${API_BASE_URL}/users/me/photos/upload`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
+      },
+      body: formData,
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new ApiError(data.message || 'Photo upload failed', response.status);
+    }
+    return data;
+  },
 };
 
 // Companions API
@@ -174,12 +239,13 @@ export interface SearchCompanionsParams {
   minRating?: number;
   ageMin?: number;
   ageMax?: number;
-  sortBy?: 'recommended' | 'price_low' | 'price_high' | 'rating' | 'distance';
+  sortBy?: 'recommended' | 'price_low' | 'price_high' | 'rating' | 'distance' | 'new';
   latitude?: number;
   longitude?: number;
   search?: string;
   page?: number;
   limit?: number;
+  activityTypes?: string[];
 }
 
 export interface CompanionListItem {
@@ -193,6 +259,8 @@ export interface CompanionListItem {
   isVerified: boolean;
   primaryPhoto?: string;
   distance?: number;
+  shortBio?: string;
+  lastSeen?: string | null;
 }
 
 export interface CompanionDetail extends CompanionListItem {
@@ -200,6 +268,8 @@ export interface CompanionDetail extends CompanionListItem {
   photos: { id: string; url: string; order: number }[];
   interests?: string[];
   languages?: string[];
+  reviews?: { id: string; name: string; rating: number; text: string; date: string }[];
+  lastSeen?: string | null;
   createdAt: string;
 }
 
@@ -213,12 +283,17 @@ export interface CompanionsResponse {
 export const companionsApi = {
   search: (params: SearchCompanionsParams = {}) => {
     const query = new URLSearchParams();
-    Object.entries(params).forEach(([key, value]) => {
+    const { activityTypes, ...rest } = params;
+    Object.entries(rest).forEach(([key, value]) => {
       if (value !== undefined) {
         query.append(key, String(value));
       }
     });
-    return apiRequest<CompanionsResponse>(`/companions?${query}`, { auth: false });
+    // Serialize activityTypes as a single comma-separated param (only if non-empty)
+    if (activityTypes && activityTypes.length > 0) {
+      query.append('activityTypes', activityTypes.join(','));
+    }
+    return apiRequest<CompanionsResponse>(`/companions?${query}`);
   },
 
   getById: (id: string, latitude?: number, longitude?: number) => {
@@ -227,8 +302,7 @@ export const companionsApi = {
     if (longitude !== undefined) query.append('longitude', String(longitude));
     const queryStr = query.toString();
     return apiRequest<CompanionDetail>(
-      `/companions/${id}${queryStr ? `?${queryStr}` : ''}`,
-      { auth: false }
+      `/companions/${id}${queryStr ? `?${queryStr}` : ''}`
     );
   },
 };
@@ -239,6 +313,8 @@ export type BookingStatus =
   | 'accepted'
   | 'declined'
   | 'confirmed'
+  | 'checkin_ready'
+  | 'active'
   | 'cancelled'
   | 'completed';
 
@@ -250,6 +326,7 @@ export interface Booking {
   duration: number;
   location?: string;
   message?: string;
+  cancellationReason?: string;
   hourlyRate: number;
   subtotal: number;
   platformFee: number;
@@ -267,6 +344,7 @@ export interface Booking {
     photo?: string;
     rating: number;
   };
+  seekerRating?: { average: number; count: number } | null;
   createdAt: string;
 }
 
@@ -279,6 +357,7 @@ export interface CreateBookingData {
   latitude?: number;
   longitude?: number;
   notes?: string;
+  packageId?: string;
 }
 
 export const bookingsApi = {
@@ -288,8 +367,27 @@ export const bookingsApi = {
       body: data,
     }),
 
-  getById: (id: string) =>
-    apiRequest<Booking>(`/bookings/${id}`),
+  getById: async (id: string) => {
+    const b = await apiRequest<any>(`/bookings/${id}`);
+    // Normalize companion to always have safe defaults, even if API returns undefined or {}
+    const rawCompanion = b.companion ?? {};
+    return {
+      ...b,
+      date: b.date ?? b.dateTime,
+      total: typeof b.total === 'number' ? b.total : parseFloat(b.totalPrice ?? b.total ?? '0'),
+      subtotal: typeof b.subtotal === 'number' ? b.subtotal : parseFloat(b.subtotal ?? '0'),
+      platformFee: typeof b.platformFee === 'number' ? b.platformFee : parseFloat(b.platformFee ?? '0'),
+      hourlyRate: typeof b.hourlyRate === 'number' ? b.hourlyRate : parseFloat(b.hourlyRate ?? rawCompanion.hourlyRate ?? '0'),
+      companionEarnings: typeof b.companionEarnings === 'number' ? b.companionEarnings : parseFloat(b.companionEarnings ?? '0'),
+      isPaid: b.isPaid ?? false,
+      companion: {
+        id: rawCompanion.id ?? '',
+        name: rawCompanion.name ?? '',
+        rating: rawCompanion.rating ?? 0,
+        photo: rawCompanion.photo ?? rawCompanion.photos?.[0]?.url ?? null,
+      },
+    } as Booking;
+  },
 
   getMyBookings: async (filter: 'all' | 'pending' | 'upcoming' | 'past' = 'all', page = 1) => {
     const response = await apiRequest<
@@ -302,20 +400,26 @@ export const bookingsApi = {
       : [...(response.asSeeker || []), ...(response.asCompanion || [])];
 
     // Normalize field names (API may send dateTime/totalPrice instead of date/total)
-    const bookings = raw.map((b: any) => ({
-      ...b,
-      date: b.date ?? b.dateTime,
-      total: typeof b.total === 'number' ? b.total : parseFloat(b.totalPrice ?? b.total ?? '0'),
-      subtotal: typeof b.subtotal === 'number' ? b.subtotal : parseFloat(b.subtotal ?? '0'),
-      platformFee: typeof b.platformFee === 'number' ? b.platformFee : parseFloat(b.platformFee ?? '0'),
-      hourlyRate: typeof b.hourlyRate === 'number' ? b.hourlyRate : parseFloat(b.hourlyRate ?? b.companion?.hourlyRate ?? '0'),
-      companionEarnings: typeof b.companionEarnings === 'number' ? b.companionEarnings : parseFloat(b.companionEarnings ?? '0'),
-      isPaid: b.isPaid ?? false,
-      companion: {
-        ...b.companion,
-        photo: b.companion?.photo ?? b.companion?.photos?.[0]?.url,
-      },
-    }));
+    // companion is always normalized to a safe object with defaults so callers never crash
+    const bookings = raw.map((b: any) => {
+      const rawCompanion = b.companion ?? {};
+      return {
+        ...b,
+        date: b.date ?? b.dateTime,
+        total: typeof b.total === 'number' ? b.total : parseFloat(b.totalPrice ?? b.total ?? '0'),
+        subtotal: typeof b.subtotal === 'number' ? b.subtotal : parseFloat(b.subtotal ?? '0'),
+        platformFee: typeof b.platformFee === 'number' ? b.platformFee : parseFloat(b.platformFee ?? '0'),
+        hourlyRate: typeof b.hourlyRate === 'number' ? b.hourlyRate : parseFloat(b.hourlyRate ?? rawCompanion.hourlyRate ?? '0'),
+        companionEarnings: typeof b.companionEarnings === 'number' ? b.companionEarnings : parseFloat(b.companionEarnings ?? '0'),
+        isPaid: b.isPaid ?? false,
+        companion: {
+          id: rawCompanion.id ?? '',
+          name: rawCompanion.name ?? '',
+          rating: rawCompanion.rating ?? 0,
+          photo: rawCompanion.photo ?? rawCompanion.photos?.[0]?.url ?? null,
+        },
+      };
+    });
 
     return { bookings, total: 'bookings' in response ? (response as any).total : bookings.length };
   },
@@ -333,7 +437,7 @@ export const bookingsApi = {
 
   complete: (id: string) =>
     apiRequest<Booking>(`/bookings/${id}/complete`, {
-      method: 'POST',
+      method: 'PUT',
     }),
 
   createReview: (id: string, rating: number, comment?: string) =>
@@ -360,6 +464,7 @@ export interface Chat {
     name: string;
     photos?: any[];
   };
+  lastMessage?: string | null;
   lastMessageAt?: string;
   unreadCount?: number;
 }
@@ -379,6 +484,9 @@ export const messagesApi = {
 
   getUnreadCount: () =>
     apiRequest<{ count: number }>('/messages/unread-count'),
+
+  getPreChatStatus: (userId: string) =>
+    apiRequest<PreChatStatus>(`/messages/${userId}/pre-chat`),
 };
 
 // Payments API
@@ -448,44 +556,25 @@ export const paymentsApi = {
         createdAt: string;
       }[];
     }>(`/payments/payouts/history?limit=${limit}`),
-};
 
-// Media API
-export const mediaApi = {
-  uploadPhoto: async (uri: string): Promise<{ id: string; url: string }> => {
-    const token = await getToken();
-    const formData = new FormData();
-
-    // Get file extension
-    const extension = uri.split('.').pop() || 'jpg';
-    const type = `image/${extension === 'jpg' ? 'jpeg' : extension}`;
-
-    formData.append('photo', {
-      uri,
-      type,
-      name: `photo.${extension}`,
-    } as unknown as Blob);
-
-    const response = await fetch(`${API_BASE_URL}/media/photos`, {
+  createSetupIntent: () =>
+    apiRequest<{ clientSecret: string }>('/payments/methods/setup', {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'multipart/form-data',
-      },
-      body: formData,
-    });
+    }),
 
-    const data = await response.json();
+  listPaymentMethods: () =>
+    apiRequest<{
+      paymentMethods: {
+        id: string;
+        brand: string;
+        last4: string;
+        expMonth: number;
+        expYear: number;
+      }[];
+    }>('/payments/methods'),
 
-    if (!response.ok) {
-      throw new ApiError(data.message || 'Upload failed', response.status);
-    }
-
-    return data;
-  },
-
-  deletePhoto: (id: string) =>
-    apiRequest<{ success: boolean }>(`/media/photos/${id}`, {
+  deletePaymentMethod: (paymentMethodId: string) =>
+    apiRequest<{ success: boolean }>(`/payments/methods/${paymentMethodId}`, {
       method: 'DELETE',
     }),
 };
@@ -534,7 +623,7 @@ export const verificationApi = {
     const formData = new FormData();
     const extension = uri.split('.').pop() || 'jpg';
     const type = `image/${extension === 'jpg' ? 'jpeg' : extension}`;
-    formData.append('photo', {
+    formData.append('file', {
       uri,
       type,
       name: `id-photo.${extension}`,
@@ -559,7 +648,7 @@ export const verificationApi = {
     const formData = new FormData();
     const extension = uri.split('.').pop() || 'jpg';
     const type = `image/${extension === 'jpg' ? 'jpeg' : extension}`;
-    formData.append('photo', {
+    formData.append('file', {
       uri,
       type,
       name: `selfie.${extension}`,
@@ -584,7 +673,7 @@ export const verificationApi = {
     const formData = new FormData();
     const extension = uri.split('.').pop() || 'mp4';
     const type = `video/${extension}`;
-    formData.append('video', {
+    formData.append('file', {
       uri,
       type,
       name: `video.${extension}`,
@@ -620,6 +709,77 @@ export const verificationApi = {
     apiRequest<Verification>('/verification/submit', { method: 'POST' }),
 };
 
+// Referral API
+export const referralApi = {
+  getMyCode: () =>
+    apiRequest<{ code: string }>('/referral/my-code'),
+
+  applyCode: (code: string) =>
+    apiRequest<{ success: boolean; message: string }>('/referral/apply', {
+      method: 'POST',
+      body: { code },
+    }),
+
+  getMyBonus: () =>
+    apiRequest<{ hasBgcDiscount: boolean; discountPercent: number }>('/referral/my-bonus'),
+
+  getMyStats: () =>
+    apiRequest<{ invited: number; credited: number }>('/referral/my-stats'),
+};
+
+// Packages API
+export interface DatePackageTemplate {
+  id: string;
+  slug: string;
+  name: string;
+  nameRu: string;
+  description: string;
+  descriptionRu: string;
+  defaultDuration: number;
+  defaultActivity: string;
+  icon: string;
+}
+
+export interface DatePackage {
+  id: string;
+  companionId: string;
+  templateId: string;
+  price: number;
+  customDescription?: string;
+  isActive: boolean;
+  template?: DatePackageTemplate;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const packagesApi = {
+  getTemplates: () =>
+    apiRequest<DatePackageTemplate[]>('/packages/templates'),
+
+  getCompanionPackages: (companionId: string) =>
+    apiRequest<DatePackage[]>(`/packages/companion/${companionId}`),
+
+  getMyPackages: () =>
+    apiRequest<DatePackage[]>('/packages/my'),
+
+  createPackage: (data: { templateId: string; price: number; customDescription?: string }) =>
+    apiRequest<DatePackage>('/packages/my', {
+      method: 'POST',
+      body: data,
+    }),
+
+  updatePackage: (id: string, data: { price?: number; customDescription?: string; isActive?: boolean }) =>
+    apiRequest<DatePackage>(`/packages/my/${id}`, {
+      method: 'PUT',
+      body: data,
+    }),
+
+  deletePackage: (id: string) =>
+    apiRequest<{ success: boolean }>(`/packages/my/${id}`, {
+      method: 'DELETE',
+    }),
+};
+
 // Types
 export interface User {
   id: string;
@@ -639,5 +799,12 @@ export interface User {
   photos?: { id: string; url: string; order: number; isPrimary: boolean }[];
   stripeOnboardingComplete?: boolean;
   expoPushToken?: string;
+  notificationsEnabled?: boolean;
+  notificationPreferences?: {
+    bookings: boolean;
+    messages: boolean;
+    reminders: boolean;
+    payments: boolean;
+  };
   createdAt: string;
 }

@@ -4,7 +4,7 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany,
+  DeleteDateColumn,
 } from 'typeorm';
 
 export enum UserRole {
@@ -40,8 +40,17 @@ export class User {
   @Column({ nullable: true })
   location: string;
 
+  @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
+  latitude: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
+  longitude: number;
+
   @Column({ type: 'text', nullable: true })
   bio: string;
+
+  @Column({ type: 'jsonb', default: [] })
+  interests: string[];
 
   @Column({ type: 'jsonb', default: [] })
   photos: { id: string; url: string; order: number; isPrimary: boolean }[];
@@ -49,7 +58,7 @@ export class User {
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
   hourlyRate: number;
 
-  @Column({ type: 'decimal', precision: 2, scale: 1, default: 5.0 })
+  @Column({ type: 'decimal', precision: 2, scale: 1, default: 0, nullable: true })
   rating: number;
 
   @Column({ default: 0 })
@@ -68,11 +77,40 @@ export class User {
   @Column({ default: true })
   isActive: boolean;
 
+  @Column({ default: false })
+  isAdmin: boolean;
+
   @Column({ nullable: true })
   stripeAccountId: string;
 
   @Column({ default: false })
   stripeOnboardingComplete: boolean;
+
+  @Column({ nullable: true })
+  stripeCustomerId: string;
+
+  @Column({ default: true })
+  notificationsEnabled: boolean;
+
+  @Column({ type: 'varchar', nullable: true })
+  expoPushToken: string;
+
+  @Column({ type: 'simple-json', nullable: true })
+  notificationPreferences: {
+    bookings: boolean;
+    messages: boolean;
+    reminders: boolean;
+    payments: boolean;
+  };
+
+  @Column({ type: 'timestamp', nullable: true })
+  lastSeen: Date;
+
+  @Column({ type: 'varchar', unique: true, nullable: true })
+  referralCode: string;
+
+  @Column({ type: 'uuid', nullable: true })
+  referredBy: string;
 
   @Column({ nullable: true })
   otpCode: string;
@@ -85,4 +123,8 @@ export class User {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  // Soft delete timestamp - set when account is deactivated
+  @DeleteDateColumn({ nullable: true })
+  deletedAt: Date;
 }

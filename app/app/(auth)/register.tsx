@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,15 +7,72 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Modal,
+  FlatList,
+  Image,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+
+// Web-only: native <select> for birth year (RN Modal doesn't work well on web)
+const WebYearSelect = Platform.OS === 'web'
+  ? ({ value, years, onChange, hasError }: {
+      value: string;
+      years: number[];
+      onChange: (val: string) => void;
+      hasError: boolean;
+    }) => {
+      const selectStyle = {
+        width: '100%' as const,
+        height: 52,
+        border: `1px solid ${hasError ? colors.error : colors.border}`,
+        borderRadius: 12,
+        backgroundColor: colors.surface,
+        paddingLeft: 16,
+        paddingRight: 16,
+        fontSize: 16,
+        color: value ? colors.text : colors.textLight,
+        fontFamily: typography.fonts.body,
+        appearance: 'none' as const,
+        WebkitAppearance: 'none' as const,
+        backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%23999%27 stroke-width=%272%27%3e%3cpolyline points=%276 9 12 15 18 9%27/%3e%3c/svg%3e")',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'right 12px center',
+        backgroundSize: '20px',
+        cursor: 'pointer' as const,
+        outline: 'none',
+      };
+      return (
+        // @ts-ignore - web-only DOM element
+        <select
+          value={value}
+          onChange={(e: any) => onChange(e.target.value)}
+          style={selectStyle}
+        >
+          <option value="">Select</option>
+          {years.map((year: number) => (
+            <option key={year} value={year.toString()}>{year}</option>
+          ))}
+        </select>
+      );
+    }
+  : null;
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../src/store/authStore';
+import { usersApi } from '../../src/services/api';
 import { Button } from '../../src/components/Button';
 import { Input } from '../../src/components/Input';
 import { Icon } from '../../src/components/Icon';
-import { colors, spacing, typography, borderRadius, PAGE_PADDING } from '../../src/constants/theme';
+import { colors, spacing, typography, borderRadius, borderWidth, shadows, PAGE_PADDING } from '../../src/constants/theme';
 import type { UserRole } from '../../src/types';
+
+const CURRENT_YEAR = new Date().getFullYear();
+const MIN_YEAR = 1950;
+const MAX_YEAR = CURRENT_YEAR - 18;
+const BIRTH_YEARS = Array.from(
+  { length: MAX_YEAR - MIN_YEAR + 1 },
+  (_, i) => MAX_YEAR - i,
+);
 
 export default function RegisterScreen() {
   const insets = useSafeAreaInsets();
@@ -29,8 +86,28 @@ export default function RegisterScreen() {
     location: '',
     hourlyRate: '',
   });
+  const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showFormError, setShowFormError] = useState(false);
+  const [yearPickerVisible, setYearPickerVisible] = useState(false);
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  const pickAvatar = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.85,
+    });
+    if (!result.canceled && result.assets[0]?.uri) {
+      setAvatarUri(result.assets[0].uri);
+    }
+  };
 
   const isFemale = role === 'companion';
 
@@ -44,19 +121,23 @@ export default function RegisterScreen() {
     }
 
     if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
+      newErrors.email = 'Enter a valid email';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Invalid email format';
+      newErrors.email = 'Enter a valid email';
     }
 
     if (!formData.birthYear.trim()) {
-      newErrors.birthYear = 'Birth year is required';
+      newErrors.birthYear = 'Select birth year';
     } else {
       const year = parseInt(formData.birthYear);
       const currentYear = new Date().getFullYear();
-      if (isNaN(year) || year < 1900 || year > currentYear - 18) {
+      if (isNaN(year) || year < MIN_YEAR || year > currentYear - 18) {
         newErrors.birthYear = 'You must be at least 18 years old';
       }
+    }
+
+    if (!formData.location.trim()) {
+      newErrors.location = 'Select your city';
     }
 
     if (isFemale) {
@@ -73,7 +154,12 @@ export default function RegisterScreen() {
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const isValid = Object.keys(newErrors).length === 0;
+    setShowFormError(!isValid);
+    if (!isValid) {
+      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+    }
+    return isValid;
   };
 
   const handleRegister = async () => {
@@ -95,24 +181,20 @@ export default function RegisterScreen() {
     const result = await completeOnboarding(onboardingData);
 
     if (!result.success) {
-      const { setUser, setOnboardingSeen } = useAuthStore.getState();
-      setUser({
-        id: 'demo-' + Date.now(),
-        email: formData.email,
-        name: formData.name,
-        role: (role || 'seeker') as 'seeker' | 'companion',
-        age: onboardingData.age,
-        location: formData.location || 'New York',
-        bio: '',
-        photos: [] as { id: string; url: string; order: number; isPrimary: boolean }[],
-        hourlyRate: onboardingData.hourlyRate,
-        rating: 5.0,
-        reviewCount: 0,
-        isVerified: false,
-        verificationStatus: 'not_started',
-        createdAt: new Date().toISOString(),
-      });
-      setOnboardingSeen();
+      setLoading(false);
+      setErrors({ form: result.error || 'Registration failed. Please try again.' });
+      setShowFormError(true);
+      scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+      return;
+    }
+
+    // Non-blocking avatar upload after auth is established
+    if (avatarUri) {
+      try {
+        await usersApi.uploadProfilePhoto(avatarUri);
+      } catch {
+        // Avatar upload failure should not block registration
+      }
     }
 
     setLoading(false);
@@ -127,7 +209,13 @@ export default function RegisterScreen() {
 
   const updateField = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    setErrors(prev => ({ ...prev, [field]: '' }));
+    setErrors(prev => {
+      const updated = { ...prev, [field]: '' };
+      // Hide banner when all errors are cleared
+      const hasErrors = Object.values(updated).some(v => v);
+      if (!hasErrors) setShowFormError(false);
+      return updated;
+    });
   };
 
   return (
@@ -136,6 +224,7 @@ export default function RegisterScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
+        ref={scrollViewRef}
         style={styles.scrollView}
         contentContainerStyle={[
           styles.scrollContent,
@@ -149,6 +238,8 @@ export default function RegisterScreen() {
           style={styles.backButton}
           onPress={() => router.back()}
           testID="register-back-btn"
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
         >
           <Icon name="arrow-left" size={20} color={colors.text} />
         </TouchableOpacity>
@@ -163,6 +254,37 @@ export default function RegisterScreen() {
             }
           </Text>
         </View>
+
+        {/* Avatar picker */}
+        <TouchableOpacity
+          style={styles.avatarContainer}
+          onPress={pickAvatar}
+          activeOpacity={0.7}
+          accessibilityLabel={avatarUri ? 'Change profile photo' : 'Add profile photo'}
+          accessibilityRole="button"
+          testID="register-avatar-picker"
+        >
+          {avatarUri ? (
+            <Image source={{ uri: avatarUri }} style={styles.avatarImage} />
+          ) : (
+            <View style={styles.avatarPlaceholder}>
+              <Icon name="camera" size={24} color={colors.textLight} />
+            </View>
+          )}
+          <Text style={styles.avatarHint}>
+            {avatarUri ? 'Change photo' : 'Add photo'}
+          </Text>
+        </TouchableOpacity>
+
+        {/* Validation error banner */}
+        {showFormError && Object.keys(errors).length > 0 && (
+          <View style={styles.errorBanner} testID="register-error-banner">
+            <Icon name="alert-circle" size={18} color={colors.error} />
+            <Text style={styles.errorBannerText}>
+              Please fix the highlighted fields below
+            </Text>
+          </View>
+        )}
 
         {/* Form */}
         <View style={styles.form}>
@@ -187,21 +309,46 @@ export default function RegisterScreen() {
             keyboardType="email-address"
             autoCapitalize="none"
             leftIcon={<Icon name="mail" size={20} color={colors.textLight} />}
+            hint="We'll email you a one-time code to sign in. No password needed."
             testID="register-email-input"
           />
 
           <View style={styles.row}>
             <View style={styles.halfWidth}>
-              <Input
-                label="Birth Year"
-                placeholder="1995"
-                value={formData.birthYear}
-                onChangeText={(v) => updateField('birthYear', v)}
-                error={errors.birthYear}
-                keyboardType="number-pad"
-                maxLength={4}
-                leftIcon={<Icon name="calendar" size={20} color={colors.textLight} />}
-              />
+              <Text style={styles.pickerLabel}>Birth Year</Text>
+              {Platform.OS === 'web' && WebYearSelect ? (
+                <WebYearSelect
+                  value={formData.birthYear}
+                  years={BIRTH_YEARS}
+                  onChange={(val) => updateField('birthYear', val)}
+                  hasError={!!errors.birthYear}
+                />
+              ) : (
+                <TouchableOpacity
+                  style={[
+                    styles.yearPickerTrigger,
+                    errors.birthYear ? styles.yearPickerTriggerError : null,
+                  ]}
+                  onPress={() => setYearPickerVisible(true)}
+                  activeOpacity={0.7}
+                  accessibilityLabel={formData.birthYear ? `Birth year: ${formData.birthYear}` : 'Select birth year'}
+                  accessibilityRole="button"
+                >
+                  <Icon name="calendar" size={20} color={colors.textLight} />
+                  <Text
+                    style={[
+                      styles.yearPickerText,
+                      !formData.birthYear && styles.yearPickerPlaceholder,
+                    ]}
+                  >
+                    {formData.birthYear || 'Select'}
+                  </Text>
+                  <Icon name="arrow-down" size={16} color={colors.textLight} />
+                </TouchableOpacity>
+              )}
+              {errors.birthYear ? (
+                <Text style={styles.yearPickerError}>{errors.birthYear}</Text>
+              ) : null}
             </View>
 
             <View style={styles.halfWidth}>
@@ -210,6 +357,7 @@ export default function RegisterScreen() {
                 placeholder="City"
                 value={formData.location}
                 onChangeText={(v) => updateField('location', v)}
+                error={errors.location}
                 leftIcon={<Icon name="map-pin" size={20} color={colors.textLight} />}
               />
             </View>
@@ -224,7 +372,7 @@ export default function RegisterScreen() {
                 onChangeText={(v) => updateField('hourlyRate', v)}
                 error={errors.hourlyRate}
                 keyboardType="number-pad"
-                hint="You can change this later. Platform fee is 15%."
+                hint="You can change this later"
                 leftIcon={<Icon name="dollar" size={20} color={colors.textLight} />}
               />
             </View>
@@ -248,6 +396,66 @@ export default function RegisterScreen() {
           <Text style={styles.termsLink} onPress={() => router.push('/privacy')}>Privacy Policy</Text>
         </Text>
       </ScrollView>
+
+      {/* Birth Year Picker Modal (native only -- web uses <select>) */}
+      {Platform.OS !== 'web' && (
+        <Modal
+          visible={yearPickerVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setYearPickerVisible(false)}
+        >
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setYearPickerVisible(false)}
+            accessibilityLabel="Close year picker"
+            accessibilityRole="button"
+          >
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Birth Year</Text>
+                <TouchableOpacity onPress={() => setYearPickerVisible(false)}
+                  accessibilityLabel="Close"
+                  accessibilityRole="button"
+                >
+                  <Icon name="x" size={24} color={colors.text} />
+                </TouchableOpacity>
+              </View>
+              <FlatList
+                data={BIRTH_YEARS}
+                keyExtractor={(item) => item.toString()}
+                style={styles.yearList}
+                showsVerticalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={[
+                      styles.yearItem,
+                      formData.birthYear === item.toString() && styles.yearItemSelected,
+                    ]}
+                    onPress={() => {
+                      updateField('birthYear', item.toString());
+                      setYearPickerVisible(false);
+                    }}
+                    accessibilityLabel={`Year ${item}`}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: formData.birthYear === item.toString() }}
+                  >
+                    <Text
+                      style={[
+                        styles.yearItemText,
+                        formData.birthYear === item.toString() && styles.yearItemTextSelected,
+                      ]}
+                    >
+                      {item}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              />
+            </View>
+          </TouchableOpacity>
+        </Modal>
+      )}
     </KeyboardAvoidingView>
   );
 }
@@ -287,6 +495,52 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     lineHeight: 24,
   },
+  avatarContainer: {
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  avatarImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: borderWidth.normal,
+    borderColor: colors.border,
+  },
+  avatarPlaceholder: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.surface,
+    borderWidth: borderWidth.normal,
+    borderColor: colors.border,
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarHint: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.xs,
+    color: colors.textMuted,
+    marginTop: spacing.xs,
+  },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF0F0',
+    borderWidth: 1,
+    borderColor: colors.error,
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.sm + 2,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.lg,
+    gap: spacing.sm,
+  },
+  errorBannerText: {
+    fontFamily: typography.fonts.bodyMedium,
+    fontSize: typography.sizes.sm,
+    color: colors.error,
+    flex: 1,
+  },
   form: {
     marginBottom: spacing.lg,
   },
@@ -309,5 +563,99 @@ const styles = StyleSheet.create({
   termsLink: {
     fontFamily: typography.fonts.bodyMedium,
     color: colors.secondary,
+  },
+  // Year picker trigger
+  pickerLabel: {
+    fontFamily: typography.fonts.heading,
+    fontSize: typography.sizes.xs,
+    color: colors.text,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: spacing.xs,
+  },
+  yearPickerTrigger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface,
+    borderWidth: borderWidth.normal,
+    borderColor: colors.border,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.md,
+    height: 52,
+    gap: spacing.sm,
+    ...shadows.sm,
+  },
+  yearPickerTriggerError: {
+    borderColor: colors.error,
+  },
+  yearPickerText: {
+    flex: 1,
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.md,
+    color: colors.text,
+  },
+  yearPickerPlaceholder: {
+    color: colors.textLight,
+  },
+  yearPickerError: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.xs,
+    color: colors.error,
+    marginTop: spacing.xs,
+  },
+  // Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.lg,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 360,
+    maxHeight: 420,
+    backgroundColor: colors.surface,
+    borderWidth: borderWidth.normal,
+    borderColor: colors.border,
+    borderRadius: borderRadius.lg,
+    ...shadows.lg,
+    overflow: 'hidden',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    borderBottomWidth: borderWidth.thin,
+    borderBottomColor: colors.border,
+  },
+  modalTitle: {
+    fontFamily: typography.fonts.heading,
+    fontSize: typography.sizes.lg,
+    color: colors.text,
+  },
+  yearList: {
+    maxHeight: 360,
+  },
+  yearItem: {
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+  },
+  yearItemSelected: {
+    backgroundColor: colors.primary,
+  },
+  yearItemText: {
+    fontFamily: typography.fonts.bodyMedium,
+    fontSize: typography.sizes.md,
+    color: colors.text,
+    textAlign: 'center',
+  },
+  yearItemTextSelected: {
+    color: colors.textInverse,
+    fontFamily: typography.fonts.heading,
   },
 });

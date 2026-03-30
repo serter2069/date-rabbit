@@ -1,5 +1,15 @@
 export type UserRole = 'seeker' | 'companion';
 
+export enum ActivityType {
+  COFFEE = 'coffee',
+  DINNER = 'dinner',
+  DRINKS = 'drinks',
+  EVENTS = 'events',
+  MUSEUMS = 'museums',
+  WALK = 'walk',
+  OTHER = 'other',
+}
+
 export type VerificationStatus = 'not_started' | 'in_progress' | 'pending_review' | 'approved' | 'rejected';
 export type VerificationType = 'seeker' | 'companion';
 
@@ -43,6 +53,12 @@ export interface User {
   stripeOnboardingComplete?: boolean;
   expoPushToken?: string;
   notificationsEnabled?: boolean;
+  notificationPreferences?: {
+    bookings: boolean;
+    messages: boolean;
+    reminders: boolean;
+    payments: boolean;
+  };
   latitude?: number;
   longitude?: number;
   createdAt: string;
@@ -113,6 +129,15 @@ export interface Chat {
     name: string;
     photos?: any[];
   };
+  lastMessage?: string | null;
   lastMessageAt?: string;
   unreadCount?: number;
+}
+
+export interface PreChatStatus {
+  hasBooking: boolean;
+  companionReplied: boolean;
+  messageCount: number;
+  canSend: boolean;
+  messagesLeft: number;
 }

@@ -1,10 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { UserImage } from '../../../src/components/UserImage';
 import { EmptyState } from '../../../src/components/EmptyState';
-import { useMessagesStore } from '../../../src/store/messagesStore';
+import { useMessagesStore, POLL_INTERVAL } from '../../../src/store/messagesStore';
 import { useTheme, spacing, typography } from '../../../src/constants/theme';
 import type { Chat } from '../../../src/types';
 
@@ -13,9 +13,20 @@ export default function MessagesScreen() {
   const { colors } = useTheme();
   const { chats, isLoading, fetchChats } = useMessagesStore();
 
-  useEffect(() => {
-    fetchChats();
-  }, []);
+  // Poll conversations every 10 seconds while screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      // Initial fetch (with loading spinner)
+      fetchChats();
+
+      // Poll every 10s silently (no loading spinner)
+      const interval = setInterval(() => {
+        fetchChats(true);
+      }, POLL_INTERVAL);
+
+      return () => clearInterval(interval);
+    }, [])
+  );
 
   const formatTime = (dateStr: string) => {
     const now = new Date();
@@ -32,10 +43,7 @@ export default function MessagesScreen() {
   };
 
   const handleOpenChat = (chat: Chat) => {
-    router.push({
-      pathname: '/chat/[id]',
-      params: { id: chat.otherUser.id, name: chat.otherUser.name },
-    });
+    router.push(`/chat/${chat.otherUser.id}?name=${encodeURIComponent(chat.otherUser.name)}`);
   };
 
   if (isLoading && chats.length === 0) {
@@ -58,6 +66,8 @@ export default function MessagesScreen() {
             icon="message-circle"
             title="No messages yet"
             description="Start booking dates to begin conversations with companions"
+            actionLabel="Browse Companions"
+            onAction={() => router.push('/(tabs)/male/browse')}
           />
         ) : (
           chats.map((chat) => (
@@ -66,6 +76,8 @@ export default function MessagesScreen() {
               style={[styles.conversationItem, { borderBottomColor: colors.border }]}
               onPress={() => handleOpenChat(chat)}
               testID={`messages-conversation-${chat.id}`}
+              accessibilityLabel={`Conversation with ${chat.otherUser.name}${(chat.unreadCount || 0) > 0 ? `, ${chat.unreadCount} unread` : ''}`}
+              accessibilityRole="button"
             >
               <UserImage
                 uri={chat.otherUser.photos?.[0]?.url}
@@ -91,7 +103,7 @@ export default function MessagesScreen() {
                     ]}
                     numberOfLines={1}
                   >
-                    {'No messages yet'}
+                    {chat.lastMessage || 'No messages yet'}
                   </Text>
                   {(chat.unreadCount || 0) > 0 && (
                     <View style={[styles.unreadBadge, { backgroundColor: colors.primary }]}>

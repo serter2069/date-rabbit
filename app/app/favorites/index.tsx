@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Card } from '../../src/components/Card';
@@ -10,6 +10,7 @@ import { EmptyState } from '../../src/components/EmptyState';
 import { useFavoritesStore } from '../../src/store/favoritesStore';
 import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
 import { companionsApi, CompanionDetail } from '../../src/services/api';
+import * as Haptics from 'expo-haptics';
 
 export default function FavoritesScreen() {
   const insets = useSafeAreaInsets();
@@ -50,6 +51,9 @@ export default function FavoritesScreen() {
   }, [fetchFavorites]);
 
   const handleToggleFavorite = (id: string) => {
+    if (Platform.OS !== 'web') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
     toggleFavorite(id);
     setFavoriteCompanions(prev => prev.filter(c => c.id !== id));
   };
@@ -57,7 +61,10 @@ export default function FavoritesScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm, backgroundColor: colors.white, borderBottomColor: colors.border }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+        >
           <Icon name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={[styles.title, { color: colors.text }]}>Favorites</Text>
@@ -85,7 +92,7 @@ export default function FavoritesScreen() {
             />
             <Button
               title="Browse Companions"
-              onPress={() => router.push('/(tabs)/male/browse')}
+              onPress={() => router.replace('/male/browse')}
               style={{ marginTop: spacing.lg }}
             />
           </View>
@@ -103,14 +110,24 @@ export default function FavoritesScreen() {
                       <Text style={[styles.cardLocation, { color: colors.textSecondary }]}> {companion.location || 'Location hidden'}</Text>
                     </View>
                     <View style={styles.ratingRow}>
-                      <Icon name="star" size={14} color={colors.accent} />
-                      <Text style={[styles.rating, { color: colors.text }]}> {companion.rating.toFixed(1)}</Text>
-                      <Text style={[styles.reviews, { color: colors.textSecondary }]}>({companion.reviewCount} reviews)</Text>
+                      {companion.reviewCount > 0 ? (
+                        <>
+                          <Icon name="star" size={14} color={colors.accent} />
+                          <Text style={[styles.rating, { color: colors.text }]}> {Number(companion.rating).toFixed(1)}</Text>
+                          <Text style={[styles.reviews, { color: colors.textSecondary }]}>({companion.reviewCount} reviews)</Text>
+                        </>
+                      ) : (
+                        <View style={[styles.newBadge, { backgroundColor: colors.primary + '15' }]}>
+                          <Text style={[styles.newBadgeText, { color: colors.primary }]}>New</Text>
+                        </View>
+                      )}
                     </View>
                   </View>
                   <TouchableOpacity
                     style={styles.heartButton}
                     onPress={() => handleToggleFavorite(companion.id)}
+                    accessibilityLabel={`Remove ${companion.name} from favorites`}
+                    accessibilityRole="button"
                   >
                     <Icon name="heart" size={24} color={colors.error} />
                   </TouchableOpacity>
@@ -128,14 +145,14 @@ export default function FavoritesScreen() {
                 <View style={styles.actions}>
                   <Button
                     title="View Profile"
-                    onPress={() => router.push({ pathname: '/profile/[id]', params: { id: companion.id } })}
+                    onPress={() => router.push(`/profile/${companion.id}`)}
                     variant="outline"
                     size="sm"
                     style={{ flex: 1 }}
                   />
                   <Button
                     title="Book Date"
-                    onPress={() => router.push({ pathname: '/booking/[id]', params: { id: companion.id } })}
+                    onPress={() => router.push(`/booking/${companion.id}`)}
                     size="sm"
                     style={{ flex: 1 }}
                   />
@@ -231,6 +248,15 @@ const styles = StyleSheet.create({
   reviews: {
     fontSize: typography.sizes.sm,
     marginLeft: spacing.xs,
+  },
+  newBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: borderRadius.xs,
+  },
+  newBadgeText: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.xs,
   },
   heartButton: {
     padding: spacing.sm,

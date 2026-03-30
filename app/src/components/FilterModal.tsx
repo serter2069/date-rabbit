@@ -8,8 +8,10 @@ import {
   ScrollView,
 } from 'react-native';
 import Slider from '@react-native-community/slider';
+import { X, Star } from 'lucide-react-native';
 import { Button } from './Button';
 import { colors, spacing, typography, borderRadius } from '../constants/theme';
+import { ActivityType } from '../types';
 
 export interface FilterOptions {
   priceRange: [number, number];
@@ -17,7 +19,8 @@ export interface FilterOptions {
   minRating: number;
   availability: 'any' | 'today' | 'this_week' | 'weekend';
   ageRange: [number, number];
-  sortBy: 'recommended' | 'price_low' | 'price_high' | 'rating' | 'distance';
+  sortBy: 'recommended' | 'price_low' | 'price_high' | 'rating' | 'distance' | 'new';
+  activityTypes: ActivityType[];
 }
 
 interface FilterModalProps {
@@ -30,11 +33,22 @@ interface FilterModalProps {
 const defaultFilters: FilterOptions = {
   priceRange: [50, 200],
   maxDistance: 25,
-  minRating: 4.0,
+  minRating: 0.0,
   availability: 'any',
   ageRange: [21, 45],
   sortBy: 'recommended',
+  activityTypes: [],
 };
+
+const activityTypeOptions: { value: ActivityType; label: string }[] = [
+  { value: ActivityType.COFFEE, label: 'Coffee' },
+  { value: ActivityType.DINNER, label: 'Dinner' },
+  { value: ActivityType.DRINKS, label: 'Drinks' },
+  { value: ActivityType.EVENTS, label: 'Events' },
+  { value: ActivityType.MUSEUMS, label: 'Museums' },
+  { value: ActivityType.WALK, label: 'Walk' },
+  { value: ActivityType.OTHER, label: 'Other' },
+];
 
 const availabilityOptions = [
   { value: 'any', label: 'Any time' },
@@ -49,6 +63,7 @@ const sortOptions = [
   { value: 'price_high', label: 'Price: High to Low' },
   { value: 'rating', label: 'Highest Rated' },
   { value: 'distance', label: 'Nearest First' },
+  { value: 'new', label: 'Newest First' },
 ] as const;
 
 export function FilterModal({
@@ -87,11 +102,17 @@ export function FilterModal({
     >
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={onClose} style={styles.closeButton} testID="filter-close-btn">
-            <Text style={styles.closeIcon}>✕</Text>
+          <TouchableOpacity onPress={onClose} style={styles.closeButton} testID="filter-close-btn"
+            accessibilityLabel="Close filters"
+            accessibilityRole="button"
+          >
+            <X size={20} color={colors.text} strokeWidth={2} />
           </TouchableOpacity>
           <Text style={styles.title} testID="filter-modal-title">Filters</Text>
-          <TouchableOpacity onPress={handleReset} testID="filter-reset-btn">
+          <TouchableOpacity onPress={handleReset} testID="filter-reset-btn"
+            accessibilityLabel="Reset filters"
+            accessibilityRole="button"
+          >
             <Text style={styles.resetText}>Reset</Text>
           </TouchableOpacity>
         </View>
@@ -163,11 +184,14 @@ export function FilterModal({
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Minimum Rating</Text>
-              <Text style={styles.valueLabel}>⭐ {filters.minRating.toFixed(1)}+</Text>
+              <View style={styles.ratingLabel}>
+                <Star size={14} color={colors.primary} fill={colors.primary} strokeWidth={1} />
+                <Text style={styles.valueLabel}> {filters.minRating.toFixed(1)}+</Text>
+              </View>
             </View>
             <Slider
               style={styles.slider}
-              minimumValue={3.0}
+              minimumValue={0.0}
               maximumValue={5.0}
               step={0.1}
               value={filters.minRating}
@@ -233,6 +257,9 @@ export function FilterModal({
                     filters.availability === option.value && styles.chipActive,
                   ]}
                   onPress={() => updateFilter('availability', option.value)}
+                  accessibilityLabel={option.label}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: filters.availability === option.value }}
                 >
                   <Text
                     style={[
@@ -247,6 +274,35 @@ export function FilterModal({
             </View>
           </View>
 
+          {/* Activity Type */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Activity Type</Text>
+            <View style={styles.chipGroup}>
+              {activityTypeOptions.map((option) => {
+                const isSelected = filters.activityTypes.includes(option.value);
+                return (
+                  <TouchableOpacity
+                    key={option.value}
+                    style={[styles.chip, isSelected && styles.chipActive]}
+                    onPress={() => {
+                      const next = isSelected
+                        ? filters.activityTypes.filter((t) => t !== option.value)
+                        : [...filters.activityTypes, option.value];
+                      updateFilter('activityTypes', next);
+                    }}
+                    accessibilityLabel={option.label}
+                    accessibilityRole="checkbox"
+                    accessibilityState={{ checked: isSelected }}
+                  >
+                    <Text style={[styles.chipText, isSelected && styles.chipTextActive]}>
+                      {option.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+
           {/* Sort By */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Sort By</Text>
@@ -255,6 +311,9 @@ export function FilterModal({
                 key={option.value}
                 style={styles.radioRow}
                 onPress={() => updateFilter('sortBy', option.value)}
+                accessibilityLabel={option.label}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: filters.sortBy === option.value }}
               >
                 <View
                   style={[
@@ -291,6 +350,9 @@ export function FilterModal({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    maxWidth: 430,
+    width: '100%',
+    alignSelf: 'center',
     backgroundColor: colors.background,
   },
   header: {
@@ -310,9 +372,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  closeIcon: {
-    fontSize: 20,
-    color: colors.text,
+  ratingLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   title: {
     fontSize: typography.sizes.lg,
@@ -373,7 +435,7 @@ const styles = StyleSheet.create({
   chip: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
-    borderRadius: borderRadius.full,
+    borderRadius: borderRadius.sm,
     backgroundColor: colors.surface,
     borderWidth: 2,
     borderColor: colors.black,
