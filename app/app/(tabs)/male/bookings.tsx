@@ -298,6 +298,16 @@ function BookingCard({ booking, type, colors, onCancel, formatDate }: BookingCar
               style={{ flex: 1 }}
             />
           </View>
+          {booking.companion?.id && (
+            <Button
+              title="Book Again"
+              onPress={() => router.push(`/booking/${booking.companion!.id}?activity=${encodeURIComponent(booking.activity || '')}`)}
+              variant="outline"
+              size="sm"
+              style={{ marginTop: spacing.sm }}
+              testID={`book-again-${booking.id}`}
+            />
+          )}
         </View>
       )}
     </Card>

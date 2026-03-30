@@ -65,7 +65,7 @@ const timeSlots = [
 ];
 
 export default function BookingScreen() {
-  const { id, packageId: initialPackageId } = useLocalSearchParams<{ id: string; packageId?: string }>();
+  const { id, packageId: initialPackageId, activity: initialActivity } = useLocalSearchParams<{ id: string; packageId?: string; activity?: string }>();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
 
@@ -76,7 +76,7 @@ export default function BookingScreen() {
 
   const [companion, setCompanion] = useState<CompanionDetail | null>(null);
   const [isLoadingCompanion, setIsLoadingCompanion] = useState(true);
-  const [selectedActivity, setSelectedActivity] = useState<string | null>(null);
+  const [selectedActivity, setSelectedActivity] = useState<string | null>(initialActivity || null);
   const [selectedDuration, setSelectedDuration] = useState<number>(2);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
