@@ -21,8 +21,10 @@ export default function CalendarScreen() {
   const [loading, setLoading] = useState(true);
   const [blockMode, setBlockMode] = useState(false);
   const [selectedForBlock, setSelectedForBlock] = useState<Set<string>>(new Set());
+  const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
+    setError(null);
     try {
       const year = currentMonth.getFullYear();
       const month = currentMonth.getMonth() + 1;
@@ -41,9 +43,9 @@ export default function CalendarScreen() {
       }
       setBlockedDates(blockedSet);
       setBookings(bookingsData.bookings);
-    } catch (error) {
-      console.error('Failed to fetch calendar data:', error);
-      showAlert('Error', 'Failed to load calendar data. Please try again.');
+    } catch (err) {
+      console.error('Failed to fetch calendar data:', err);
+      setError('Failed to load calendar data. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -119,12 +121,11 @@ export default function CalendarScreen() {
         await calendarApi.unblockDates(datesToUnblock);
       }
 
-      showAlert('Success', 'Calendar updated successfully');
       setBlockMode(false);
       setSelectedForBlock(new Set());
       fetchData();
-    } catch (error: any) {
-      showAlert('Error', error.message || 'Failed to update calendar');
+    } catch (err: any) {
+      setError(err.message || 'Failed to update calendar');
     }
   };
 
@@ -204,6 +205,15 @@ export default function CalendarScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+      {error && (
+        <View style={styles.errorBanner}>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={fetchData}>
+            <Text style={styles.retryText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
         <View style={styles.titleRow}>
           <Text style={[styles.title, { color: colors.text }]}>Calendar</Text>
@@ -281,7 +291,7 @@ export default function CalendarScreen() {
           <Text style={[styles.legendText, { color: colors.textSecondary }]}>Booking</Text>
         </View>
         <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: colors.error }]} />
+          <View style={[styles.legendDot, { backgroundColor: '#CC0000' }]} />
           <Text style={[styles.legendText, { color: colors.textSecondary }]}>Blocked</Text>
         </View>
       </View>
@@ -512,5 +522,37 @@ const styles = StyleSheet.create({
   eventActivity: {
     fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
+  },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.sm,
+    borderWidth: 2,
+    borderColor: '#000000',
+    borderRadius: borderRadius.md,
+    backgroundColor: '#FFFFFF',
+  },
+  errorText: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.sm,
+    color: '#FF2A5F',
+    flex: 1,
+  },
+  retryButton: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderWidth: 2,
+    borderColor: '#000000',
+    borderRadius: borderRadius.sm,
+    marginLeft: spacing.sm,
+  },
+  retryText: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.sm,
+    color: '#FF2A5F',
   },
 });

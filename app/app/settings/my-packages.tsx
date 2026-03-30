@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
-  Alert,
   RefreshControl,
 } from 'react-native';
 import { router } from 'expo-router';
@@ -16,6 +15,7 @@ import { Icon } from '../../src/components/Icon';
 import { Card } from '../../src/components/Card';
 import { Button } from '../../src/components/Button';
 import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
+import { showAlert } from '../../src/utils/alert';
 import { packagesApi, DatePackageTemplate, DatePackage } from '../../src/services/api';
 
 export default function MyPackagesScreen() {
@@ -47,7 +47,7 @@ export default function MyPackagesScreen() {
       setTemplates(t);
       setPackages(p);
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to load packages');
+      showAlert('Error', err.message || 'Failed to load packages');
     } finally {
       setIsLoading(false);
       setRefreshing(false);
@@ -70,12 +70,12 @@ export default function MyPackagesScreen() {
 
   const handleCreate = async () => {
     if (!selectedTemplateId || !price) {
-      Alert.alert('Missing Info', 'Select a template and set a price.');
+      showAlert('Missing Info', 'Select a template and set a price.');
       return;
     }
     const priceNum = parseFloat(price);
     if (isNaN(priceNum) || priceNum <= 0) {
-      Alert.alert('Invalid Price', 'Price must be a positive number.');
+      showAlert('Invalid Price', 'Price must be a positive number.');
       return;
     }
 
@@ -91,7 +91,7 @@ export default function MyPackagesScreen() {
       setCustomDescription('');
       fetchData();
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to create package');
+      showAlert('Error', err.message || 'Failed to create package');
     } finally {
       setIsSubmitting(false);
     }
@@ -100,7 +100,7 @@ export default function MyPackagesScreen() {
   const handleUpdate = async (id: string) => {
     const priceNum = parseFloat(editPrice);
     if (isNaN(priceNum) || priceNum <= 0) {
-      Alert.alert('Invalid Price', 'Price must be a positive number.');
+      showAlert('Invalid Price', 'Price must be a positive number.');
       return;
     }
     try {
@@ -111,12 +111,12 @@ export default function MyPackagesScreen() {
       setEditingId(null);
       fetchData();
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to update package');
+      showAlert('Error', err.message || 'Failed to update package');
     }
   };
 
   const handleDelete = (id: string) => {
-    Alert.alert('Delete Package', 'Are you sure you want to delete this package?', [
+    showAlert('Delete Package', 'Are you sure you want to delete this package?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete',
@@ -126,7 +126,7 @@ export default function MyPackagesScreen() {
             await packagesApi.deletePackage(id);
             fetchData();
           } catch (err: any) {
-            Alert.alert('Error', err.message || 'Failed to delete');
+            showAlert('Error', err.message || 'Failed to delete');
           }
         },
       },
@@ -138,7 +138,7 @@ export default function MyPackagesScreen() {
       await packagesApi.updatePackage(pkg.id, { isActive: !pkg.isActive });
       fetchData();
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Failed to update');
+      showAlert('Error', err.message || 'Failed to update');
     }
   };
 
@@ -332,7 +332,16 @@ export default function MyPackagesScreen() {
         {packages.length === 0 && availableTemplates.length === 0 && (
           <View style={{ alignItems: 'center', paddingVertical: spacing.xxl }}>
             <Icon name="package" size={48} color={colors.textSecondary} />
-            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No templates available</Text>
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No packages yet</Text>
+            <Button
+              title="Create Package"
+              variant="pink"
+              onPress={() => {
+                // TODO: navigate to dedicated package creation screen when available
+                router.push('/settings/edit-profile');
+              }}
+              style={{ marginTop: spacing.lg }}
+            />
           </View>
         )}
 

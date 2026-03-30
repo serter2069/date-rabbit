@@ -49,15 +49,17 @@ export default function PaymentMethodsScreen() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [setupClientSecret, setSetupClientSecret] = useState<string | null>(null);
   const [setupLoading, setSetupLoading] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   const fetchCards = useCallback(async () => {
     setLoading(true);
+    setFetchError(null);
     try {
       const result = await paymentsApi.listPaymentMethods();
       setCards(result.paymentMethods);
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : 'Failed to load payment methods';
-      showAlert('Error', msg);
+      setFetchError(msg);
     } finally {
       setLoading(false);
     }
@@ -152,6 +154,15 @@ export default function PaymentMethodsScreen() {
       </View>
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
+        {fetchError && (
+          <View style={styles.errorBanner}>
+            <Text style={styles.errorText}>{fetchError}</Text>
+            <TouchableOpacity style={styles.retryButton} onPress={fetchCards}>
+              <Text style={styles.retryText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={colors.primary} />
@@ -216,6 +227,7 @@ export default function PaymentMethodsScreen() {
         <Button
           title={setupLoading ? 'Setting up...' : 'Add Payment Method'}
           onPress={handleAddCard}
+          variant="pink"
           fullWidth
           size="lg"
           disabled={setupLoading}
@@ -438,5 +450,36 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    marginBottom: spacing.md,
+    borderWidth: 2,
+    borderColor: '#000000',
+    borderRadius: borderRadius.md,
+    backgroundColor: '#FFFFFF',
+  },
+  errorText: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.sm,
+    color: '#FF2A5F',
+    flex: 1,
+  },
+  retryButton: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderWidth: 2,
+    borderColor: '#000000',
+    borderRadius: borderRadius.sm,
+    marginLeft: spacing.sm,
+  },
+  retryText: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.sm,
+    color: '#FF2A5F',
   },
 });
