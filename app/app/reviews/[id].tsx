@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,15 +6,21 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
+  TextInput,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { colors, typography, shadows } from '../../src/constants/theme';
 import { apiRequest } from '../../src/services/api';
+import { useAuthStore } from '../../src/store/authStore';
 
 interface ReviewItem {
   id: string;
   rating: number;
   comment?: string;
+  replyText?: string | null;
+  repliedAt?: string | null;
+  revieweeId?: string;
   reviewer?: { id: string; name: string };
   createdAt: string;
 }
@@ -36,12 +42,48 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
-function ReviewCard({ item }: { item: ReviewItem }) {
+function ReviewCard({
+  item,
+  currentUserId,
+  onReplySubmitted,
+}: {
+  item: ReviewItem;
+  currentUserId: string | null;
+  onReplySubmitted: (reviewId: string, replyText: string, repliedAt: string) => void;
+}) {
+  const [showReplyForm, setShowReplyForm] = useState(false);
+  const [replyDraft, setReplyDraft] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
   const date = new Date(item.createdAt).toLocaleDateString(undefined, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
   });
+
+  const canReply =
+    currentUserId &&
+    item.revieweeId === currentUserId &&
+    !item.replyText;
+
+  const handleSubmitReply = async () => {
+    const text = replyDraft.trim();
+    if (!text) return;
+    setSubmitting(true);
+    try {
+      const result = await apiRequest<{ replyText: string; repliedAt: string }>(
+        `/reviews/${item.id}/reply`,
+        { method: 'POST', body: { text } },
+      );
+      onReplySubmitted(item.id, result.replyText, result.repliedAt);
+      setShowReplyForm(false);
+      setReplyDraft('');
+    } catch (e: any) {
+      Alert.alert('Error', e?.message ?? 'Could not submit reply.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <View style={styles.card}>
@@ -51,6 +93,70 @@ function ReviewCard({ item }: { item: ReviewItem }) {
       </View>
       <StarRating rating={item.rating} />
       {!!item.comment && <Text style={styles.comment}>{item.comment}</Text>}
+
+      {/* Reply display */}
+      {!!item.replyText && (
+        <View style={styles.replyBlock}>
+          <Text style={styles.replyLabel}>Companion replied</Text>
+          {item.repliedAt && (
+            <Text style={styles.replyDate}>
+              {new Date(item.repliedAt).toLocaleDateString(undefined, {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+              })}
+            </Text>
+          )}
+          <Text style={styles.replyText}>{item.replyText}</Text>
+        </View>
+      )}
+
+      {/* Reply button */}
+      {canReply && !showReplyForm && (
+        <TouchableOpacity
+          style={styles.replyButton}
+          onPress={() => setShowReplyForm(true)}
+        >
+          <Text style={styles.replyButtonText}>Reply</Text>
+        </TouchableOpacity>
+      )}
+
+      {/* Reply form */}
+      {showReplyForm && (
+        <View style={styles.replyForm}>
+          <TextInput
+            style={styles.replyInput}
+            placeholder="Write your reply..."
+            placeholderTextColor="#999"
+            value={replyDraft}
+            onChangeText={setReplyDraft}
+            maxLength={2000}
+            multiline
+          />
+          <View style={styles.replyFormActions}>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => {
+                setShowReplyForm(false);
+                setReplyDraft('');
+              }}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.submitButton, submitting && { opacity: 0.6 }]}
+              onPress={handleSubmitReply}
+              disabled={submitting || !replyDraft.trim()}
+            >
+              {submitting ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={styles.submitButtonText}>Submit</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -61,6 +167,7 @@ export default function ReviewDetailScreen() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const currentUserId = useAuthStore((s) => s.user?.id ?? null);
 
   useEffect(() => {
     if (!id) {
@@ -79,6 +186,17 @@ export default function ReviewDetailScreen() {
       })
       .finally(() => setLoading(false));
   }, [id]);
+
+  const handleReplySubmitted = useCallback(
+    (reviewId: string, replyText: string, repliedAt: string) => {
+      setReviews((prev) =>
+        prev.map((r) =>
+          r.id === reviewId ? { ...r, replyText, repliedAt } : r,
+        ),
+      );
+    },
+    [],
+  );
 
   return (
     <View style={styles.container}>
@@ -115,7 +233,13 @@ export default function ReviewDetailScreen() {
         <FlatList
           data={reviews}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <ReviewCard item={item} />}
+          renderItem={({ item }) => (
+            <ReviewCard
+              item={item}
+              currentUserId={currentUserId}
+              onReplySubmitted={handleReplySubmitted}
+            />
+          )}
           contentContainerStyle={styles.list}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
         />
@@ -220,5 +344,88 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.textSecondary,
     lineHeight: 22,
+  },
+  replyBlock: {
+    marginTop: 12,
+    paddingLeft: 12,
+    borderLeftWidth: 3,
+    borderLeftColor: '#FF2A5F',
+    backgroundColor: '#F9F6F1',
+    padding: 12,
+  },
+  replyLabel: {
+    fontSize: 13,
+    fontFamily: 'SpaceGrotesk-Bold',
+    fontWeight: '700',
+    color: '#FF2A5F',
+    marginBottom: 2,
+  },
+  replyDate: {
+    fontSize: 12,
+    color: '#888',
+    marginBottom: 6,
+  },
+  replyText: {
+    fontSize: 14,
+    color: '#333',
+    lineHeight: 20,
+  },
+  replyButton: {
+    marginTop: 10,
+    alignSelf: 'flex-start',
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderWidth: 2,
+    borderColor: '#000',
+    backgroundColor: '#fff',
+  },
+  replyButtonText: {
+    fontSize: 14,
+    fontFamily: 'SpaceGrotesk-Bold',
+    fontWeight: '700',
+    color: '#000',
+  },
+  replyForm: {
+    marginTop: 12,
+  },
+  replyInput: {
+    borderWidth: 2,
+    borderColor: '#000',
+    padding: 10,
+    fontSize: 14,
+    color: '#000',
+    minHeight: 80,
+    textAlignVertical: 'top',
+    backgroundColor: '#fff',
+  },
+  replyFormActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 8,
+    marginTop: 8,
+  },
+  cancelButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderWidth: 2,
+    borderColor: '#000',
+    backgroundColor: '#fff',
+  },
+  cancelButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000',
+  },
+  submitButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderWidth: 2,
+    borderColor: '#000',
+    backgroundColor: '#FF2A5F',
+  },
+  submitButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#fff',
   },
 });
