@@ -119,7 +119,7 @@ export default function NotificationsSettingsScreen() {
               </View>
             </View>
             <TouchableOpacity
-              style={[styles.enableButton, { backgroundColor: colors.warning }]}
+              style={[styles.enableButton, { backgroundColor: colors.primary }]}
               onPress={requestPermission}
               accessibilityLabel="Enable notifications"
               accessibilityRole="button"
@@ -136,6 +136,11 @@ export default function NotificationsSettingsScreen() {
               <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>
                 Receive notifications on your device
               </Text>
+              {permissionStatus !== 'granted' && (
+                <Text style={[styles.permissionHint, { color: colors.textSecondary }]}>
+                  Enable OS permission above to receive push notifications
+                </Text>
+              )}
             </View>
             <Switch
               value={masterEnabled && permissionStatus === 'granted'}
@@ -280,6 +285,11 @@ const styles = StyleSheet.create({
   },
   settingDescription: {
     fontSize: typography.sizes.sm,
+  },
+  permissionHint: {
+    fontSize: typography.sizes.xs,
+    fontStyle: 'italic',
+    marginTop: spacing.xs,
   },
   footerText: {
     fontSize: typography.sizes.sm,
