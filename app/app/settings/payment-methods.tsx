@@ -49,15 +49,17 @@ export default function PaymentMethodsScreen() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [setupClientSecret, setSetupClientSecret] = useState<string | null>(null);
   const [setupLoading, setSetupLoading] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   const fetchCards = useCallback(async () => {
     setLoading(true);
+    setFetchError(null);
     try {
       const result = await paymentsApi.listPaymentMethods();
       setCards(result.paymentMethods);
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : 'Failed to load payment methods';
-      showAlert('Error', msg);
+      setFetchError(msg);
     } finally {
       setLoading(false);
     }
@@ -150,6 +152,20 @@ export default function PaymentMethodsScreen() {
         <Text style={[styles.headerTitle, { color: colors.text }]}>Payment Methods</Text>
         <View style={{ width: 44 }} />
       </View>
+
+      {fetchError && (
+        <View style={[styles.errorBanner, { borderColor: colors.black, backgroundColor: colors.errorLight }]}>
+          <Text style={[styles.errorText, { color: colors.text }]}>{fetchError}</Text>
+          <TouchableOpacity
+            style={[styles.retryButton, { backgroundColor: colors.black }]}
+            onPress={fetchCards}
+            accessibilityLabel="Try again"
+            accessibilityRole="button"
+          >
+            <Text style={[styles.retryButtonText, { color: colors.white }]}>Try Again</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
         {loading ? (
@@ -291,6 +307,32 @@ export default function PaymentMethodsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.md,
+    borderWidth: 2,
+  },
+  errorText: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.sm,
+    flex: 1,
+    marginRight: spacing.sm,
+  },
+  retryButton: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.sm,
+  },
+  retryButtonText: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.sm,
   },
   header: {
     flexDirection: 'row',
