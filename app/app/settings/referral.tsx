@@ -119,6 +119,7 @@ export default function ReferralScreen() {
           <Button
             title="Share with Friends"
             onPress={handleShare}
+            variant="pink"
             fullWidth
             size="lg"
             icon={<Icon name="share-2" size={18} color="#FFFFFF" />}
@@ -134,7 +135,7 @@ export default function ReferralScreen() {
             </View>
             <View style={[styles.statDivider, { backgroundColor: colors.divider }]} />
             <View style={styles.statItem}>
-              <Text style={[styles.statNumber, { color: colors.success }]}>{stats.credited}</Text>
+              <Text style={[styles.statNumber, { color: colors.primary }]}>{stats.credited}</Text>
               <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Bonuses Credited</Text>
             </View>
           </View>
