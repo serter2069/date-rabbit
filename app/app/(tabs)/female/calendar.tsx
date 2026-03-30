@@ -21,8 +21,10 @@ export default function CalendarScreen() {
   const [loading, setLoading] = useState(true);
   const [blockMode, setBlockMode] = useState(false);
   const [selectedForBlock, setSelectedForBlock] = useState<Set<string>>(new Set());
+  const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
+    setError(null);
     try {
       const year = currentMonth.getFullYear();
       const month = currentMonth.getMonth() + 1;
@@ -41,9 +43,9 @@ export default function CalendarScreen() {
       }
       setBlockedDates(blockedSet);
       setBookings(bookingsData.bookings);
-    } catch (error) {
-      console.error('Failed to fetch calendar data:', error);
-      showAlert('Error', 'Failed to load calendar data. Please try again.');
+    } catch (err) {
+      console.error('Failed to fetch calendar data:', err);
+      setError('Failed to load calendar data. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -248,6 +250,20 @@ export default function CalendarScreen() {
         </View>
       </View>
 
+      {error && (
+        <View style={[styles.errorBanner, { borderColor: colors.black, backgroundColor: colors.errorLight }]}>
+          <Text style={[styles.errorText, { color: colors.text }]}>{error}</Text>
+          <TouchableOpacity
+            style={[styles.retryButton, { backgroundColor: colors.black }]}
+            onPress={() => { setLoading(true); fetchData(); }}
+            accessibilityLabel="Try again"
+            accessibilityRole="button"
+          >
+            <Text style={[styles.retryButtonText, { color: colors.white }]}>Try Again</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       {blockMode && (
         <View style={[styles.blockModeBar, { backgroundColor: colors.primaryLight + '20' }]}>
           <Text style={[styles.blockModeText, { color: colors.primary }]}>
@@ -281,7 +297,7 @@ export default function CalendarScreen() {
           <Text style={[styles.legendText, { color: colors.textSecondary }]}>Booking</Text>
         </View>
         <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: colors.error }]} />
+          <View style={[styles.legendDot, { backgroundColor: '#CC0000' }]} />
           <Text style={[styles.legendText, { color: colors.textSecondary }]}>Blocked</Text>
         </View>
       </View>
@@ -336,6 +352,32 @@ const styles = StyleSheet.create({
   loadingContainer: {
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.md,
+    borderWidth: 2,
+  },
+  errorText: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.sm,
+    flex: 1,
+    marginRight: spacing.sm,
+  },
+  retryButton: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.sm,
+  },
+  retryButtonText: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.sm,
   },
   header: {
     paddingHorizontal: spacing.lg,
