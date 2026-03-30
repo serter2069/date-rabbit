@@ -1,5 +1,6 @@
 // API Client for DateRabbit Backend
 import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
 import type { Verification, VerificationReference, PreChatStatus } from '../types';
 import { useNetworkStore } from '../store/networkStore';
 
@@ -7,21 +8,34 @@ const API_BASE_URL = 'https://daterabbit-api.smartlaunchhub.com/api';
 const API_TIMEOUT_MS = 10_000; // 10 seconds
 
 // Token management — stored in SecureStore (iOS Keychain / Android Keystore)
+// On web, falls back to localStorage since SecureStore is not available
 const TOKEN_KEY = 'authToken';
 let authToken: string | null = null;
 
 export async function getToken(): Promise<string | null> {
   if (authToken) return authToken;
-  authToken = await SecureStore.getItemAsync(TOKEN_KEY);
+  if (Platform.OS === 'web') {
+    authToken = localStorage.getItem(TOKEN_KEY);
+  } else {
+    authToken = await SecureStore.getItemAsync(TOKEN_KEY);
+  }
   return authToken;
 }
 
 export async function setToken(token: string | null): Promise<void> {
   authToken = token;
-  if (token) {
-    await SecureStore.setItemAsync(TOKEN_KEY, token);
+  if (Platform.OS === 'web') {
+    if (token) {
+      localStorage.setItem(TOKEN_KEY, token);
+    } else {
+      localStorage.removeItem(TOKEN_KEY);
+    }
   } else {
-    await SecureStore.deleteItemAsync(TOKEN_KEY);
+    if (token) {
+      await SecureStore.setItemAsync(TOKEN_KEY, token);
+    } else {
+      await SecureStore.deleteItemAsync(TOKEN_KEY);
+    }
   }
 }
 
