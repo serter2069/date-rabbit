@@ -479,6 +479,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.xl,
+    ...shadows.sm,
   },
   header: {
     marginBottom: spacing.xl,

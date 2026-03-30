@@ -89,6 +89,11 @@ export function Button({
       baseStyles.push(variant === 'pink' ? shadows.buttonPink : shadows.button);
     }
 
+    // Add shadow for secondary/outline buttons
+    if ((variant === 'secondary' || variant === 'outline') && !disabled) {
+      baseStyles.push(shadows.sm as ViewStyle);
+    }
+
     if (style) baseStyles.push(style);
     return baseStyles;
   };

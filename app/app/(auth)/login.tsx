@@ -15,7 +15,7 @@ import { useAuthStore } from '../../src/store/authStore';
 import { Button } from '../../src/components/Button';
 import { Input } from '../../src/components/Input';
 import { Icon } from '../../src/components/Icon';
-import { colors, spacing, typography, borderRadius, PAGE_PADDING } from '../../src/constants/theme';
+import { colors, spacing, typography, borderRadius, shadows, PAGE_PADDING } from '../../src/constants/theme';
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
@@ -188,6 +188,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.xl,
+    ...shadows.sm,
   },
   header: {
     marginBottom: spacing.xl + spacing.md,
