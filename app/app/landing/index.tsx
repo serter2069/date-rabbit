@@ -87,7 +87,7 @@ export default function LandingScreen() {
             style={[styles.roleCard, styles.roleCardSeeker]}
             onPress={() => router.push('/onboarding?roleHint=seeker')}
             activeOpacity={0.85}
-            accessibilityLabel="I'm looking for a date"
+            accessibilityLabel="Looking for a Date"
             accessibilityRole="button"
           >
             <View style={styles.roleIconWrap}>
@@ -106,7 +106,7 @@ export default function LandingScreen() {
             style={[styles.roleCard, styles.roleCardCompanion]}
             onPress={() => router.push('/onboarding?roleHint=companion')}
             activeOpacity={0.85}
-            accessibilityLabel="I want to be a Companion"
+            accessibilityLabel="Become a Companion"
             accessibilityRole="button"
           >
             <View style={[styles.roleIconWrap, styles.roleIconWrapAccent]}>
@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
   roleDesc: {
     fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
-    color: colors.textMuted,
+    color: colors.textSecondary,
     lineHeight: 20,
   },
   roleArrow: {
