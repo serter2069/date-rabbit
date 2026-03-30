@@ -129,7 +129,9 @@ export default function MaleDashboard() {
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={[styles.greeting, { color: colors.textMuted }]}>Welcome back,</Text>
+          <Text style={[styles.greeting, { color: colors.textMuted }]}>
+            {user?.name ? `Welcome back, ${user.name.split(' ')[0]}!` : 'Welcome back!'}
+          </Text>
           <Text style={[styles.name, { color: colors.text }]}>{user?.name}</Text>
         </View>
         <Avatar

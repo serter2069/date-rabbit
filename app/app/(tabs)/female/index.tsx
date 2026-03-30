@@ -81,7 +81,9 @@ export default function FemaleDashboard() {
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.greeting}>Welcome back,</Text>
+          <Text style={styles.greeting}>
+            {user?.name ? `Welcome back, ${user.name.split(' ')[0]}!` : 'Welcome back!'}
+          </Text>
           <Text style={styles.name}>{user?.name}</Text>
         </View>
         <Avatar
@@ -101,19 +103,19 @@ export default function FemaleDashboard() {
           value={stats.pendingRequests}
           label="Pending"
           icon="mail"
-          color={colors.warning}
+          color={colors.primary}
         />
         <StatCard
           value={stats.upcomingDates}
           label="Upcoming"
           icon="calendar"
-          color={colors.accent}
+          color={colors.primary}
         />
         <StatCard
           value={`$${stats.thisWeekEarnings}`}
           label="This Week"
           icon="receipt"
-          color={colors.success}
+          color={colors.primary}
         />
         <StatCard
           value={stats.rating}
@@ -166,8 +168,8 @@ export default function FemaleDashboard() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Quick Actions</Text>
         <View style={styles.actionsRow}>
-          <ActionCard icon="calendar" label="Set Availability" color={colors.accent} onPress={() => router.push('/female/calendar')} />
-          <ActionCard icon="receipt" label="Update Rates" color={colors.success} onPress={() => router.push('/settings/edit-profile')} />
+          <ActionCard icon="calendar" label="Set Availability" color={colors.primary} onPress={() => router.push('/female/calendar')} />
+          <ActionCard icon="receipt" label="Update Rates" color={colors.primary} onPress={() => router.push('/settings/edit-profile')} />
           <ActionCard icon="camera" label="Add Photos" color={colors.primary} onPress={() => router.push('/settings/edit-profile')} />
         </View>
       </View>
