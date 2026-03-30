@@ -6,6 +6,7 @@ import {
 import { useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { activeDateApi } from '../../../src/services/activeDateApi';
+import { colors } from '../../../src/constants/theme';
 
 const SCREEN_W = Dimensions.get('window').width;
 const PHOTO_SIZE = (SCREEN_W - 48 - 12) / 2; // 2 columns with gaps
@@ -137,7 +138,7 @@ const styles = StyleSheet.create({
   photo: { width: '100%', height: '100%' },
   empty: { alignItems: 'center', paddingTop: 60 },
   emptyTitle: { fontSize: 20, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
-  emptySubtext: { fontSize: 14, color: '#555', marginTop: 8 },
+  emptySubtext: { fontSize: 14, color: colors.textMuted, marginTop: 8 },
   addBtn: {
     position: 'absolute', bottom: 24, left: 24, right: 24,
     backgroundColor: '#FF5A85', borderWidth: 2, borderColor: '#000',
