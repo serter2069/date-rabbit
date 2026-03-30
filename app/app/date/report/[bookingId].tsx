@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { activeDateApi } from '../../../src/services/activeDateApi';
+import { colors } from '../../../src/constants/theme';
 
 // Backend validates: safety | behavior | scam | other
 const ISSUE_TYPES: { label: string; value: string }[] = [
@@ -91,13 +92,13 @@ const styles = StyleSheet.create({
   center: { flex: 1, backgroundColor: '#F4F0EA', justifyContent: 'center', alignItems: 'center', padding: 24 },
   title: { fontSize: 32, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000', marginBottom: 32 },
   sectionLabel: { fontSize: 14, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 },
-  typeOption: { borderWidth: 2, borderColor: '#000', padding: 14, marginBottom: 8, backgroundColor: '#fff', shadowOffset: { width: 2, height: 2 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
+  typeOption: { borderWidth: 2, borderColor: '#000', padding: 14, marginBottom: 8, backgroundColor: colors.surface, shadowOffset: { width: 2, height: 2 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
   typeOptionSelected: { backgroundColor: '#4DF0FF' },
   typeText: { fontSize: 16, color: '#000' },
   typeTextSelected: { fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700' },
-  textarea: { borderWidth: 2, borderColor: '#000', backgroundColor: '#fff', padding: 14, fontSize: 15, minHeight: 120, marginBottom: 32 },
+  textarea: { borderWidth: 2, borderColor: '#000', backgroundColor: colors.surface, padding: 14, fontSize: 15, minHeight: 120, marginBottom: 32 },
   submitBtn: { backgroundColor: '#FF2A5F', borderWidth: 2, borderColor: '#000', paddingVertical: 18, alignItems: 'center', shadowOffset: { width: 4, height: 4 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
-  submitBtnText: { fontSize: 18, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#fff' },
+  submitBtnText: { fontSize: 18, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: colors.white },
   btnDisabled: { opacity: 0.6 },
   successCard: { backgroundColor: '#4DF0FF', borderWidth: 2, borderColor: '#000', padding: 32, alignItems: 'center', shadowOffset: { width: 4, height: 4 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
   successText: { fontSize: 24, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },

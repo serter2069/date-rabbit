@@ -17,7 +17,7 @@ import { EmptyState } from '../../src/components/EmptyState';
 import { useMessagesStore, POLL_INTERVAL } from '../../src/store/messagesStore';
 import { useAuthStore } from '../../src/store/authStore';
 import { useVerificationGate } from '../../src/hooks/useVerificationGate';
-import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
+import { useTheme, spacing, typography, borderRadius, colors as themeColors } from '../../src/constants/theme';
 import * as Haptics from 'expo-haptics';
 
 interface FailedMessage {
@@ -239,8 +239,8 @@ export default function ChatScreen() {
 
       {/* Pre-booking banner */}
       {showPreBookingBanner && (
-        <View style={[styles.preBookingBanner, { backgroundColor: '#FFF3CD', borderBottomColor: '#FFEAA7' }]}>
-          <Icon name="message-circle" size={16} color="#856404" />
+        <View style={[styles.preBookingBanner, { backgroundColor: colors.warningLight, borderBottomColor: colors.warning }]}>
+          <Icon name="message-circle" size={16} color={colors.warning} />
           <Text style={styles.preBookingBannerText}>
             {preChatLimitReached
               ? 'Message limit reached. Book a date to continue chatting.'
@@ -589,7 +589,7 @@ const styles = StyleSheet.create({
   preBookingBannerText: {
     fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.sm,
-    color: '#856404',
+    color: themeColors.warning,
     flex: 1,
   },
   bookDateCta: {

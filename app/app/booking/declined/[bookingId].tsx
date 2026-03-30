@@ -84,7 +84,7 @@ export default function DeclinedScreen() {
             </View>
             <View style={styles.refundRow}>
               <Text style={[styles.refundLabel, { color: colors.textSecondary }]}>Refunded</Text>
-              <Text style={[styles.refundValue, { color: colors.success || '#10B981' }]}>${refundAmount.toFixed(2)}</Text>
+              <Text style={[styles.refundValue, { color: colors.success }]}>${refundAmount.toFixed(2)}</Text>
             </View>
             <View style={[styles.refundDivider, { borderColor: colors.border }]} />
             <View style={styles.refundTimeline}>

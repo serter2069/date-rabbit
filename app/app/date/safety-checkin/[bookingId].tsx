@@ -42,7 +42,7 @@ export default function SafetyCheckinScreen() {
             accessibilityState={{ disabled: confirming }}
           >
             {confirming
-              ? <ActivityIndicator color="#fff" size="large" />
+              ? <ActivityIndicator color={colors.white} size="large" />
               : <Text style={styles.okBtnText}>I'm OK</Text>
             }
           </TouchableOpacity>
@@ -67,9 +67,9 @@ const styles = StyleSheet.create({
   title: { fontSize: 28, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000', marginBottom: 12 },
   subtitle: { fontSize: 18, color: '#000', lineHeight: 28 },
   okBtn: { backgroundColor: colors.successStrong, borderWidth: 2, borderColor: '#000', paddingVertical: 28, alignItems: 'center', marginBottom: 16, shadowOffset: { width: 4, height: 4 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
-  okBtnText: { fontSize: 28, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#fff' },
-  helpBtn: { backgroundColor: '#FF0000', borderWidth: 2, borderColor: '#000', paddingVertical: 18, alignItems: 'center' },
-  helpBtnText: { fontSize: 18, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#fff' },
+  okBtnText: { fontSize: 28, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: colors.white },
+  helpBtn: { backgroundColor: colors.error, borderWidth: 2, borderColor: '#000', paddingVertical: 18, alignItems: 'center' },
+  helpBtnText: { fontSize: 18, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: colors.white },
   btnDisabled: { opacity: 0.6 },
   doneCard: { backgroundColor: '#4DF0FF', borderWidth: 2, borderColor: '#000', padding: 32, alignItems: 'center', shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
   doneText: { fontSize: 24, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },

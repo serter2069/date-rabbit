@@ -277,7 +277,7 @@ export default function CompanionCheckinScreen() {
         accessibilityState={{ disabled: step !== 'ready' || checkingIn }}
       >
         {checkingIn
-          ? <ActivityIndicator color="#fff" />
+          ? <ActivityIndicator color={colors.white} />
           : <Text style={styles.checkinBtnText}>I'm Here — Check In</Text>
         }
       </TouchableOpacity>

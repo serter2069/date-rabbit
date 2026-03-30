@@ -6,7 +6,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { Card } from '../../../src/components/Card';
 import { Button } from '../../../src/components/Button';
 import { Icon } from '../../../src/components/Icon';
-import { useTheme, spacing, typography, borderRadius } from '../../../src/constants/theme';
+import { useTheme, spacing, typography, borderRadius, colors as themeColors } from '../../../src/constants/theme';
 import { useEarningsStore } from '../../../src/store/earningsStore';
 import { paymentsApi } from '../../../src/services/api';
 
@@ -286,7 +286,7 @@ export default function EarningsScreen() {
       {!isConnected && (
         <Card style={[styles.setupBanner, { backgroundColor: colors.primary }]}>
           <View style={[styles.setupIcon, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-            <Icon name="credit-card" size={28} color="#fff" />
+            <Icon name="credit-card" size={28} color={colors.white} />
           </View>
           <Text style={styles.setupTitle}>Set Up Payments</Text>
           <Text style={styles.setupDescription}>
@@ -506,7 +506,7 @@ const styles = StyleSheet.create({
   setupTitle: {
     fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.xl,
-    color: '#fff',
+    color: themeColors.white,
     marginBottom: spacing.xs,
   },
   setupDescription: {
