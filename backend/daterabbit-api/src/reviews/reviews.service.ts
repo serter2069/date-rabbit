@@ -1,4 +1,11 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Injectable,
+  HttpException,
+  HttpStatus,
+  ForbiddenException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Review } from './entities/review.entity';
@@ -83,6 +90,34 @@ export class ReviewsService {
     });
 
     return { reviews, total };
+  }
+
+  async replyToReview(
+    reviewId: string,
+    userId: string,
+    text: string,
+  ): Promise<Review> {
+    const review = await this.reviewsRepo.findOne({
+      where: { id: reviewId },
+    });
+
+    if (!review) {
+      throw new NotFoundException('Review not found');
+    }
+
+    // Critical: check revieweeId (the companion being reviewed), NOT reviewerId
+    if (review.revieweeId !== userId) {
+      throw new ForbiddenException('Only the companion can reply');
+    }
+
+    if (review.replyText !== null) {
+      throw new ConflictException('Reply already exists');
+    }
+
+    review.replyText = text.trim();
+    review.repliedAt = new Date();
+
+    return this.reviewsRepo.save(review);
   }
 
   private async updateUserRating(userId: string): Promise<void> {

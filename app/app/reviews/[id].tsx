@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   Modal,
   TextInput,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,61 +18,56 @@ import { showAlert } from '../../src/utils/alert';
 import { Icon } from '../../src/components/Icon';
 import { EmptyState } from '../../src/components/EmptyState';
 import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
+import { apiRequest } from '../../src/services/api';
+import { useAuthStore } from '../../src/store/authStore';
 
-// Mock reviews data
-const reviewsData: Record<string, {
-  profileName: string;
-  averageRating: number;
-  totalReviews: number;
-  reviews: Array<{
-    id: string;
-    reviewerName: string;
-    rating: number;
-    text: string;
-    date: string;
-    helpful: number;
-  }>;
-}> = {
-  '1': {
-    profileName: 'Sarah',
-    averageRating: 4.9,
-    totalReviews: 24,
-    reviews: [
-      { id: 'r1', reviewerName: 'Michael', rating: 5, text: 'Amazing evening! Sarah is a wonderful companion. We had great conversations over dinner and she made the whole experience memorable.', date: '2 weeks ago', helpful: 12 },
-      { id: 'r2', reviewerName: 'James', rating: 5, text: 'Great conversation and very professional. Sarah arrived on time and was engaging throughout our dinner meeting.', date: '1 month ago', helpful: 8 },
-      { id: 'r3', reviewerName: 'David', rating: 5, text: 'Highly recommend! Made the dinner so enjoyable. Would definitely book again.', date: '1 month ago', helpful: 5 },
-      { id: 'r4', reviewerName: 'William', rating: 4, text: 'Pleasant evening. Sarah is knowledgeable about art and we had interesting discussions.', date: '2 months ago', helpful: 3 },
-      { id: 'r5', reviewerName: 'Alexander', rating: 5, text: 'Perfect companion for my business dinner. Very articulate and charming.', date: '2 months ago', helpful: 7 },
-    ],
-  },
-  '2': {
-    profileName: 'Emma',
-    averageRating: 4.8,
-    totalReviews: 18,
-    reviews: [
-      { id: 'r1', reviewerName: 'Thomas', rating: 5, text: 'Emma is so easy to talk to. Highly recommended! She has great energy and makes you feel comfortable.', date: '1 week ago', helpful: 10 },
-      { id: 'r2', reviewerName: 'Robert', rating: 4, text: 'Pleasant company, very thoughtful. Enjoyed our coffee date.', date: '3 weeks ago', helpful: 4 },
-    ],
-  },
-};
+interface ReviewItem {
+  id: string;
+  rating: number;
+  comment?: string;
+  replyText?: string | null;
+  repliedAt?: string | null;
+  revieweeId?: string;
+  reviewer?: { id: string; name: string };
+  createdAt: string;
+}
 
-const defaultData = {
-  profileName: 'Profile',
-  averageRating: 0,
-  totalReviews: 0,
-  reviews: [],
-};
+interface ReviewsResponse {
+  reviews: ReviewItem[];
+  total: number;
+}
 
 export default function ReviewsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const data = reviewsData[id || ''] || defaultData;
+  const currentUserId = useAuthStore((s) => s.user?.id ?? null);
+
+  const [reviews, setReviews] = useState<ReviewItem[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyDraft, setReplyDraft] = useState('');
+  const [submittingReply, setSubmittingReply] = useState(false);
 
   const [writeReviewVisible, setWriteReviewVisible] = useState(false);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewText, setReviewText] = useState('');
-  const [sortBy, setSortBy] = useState<'recent' | 'helpful'>('recent');
+
+  useEffect(() => {
+    if (!id) {
+      setLoading(false);
+      return;
+    }
+    apiRequest<ReviewsResponse>(`/reviews/users/${id}`)
+      .then((data) => {
+        setReviews(data.reviews);
+        setTotal(data.total);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [id]);
 
   const handleSubmitReview = () => {
     if (reviewText.trim().length < 10) {
@@ -83,18 +80,40 @@ export default function ReviewsScreen() {
     setReviewRating(5);
   };
 
-  const sortedReviews = [...data.reviews].sort((a, b) => {
-    if (sortBy === 'helpful') {
-      return b.helpful - a.helpful;
+  const handleReplySubmit = useCallback(async (reviewId: string) => {
+    const text = replyDraft.trim();
+    if (!text) return;
+    setSubmittingReply(true);
+    try {
+      const result = await apiRequest<{ replyText: string; repliedAt: string }>(
+        `/reviews/${reviewId}/reply`,
+        { method: 'POST', body: { text } },
+      );
+      setReviews((prev) =>
+        prev.map((r) =>
+          r.id === reviewId
+            ? { ...r, replyText: result.replyText, repliedAt: result.repliedAt }
+            : r,
+        ),
+      );
+      setReplyingTo(null);
+      setReplyDraft('');
+    } catch (e: any) {
+      Alert.alert('Error', e?.message ?? 'Could not submit reply.');
+    } finally {
+      setSubmittingReply(false);
     }
-    return 0; // Keep original order for recent
-  });
+  }, [replyDraft]);
+
+  const averageRating = reviews.length > 0
+    ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+    : 0;
 
   const ratingDistribution = [5, 4, 3, 2, 1].map(rating => ({
     rating,
-    count: data.reviews.filter(r => r.rating === rating).length,
-    percentage: data.reviews.length > 0
-      ? (data.reviews.filter(r => r.rating === rating).length / data.reviews.length) * 100
+    count: reviews.filter(r => r.rating === rating).length,
+    percentage: reviews.length > 0
+      ? (reviews.filter(r => r.rating === rating).length / reviews.length) * 100
       : 0,
   }));
 
@@ -104,27 +123,32 @@ export default function ReviewsScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Icon name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>Reviews</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Reviews{total > 0 ? ` (${total})` : ''}</Text>
         <View style={{ width: 44 }} />
       </View>
 
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </View>
+      ) : (
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
         {/* Summary Card */}
         <Card style={styles.summaryCard}>
           <View style={styles.summaryHeader}>
             <View style={[styles.ratingBig, { borderRightColor: colors.border }]}>
-              <Text style={[styles.ratingNumber, { color: colors.text }]}>{data.averageRating.toFixed(1)}</Text>
+              <Text style={[styles.ratingNumber, { color: colors.text }]}>{averageRating.toFixed(1)}</Text>
               <View style={styles.starsRow}>
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Icon
                     key={star}
                     name="star"
                     size={16}
-                    color={star <= Math.round(data.averageRating) ? colors.accent : colors.border}
+                    color={star <= Math.round(averageRating) ? colors.accent : colors.border}
                   />
                 ))}
               </View>
-              <Text style={[styles.totalReviews, { color: colors.textSecondary }]}>{data.totalReviews} reviews</Text>
+              <Text style={[styles.totalReviews, { color: colors.textSecondary }]}>{total} reviews</Text>
             </View>
             <View style={styles.ratingBars}>
               {ratingDistribution.map(({ rating, count, percentage }) => (
@@ -140,65 +164,120 @@ export default function ReviewsScreen() {
           </View>
         </Card>
 
-        {/* Sort Options */}
-        <View style={styles.sortRow}>
-          <TouchableOpacity
-            style={[styles.sortButton, { backgroundColor: sortBy === 'recent' ? colors.primary : colors.surface }]}
-            onPress={() => setSortBy('recent')}
-          >
-            <Text style={[styles.sortButtonText, { color: sortBy === 'recent' ? colors.white : colors.textSecondary }]}>
-              Most Recent
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.sortButton, { backgroundColor: sortBy === 'helpful' ? colors.primary : colors.surface }]}
-            onPress={() => setSortBy('helpful')}
-          >
-            <Text style={[styles.sortButtonText, { color: sortBy === 'helpful' ? colors.white : colors.textSecondary }]}>
-              Most Helpful
-            </Text>
-          </TouchableOpacity>
-        </View>
-
         {/* Reviews List */}
-        {sortedReviews.length === 0 ? (
+        {reviews.length === 0 ? (
           <EmptyState
             icon="edit-3"
             title="No reviews yet"
             description="Be the first to leave a review!"
           />
         ) : (
-          sortedReviews.map((review) => (
-            <Card key={review.id} style={styles.reviewCard}>
-              <View style={styles.reviewHeader}>
-                <View style={styles.reviewerInfo}>
-                  <Text style={[styles.reviewerName, { color: colors.text }]}>{review.reviewerName}</Text>
-                  <Text style={[styles.reviewDate, { color: colors.textSecondary }]}>{review.date}</Text>
+          reviews.map((review) => {
+            const canReply =
+              currentUserId &&
+              review.revieweeId === currentUserId &&
+              !review.replyText;
+            const isReplying = replyingTo === review.id;
+            const reviewDate = new Date(review.createdAt).toLocaleDateString(undefined, {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+            });
+
+            return (
+              <Card key={review.id} style={styles.reviewCard}>
+                <View style={styles.reviewHeader}>
+                  <View style={styles.reviewerInfo}>
+                    <Text style={[styles.reviewerName, { color: colors.text }]}>
+                      {review.reviewer?.name ?? 'Anonymous'}
+                    </Text>
+                    <Text style={[styles.reviewDate, { color: colors.textSecondary }]}>{reviewDate}</Text>
+                  </View>
+                  <View style={styles.reviewRating}>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Icon
+                        key={star}
+                        name="star"
+                        size={14}
+                        color={star <= review.rating ? colors.accent : colors.border}
+                      />
+                    ))}
+                  </View>
                 </View>
-                <View style={styles.reviewRating}>
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Icon
-                      key={star}
-                      name="star"
-                      size={14}
-                      color={star <= review.rating ? colors.accent : colors.border}
+                {!!review.comment && (
+                  <Text style={[styles.reviewText, { color: colors.textSecondary }]}>{review.comment}</Text>
+                )}
+
+                {/* Reply display */}
+                {!!review.replyText && (
+                  <View style={[styles.replyBlock, { backgroundColor: colors.background }]}>
+                    <Text style={[styles.replyLabel, { color: colors.primary }]}>Companion replied</Text>
+                    {review.repliedAt && (
+                      <Text style={[styles.replyDateText, { color: colors.textMuted }]}>
+                        {new Date(review.repliedAt).toLocaleDateString(undefined, {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      </Text>
+                    )}
+                    <Text style={[styles.replyText, { color: colors.text }]}>{review.replyText}</Text>
+                  </View>
+                )}
+
+                {/* Reply button */}
+                {canReply && !isReplying && (
+                  <TouchableOpacity
+                    style={[styles.replyButton, { borderColor: colors.border }]}
+                    onPress={() => { setReplyingTo(review.id); setReplyDraft(''); }}
+                  >
+                    <Icon name="message-circle" size={14} color={colors.textSecondary} />
+                    <Text style={[styles.replyButtonText, { color: colors.text }]}> Reply</Text>
+                  </TouchableOpacity>
+                )}
+
+                {/* Reply form */}
+                {isReplying && (
+                  <View style={styles.replyForm}>
+                    <TextInput
+                      style={[styles.replyInput, { backgroundColor: colors.surface, color: colors.text }]}
+                      placeholder="Write your reply..."
+                      placeholderTextColor={colors.textMuted}
+                      value={replyDraft}
+                      onChangeText={setReplyDraft}
+                      maxLength={2000}
+                      multiline
+                      textAlignVertical="top"
                     />
-                  ))}
-                </View>
-              </View>
-              <Text style={[styles.reviewText, { color: colors.textSecondary }]}>{review.text}</Text>
-              <View style={[styles.reviewFooter, { borderTopColor: colors.border }]}>
-                <TouchableOpacity style={styles.helpfulButton}>
-                  <Icon name="thumbs-up" size={16} color={colors.textSecondary} />
-                  <Text style={[styles.helpfulText, { color: colors.textSecondary }]}> Helpful ({review.helpful})</Text>
-                </TouchableOpacity>
-              </View>
-            </Card>
-          ))
+                    <View style={styles.replyFormActions}>
+                      <TouchableOpacity
+                        style={[styles.replyFormBtn, { backgroundColor: colors.surface }]}
+                        onPress={() => { setReplyingTo(null); setReplyDraft(''); }}
+                      >
+                        <Text style={[styles.replyFormBtnText, { color: colors.textSecondary }]}>Cancel</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.replyFormBtn, { backgroundColor: colors.primary, opacity: submittingReply || !replyDraft.trim() ? 0.6 : 1 }]}
+                        onPress={() => handleReplySubmit(review.id)}
+                        disabled={submittingReply || !replyDraft.trim()}
+                      >
+                        {submittingReply ? (
+                          <ActivityIndicator size="small" color={colors.white} />
+                        ) : (
+                          <Text style={[styles.replyFormBtnText, { color: colors.white }]}>Submit</Text>
+                        )}
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
+              </Card>
+            );
+          })
         )}
 
         <View style={{ height: 100 }} />
       </ScrollView>
+      )}
 
       {/* Write Review Button */}
       <View style={[styles.bottomBar, { backgroundColor: colors.white, borderTopColor: colors.border, paddingBottom: insets.bottom || spacing.xl }]}>
@@ -228,7 +307,7 @@ export default function ReviewsScreen() {
           </View>
 
           <ScrollView style={styles.modalContent}>
-            <Text style={[styles.modalLabel, { color: colors.text }]}>Rate your experience with {data.profileName}</Text>
+            <Text style={[styles.modalLabel, { color: colors.text }]}>Rate your experience</Text>
             <View style={styles.ratingSelector}>
               {[1, 2, 3, 4, 5].map((star) => (
                 <TouchableOpacity key={star} onPress={() => setReviewRating(star)} style={styles.ratingStarButton}>
@@ -283,6 +362,11 @@ const styles = StyleSheet.create({
     fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.lg,
     fontWeight: '600',
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   scrollView: {
     flex: 1,
@@ -344,23 +428,6 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     textAlign: 'right',
   },
-  sortRow: {
-    flexDirection: 'row',
-    marginBottom: spacing.md,
-    gap: spacing.sm,
-  },
-  sortButton: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.full,
-    minHeight: 44,
-    justifyContent: 'center',
-  },
-  sortButtonText: {
-    fontFamily: typography.fonts.bodySemiBold,
-    fontSize: typography.sizes.sm,
-    fontWeight: '600',
-  },
   reviewCard: {
     marginBottom: spacing.md,
   },
@@ -389,20 +456,74 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.md,
     lineHeight: 22,
   },
-  reviewFooter: {
+  // Reply styles
+  replyBlock: {
     marginTop: spacing.md,
-    paddingTop: spacing.sm,
-    borderTopWidth: 1,
+    paddingLeft: spacing.md,
+    borderLeftWidth: 3,
+    borderLeftColor: '#FF2A5F',
+    padding: spacing.md,
+    borderRadius: borderRadius.md,
   },
-  helpfulButton: {
+  replyLabel: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.xs,
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  replyDateText: {
+    fontSize: typography.sizes.xs,
+    marginBottom: spacing.xs,
+  },
+  replyText: {
+    fontSize: typography.sizes.md,
+    lineHeight: 20,
+  },
+  replyButton: {
+    marginTop: spacing.sm,
     alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
-    minHeight: 44,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+    minHeight: 36,
   },
-  helpfulText: {
+  replyButtonText: {
+    fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.sm,
+    fontWeight: '600',
   },
+  replyForm: {
+    marginTop: spacing.md,
+  },
+  replyInput: {
+    borderRadius: borderRadius.md,
+    padding: spacing.md,
+    fontSize: typography.sizes.md,
+    minHeight: 80,
+  },
+  replyFormActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  replyFormBtn: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.md,
+    minHeight: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  replyFormBtnText: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.sm,
+    fontWeight: '600',
+  },
+  // Bottom bar & modal styles
   bottomBar: {
     position: 'absolute',
     bottom: 0,
