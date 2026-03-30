@@ -121,12 +121,11 @@ export default function CalendarScreen() {
         await calendarApi.unblockDates(datesToUnblock);
       }
 
-      showAlert('Success', 'Calendar updated successfully');
       setBlockMode(false);
       setSelectedForBlock(new Set());
       fetchData();
-    } catch (error: any) {
-      showAlert('Error', error.message || 'Failed to update calendar');
+    } catch (err: any) {
+      setError(err.message || 'Failed to update calendar');
     }
   };
 
@@ -206,6 +205,15 @@ export default function CalendarScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+      {error && (
+        <View style={styles.errorBanner}>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={fetchData}>
+            <Text style={styles.retryText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
         <View style={styles.titleRow}>
           <Text style={[styles.title, { color: colors.text }]}>Calendar</Text>
@@ -554,5 +562,37 @@ const styles = StyleSheet.create({
   eventActivity: {
     fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
+  },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.sm,
+    borderWidth: 2,
+    borderColor: '#000000',
+    borderRadius: borderRadius.md,
+    backgroundColor: '#FFFFFF',
+  },
+  errorText: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.sm,
+    color: '#FF2A5F',
+    flex: 1,
+  },
+  retryButton: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderWidth: 2,
+    borderColor: '#000000',
+    borderRadius: borderRadius.sm,
+    marginLeft: spacing.sm,
+  },
+  retryText: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.sm,
+    color: '#FF2A5F',
   },
 });

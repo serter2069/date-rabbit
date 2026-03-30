@@ -34,14 +34,26 @@ export default function VerificationScreen() {
   const [canRequest, setCanRequest] = useState(false);
   const [requirements, setRequirements] = useState<Requirement[]>([]);
 
+  const defaultRequirements: Requirement[] = [
+    { name: 'photo', met: false, description: 'Upload at least 1 photo' },
+    { name: 'profile', met: false, description: 'Complete your profile (name, bio)' },
+    { name: 'rate', met: false, description: 'Set your hourly rate' },
+    { name: 'email', met: false, description: 'Verify your email address' },
+  ];
+
   const fetchStatus = useCallback(async () => {
     try {
       const status = await usersApi.getVerificationStatus();
       setIsVerified(status.isVerified);
       setCanRequest(status.canRequest);
-      setRequirements(status.requirements);
+      setRequirements(
+        status.requirements && status.requirements.length > 0
+          ? status.requirements
+          : defaultRequirements,
+      );
     } catch {
-      // Error fetching status
+      // Fallback to defaults on error
+      setRequirements(defaultRequirements);
     } finally {
       setIsLoading(false);
     }
@@ -137,11 +149,11 @@ export default function VerificationScreen() {
               <Text style={[styles.sectionTitle, { color: colors.text }]}>Requirements</Text>
               {requirements.map((req) => (
                 <View key={req.name} style={[styles.requirementRow, { borderBottomColor: colors.border }]}>
-                  <View style={[styles.requirementIcon, { backgroundColor: req.met ? colors.success + '15' : colors.border }]}>
+                  <View style={[styles.requirementIcon, { backgroundColor: req.met ? colors.success + '15' : colors.textLight + '20' }]}>
                     <Icon
                       name={req.met ? 'check' : 'x'}
                       size={16}
-                      color={req.met ? colors.success : colors.textSecondary}
+                      color={req.met ? colors.success : colors.textLight}
                     />
                   </View>
                   <Text style={[styles.requirementText, { color: req.met ? colors.text : colors.textSecondary }]}>
