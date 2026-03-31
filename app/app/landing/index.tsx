@@ -87,33 +87,33 @@ export default function LandingScreen() {
           {/* Eyebrow */}
           <View style={styles.eyebrowRow}>
             <View style={styles.eyebrow}>
-              <Text style={styles.eyebrowText}>Companion marketplace</Text>
+              <Text style={styles.eyebrowText}>For women who know their worth</Text>
             </View>
           </View>
 
           <Text style={styles.headline}>
-            Book a real date{'\n'}
-            <Text style={styles.headlineAccent}>companion.</Text>
+            Your attention{'\n'}is{' '}
+            <Text style={styles.headlineAccent}>worth money.</Text>
           </Text>
 
           <Text style={styles.heroBody}>
-            Browse verified companions for coffee, dinner, drinks, or any activity you choose.
-            Transparent pricing. Real people. You pay per hour — no subscriptions, no surprises.
+            Stop giving your time away for free. Set your price, meet verified men, get paid via Stripe.
+            Your attention is the product — own it.
           </Text>
 
           <View style={styles.heroCtas}>
             <View style={styles.ctaWrap}>
               <Button
-                title="Browse Companions"
+                title="Start Earning"
                 variant="primary"
-                onPress={() => router.push('/onboarding?roleHint=seeker')}
+                onPress={() => router.push('/onboarding?roleHint=companion')}
               />
             </View>
             <View style={styles.ctaWrap}>
               <Button
-                title="Start Earning"
+                title="Find a Companion"
                 variant="outline"
-                onPress={() => router.push('/onboarding?roleHint=companion')}
+                onPress={() => router.push('/onboarding?roleHint=seeker')}
               />
             </View>
           </View>
@@ -132,28 +132,28 @@ export default function LandingScreen() {
         {/* ── HOW IT WORKS ── */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>THE PROCESS</Text>
-          <Text style={styles.sectionTitle}>4 steps. No confusion.</Text>
+          <Text style={styles.sectionTitle}>4 steps to your first payout.</Text>
 
           <View style={styles.stepsGrid}>
             <StepCard
               num="01"
-              title="Browse companions near you"
-              body="Filter by activity, price ($50–200/hr), rating, distance. Every profile is verified before going live."
+              title="Create your profile"
+              body="Upload photos, set your rate ($50–200/hr), choose activities you enjoy. Takes 10 minutes."
             />
             <StepCard
               num="02"
-              title="Message first, commit after"
-              body="Chat with a companion before booking. Make sure the vibe is right. No obligation until you pay."
+              title="Get verified, get noticed"
+              body="We verify every man before he can message you. No randoms. No creeps. Only serious, checked men."
             />
             <StepCard
               num="03"
-              title="Book & pay via Stripe"
-              body="Choose date, time, activity, and duration. Pay securely. Companion earns only after the date happens."
+              title="Accept what feels right"
+              body="You decide who to meet, when, and where. Decline anything. No pressure, no quotas."
             />
             <StepCard
               num="04"
-              title="Show up. Enjoy. Rate."
-              body="In-app safety check-in keeps both sides accountable. Rate the experience after. Reviews are real."
+              title="Get paid after every date"
+              body="Stripe deposits 85% of your rate directly to your bank. Payout after every booking."
             />
           </View>
         </View>
@@ -161,52 +161,24 @@ export default function LandingScreen() {
         {/* ── DUAL AUDIENCE ── */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>TWO SIDES</Text>
-          <Text style={styles.sectionTitle}>Who is this for?</Text>
+          <Text style={styles.sectionTitle}>Built for women. Open to everyone.</Text>
 
           <View style={styles.twoCol}>
-            {/* Seeker card */}
-            <View style={[styles.roleCard, styles.roleCardSeeker]}>
-              <View style={styles.roleIconWrap}>
-                <Icon name="search" size={24} color={colors.primary} />
-              </View>
-              <Text style={styles.roleCardTitle}>You want a companion</Text>
-              <Text style={styles.roleCardBody}>
-                Solo at a work event? Want company for a museum day?
-                Visiting a new city alone? Need a dinner partner without the dating app drama?
-              </Text>
-              <View style={styles.roleList}>
-                <RolePoint text="Business dinner +1" />
-                <RolePoint text="First time in a city" />
-                <RolePoint text="Social confidence practice" />
-                <RolePoint text="Concert, gallery, event" />
-                <RolePoint text="Just good conversation" />
-              </View>
-              <TouchableOpacity
-                style={styles.roleBtn}
-                onPress={() => router.push('/onboarding?roleHint=seeker')}
-                accessibilityLabel="Browse companions"
-                accessibilityRole="button"
-              >
-                <Text style={styles.roleBtnText}>Browse Companions →</Text>
-              </TouchableOpacity>
-            </View>
-
             {/* Companion card */}
             <View style={[styles.roleCard, styles.roleCardCompanion]}>
               <View style={[styles.roleIconWrap, { backgroundColor: colors.white + '20' }]}>
                 <Icon name="sparkles" size={24} color={colors.white} />
               </View>
-              <Text style={[styles.roleCardTitle, { color: colors.white }]}>You want to earn</Text>
+              <Text style={[styles.roleCardTitle, { color: colors.white }]}>You deserve to be paid</Text>
               <Text style={[styles.roleCardBody, { color: colors.white, opacity: 0.8 }]}>
-                Make money doing activities you already enjoy.
-                You set the activities you offer, the hourly rate, and when you're available.
+                Your time is valuable. Your company is a premium experience. Set your rate, choose your dates, keep 85% of everything you earn. No games, no drama — just real money.
               </Text>
               <View style={styles.roleList}>
-                <RolePoint text="$50–200/hr — you set the rate" dark />
+                <RolePoint text="$50–200/hr — you set the price" dark />
                 <RolePoint text="Keep 85% of every booking" dark />
-                <RolePoint text="Stripe direct deposit" dark />
-                <RolePoint text="Accept or decline any request" dark />
-                <RolePoint text="No hidden fees or quotas" dark />
+                <RolePoint text="Stripe direct deposit, no delays" dark />
+                <RolePoint text="You choose who to meet" dark />
+                <RolePoint text="Your schedule, your terms" dark />
               </View>
               <TouchableOpacity
                 style={[styles.roleBtn, { backgroundColor: colors.white }]}
@@ -217,20 +189,46 @@ export default function LandingScreen() {
                 <Text style={[styles.roleBtnText, { color: colors.text }]}>Start Earning →</Text>
               </TouchableOpacity>
             </View>
+
+            {/* Seeker card */}
+            <View style={[styles.roleCard, styles.roleCardSeeker]}>
+              <View style={styles.roleIconWrap}>
+                <Icon name="search" size={24} color={colors.primary} />
+              </View>
+              <Text style={styles.roleCardTitle}>Find someone worth your time</Text>
+              <Text style={styles.roleCardBody}>
+                Real, verified women who chose to be here. No fake profiles. Pay for their time — because women who know their worth don't give it away for free.
+              </Text>
+              <View style={styles.roleList}>
+                <RolePoint text="Verified identity, real person" />
+                <RolePoint text="Transparent hourly pricing" />
+                <RolePoint text="No subscription, pay per date" />
+                <RolePoint text="In-app safety for both sides" />
+                <RolePoint text="Rate and review after" />
+              </View>
+              <TouchableOpacity
+                style={styles.roleBtn}
+                onPress={() => router.push('/onboarding?roleHint=seeker')}
+                accessibilityLabel="Browse companions"
+                accessibilityRole="button"
+              >
+                <Text style={styles.roleBtnText}>Browse Companions →</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
         {/* ── TRUST / VERIFICATION ── */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>SAFETY FIRST</Text>
-          <Text style={styles.sectionTitle}>Both sides are verified. Not just one.</Text>
+          <Text style={styles.sectionTitle}>Every man is background-checked. No exceptions.</Text>
           <Text style={styles.sectionBody}>
-            Most platforms only verify companions. We verify everyone — because accountability goes both ways.
+            Before any man can message you, he passes a full identity and criminal background check. We verify government ID, run a criminal record check, and confirm it's really him with a live selfie. Your safety isn't a feature — it's the foundation.
           </Text>
 
           <View style={styles.verifyGrid}>
             <VerifyCard
-              title="Companions verify with"
+              title="Women verify with"
               items={[
                 'Government photo ID',
                 'Live selfie match',
@@ -241,12 +239,13 @@ export default function LandingScreen() {
               color={colors.primary}
             />
             <VerifyCard
-              title="Seekers verify with"
+              title="Men verify with"
               items={[
                 'Government photo ID',
                 'Live selfie match',
                 'SSN last 4 digits',
-                'Identity background check',
+                'Criminal background check',
+                'Identity verification (Stripe Identity)',
               ]}
               color={colors.accent}
             />
@@ -254,21 +253,19 @@ export default function LandingScreen() {
 
           {/* Safety features */}
           <View style={styles.safetyRow}>
-            <SafetyBadge icon="shield" text="In-app safety check-in" />
+            <SafetyBadge icon="shield" text="Criminal background check on every man" />
+            <SafetyBadge icon="eye-off" text="Government ID + live selfie required" />
             <SafetyBadge icon="alert" text="One-tap SOS during dates" />
-            <SafetyBadge icon="eye-off" text="Location never shared publicly" />
-            <SafetyBadge icon="lock" text="Payments via Stripe, never direct" />
+            <SafetyBadge icon="lock" text="Payments via Stripe, never direct cash" />
           </View>
         </View>
 
         {/* ── PRICING TRANSPARENCY ── */}
         <View style={styles.pricingBlock}>
-          <Text style={styles.pricingEyebrow}>PRICING</Text>
-          <Text style={styles.pricingTitle}>See prices before you message.</Text>
+          <Text style={styles.pricingEyebrow}>YOUR EARNINGS</Text>
+          <Text style={styles.pricingTitle}>Know exactly what you'll make.</Text>
           <Text style={styles.pricingBody}>
-            Every companion profile shows their hourly rate upfront.
-            You know exactly what a 2-hour dinner costs before you say hello.
-            No hidden markups. Platform fee is shown at checkout.
+            Every booking is transparent. You set your hourly rate. DateRabbit takes 15%. The rest is yours — deposited to your bank account after every date.
           </Text>
           <View style={styles.pricingCards}>
             <View style={styles.pricingCard}>
@@ -294,42 +291,42 @@ export default function LandingScreen() {
           <Text style={styles.sectionTitle}>From people who've used it.</Text>
           <View style={styles.testimonialGrid}>
             <TestimonialCard
-              quote="I had a work dinner in Chicago and knew nobody in the city. Found a companion for 3 hours, $150. Best work trip I've had."
-              name="Marcus D."
-              role="Seeker, Chicago"
+              quote="I was skeptical but I made $400 in my first week. Two dinners, one museum date. I set my rate at $80/hr and every man was respectful and verified."
+              name="Sofia M."
+              role="Companion, Los Angeles"
             />
             <TestimonialCard
-              quote="I set my rate at $90/hr for coffee and dinner. Booked 6 times in my first month. Stripe deposited every payout, no issues."
-              name="Alina V."
-              role="Companion, 4 months"
+              quote="What I love most is control. I decline anyone I'm not comfortable with. My time, my rules. I've been doing this for 3 months and it changed my finances."
+              name="Anastasia K."
+              role="Companion, 3 months"
             />
             <TestimonialCard
-              quote="The ID verification gave me confidence. I'm a woman and I needed to know the person wasn't a ghost. It works."
-              name="Priya R."
-              role="Companion, New York"
+              quote="I had no idea this existed. I needed company for a business dinner in NY. The woman I met was brilliant. Worth every dollar. Totally respectful experience."
+              name="James R."
+              role="Seeker, New York"
             />
           </View>
         </View>
 
         {/* ── FINAL CTA ── */}
         <View style={styles.finalCta}>
-          <Text style={styles.finalCtaTitle}>Ready?</Text>
+          <Text style={styles.finalCtaTitle}>Ready to earn?</Text>
           <Text style={styles.finalCtaBody}>
-            Takes 5 minutes to set up. Browse for free. Book when you're ready.
+            Create your profile in 10 minutes. Set your rate. Start meeting serious, verified men who value your time.
           </Text>
           <View style={styles.finalCtaBtns}>
             <View style={styles.ctaWrap}>
               <Button
-                title="Find a Companion"
+                title="Become a Companion"
                 variant="primary"
-                onPress={() => router.push('/onboarding?roleHint=seeker')}
+                onPress={() => router.push('/onboarding?roleHint=companion')}
               />
             </View>
             <View style={styles.ctaWrap}>
               <Button
-                title="Become a Companion"
+                title="Find a Companion"
                 variant="outline"
-                onPress={() => router.push('/onboarding?roleHint=companion')}
+                onPress={() => router.push('/onboarding?roleHint=seeker')}
               />
             </View>
           </View>
