@@ -118,6 +118,17 @@ export default function LandingScreen() {
             </View>
           </View>
 
+          {/* ── HERO IMAGE ── */}
+          <LinearGradient
+            colors={[colors.primary + '20', colors.primary + '05']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.heroImage}
+          >
+            <Icon name="user" size={48} color={colors.primary} style={{ opacity: 0.4 }} />
+            <Text style={styles.heroImageText}>✦ Photo coming soon ✦</Text>
+          </LinearGradient>
+
           {/* Activity tags */}
           <View style={styles.activityRow}>
             {ACTIVITIES.map((a) => (
@@ -533,6 +544,27 @@ const styles = StyleSheet.create({
   },
   ctaWrap: {
     minWidth: 190,
+  },
+  heroImage: {
+    width: '100%',
+    height: 280,
+    borderRadius: borderRadius.lg,
+    borderWidth: borderWidth.normal,
+    borderColor: colors.border,
+    overflow: 'hidden',
+    marginBottom: spacing.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...NEO_SHADOW,
+  },
+  heroImageText: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.xs,
+    color: colors.primary,
+    opacity: 0.5,
+    letterSpacing: 2,
+    textTransform: 'uppercase' as const,
+    marginTop: spacing.sm,
   },
   activityRow: {
     flexDirection: 'row',
