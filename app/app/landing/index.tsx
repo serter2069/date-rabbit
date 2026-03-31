@@ -556,14 +556,12 @@ const styles = StyleSheet.create({
   },
   heroImage: {
     width: '100%',
-    height: 280,
+    height: 380,
     borderRadius: borderRadius.lg,
     borderWidth: borderWidth.normal,
     borderColor: colors.border,
     overflow: 'hidden',
     marginBottom: spacing.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
     ...NEO_SHADOW,
   },
   heroImageText: {
