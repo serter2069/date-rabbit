@@ -15,13 +15,15 @@ import {
   useSafeAreaInsets
 } from 'react-native-safe-area-context';
 import {
-  Image, LinearGradient } from 'expo-linear-gradient';
+  LinearGradient
+} from 'expo-linear-gradient';
 import {
-  Image, Icon, IconName } from '../../src/components/Icon';
+  Icon, IconName
+} from '../../src/components/Icon';
 import {
-  Image, Button } from '../../src/components/Button';
+  Button
+} from '../../src/components/Button';
 import {
-  Image,
   colors,
   spacing,
   typography,
@@ -30,7 +32,8 @@ import {
   PAGE_PADDING,
 } from '../../src/constants/theme';
 import {
-  Image, useAuthStore } from '../../src/store/authStore';
+  useAuthStore
+} from '../../src/store/authStore';
 
 const GAP = spacing.xl * 2;
 
