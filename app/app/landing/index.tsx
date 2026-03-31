@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import {
+  Image,
   View,
   Text,
   StyleSheet,
@@ -7,12 +8,20 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import { router } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Icon, IconName } from '../../src/components/Icon';
-import { Button } from '../../src/components/Button';
 import {
+  router
+} from 'expo-router';
+import {
+  useSafeAreaInsets
+} from 'react-native-safe-area-context';
+import {
+  Image, LinearGradient } from 'expo-linear-gradient';
+import {
+  Image, Icon, IconName } from '../../src/components/Icon';
+import {
+  Image, Button } from '../../src/components/Button';
+import {
+  Image,
   colors,
   spacing,
   typography,
@@ -20,7 +29,8 @@ import {
   borderWidth,
   PAGE_PADDING,
 } from '../../src/constants/theme';
-import { useAuthStore } from '../../src/store/authStore';
+import {
+  Image, useAuthStore } from '../../src/store/authStore';
 
 const GAP = spacing.xl * 2;
 
@@ -119,15 +129,11 @@ export default function LandingScreen() {
           </View>
 
           {/* ── HERO IMAGE ── */}
-          <LinearGradient
-            colors={[colors.primary + '20', colors.primary + '05']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
+          <Image
+            source={require('../../assets/images/hero-woman.jpeg')}
             style={styles.heroImage}
-          >
-            <Icon name="user" size={48} color={colors.primary} style={{ opacity: 0.4 }} />
-            <Text style={styles.heroImageText}>✦ Photo coming soon ✦</Text>
-          </LinearGradient>
+            resizeMode="cover"
+          />
 
           {/* Activity tags */}
           <View style={styles.activityRow}>

@@ -4,7 +4,7 @@ import { Platform } from 'react-native';
 import type { Verification, VerificationReference, PreChatStatus } from '../types';
 import { useNetworkStore } from '../store/networkStore';
 
-const API_BASE_URL = 'https://daterabbit-api.smartlaunchhub.com/api';
+const API_BASE_URL = 'http://localhost:3004/api'; // audit mode — local backend with DEV_AUTH=true
 const API_TIMEOUT_MS = 10_000; // 10 seconds
 
 // Token management — stored in SecureStore (iOS Keychain / Android Keystore)
