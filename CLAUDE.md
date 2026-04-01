@@ -1,5 +1,28 @@
 # DateRabbit
 
+## Local Development
+
+Secrets: **Doppler** (workspace: Sergei MSP, project: `date-rabbit`, config: `dev`)
+
+```bash
+doppler login      # один раз на машину
+daterabbit-dev     # запускает backend + expo + SSH туннель к DB
+```
+
+- **Backend:** http://localhost:3004
+- **Web app:** http://localhost:8083
+- **DB:** staging via SSH туннель (localhost:5435 → 91.98.205.156:5432/daterabbit)
+- **Auth:** `DEV_AUTH=true` → OTP всегда `000000`
+
+Управление секретами:
+```bash
+doppler secrets --project date-rabbit --config dev
+doppler secrets set KEY=value --project date-rabbit --config dev
+# или через UI: dashboard.doppler.com
+```
+
+---
+
 ## 🔐 Тестовая авторизация
 
 **Staging: DEV_AUTH=false** -- OTP отправляется на email через Brevo.
