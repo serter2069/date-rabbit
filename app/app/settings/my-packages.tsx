@@ -70,7 +70,7 @@ export default function MyPackagesScreen() {
 
   const handleCreate = async () => {
     if (!selectedTemplateId || !price) {
-      showAlert('Missing Info', 'Select a template and set a price.');
+      showAlert('Missing Info', 'Select a package type and set a price.');
       return;
     }
     const priceNum = parseFloat(price);
@@ -265,7 +265,7 @@ export default function MyPackagesScreen() {
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Add a Package</Text>
             <Text style={[styles.sectionDesc, { color: colors.textSecondary }]}>
-              Choose a template and set your total price. Seekers see this as a fixed-price option.
+              Choose a package type and set your total price. Seekers see this as a fixed-price option.
             </Text>
 
             {availableTemplates.map((t) => {
@@ -333,13 +333,13 @@ export default function MyPackagesScreen() {
           <View style={{ alignItems: 'center', paddingVertical: spacing.xxl }}>
             <Icon name="package" size={48} color={colors.textSecondary} />
             <Text style={[styles.emptyText, { color: colors.textSecondary }]}>No packages yet</Text>
+            <Text style={[styles.emptySubText, { color: colors.textSecondary }]}>
+              Add packages to let seekers book fixed-price experiences with you.
+            </Text>
             <Button
-              title="Create Package"
+              title="Add Package"
               variant="pink"
-              onPress={() => {
-                // TODO: navigate to dedicated package creation screen when available
-                router.push('/settings/edit-profile');
-              }}
+              onPress={onRefresh}
               style={{ marginTop: spacing.lg }}
             />
           </View>
@@ -502,5 +502,12 @@ const styles = StyleSheet.create({
     fontFamily: typography.fonts.body,
     fontSize: typography.sizes.md,
     marginTop: spacing.md,
+  },
+  emptySubText: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.sm,
+    marginTop: spacing.xs,
+    textAlign: 'center',
+    paddingHorizontal: spacing.xl,
   },
 });

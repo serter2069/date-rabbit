@@ -23,6 +23,14 @@ interface Requirement {
   description: string;
 }
 
+// Module-level constant so the useCallback closure always has a stable reference
+const DEFAULT_REQUIREMENTS: Requirement[] = [
+  { name: 'photo', met: false, description: 'Upload at least 1 photo' },
+  { name: 'profile', met: false, description: 'Complete your profile (name, bio)' },
+  { name: 'rate', met: false, description: 'Set your hourly rate' },
+  { name: 'email', met: false, description: 'Verify your email address' },
+];
+
 export default function VerificationScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
@@ -34,13 +42,6 @@ export default function VerificationScreen() {
   const [canRequest, setCanRequest] = useState(false);
   const [requirements, setRequirements] = useState<Requirement[]>([]);
 
-  const defaultRequirements: Requirement[] = [
-    { name: 'photo', met: false, description: 'Upload at least 1 photo' },
-    { name: 'profile', met: false, description: 'Complete your profile (name, bio)' },
-    { name: 'rate', met: false, description: 'Set your hourly rate' },
-    { name: 'email', met: false, description: 'Verify your email address' },
-  ];
-
   const fetchStatus = useCallback(async () => {
     try {
       const status = await usersApi.getVerificationStatus();
@@ -49,11 +50,11 @@ export default function VerificationScreen() {
       setRequirements(
         status.requirements && status.requirements.length > 0
           ? status.requirements
-          : defaultRequirements,
+          : DEFAULT_REQUIREMENTS,
       );
     } catch {
       // Fallback to defaults on error
-      setRequirements(defaultRequirements);
+      setRequirements(DEFAULT_REQUIREMENTS);
     } finally {
       setIsLoading(false);
     }
@@ -167,6 +168,8 @@ export default function VerificationScreen() {
               <Button
                 title={isSubmitting ? 'Submitting...' : 'Request Verification'}
                 onPress={handleRequestVerification}
+                variant="pink"
+                fullWidth
                 disabled={!canRequest || isSubmitting}
                 loading={isSubmitting}
               />
