@@ -74,6 +74,16 @@ export class VerificationController {
     return this.verificationService.submitForReview(req.user.id);
   }
 
+  @Post('identity-session')
+  createIdentitySession(@Req() req: any) {
+    return this.verificationService.createIdentitySession(req.user.id);
+  }
+
+  @Get('identity-status')
+  checkIdentityStatus(@Req() req: any) {
+    return this.verificationService.checkIdentityStatus(req.user.id);
+  }
+
   // Webhook moved to a separate unguarded controller below
 }
 

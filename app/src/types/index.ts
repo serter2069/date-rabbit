@@ -32,6 +32,8 @@ export interface Verification {
   consentDate?: string;
   rejectionReason?: string;
   references?: VerificationReference[];
+  stripeVerificationSessionId?: string;
+  stripeVerificationStatus?: string;
   createdAt: string;
   updatedAt: string;
 }

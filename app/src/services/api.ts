@@ -721,6 +721,14 @@ export const verificationApi = {
 
   submit: () =>
     apiRequest<Verification>('/verification/submit', { method: 'POST' }),
+
+  createIdentitySession: () =>
+    apiRequest<{ url: string; sessionId: string }>('/verification/identity-session', {
+      method: 'POST',
+    }),
+
+  getIdentityStatus: () =>
+    apiRequest<{ status: string; verificationStatus: string }>('/verification/identity-status'),
 };
 
 // Referral API
