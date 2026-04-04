@@ -11,6 +11,7 @@ import { Verification } from '../verification/entities/verification.entity';
 import { Review } from '../reviews/entities/review.entity';
 import { PlatformSettings } from './entities/platform-settings.entity';
 import { UsersModule } from '../users/users.module';
+import { CitiesModule } from '../cities/cities.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { UsersModule } from '../users/users.module';
       }),
     }),
     UsersModule,
+    CitiesModule,
   ],
   controllers: [AdminController],
   providers: [AdminService, AdminGuard],

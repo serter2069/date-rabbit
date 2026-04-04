@@ -6,6 +6,9 @@ import { Booking, BookingStatus } from '../bookings/entities/booking.entity';
 import { Verification, VerificationStatus } from '../verification/entities/verification.entity';
 import { Review } from '../reviews/entities/review.entity';
 import { PlatformSettings } from './entities/platform-settings.entity';
+import { CitiesService } from '../cities/cities.service';
+import { CreateCityDto } from '../cities/dto/create-city.dto';
+import { UpdateCityDto } from '../cities/dto/update-city.dto';
 
 @Injectable()
 export class AdminService {
@@ -20,6 +23,7 @@ export class AdminService {
     private reviewsRepo: Repository<Review>,
     @InjectRepository(PlatformSettings)
     private settingsRepo: Repository<PlatformSettings>,
+    private readonly citiesService: CitiesService,
   ) {}
 
   async getStats() {
@@ -393,5 +397,18 @@ export class AdminService {
 
     await this.settingsRepo.save(settings);
     return this.getSettings();
+  }
+
+  // #2039 - cities management
+  async getCities() {
+    return this.citiesService.findAll(false);
+  }
+
+  async createCity(dto: CreateCityDto) {
+    return this.citiesService.create(dto);
+  }
+
+  async updateCity(id: string, dto: UpdateCityDto) {
+    return this.citiesService.update(id, dto);
   }
 }

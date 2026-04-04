@@ -16,6 +16,8 @@ import {
 } from '@nestjs/common';
 import { AdminGuard } from './admin.guard';
 import { AdminService } from './admin.service';
+import { CreateCityDto } from '../cities/dto/create-city.dto';
+import { UpdateCityDto } from '../cities/dto/update-city.dto';
 
 @Controller('admin')
 @UseGuards(AdminGuard)
@@ -168,5 +170,24 @@ export class AdminController {
     },
   ) {
     return this.adminService.updateSettings(body);
+  }
+
+  // #2039 - cities management
+  @Get('cities')
+  getCities() {
+    return this.adminService.getCities();
+  }
+
+  @Post('cities')
+  createCity(@Body() dto: CreateCityDto) {
+    return this.adminService.createCity(dto);
+  }
+
+  @Patch('cities/:id')
+  updateCity(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateCityDto,
+  ) {
+    return this.adminService.updateCity(id, dto);
   }
 }
