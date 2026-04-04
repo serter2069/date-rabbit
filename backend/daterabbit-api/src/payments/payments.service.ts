@@ -113,7 +113,7 @@ export class PaymentsService {
     }
 
     const amount = Math.round(Number(booking.totalPrice) * 100); // cents
-    const platformFee = Math.round(amount * 0.15); // 15% platform fee
+    const platformFee = Math.round(amount * 0.20); // 20% platform fee
 
     const paymentIntent = await this.stripe.paymentIntents.create({
       amount,
@@ -220,7 +220,7 @@ export class PaymentsService {
       .getMany();
 
     const totalEarnings = completedBookings.reduce(
-      (sum, b) => sum + Number(b.totalPrice) * 0.85, // minus 15% platform fee
+      (sum, b) => sum + Number(b.totalPrice) * 0.80, // minus 20% platform fee
       0,
     );
 

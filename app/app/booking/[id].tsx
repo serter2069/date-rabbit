@@ -149,7 +149,7 @@ export default function BookingScreen() {
     return () => subscription.remove();
   }, [hasUnsavedData]);
 
-  const serviceFee = 0.15; // 15% platform fee
+  const serviceFee = 0.20; // 20% platform fee
   const hourlyRate = companion?.hourlyRate ?? 0;
   const isPackageBooking = !!selectedPackage;
   const subtotal = isPackageBooking ? Number(selectedPackage!.price) : hourlyRate * selectedDuration;
@@ -512,7 +512,7 @@ export default function BookingScreen() {
             <Text style={[styles.summaryValue, { color: colors.text }]}>${subtotal}</Text>
           </View>
           <View style={styles.summaryRow}>
-            <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Service fee (15%)</Text>
+            <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Service fee (20%)</Text>
             <Text style={[styles.summaryValue, { color: colors.text }]}>${fee}</Text>
           </View>
           <View style={[styles.summaryRow, styles.summaryTotal, { borderTopColor: colors.border }]}>
