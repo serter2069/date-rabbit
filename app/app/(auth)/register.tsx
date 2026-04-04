@@ -201,7 +201,7 @@ export default function RegisterScreen() {
 
     // Route to verification flow
     if (isFemale) {
-      router.replace('/(comp-onboard)/step1');
+      router.replace('/(comp-onboard)/step2');
     } else {
       router.replace('/(seeker-verify)/intro');
     }
