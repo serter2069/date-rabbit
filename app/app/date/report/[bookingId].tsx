@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { activeDateApi } from '../../../src/services/activeDateApi';
 import { colors } from '../../../src/constants/theme';
 
@@ -13,6 +14,7 @@ const ISSUE_TYPES: { label: string; value: string }[] = [
 ];
 
 export default function ReportIssueScreen() {
+  const insets = useSafeAreaInsets();
   const { bookingId } = useLocalSearchParams<{ bookingId: string }>();
   const [type, setType] = useState('');
   const [description, setDescription] = useState('');
@@ -44,7 +46,11 @@ export default function ReportIssueScreen() {
   );
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+    <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 24 }]}>
       <Text style={styles.title}>Report an Issue</Text>
 
       <Text style={styles.sectionLabel}>Issue Type</Text>
@@ -83,12 +89,13 @@ export default function ReportIssueScreen() {
         <Text style={styles.submitBtnText}>{submitting ? 'Submitting...' : 'Submit Report'}</Text>
       </TouchableOpacity>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F4F0EA' },
-  content: { padding: 24, paddingTop: 40 },
+  content: { padding: 24 },
   center: { flex: 1, backgroundColor: '#F4F0EA', justifyContent: 'center', alignItems: 'center', padding: 24 },
   title: { fontSize: 32, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000', marginBottom: 32 },
   sectionLabel: { fontSize: 14, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 },
