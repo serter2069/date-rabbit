@@ -157,7 +157,7 @@ export default function LandingScreen() {
                 <Text style={[
                   styles.genderToggleText,
                   gender === 'female' && styles.genderToggleTextActive,
-                ]}>&#9792; Woman</Text>
+                ]}>&#9792; Girl</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[
