@@ -634,19 +634,44 @@ export default function ProfileViewScreen() {
 
       {/* Bottom Action Bar */}
       <View style={[styles.bottomBar, { backgroundColor: colors.white, borderTopColor: colors.border, paddingBottom: insets.bottom || spacing.xl }]}>
-        <Button
-          title="Message"
-          onPress={handleMessage}
-          variant="outline"
-          style={styles.messageButton}
-          testID="profile-view-message-btn"
-        />
-        <Button
-          title={`Book Date • $${profile.hourlyRate ?? 0}/hr`}
-          onPress={handleBookDate}
-          style={styles.bookButton}
-          testID="profile-view-book-btn"
-        />
+        {isSelf ? (
+          <Button
+            title="Edit Profile"
+            onPress={() => router.push('/settings/edit-profile')}
+            style={{ flex: 1 }}
+            testID="profile-view-edit-btn"
+          />
+        ) : !isAuthenticated ? (
+          <Button
+            title="Sign Up to Book"
+            onPress={() => router.push('/onboarding?roleHint=seeker')}
+            style={{ flex: 1 }}
+            testID="profile-view-signup-btn"
+          />
+        ) : currentUser?.verificationStatus !== 'approved' ? (
+          <Button
+            title="Verify to Book"
+            onPress={() => router.push('/(seeker-verify)/intro')}
+            style={{ flex: 1 }}
+            testID="profile-view-verify-btn"
+          />
+        ) : (
+          <>
+            <Button
+              title="Message"
+              onPress={handleMessage}
+              variant="outline"
+              style={styles.messageButton}
+              testID="profile-view-message-btn"
+            />
+            <Button
+              title={`Book Date • $${profile.hourlyRate ?? 0}/hr`}
+              onPress={handleBookDate}
+              style={styles.bookButton}
+              testID="profile-view-book-btn"
+            />
+          </>
+        )}
       </View>
 
       {/* Menu Modal */}
