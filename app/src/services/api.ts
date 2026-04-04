@@ -802,6 +802,18 @@ export const packagesApi = {
     }),
 };
 
+export interface City {
+  id: string;
+  name: string;
+  state: string;
+  isActive: boolean;
+}
+
+export const citiesApi = {
+  getActive: () =>
+    apiRequest<City[]>('/cities?active=true', { auth: false }),
+};
+
 // Types
 export interface User {
   id: string;

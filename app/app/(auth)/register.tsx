@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -56,10 +56,56 @@ const WebYearSelect = Platform.OS === 'web'
       );
     }
   : null;
+
+// Web-only: native <select> for city (RN Modal doesn't work well on web)
+const WebCitySelect = Platform.OS === 'web'
+  ? ({ value, cities, onChange, hasError }: {
+      value: string;
+      cities: City[];
+      onChange: (val: string) => void;
+      hasError: boolean;
+    }) => {
+      const selectStyle = {
+        width: '100%' as const,
+        height: 52,
+        border: `1px solid ${hasError ? colors.error : colors.border}`,
+        borderRadius: 12,
+        backgroundColor: colors.surface,
+        paddingLeft: 16,
+        paddingRight: 16,
+        fontSize: 16,
+        color: value ? colors.text : colors.textLight,
+        fontFamily: typography.fonts.body,
+        appearance: 'none' as const,
+        WebkitAppearance: 'none' as const,
+        backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%23999%27 stroke-width=%272%27%3e%3cpolyline points=%276 9 12 15 18 9%27/%3e%3c/svg%3e")',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'right 12px center',
+        backgroundSize: '20px',
+        cursor: 'pointer' as const,
+        outline: 'none',
+      };
+      return (
+        // @ts-ignore - web-only DOM element
+        <select
+          value={value}
+          onChange={(e: any) => onChange(e.target.value)}
+          style={selectStyle}
+        >
+          <option value="">Select city</option>
+          {cities.map((city: City) => (
+            <option key={city.id} value={city.name}>{city.name}</option>
+          ))}
+        </select>
+      );
+    }
+  : null;
+
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../src/store/authStore';
-import { usersApi } from '../../src/services/api';
+import { usersApi, citiesApi } from '../../src/services/api';
+import type { City } from '../../src/services/api';
 import { Button } from '../../src/components/Button';
 import { Input } from '../../src/components/Input';
 import { Icon } from '../../src/components/Icon';
@@ -91,7 +137,29 @@ export default function RegisterScreen() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showFormError, setShowFormError] = useState(false);
   const [yearPickerVisible, setYearPickerVisible] = useState(false);
+  const [cityPickerVisible, setCityPickerVisible] = useState(false);
+  const [cities, setCities] = useState<City[]>([]);
+  const [citiesLoading, setCitiesLoading] = useState(false);
+  const [citiesError, setCitiesError] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const fetchCities = async () => {
+      setCitiesLoading(true);
+      setCitiesError(false);
+      try {
+        const data = await citiesApi.getActive();
+        if (!cancelled) setCities(data);
+      } catch {
+        if (!cancelled) setCitiesError(true);
+      } finally {
+        if (!cancelled) setCitiesLoading(false);
+      }
+    };
+    fetchCities();
+    return () => { cancelled = true; };
+  }, []);
 
   const pickAvatar = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -352,14 +420,44 @@ export default function RegisterScreen() {
             </View>
 
             <View style={styles.halfWidth}>
-              <Input
-                label="Location"
-                placeholder="City"
-                value={formData.location}
-                onChangeText={(v) => updateField('location', v)}
-                error={errors.location}
-                leftIcon={<Icon name="map-pin" size={20} color={colors.textLight} />}
-              />
+              <Text style={styles.pickerLabel}>City</Text>
+              {Platform.OS === 'web' && WebCitySelect ? (
+                <WebCitySelect
+                  value={formData.location}
+                  cities={cities}
+                  onChange={(val) => updateField('location', val)}
+                  hasError={!!errors.location}
+                />
+              ) : (
+                <TouchableOpacity
+                  style={[
+                    styles.yearPickerTrigger,
+                    errors.location ? styles.yearPickerTriggerError : null,
+                  ]}
+                  onPress={() => setCityPickerVisible(true)}
+                  activeOpacity={0.7}
+                  accessibilityLabel={formData.location ? `City: ${formData.location}` : 'Select city'}
+                  accessibilityRole="button"
+                >
+                  <Icon name="map-pin" size={20} color={colors.textLight} />
+                  <Text
+                    style={[
+                      styles.yearPickerText,
+                      !formData.location && styles.yearPickerPlaceholder,
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {formData.location || 'Select'}
+                  </Text>
+                  <Icon name="arrow-down" size={16} color={colors.textLight} />
+                </TouchableOpacity>
+              )}
+              {errors.location ? (
+                <Text style={styles.yearPickerError}>{errors.location}</Text>
+              ) : null}
+              {citiesError ? (
+                <Text style={styles.yearPickerError}>Failed to load cities</Text>
+              ) : null}
             </View>
           </View>
 
@@ -452,6 +550,77 @@ export default function RegisterScreen() {
                   </TouchableOpacity>
                 )}
               />
+            </View>
+          </TouchableOpacity>
+        </Modal>
+      )}
+
+      {/* City Picker Modal (native only -- web uses <select>) */}
+      {Platform.OS !== 'web' && (
+        <Modal
+          visible={cityPickerVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setCityPickerVisible(false)}
+        >
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setCityPickerVisible(false)}
+            accessibilityLabel="Close city picker"
+            accessibilityRole="button"
+          >
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Select City</Text>
+                <TouchableOpacity
+                  onPress={() => setCityPickerVisible(false)}
+                  accessibilityLabel="Close"
+                  accessibilityRole="button"
+                >
+                  <Icon name="x" size={24} color={colors.text} />
+                </TouchableOpacity>
+              </View>
+              {citiesLoading ? (
+                <View style={styles.cityPickerLoading}>
+                  <Text style={styles.cityPickerLoadingText}>Loading cities…</Text>
+                </View>
+              ) : citiesError ? (
+                <View style={styles.cityPickerLoading}>
+                  <Text style={styles.yearPickerError}>Failed to load cities. Please try again.</Text>
+                </View>
+              ) : (
+                <FlatList
+                  data={cities}
+                  keyExtractor={(item) => item.id}
+                  style={styles.yearList}
+                  showsVerticalScrollIndicator={false}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={[
+                        styles.yearItem,
+                        formData.location === item.name && styles.yearItemSelected,
+                      ]}
+                      onPress={() => {
+                        updateField('location', item.name);
+                        setCityPickerVisible(false);
+                      }}
+                      accessibilityLabel={`City ${item.name}`}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: formData.location === item.name }}
+                    >
+                      <Text
+                        style={[
+                          styles.yearItemText,
+                          formData.location === item.name && styles.yearItemTextSelected,
+                        ]}
+                      >
+                        {item.name}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                />
+              )}
             </View>
           </TouchableOpacity>
         </Modal>
@@ -658,5 +827,14 @@ const styles = StyleSheet.create({
   yearItemTextSelected: {
     color: colors.textInverse,
     fontFamily: typography.fonts.heading,
+  },
+  cityPickerLoading: {
+    paddingVertical: spacing.xl,
+    alignItems: 'center',
+  },
+  cityPickerLoadingText: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.md,
+    color: colors.textMuted,
   },
 });
