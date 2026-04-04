@@ -159,8 +159,20 @@ interface RequestCardProps {
 
 function RequestCard({ request, type, colors, onAccept, onDecline, formatDate }: RequestCardProps) {
   const seeker = request.seeker || { name: 'Unknown', photo: null };
-  
-  return (
+
+  const getStatusStyle = (status: string) => {
+    switch (status) {
+      case 'completed': return { bg: colors.primary + '20', text: colors.primary };
+      case 'cancelled': return { bg: colors.error + '20', text: colors.error };
+      case 'no_show': return { bg: colors.error + '20', text: colors.error };
+      default: return { bg: colors.textSecondary + '20', text: colors.textSecondary };
+    }
+  };
+
+  const displayStatus = request.noShowReason ? 'no_show' : request.status;
+  const statusStyle = getStatusStyle(displayStatus);
+
+  const cardContent = (
     <Card style={styles.card}>
       <View style={styles.cardHeader}>
         <UserImage name={seeker.name} uri={seeker.photo} size={56} />
@@ -182,7 +194,16 @@ function RequestCard({ request, type, colors, onAccept, onDecline, formatDate }:
         </View>
         <View style={styles.cardAmount}>
           <Text style={[styles.amountValue, { color: colors.success }]}>${request.total}</Text>
-          <Text style={[styles.amountLabel, { color: colors.textSecondary }]}>Total</Text>
+          <Text style={[styles.amountLabel, { color: colors.textSecondary }]}>
+            {type === 'completed' ? 'Earned' : 'Total'}
+          </Text>
+          {type === 'completed' && (
+            <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
+              <Text style={[styles.statusText, { color: statusStyle.text }]}>
+                {displayStatus === 'no_show' ? 'no show' : displayStatus}
+              </Text>
+            </View>
+          )}
         </View>
       </View>
 
@@ -265,6 +286,21 @@ function RequestCard({ request, type, colors, onAccept, onDecline, formatDate }:
       )}
     </Card>
   );
+
+  if (type === 'completed') {
+    return (
+      <TouchableOpacity
+        onPress={() => router.push(`/date/summary/${request.id}`)}
+        activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityLabel={`View summary of date with ${seeker.name}`}
+      >
+        {cardContent}
+      </TouchableOpacity>
+    );
+  }
+
+  return cardContent;
 }
 
 const styles = StyleSheet.create({
@@ -353,6 +389,17 @@ const styles = StyleSheet.create({
   amountLabel: {
     fontFamily: typography.fonts.body,
     fontSize: typography.sizes.xs,
+  },
+  statusBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: borderRadius.sm,
+    marginTop: spacing.xs,
+  },
+  statusText: {
+    fontFamily: typography.fonts.bodyMedium,
+    fontSize: typography.sizes.xs,
+    textTransform: 'capitalize',
   },
   messageBox: {
     marginTop: spacing.md,
