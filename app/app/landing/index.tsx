@@ -214,19 +214,13 @@ function FemaleLanding() {
     <>
       {/* Section 1 — Hero */}
       <View style={styles.section}>
-        <View style={styles.eyebrowRow}>
-          <View style={styles.eyebrow}>
-            <Text style={styles.eyebrowText}>For women who know their worth</Text>
-          </View>
-        </View>
-
         <Text style={styles.headline}>
           {'Go on a date.\n'}
           <Text style={styles.headlineAccent}>Get paid.</Text>
         </Text>
 
         <Text style={styles.heroBody}>
-          Set your price. You choose who to meet. Stripe pays you same day.
+          Your price. Your rules. Stripe pays today.
         </Text>
 
         <View style={styles.heroCtas}>
@@ -248,83 +242,57 @@ function FemaleLanding() {
 
       {/* Section 2 — How it works */}
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>HOW IT WORKS</Text>
-        <Text style={styles.sectionTitle}>3 steps to your first payout.</Text>
-
         <View style={styles.stepsGrid}>
-          <StepCard
-            num="01"
-            title="Create your profile"
-            body="Set your price, upload photos, describe yourself. Takes 10 minutes."
-          />
-          <StepCard
-            num="02"
-            title="Get booked"
-            body="Seekers browse and book you. You accept or decline — always your choice."
-          />
-          <StepCard
-            num="03"
-            title="Show up & earn"
-            body="Go on the date, get paid via Stripe same day. 85% goes directly to you."
-          />
+          <StepCard num="01" title="Set your price" body="" />
+          <StepCard num="02" title="Accept a booking" body="" />
+          <StepCard num="03" title="Show up. Get paid." body="" />
         </View>
       </View>
 
       {/* Section 3 — Safety */}
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>SAFETY FIRST</Text>
-        <Text style={styles.sectionTitle}>Your safety is our priority.</Text>
-
         <View style={styles.safetyCards}>
           <SafetyItem
             icon="shield"
-            title="ID-verified & fingerprint-checked"
-            body="Every seeker passes a full identity and criminal background check before they can book you."
+            title="Every man is ID-verified."
+            body=""
           />
           <SafetyItem
             icon="check"
-            title="You accept or decline — always"
-            body="No pressure, no exceptions. Your schedule, your rules. Decline anyone without explanation."
+            title="Accept or decline anyone."
+            body="Zero explanation needed."
           />
           <SafetyItem
             icon="alert"
-            title="24/7 support"
-            body="If anything goes wrong before, during, or after a date — we are here immediately."
+            title="Something feels off?"
+            body="Leave. You keep the money."
           />
         </View>
       </View>
 
       {/* Section 4 — Earnings callout */}
       <View style={styles.earningsBlock}>
-        <Text style={styles.earningsEyebrow}>EARNINGS</Text>
-        <Text style={styles.earningsTitle}>Average girl earns $150–300 per date.</Text>
-        <Text style={styles.earningsBody}>
-          Full control over your schedule. Set your rate, choose your hours. Stripe deposits same day after every completed date.
-        </Text>
+        <Text style={styles.earningsTitleLarge}>$150–300</Text>
         <View style={styles.earningsStats}>
           <View style={styles.earningsStat}>
             <Text style={styles.earningsStatValue}>$150–300</Text>
-            <Text style={styles.earningsStatLabel}>per date average</Text>
+            <Text style={styles.earningsStatLabel}>per date</Text>
           </View>
           <View style={styles.earningsDivider} />
           <View style={styles.earningsStat}>
             <Text style={styles.earningsStatValue}>85%</Text>
-            <Text style={styles.earningsStatLabel}>of every booking is yours</Text>
+            <Text style={styles.earningsStatLabel}>is yours</Text>
           </View>
           <View style={styles.earningsDivider} />
           <View style={styles.earningsStat}>
             <Text style={styles.earningsStatValue}>Same day</Text>
-            <Text style={styles.earningsStatLabel}>Stripe payout</Text>
+            <Text style={styles.earningsStatLabel}>payout</Text>
           </View>
         </View>
       </View>
 
       {/* Section 5 — CTA repeat */}
       <View style={styles.finalCta}>
-        <Text style={styles.finalCtaTitle}>Ready to start earning?</Text>
-        <Text style={styles.finalCtaBody}>
-          Create your profile in 10 minutes. Set your rate. Start meeting verified men who value your time.
-        </Text>
         <View style={styles.ctaWrap}>
           <Button
             title="Start Earning"
@@ -360,23 +328,53 @@ function MaleLanding() {
     fetchCompanions();
   }, []);
 
+  const PLACEHOLDER_PROFILES = [
+    { id: 'p1', name: 'Sofia', rate: 120, city: 'New York', initials: 'S', color: '#FF2A5F' },
+    { id: 'p2', name: 'Emma', rate: 95, city: 'Los Angeles', initials: 'E', color: '#E91E8C' },
+    { id: 'p3', name: 'Mia', rate: 140, city: 'Miami', initials: 'M', color: '#9C27B0' },
+    { id: 'p4', name: 'Ava', rate: 110, city: 'Chicago', initials: 'A', color: '#673AB7' },
+    { id: 'p5', name: 'Chloe', rate: 85, city: 'Austin', initials: 'C', color: '#FF5722' },
+  ];
+
+  // Merge real profiles with placeholders to always show at least 5
+  const displayProfiles = (() => {
+    if (loadingCompanions) return null; // show skeletons
+    const real = companions.map((c) => ({
+      id: c.id,
+      name: c.name,
+      rate: c.hourlyRate,
+      city: c.location ?? '',
+      initials: c.name ? c.name.charAt(0).toUpperCase() : '?',
+      color: '#FF2A5F',
+      photo: c.primaryPhoto ?? null,
+      isReal: true as const,
+    }));
+    const needed = Math.max(0, 5 - real.length);
+    const fillers = PLACEHOLDER_PROFILES.slice(0, needed).map((p) => ({
+      ...p,
+      photo: null as string | null,
+      isReal: false as const,
+    }));
+    return [...real, ...fillers];
+  })();
+
   return (
     <>
       {/* Section 1 — Hero */}
       <View style={styles.section}>
         <View style={styles.eyebrowRow}>
           <View style={styles.eyebrowMaleWrap}>
-            <Text style={styles.eyebrowText}>Real dates. Not virtual.</Text>
+            <Text style={styles.eyebrowText}>Real girls. Real dates.</Text>
           </View>
         </View>
 
         <Text style={styles.headline}>
-          {'Pick a girl.\nBook a date.\n'}
-          <Text style={styles.headlineAccentMale}>Show up.</Text>
+          {'Book a date.\n'}
+          <Text style={styles.headlineAccentMale}>She'll show up.</Text>
         </Text>
 
         <Text style={styles.heroBody}>
-          No swiping. No ghosting. Full refund if she doesn't show.
+          Not virtual. Not Tinder. She'll actually be there.
         </Text>
 
         <View style={styles.heroCtas}>
@@ -390,72 +388,59 @@ function MaleLanding() {
         </View>
       </View>
 
-      {/* Section 2 — Profile horizontal scroll */}
+      {/* Section 2 — Profile horizontal scroll (moved before trust badges) */}
       <View style={[styles.section, { marginBottom: GAP }]}>
-        <Text style={styles.sectionLabel}>BROWSE GIRLS NEAR YOU</Text>
-        <Text style={styles.sectionTitle}>Verified. Real. Available.</Text>
-
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.profileScroll}
           contentContainerStyle={styles.profileScrollContent}
         >
-          {loadingCompanions ? (
+          {displayProfiles === null ? (
             // Skeleton cards
             [1, 2, 3, 4].map((i) => (
               <View key={i} style={styles.profileCardSkeleton} />
             ))
-          ) : companions.length > 0 ? (
-            companions.map((c) => (
+          ) : (
+            displayProfiles.map((p) => (
               <TouchableOpacity
-                key={c.id}
+                key={p.id}
                 style={styles.profileCard}
-                onPress={() => router.push(`/profile/${c.id}`)}
-                accessibilityLabel={`View ${c.name}'s profile`}
+                onPress={() => p.isReal ? router.push(`/profile/${p.id}`) : router.push('/onboarding?roleHint=seeker')}
+                accessibilityLabel={`View ${p.name}'s profile`}
                 accessibilityRole="button"
               >
-                {/* Photo */}
-                {c.primaryPhoto ? (
+                {/* Photo or initial circle */}
+                {p.photo ? (
                   <Image
-                    source={{ uri: c.primaryPhoto }}
+                    source={{ uri: p.photo }}
                     style={styles.profileCardPhoto}
                     resizeMode="cover"
                   />
                 ) : (
-                  <View style={[styles.profileCardPhoto, styles.profileCardPhotoPlaceholder]}>
-                    <Text style={styles.profileCardInitial}>
-                      {c.name ? c.name.charAt(0).toUpperCase() : '?'}
+                  <View style={[styles.profileCardPhoto, styles.profileCardPhotoPlaceholder, { backgroundColor: p.color + '20' }]}>
+                    <Text style={[styles.profileCardInitial, { color: p.color }]}>
+                      {p.initials}
                     </Text>
                   </View>
                 )}
                 {/* Info */}
                 <View style={styles.profileCardInfo}>
-                  <Text style={styles.profileCardName} numberOfLines={1}>{c.name}</Text>
-                  <Text style={styles.profileCardRate}>${c.hourlyRate}/hr</Text>
-                  {c.location ? (
-                    <Text style={styles.profileCardCity} numberOfLines={1}>{c.location}</Text>
+                  <Text style={styles.profileCardName} numberOfLines={1}>{p.name}</Text>
+                  <Text style={styles.profileCardRate}>${p.rate}/hr</Text>
+                  {p.city ? (
+                    <Text style={styles.profileCardCity} numberOfLines={1}>{p.city}</Text>
                   ) : null}
                   <TouchableOpacity
                     style={styles.profileCardBtn}
-                    onPress={() => router.push(`/profile/${c.id}`)}
-                    accessibilityLabel={`View ${c.name}'s profile`}
+                    onPress={() => p.isReal ? router.push(`/profile/${p.id}`) : router.push('/onboarding?roleHint=seeker')}
+                    accessibilityLabel={`View ${p.name}'s profile`}
                     accessibilityRole="button"
                   >
                     <Text style={styles.profileCardBtnText}>View Profile</Text>
                   </TouchableOpacity>
                 </View>
               </TouchableOpacity>
-            ))
-          ) : (
-            // Empty state — placeholder cards
-            [1, 2, 3].map((i) => (
-              <View key={i} style={styles.profileCardEmpty}>
-                <View style={styles.profileCardEmptyIcon}>
-                  <Icon name="sparkles" size={24} color={colors.textLight} />
-                </View>
-                <Text style={styles.profileCardEmptyText}>Sign up to{'\n'}see profiles</Text>
-              </View>
             ))
           )}
 
@@ -466,7 +451,7 @@ function MaleLanding() {
             accessibilityLabel="See 200+ girls"
             accessibilityRole="button"
           >
-            <Text style={styles.profileCardCtaText}>200+{'\n'}girls →</Text>
+            <Text style={styles.profileCardCtaText}>200+{'\n'}girls</Text>
           </TouchableOpacity>
         </ScrollView>
       </View>
@@ -474,71 +459,48 @@ function MaleLanding() {
       {/* Section 3 — Trust badges */}
       <View style={[styles.section, { marginBottom: GAP }]}>
         <View style={styles.trustRow}>
-          <TrustBadge text="ID-Verified Girls" />
-          <TrustBadge text="Real Offline Dates" />
-          <TrustBadge text="Full Refund Guarantee" />
-          <TrustBadge text="Book in Minutes" />
+          <TrustBadge text="Real people, not virtual" />
+          <TrustBadge text="ID-Verified" />
+          <TrustBadge text="Full Refund" />
+          <TrustBadge text="Book in 2 min" />
         </View>
       </View>
 
       {/* Section 4 — Problem / Solution */}
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>WHY DATERABBIT</Text>
-        <Text style={styles.sectionTitle}>Dating apps vs DateRabbit.</Text>
-
         <View style={styles.compareGrid}>
           {/* Dating apps column */}
           <View style={[styles.compareCard, styles.compareCardBad]}>
-            <Text style={styles.compareCardLabel}>Dating apps</Text>
+            <Text style={styles.compareCardLabelSmall}>Other apps</Text>
             <ComparePoint text="Ghosting" bad />
             <ComparePoint text="Fake profiles" bad />
-            <ComparePoint text="Unclear expectations" bad />
-            <ComparePoint text="Wasted time" bad />
+            <ComparePoint text="Weeks of texting" bad />
             <ComparePoint text="No accountability" bad />
           </View>
 
           {/* DateRabbit column */}
           <View style={[styles.compareCard, styles.compareCardGood]}>
-            <Text style={[styles.compareCardLabel, { color: colors.white }]}>DateRabbit</Text>
-            <ComparePoint text="Verified profiles" good />
-            <ComparePoint text="Real offline dates" good />
-            <ComparePoint text="Transparent pricing" good />
-            <ComparePoint text="Book in 2 min" good />
-            <ComparePoint text="Full refund if no-show" good />
+            <Text style={[styles.compareCardLabelSmall, { color: colors.primary }]}>DateRabbit</Text>
+            <ComparePoint text="She shows up" good />
+            <ComparePoint text="ID-verified" good />
+            <ComparePoint text="Book today" good />
+            <ComparePoint text="Full refund" good />
           </View>
         </View>
       </View>
 
       {/* Section 5 — How it works */}
       <View style={styles.section}>
-        <Text style={styles.sectionLabel}>HOW IT WORKS</Text>
-        <Text style={styles.sectionTitle}>3 steps to a real date.</Text>
-
         <View style={styles.stepsGrid}>
-          <StepCard
-            num="01"
-            title="Browse girls"
-            body="See verified profiles, photos, and pricing. Filter by city, price, and vibe."
-          />
-          <StepCard
-            num="02"
-            title="Book a date"
-            body="Choose time, activity, and location. Pay securely via Stripe."
-          />
-          <StepCard
-            num="03"
-            title="Show up"
-            body="She'll be there. If she doesn't show — you get a full refund, no questions asked."
-          />
+          <StepCard num="01" title="Browse girls" body="" />
+          <StepCard num="02" title="Book a date" body="" />
+          <StepCard num="03" title="Show up" body="" />
         </View>
       </View>
 
       {/* Section 6 — CTA repeat */}
       <View style={styles.finalCta}>
-        <Text style={styles.finalCtaTitle}>Find a girl. Book a date.</Text>
-        <Text style={styles.finalCtaBody}>
-          Browse 200+ verified girls. Pay only for confirmed dates. Full refund if she doesn't show.
-        </Text>
+        <Text style={styles.finalCtaTitle}>Real girls. Real dates.</Text>
         <View style={styles.ctaWrap}>
           <Button
             title="Find a Girl"
@@ -558,7 +520,7 @@ function StepCard({ num, title, body }: { num: string; title: string; body: stri
     <View style={styles.stepCard}>
       <Text style={styles.stepNum}>{num}</Text>
       <Text style={styles.stepTitle}>{title}</Text>
-      <Text style={styles.stepBody}>{body}</Text>
+      {body ? <Text style={styles.stepBody}>{body}</Text> : null}
     </View>
   );
 }
@@ -985,6 +947,14 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
     letterSpacing: -0.5,
   },
+  earningsTitleLarge: {
+    fontFamily: typography.fonts.heading,
+    fontSize: 48,
+    color: colors.primary,
+    marginBottom: spacing.lg,
+    letterSpacing: -1.5,
+    textAlign: 'center',
+  },
   earningsBody: {
     fontFamily: typography.fonts.body,
     fontSize: typography.sizes.md,
@@ -1224,6 +1194,12 @@ const styles = StyleSheet.create({
     fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.md,
     color: colors.text,
+    marginBottom: spacing.md,
+  },
+  compareCardLabelSmall: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.sm,
+    color: colors.textMuted,
     marginBottom: spacing.md,
   },
   comparePoint: {
