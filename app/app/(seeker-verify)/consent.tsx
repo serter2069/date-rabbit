@@ -14,7 +14,7 @@ import { ConsentForm } from '../../src/components/verification/ConsentForm';
 import { useVerificationStore } from '../../src/store/verificationStore';
 import { colors, spacing, typography, PAGE_PADDING } from '../../src/constants/theme';
 
-const STEPS = ['Intro', 'SSN', 'Photo ID', 'Selfie', 'Consent'];
+const STEPS = ['Intro', 'Pending', 'Done'];
 
 export default function SeekerConsentScreen() {
   const insets = useSafeAreaInsets();
@@ -46,7 +46,7 @@ export default function SeekerConsentScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <ProgressBar currentStep={4} totalSteps={5} labels={STEPS} />
+        <ProgressBar currentStep={2} totalSteps={3} labels={STEPS} />
 
         <View style={styles.header}>
           <Text style={styles.title}>Background Check Consent</Text>
