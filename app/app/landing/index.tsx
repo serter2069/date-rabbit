@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Image,
   View,
@@ -37,6 +37,31 @@ import {
 
 const GAP = spacing.xl * 2;
 
+type Gender = 'female' | 'male';
+
+const HERO_CONTENT = {
+  female: {
+    eyebrow: 'For women who know their worth',
+    headline: 'Your attention',
+    headlineAccent: 'worth money.',
+    body: 'Stop giving your time away for free. Set your price, meet verified men, get paid via Stripe. Your attention is the product — own it.',
+    ctaPrimary: 'Start Earning',
+    ctaPrimaryRole: 'companion' as const,
+    ctaSecondary: 'Find a Companion',
+    ctaSecondaryRole: 'seeker' as const,
+  },
+  male: {
+    eyebrow: 'Meet someone worth your time',
+    headline: 'Find a companion',
+    headlineAccent: 'for any occasion.',
+    body: 'Verified companions. Real dates. Book in minutes. No fake profiles, no games — just real women who chose to be here.',
+    ctaPrimary: 'Find a Companion',
+    ctaPrimaryRole: 'seeker' as const,
+    ctaSecondary: 'Become a Companion',
+    ctaSecondaryRole: 'companion' as const,
+  },
+};
+
 // Activities from ActivityType enum
 const ACTIVITIES = [
   { label: 'Coffee', icon: 'coffee' as IconName },
@@ -50,10 +75,19 @@ const ACTIVITIES = [
 export default function LandingScreen() {
   const insets = useSafeAreaInsets();
   const { isAuthenticated, user } = useAuthStore();
+  const [gender, setGender] = useState<Gender | null>(null);
+  const [showSplash, setShowSplash] = useState(false);
 
   useEffect(() => {
     if (Platform.OS !== 'web') {
       router.replace('/onboarding');
+      return;
+    }
+    const saved = localStorage.getItem('dr_gender') as Gender | null;
+    if (saved === 'female' || saved === 'male') {
+      setGender(saved);
+    } else {
+      setShowSplash(true);
     }
   }, []);
 
@@ -63,10 +97,65 @@ export default function LandingScreen() {
     }
   }, [isAuthenticated, user]);
 
+  const selectGender = (g: Gender) => {
+    if (Platform.OS === 'web') {
+      localStorage.setItem('dr_gender', g);
+    }
+    setGender(g);
+    setShowSplash(false);
+  };
+
+  const hero = HERO_CONTENT[gender ?? 'female'];
+
   if (Platform.OS !== 'web') return null;
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
+      {/* ── GENDER SPLASH (first visit) ── */}
+      {showSplash && (
+        <View style={styles.splash}>
+          <View style={styles.splashInner}>
+            <View style={styles.splashLogo}>
+              <LinearGradient
+                colors={colors.gradient.primary as readonly [string, string, ...string[]]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.splashLogoBox}
+              >
+                <Icon name="rabbit" size={28} color={colors.white} />
+              </LinearGradient>
+              <Text style={styles.splashLogoText}>DateRabbit</Text>
+            </View>
+
+            <Text style={styles.splashQuestion}>Who are you?</Text>
+
+            <View style={styles.splashCards}>
+              <TouchableOpacity
+                style={[styles.splashCard, styles.splashCardFemale]}
+                onPress={() => selectGender('female')}
+                accessibilityLabel="I am a woman"
+                accessibilityRole="button"
+              >
+                <Text style={styles.splashCardSymbol}>&#9792;</Text>
+                <Text style={[styles.splashCardTitle, { color: colors.white }]}>Woman</Text>
+                <Text style={[styles.splashCardSub, { color: colors.white, opacity: 0.8 }]}>Earn from dates</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.splashCard, styles.splashCardMale]}
+                onPress={() => selectGender('male')}
+                accessibilityLabel="I am a man"
+                accessibilityRole="button"
+              >
+                <Text style={styles.splashCardSymbol}>&#9794;</Text>
+                <Text style={styles.splashCardTitle}>Man</Text>
+                <Text style={styles.splashCardSub}>Find your companion</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      )}
+
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xl }]}
@@ -85,6 +174,39 @@ export default function LandingScreen() {
             </LinearGradient>
             <Text style={styles.logoText}>DateRabbit</Text>
           </View>
+          {gender !== null && (
+            <View style={styles.genderToggle}>
+              <TouchableOpacity
+                style={[
+                  styles.genderToggleBtn,
+                  gender === 'female' && styles.genderToggleBtnActive,
+                ]}
+                onPress={() => selectGender('female')}
+                accessibilityLabel="Switch to woman view"
+                accessibilityRole="button"
+              >
+                <Text style={[
+                  styles.genderToggleText,
+                  gender === 'female' && styles.genderToggleTextActive,
+                ]}>&#9792; Woman</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.genderToggleBtn,
+                  gender === 'male' && styles.genderToggleBtnActiveMale,
+                ]}
+                onPress={() => selectGender('male')}
+                accessibilityLabel="Switch to man view"
+                accessibilityRole="button"
+              >
+                <Text style={[
+                  styles.genderToggleText,
+                  gender === 'male' && styles.genderToggleTextActive,
+                ]}>&#9794; Man</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
           <TouchableOpacity
             onPress={() => router.push('/(auth)/login')}
             style={styles.signInBtn}
@@ -99,34 +221,33 @@ export default function LandingScreen() {
         <View style={styles.hero}>
           {/* Eyebrow */}
           <View style={styles.eyebrowRow}>
-            <View style={styles.eyebrow}>
-              <Text style={styles.eyebrowText}>For women who know their worth</Text>
+            <View style={[styles.eyebrow, (gender ?? 'female') === 'male' && styles.eyebrowMale]}>
+              <Text style={styles.eyebrowText}>{hero.eyebrow}</Text>
             </View>
           </View>
 
           <Text style={styles.headline}>
-            Your attention{'\n'}is{' '}
-            <Text style={styles.headlineAccent}>worth money.</Text>
+            {hero.headline}{'\n'}
+            <Text style={styles.headlineAccent}>{hero.headlineAccent}</Text>
           </Text>
 
           <Text style={styles.heroBody}>
-            Stop giving your time away for free. Set your price, meet verified men, get paid via Stripe.
-            Your attention is the product — own it.
+            {hero.body}
           </Text>
 
           <View style={styles.heroCtas}>
             <View style={styles.ctaWrap}>
               <Button
-                title="Start Earning"
+                title={hero.ctaPrimary}
                 variant="primary"
-                onPress={() => router.push('/onboarding?roleHint=companion')}
+                onPress={() => router.push(`/onboarding?roleHint=${hero.ctaPrimaryRole}`)}
               />
             </View>
             <View style={styles.ctaWrap}>
               <Button
-                title="Find a Companion"
+                title={hero.ctaSecondary}
                 variant="outline"
-                onPress={() => router.push('/onboarding?roleHint=seeker')}
+                onPress={() => router.push(`/onboarding?roleHint=${hero.ctaSecondaryRole}`)}
               />
             </View>
           </View>
@@ -500,6 +621,124 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
 
+  // GENDER TOGGLE (navbar pill switcher)
+  genderToggle: {
+    flexDirection: 'row',
+    borderWidth: borderWidth.normal,
+    borderColor: colors.border,
+    borderRadius: borderRadius.sm,
+    overflow: 'hidden',
+    ...NEO_SHADOW,
+  },
+  genderToggleBtn: {
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+    backgroundColor: colors.surface,
+    ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
+  } as any,
+  genderToggleBtnActive: {
+    backgroundColor: colors.primary,
+  },
+  genderToggleBtnActiveMale: {
+    backgroundColor: colors.text,
+  },
+  genderToggleText: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.xs,
+    color: colors.text,
+  },
+  genderToggleTextActive: {
+    color: colors.white,
+  },
+
+  // SPLASH (full-screen gender selection overlay)
+  splash: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 100,
+    backgroundColor: colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: PAGE_PADDING,
+  } as any,
+  splashInner: {
+    alignItems: 'center',
+    maxWidth: 480,
+    width: '100%',
+  },
+  splashLogo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.xl * 2,
+  },
+  splashLogoBox: {
+    width: 48,
+    height: 48,
+    borderRadius: borderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: borderWidth.normal,
+    borderColor: colors.border,
+  },
+  splashLogoText: {
+    fontFamily: typography.fonts.heading,
+    fontSize: 24,
+    color: colors.text,
+  },
+  splashQuestion: {
+    fontFamily: typography.fonts.heading,
+    fontSize: 32,
+    color: colors.text,
+    marginBottom: spacing.xl,
+    letterSpacing: -0.5,
+  },
+  splashCards: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    width: '100%',
+  },
+  splashCard: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.lg,
+    borderWidth: 3,
+    borderColor: colors.border,
+    borderRadius: borderRadius.lg,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 5, height: 5 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 5,
+    ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
+  } as any,
+  splashCardFemale: {
+    backgroundColor: colors.primary,
+  },
+  splashCardMale: {
+    backgroundColor: colors.surface,
+  },
+  splashCardSymbol: {
+    fontSize: 40,
+    marginBottom: spacing.sm,
+  },
+  splashCardTitle: {
+    fontFamily: typography.fonts.heading,
+    fontSize: 20,
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
+  splashCardSub: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.sm,
+    color: colors.textMuted,
+    textAlign: 'center',
+  },
+
   // HERO
   hero: {
     marginBottom: GAP,
@@ -516,6 +755,9 @@ const styles = StyleSheet.create({
     borderWidth: borderWidth.normal,
     borderColor: colors.border,
     ...NEO_SHADOW,
+  },
+  eyebrowMale: {
+    backgroundColor: colors.text,
   },
   eyebrowText: {
     fontFamily: typography.fonts.bodySemiBold,
