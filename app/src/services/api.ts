@@ -359,6 +359,7 @@ export interface Booking {
     rating: number;
   };
   seekerRating?: { average: number; count: number } | null;
+  noShowReason?: string;
   createdAt: string;
 }
 

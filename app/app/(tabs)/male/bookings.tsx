@@ -173,16 +173,17 @@ function BookingCard({ booking, type, colors, onCancel, formatDate }: BookingCar
       case 'accepted': return { bg: colors.success + '20', text: colors.success };
       case 'cancelled': return { bg: colors.error + '20', text: colors.error };
       case 'completed': return { bg: colors.primary + '20', text: colors.primary };
+      case 'no_show': return { bg: colors.error + '20', text: colors.error };
       case 'paid': return { bg: colors.success + '20', text: colors.success };
       case 'active': return { bg: colors.accent + '20', text: colors.accent };
       default: return { bg: colors.warning + '20', text: colors.warning };
     }
   };
 
-  const statusStyle = getStatusStyle(booking.status);
+  const statusStyle = getStatusStyle(booking.noShowReason ? 'no_show' : booking.status);
   const canCancel = ['pending', 'accepted', 'confirmed'].includes(booking.status);
 
-  return (
+  const cardContent = (
     <Card style={styles.card}>
       <View style={styles.cardHeader}>
         <UserImage name={companion.name} uri={companion.photo} size={56} showVerified />
@@ -193,13 +194,11 @@ function BookingCard({ booking, type, colors, onCancel, formatDate }: BookingCar
         </View>
         <View style={styles.cardAmount}>
           <Text style={[styles.amountValue, { color: colors.primary }]}>${booking.total}</Text>
-          {type !== 'past' && (
-            <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
-              <Text style={[styles.statusText, { color: statusStyle.text }]}>
-                {booking.status}
-              </Text>
-            </View>
-          )}
+          <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
+            <Text style={[styles.statusText, { color: statusStyle.text }]}>
+              {booking.noShowReason ? 'no show' : booking.status}
+            </Text>
+          </View>
         </View>
       </View>
 
@@ -312,6 +311,21 @@ function BookingCard({ booking, type, colors, onCancel, formatDate }: BookingCar
       )}
     </Card>
   );
+
+  if (type === 'past') {
+    return (
+      <TouchableOpacity
+        onPress={() => router.push(`/date/summary/${booking.id}`)}
+        activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityLabel={`View summary of date with ${companion.name}`}
+      >
+        {cardContent}
+      </TouchableOpacity>
+    );
+  }
+
+  return cardContent;
 }
 
 const styles = StyleSheet.create({
