@@ -80,6 +80,9 @@ export class User {
   @Column({ default: false })
   isAdmin: boolean;
 
+  @Column({ default: true })
+  isPublicProfile: boolean;
+
   @Column({ nullable: true })
   stripeAccountId: string;
 

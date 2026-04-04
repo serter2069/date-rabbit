@@ -33,6 +33,7 @@ interface ProfileUpdateData {
     reminders: boolean;
     payments: boolean;
   };
+  isPublicProfile?: boolean;
 }
 
 interface AuthState {

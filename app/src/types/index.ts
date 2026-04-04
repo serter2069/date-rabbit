@@ -61,6 +61,7 @@ export interface User {
     reminders: boolean;
     payments: boolean;
   };
+  isPublicProfile?: boolean;
   latitude?: number;
   longitude?: number;
   createdAt: string;
