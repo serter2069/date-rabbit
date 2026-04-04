@@ -8,21 +8,11 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import {
-  router
-} from 'expo-router';
-import {
-  useSafeAreaInsets
-} from 'react-native-safe-area-context';
-import {
-  LinearGradient
-} from 'expo-linear-gradient';
-import {
-  Icon, IconName
-} from '../../src/components/Icon';
-import {
-  Button
-} from '../../src/components/Button';
+import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Icon, IconName } from '../../src/components/Icon';
+import { Button } from '../../src/components/Button';
 import {
   colors,
   spacing,
@@ -31,46 +21,22 @@ import {
   borderWidth,
   PAGE_PADDING,
 } from '../../src/constants/theme';
-import {
-  useAuthStore
-} from '../../src/store/authStore';
+import { useAuthStore } from '../../src/store/authStore';
+import { apiRequest, CompanionListItem } from '../../src/services/api';
 
 const GAP = spacing.xl * 2;
 
 type Gender = 'female' | 'male';
 
-const HERO_CONTENT = {
-  female: {
-    eyebrow: 'For women who know their worth',
-    headline: 'Your attention',
-    headlineAccent: 'worth money.',
-    body: 'Stop giving your time away for free. Set your price, meet verified men, get paid via Stripe. Your attention is the product — own it.',
-    ctaPrimary: 'Start Earning',
-    ctaPrimaryRole: 'companion' as const,
-    ctaSecondary: 'Find a Companion',
-    ctaSecondaryRole: 'seeker' as const,
-  },
-  male: {
-    eyebrow: 'Meet someone worth your time',
-    headline: 'Find a companion',
-    headlineAccent: 'for any occasion.',
-    body: 'Verified companions. Real dates. Book in minutes. No fake profiles, no games — just real women who chose to be here.',
-    ctaPrimary: 'Find a Companion',
-    ctaPrimaryRole: 'seeker' as const,
-    ctaSecondary: 'Become a Companion',
-    ctaSecondaryRole: 'companion' as const,
-  },
+const NEO_SHADOW = {
+  shadowColor: colors.shadow,
+  shadowOffset: { width: 3, height: 3 },
+  shadowOpacity: 1,
+  shadowRadius: 0,
+  elevation: 3,
 };
 
-// Activities from ActivityType enum
-const ACTIVITIES = [
-  { label: 'Coffee', icon: 'coffee' as IconName },
-  { label: 'Dinner', icon: 'utensils' as IconName },
-  { label: 'Drinks', icon: 'wine' as IconName },
-  { label: 'Museum', icon: 'image' as IconName },
-  { label: 'Walk', icon: 'map-pin' as IconName },
-  { label: 'Events', icon: 'calendar' as IconName },
-];
+// ─────────────────────── Main component ───────────────────────
 
 export default function LandingScreen() {
   const insets = useSafeAreaInsets();
@@ -105,13 +71,11 @@ export default function LandingScreen() {
     setShowSplash(false);
   };
 
-  const hero = HERO_CONTENT[gender ?? 'female'];
-
   if (Platform.OS !== 'web') return null;
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      {/* ── GENDER SPLASH (first visit) ── */}
+      {/* ── GENDER SPLASH ── */}
       {showSplash && (
         <View style={styles.splash}>
           <View style={styles.splashInner}>
@@ -137,8 +101,10 @@ export default function LandingScreen() {
                 accessibilityRole="button"
               >
                 <Text style={styles.splashCardSymbol}>&#9792;</Text>
-                <Text style={[styles.splashCardTitle, { color: colors.white }]}>Woman</Text>
-                <Text style={[styles.splashCardSub, { color: colors.white, opacity: 0.8 }]}>Earn from dates</Text>
+                <Text style={[styles.splashCardTitle, { color: colors.white }]}>Girl</Text>
+                <Text style={[styles.splashCardSub, { color: colors.white, opacity: 0.85 }]}>
+                  Go on dates, get paid
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -147,9 +113,11 @@ export default function LandingScreen() {
                 accessibilityLabel="I am a man"
                 accessibilityRole="button"
               >
-                <Text style={styles.splashCardSymbol}>&#9794;</Text>
-                <Text style={styles.splashCardTitle}>Man</Text>
-                <Text style={styles.splashCardSub}>Find your companion</Text>
+                <Text style={[styles.splashCardSymbol, { color: colors.white }]}>&#9794;</Text>
+                <Text style={[styles.splashCardTitle, { color: colors.white }]}>Man</Text>
+                <Text style={[styles.splashCardSub, { color: colors.white, opacity: 0.7 }]}>
+                  Book a real date
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -174,6 +142,7 @@ export default function LandingScreen() {
             </LinearGradient>
             <Text style={styles.logoText}>DateRabbit</Text>
           </View>
+
           {gender !== null && (
             <View style={styles.genderToggle}>
               <TouchableOpacity
@@ -217,261 +186,12 @@ export default function LandingScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* ── HERO ── */}
-        <View style={styles.hero}>
-          {/* Eyebrow */}
-          <View style={styles.eyebrowRow}>
-            <View style={[styles.eyebrow, (gender ?? 'female') === 'male' && styles.eyebrowMale]}>
-              <Text style={styles.eyebrowText}>{hero.eyebrow}</Text>
-            </View>
-          </View>
-
-          <Text style={styles.headline}>
-            {hero.headline}{'\n'}
-            <Text style={styles.headlineAccent}>{hero.headlineAccent}</Text>
-          </Text>
-
-          <Text style={styles.heroBody}>
-            {hero.body}
-          </Text>
-
-          <View style={styles.heroCtas}>
-            <View style={styles.ctaWrap}>
-              <Button
-                title={hero.ctaPrimary}
-                variant="primary"
-                onPress={() => router.push(`/onboarding?roleHint=${hero.ctaPrimaryRole}`)}
-              />
-            </View>
-            <View style={styles.ctaWrap}>
-              <Button
-                title={hero.ctaSecondary}
-                variant="outline"
-                onPress={() => router.push(`/onboarding?roleHint=${hero.ctaSecondaryRole}`)}
-              />
-            </View>
-          </View>
-
-          {/* ── HERO IMAGE ── */}
-          <Image
-            source={require('../../assets/images/hero-woman.jpeg')}
-            style={styles.heroImage}
-            resizeMode="cover"
-          />
-
-          {/* Activity tags */}
-          <View style={styles.activityRow}>
-            {ACTIVITIES.map((a) => (
-              <View key={a.label} style={styles.activityTag}>
-                <Icon name={a.icon} size={14} color={colors.primary} />
-                <Text style={styles.activityLabel}>{a.label}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        {/* ── HOW IT WORKS ── */}
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>THE PROCESS</Text>
-          <Text style={styles.sectionTitle}>4 steps to your first payout.</Text>
-
-          <View style={styles.stepsGrid}>
-            <StepCard
-              num="01"
-              title="Create your profile"
-              body="Upload photos, set your rate ($50–200/hr), choose activities you enjoy. Takes 10 minutes."
-            />
-            <StepCard
-              num="02"
-              title="Get verified, get noticed"
-              body="We verify every man before he can message you. No randoms. No creeps. Only serious, checked men."
-            />
-            <StepCard
-              num="03"
-              title="Accept what feels right"
-              body="You decide who to meet, when, and where. Decline anything. No pressure, no quotas."
-            />
-            <StepCard
-              num="04"
-              title="Get paid after every date"
-              body="Stripe deposits 85% of your rate directly to your bank. Payout after every booking."
-            />
-          </View>
-        </View>
-
-        {/* ── DUAL AUDIENCE ── */}
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>TWO SIDES</Text>
-          <Text style={styles.sectionTitle}>Built for women. Open to everyone.</Text>
-
-          <View style={styles.twoCol}>
-            {/* Companion card */}
-            <View style={[styles.roleCard, styles.roleCardCompanion]}>
-              <View style={[styles.roleIconWrap, { backgroundColor: colors.white + '20' }]}>
-                <Icon name="sparkles" size={24} color={colors.white} />
-              </View>
-              <Text style={[styles.roleCardTitle, { color: colors.white }]}>You deserve to be paid</Text>
-              <Text style={[styles.roleCardBody, { color: colors.white, opacity: 0.8 }]}>
-                Your time is valuable. Your company is a premium experience. Set your rate, choose your dates, keep 85% of everything you earn. No games, no drama — just real money.
-              </Text>
-              <View style={styles.roleList}>
-                <RolePoint text="$50–200/hr — you set the price" dark />
-                <RolePoint text="Keep 85% of every booking" dark />
-                <RolePoint text="Stripe direct deposit, no delays" dark />
-                <RolePoint text="You choose who to meet" dark />
-                <RolePoint text="Your schedule, your terms" dark />
-              </View>
-              <TouchableOpacity
-                style={[styles.roleBtn, { backgroundColor: colors.white }]}
-                onPress={() => router.push('/onboarding?roleHint=companion')}
-                accessibilityLabel="Start earning"
-                accessibilityRole="button"
-              >
-                <Text style={[styles.roleBtnText, { color: colors.text }]}>Start Earning →</Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Seeker card */}
-            <View style={[styles.roleCard, styles.roleCardSeeker]}>
-              <View style={styles.roleIconWrap}>
-                <Icon name="search" size={24} color={colors.primary} />
-              </View>
-              <Text style={styles.roleCardTitle}>Find someone worth your time</Text>
-              <Text style={styles.roleCardBody}>
-                Real, verified women who chose to be here. No fake profiles. Pay for their time — because women who know their worth don't give it away for free.
-              </Text>
-              <View style={styles.roleList}>
-                <RolePoint text="Verified identity, real person" />
-                <RolePoint text="Transparent hourly pricing" />
-                <RolePoint text="No subscription, pay per date" />
-                <RolePoint text="In-app safety for both sides" />
-                <RolePoint text="Rate and review after" />
-              </View>
-              <TouchableOpacity
-                style={styles.roleBtn}
-                onPress={() => router.push('/onboarding?roleHint=seeker')}
-                accessibilityLabel="Browse companions"
-                accessibilityRole="button"
-              >
-                <Text style={styles.roleBtnText}>Browse Companions →</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-
-        {/* ── TRUST / VERIFICATION ── */}
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>SAFETY FIRST</Text>
-          <Text style={styles.sectionTitle}>Every man is background-checked. No exceptions.</Text>
-          <Text style={styles.sectionBody}>
-            Before any man can message you, he passes a full identity and criminal background check. We verify government ID, run a criminal record check, and confirm it's really him with a live selfie. Your safety isn't a feature — it's the foundation.
-          </Text>
-
-          <View style={styles.verifyGrid}>
-            <VerifyCard
-              title="Women verify with"
-              items={[
-                'Government photo ID',
-                'Live selfie match',
-                'Video introduction',
-                '2 personal references',
-                'Background check consent',
-              ]}
-              color={colors.primary}
-            />
-            <VerifyCard
-              title="Men verify with"
-              items={[
-                'Government photo ID',
-                'Live selfie match',
-                'SSN last 4 digits',
-                'Criminal background check',
-                'Identity verification (Stripe Identity)',
-              ]}
-              color={colors.accent}
-            />
-          </View>
-
-          {/* Safety features */}
-          <View style={styles.safetyRow}>
-            <SafetyBadge icon="shield" text="Criminal background check on every man" />
-            <SafetyBadge icon="eye-off" text="Government ID + live selfie required" />
-            <SafetyBadge icon="alert" text="One-tap SOS during dates" />
-            <SafetyBadge icon="lock" text="Payments via Stripe, never direct cash" />
-          </View>
-        </View>
-
-        {/* ── PRICING TRANSPARENCY ── */}
-        <View style={styles.pricingBlock}>
-          <Text style={styles.pricingEyebrow}>YOUR EARNINGS</Text>
-          <Text style={styles.pricingTitle}>Know exactly what you'll make.</Text>
-          <Text style={styles.pricingBody}>
-            Every booking is transparent. You set your hourly rate. DateRabbit takes 15%. The rest is yours — deposited to your bank account after every date.
-          </Text>
-          <View style={styles.pricingCards}>
-            <View style={styles.pricingCard}>
-              <Text style={styles.pricingCardValue}>$50–200</Text>
-              <Text style={styles.pricingCardLabel}>per hour, set by companion</Text>
-            </View>
-            <View style={styles.pricingDivider} />
-            <View style={styles.pricingCard}>
-              <Text style={styles.pricingCardValue}>85%</Text>
-              <Text style={styles.pricingCardLabel}>goes to companion, always</Text>
-            </View>
-            <View style={styles.pricingDivider} />
-            <View style={styles.pricingCard}>
-              <Text style={styles.pricingCardValue}>$0</Text>
-              <Text style={styles.pricingCardLabel}>to browse, filter, and chat</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* ── TESTIMONIALS ── */}
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>REAL FEEDBACK</Text>
-          <Text style={styles.sectionTitle}>From people who've used it.</Text>
-          <View style={styles.testimonialGrid}>
-            <TestimonialCard
-              quote="I was skeptical but I made $400 in my first week. Two dinners, one museum date. I set my rate at $80/hr and every man was respectful and verified."
-              name="Sofia M."
-              role="Companion, Los Angeles"
-            />
-            <TestimonialCard
-              quote="What I love most is control. I decline anyone I'm not comfortable with. My time, my rules. I've been doing this for 3 months and it changed my finances."
-              name="Anastasia K."
-              role="Companion, 3 months"
-            />
-            <TestimonialCard
-              quote="I had no idea this existed. I needed company for a business dinner in NY. The woman I met was brilliant. Worth every dollar. Totally respectful experience."
-              name="James R."
-              role="Seeker, New York"
-            />
-          </View>
-        </View>
-
-        {/* ── FINAL CTA ── */}
-        <View style={styles.finalCta}>
-          <Text style={styles.finalCtaTitle}>Ready to earn?</Text>
-          <Text style={styles.finalCtaBody}>
-            Create your profile in 10 minutes. Set your rate. Start meeting serious, verified men who value your time.
-          </Text>
-          <View style={styles.finalCtaBtns}>
-            <View style={styles.ctaWrap}>
-              <Button
-                title="Become a Companion"
-                variant="primary"
-                onPress={() => router.push('/onboarding?roleHint=companion')}
-              />
-            </View>
-            <View style={styles.ctaWrap}>
-              <Button
-                title="Find a Companion"
-                variant="outline"
-                onPress={() => router.push('/onboarding?roleHint=seeker')}
-              />
-            </View>
-          </View>
-        </View>
+        {/* ── GENDER-SPECIFIC CONTENT ── */}
+        {(gender ?? 'female') === 'female' ? (
+          <FemaleLanding />
+        ) : (
+          <MaleLanding />
+        )}
 
         {/* ── FOOTER ── */}
         <View style={styles.footer}>
@@ -487,7 +207,351 @@ export default function LandingScreen() {
   );
 }
 
-// ─────────────────────── Sub-components ───────────────────────
+// ─────────────────────── Female Landing ───────────────────────
+
+function FemaleLanding() {
+  return (
+    <>
+      {/* Section 1 — Hero */}
+      <View style={styles.section}>
+        <View style={styles.eyebrowRow}>
+          <View style={styles.eyebrow}>
+            <Text style={styles.eyebrowText}>For women who know their worth</Text>
+          </View>
+        </View>
+
+        <Text style={styles.headline}>
+          {'Go on a date.\n'}
+          <Text style={styles.headlineAccent}>Get paid.</Text>
+        </Text>
+
+        <Text style={styles.heroBody}>
+          Set your price. You choose who to meet. Stripe pays you same day.
+        </Text>
+
+        <View style={styles.heroCtas}>
+          <View style={styles.ctaWrap}>
+            <Button
+              title="Start Earning"
+              variant="primary"
+              onPress={() => router.push('/onboarding?roleHint=companion')}
+            />
+          </View>
+        </View>
+
+        <Image
+          source={require('../../assets/images/hero-woman.jpeg')}
+          style={styles.heroImage}
+          resizeMode="cover"
+        />
+      </View>
+
+      {/* Section 2 — How it works */}
+      <View style={styles.section}>
+        <Text style={styles.sectionLabel}>HOW IT WORKS</Text>
+        <Text style={styles.sectionTitle}>3 steps to your first payout.</Text>
+
+        <View style={styles.stepsGrid}>
+          <StepCard
+            num="01"
+            title="Create your profile"
+            body="Set your price, upload photos, describe yourself. Takes 10 minutes."
+          />
+          <StepCard
+            num="02"
+            title="Get booked"
+            body="Seekers browse and book you. You accept or decline — always your choice."
+          />
+          <StepCard
+            num="03"
+            title="Show up & earn"
+            body="Go on the date, get paid via Stripe same day. 85% goes directly to you."
+          />
+        </View>
+      </View>
+
+      {/* Section 3 — Safety */}
+      <View style={styles.section}>
+        <Text style={styles.sectionLabel}>SAFETY FIRST</Text>
+        <Text style={styles.sectionTitle}>Your safety is our priority.</Text>
+
+        <View style={styles.safetyCards}>
+          <SafetyItem
+            icon="shield"
+            title="ID-verified & fingerprint-checked"
+            body="Every seeker passes a full identity and criminal background check before they can book you."
+          />
+          <SafetyItem
+            icon="check"
+            title="You accept or decline — always"
+            body="No pressure, no exceptions. Your schedule, your rules. Decline anyone without explanation."
+          />
+          <SafetyItem
+            icon="alert"
+            title="24/7 support"
+            body="If anything goes wrong before, during, or after a date — we are here immediately."
+          />
+        </View>
+      </View>
+
+      {/* Section 4 — Earnings callout */}
+      <View style={styles.earningsBlock}>
+        <Text style={styles.earningsEyebrow}>EARNINGS</Text>
+        <Text style={styles.earningsTitle}>Average girl earns $150–300 per date.</Text>
+        <Text style={styles.earningsBody}>
+          Full control over your schedule. Set your rate, choose your hours. Stripe deposits same day after every completed date.
+        </Text>
+        <View style={styles.earningsStats}>
+          <View style={styles.earningsStat}>
+            <Text style={styles.earningsStatValue}>$150–300</Text>
+            <Text style={styles.earningsStatLabel}>per date average</Text>
+          </View>
+          <View style={styles.earningsDivider} />
+          <View style={styles.earningsStat}>
+            <Text style={styles.earningsStatValue}>85%</Text>
+            <Text style={styles.earningsStatLabel}>of every booking is yours</Text>
+          </View>
+          <View style={styles.earningsDivider} />
+          <View style={styles.earningsStat}>
+            <Text style={styles.earningsStatValue}>Same day</Text>
+            <Text style={styles.earningsStatLabel}>Stripe payout</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Section 5 — CTA repeat */}
+      <View style={styles.finalCta}>
+        <Text style={styles.finalCtaTitle}>Ready to start earning?</Text>
+        <Text style={styles.finalCtaBody}>
+          Create your profile in 10 minutes. Set your rate. Start meeting verified men who value your time.
+        </Text>
+        <View style={styles.ctaWrap}>
+          <Button
+            title="Start Earning"
+            variant="primary"
+            onPress={() => router.push('/onboarding?roleHint=companion')}
+          />
+        </View>
+      </View>
+    </>
+  );
+}
+
+// ─────────────────────── Male Landing ───────────────────────
+
+function MaleLanding() {
+  const [companions, setCompanions] = useState<CompanionListItem[]>([]);
+  const [loadingCompanions, setLoadingCompanions] = useState(true);
+
+  useEffect(() => {
+    const fetchCompanions = async () => {
+      try {
+        const res = await apiRequest<{ companions: CompanionListItem[]; total: number }>(
+          '/companions?limit=10',
+          { auth: false }
+        );
+        setCompanions(res.companions ?? []);
+      } catch {
+        setCompanions([]);
+      } finally {
+        setLoadingCompanions(false);
+      }
+    };
+    fetchCompanions();
+  }, []);
+
+  return (
+    <>
+      {/* Section 1 — Hero */}
+      <View style={styles.section}>
+        <View style={styles.eyebrowRow}>
+          <View style={styles.eyebrowMaleWrap}>
+            <Text style={styles.eyebrowText}>Real dates. Not virtual.</Text>
+          </View>
+        </View>
+
+        <Text style={styles.headline}>
+          {'Pick a girl.\nBook a date.\n'}
+          <Text style={styles.headlineAccentMale}>Show up.</Text>
+        </Text>
+
+        <Text style={styles.heroBody}>
+          No swiping. No ghosting. Full refund if she doesn't show.
+        </Text>
+
+        <View style={styles.heroCtas}>
+          <View style={styles.ctaWrap}>
+            <Button
+              title="Find a Girl"
+              variant="primary"
+              onPress={() => router.push('/onboarding?roleHint=seeker')}
+            />
+          </View>
+        </View>
+      </View>
+
+      {/* Section 2 — Profile horizontal scroll */}
+      <View style={[styles.section, { marginBottom: GAP }]}>
+        <Text style={styles.sectionLabel}>BROWSE GIRLS NEAR YOU</Text>
+        <Text style={styles.sectionTitle}>Verified. Real. Available.</Text>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.profileScroll}
+          contentContainerStyle={styles.profileScrollContent}
+        >
+          {loadingCompanions ? (
+            // Skeleton cards
+            [1, 2, 3, 4].map((i) => (
+              <View key={i} style={styles.profileCardSkeleton} />
+            ))
+          ) : companions.length > 0 ? (
+            companions.map((c) => (
+              <TouchableOpacity
+                key={c.id}
+                style={styles.profileCard}
+                onPress={() => router.push(`/profile/${c.id}`)}
+                accessibilityLabel={`View ${c.name}'s profile`}
+                accessibilityRole="button"
+              >
+                {/* Photo */}
+                {c.primaryPhoto ? (
+                  <Image
+                    source={{ uri: c.primaryPhoto }}
+                    style={styles.profileCardPhoto}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View style={[styles.profileCardPhoto, styles.profileCardPhotoPlaceholder]}>
+                    <Text style={styles.profileCardInitial}>
+                      {c.name ? c.name.charAt(0).toUpperCase() : '?'}
+                    </Text>
+                  </View>
+                )}
+                {/* Info */}
+                <View style={styles.profileCardInfo}>
+                  <Text style={styles.profileCardName} numberOfLines={1}>{c.name}</Text>
+                  <Text style={styles.profileCardRate}>${c.hourlyRate}/hr</Text>
+                  {c.location ? (
+                    <Text style={styles.profileCardCity} numberOfLines={1}>{c.location}</Text>
+                  ) : null}
+                  <TouchableOpacity
+                    style={styles.profileCardBtn}
+                    onPress={() => router.push(`/profile/${c.id}`)}
+                    accessibilityLabel={`View ${c.name}'s profile`}
+                    accessibilityRole="button"
+                  >
+                    <Text style={styles.profileCardBtnText}>View Profile</Text>
+                  </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
+            ))
+          ) : (
+            // Empty state — placeholder cards
+            [1, 2, 3].map((i) => (
+              <View key={i} style={styles.profileCardEmpty}>
+                <View style={styles.profileCardEmptyIcon}>
+                  <Icon name="sparkles" size={24} color={colors.textLight} />
+                </View>
+                <Text style={styles.profileCardEmptyText}>Sign up to{'\n'}see profiles</Text>
+              </View>
+            ))
+          )}
+
+          {/* Last card: CTA */}
+          <TouchableOpacity
+            style={styles.profileCardCta}
+            onPress={() => router.push('/onboarding?roleHint=seeker')}
+            accessibilityLabel="See 200+ girls"
+            accessibilityRole="button"
+          >
+            <Text style={styles.profileCardCtaText}>200+{'\n'}girls →</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </View>
+
+      {/* Section 3 — Trust badges */}
+      <View style={[styles.section, { marginBottom: GAP }]}>
+        <View style={styles.trustRow}>
+          <TrustBadge text="ID-Verified Girls" />
+          <TrustBadge text="Real Offline Dates" />
+          <TrustBadge text="Full Refund Guarantee" />
+          <TrustBadge text="Book in Minutes" />
+        </View>
+      </View>
+
+      {/* Section 4 — Problem / Solution */}
+      <View style={styles.section}>
+        <Text style={styles.sectionLabel}>WHY DATERABBIT</Text>
+        <Text style={styles.sectionTitle}>Dating apps vs DateRabbit.</Text>
+
+        <View style={styles.compareGrid}>
+          {/* Dating apps column */}
+          <View style={[styles.compareCard, styles.compareCardBad]}>
+            <Text style={styles.compareCardLabel}>Dating apps</Text>
+            <ComparePoint text="Ghosting" bad />
+            <ComparePoint text="Fake profiles" bad />
+            <ComparePoint text="Unclear expectations" bad />
+            <ComparePoint text="Wasted time" bad />
+            <ComparePoint text="No accountability" bad />
+          </View>
+
+          {/* DateRabbit column */}
+          <View style={[styles.compareCard, styles.compareCardGood]}>
+            <Text style={[styles.compareCardLabel, { color: colors.white }]}>DateRabbit</Text>
+            <ComparePoint text="Verified profiles" good />
+            <ComparePoint text="Real offline dates" good />
+            <ComparePoint text="Transparent pricing" good />
+            <ComparePoint text="Book in 2 min" good />
+            <ComparePoint text="Full refund if no-show" good />
+          </View>
+        </View>
+      </View>
+
+      {/* Section 5 — How it works */}
+      <View style={styles.section}>
+        <Text style={styles.sectionLabel}>HOW IT WORKS</Text>
+        <Text style={styles.sectionTitle}>3 steps to a real date.</Text>
+
+        <View style={styles.stepsGrid}>
+          <StepCard
+            num="01"
+            title="Browse girls"
+            body="See verified profiles, photos, and pricing. Filter by city, price, and vibe."
+          />
+          <StepCard
+            num="02"
+            title="Book a date"
+            body="Choose time, activity, and location. Pay securely via Stripe."
+          />
+          <StepCard
+            num="03"
+            title="Show up"
+            body="She'll be there. If she doesn't show — you get a full refund, no questions asked."
+          />
+        </View>
+      </View>
+
+      {/* Section 6 — CTA repeat */}
+      <View style={styles.finalCta}>
+        <Text style={styles.finalCtaTitle}>Find a girl. Book a date.</Text>
+        <Text style={styles.finalCtaBody}>
+          Browse 200+ verified girls. Pay only for confirmed dates. Full refund if she doesn't show.
+        </Text>
+        <View style={styles.ctaWrap}>
+          <Button
+            title="Find a Girl"
+            variant="primary"
+            onPress={() => router.push('/onboarding?roleHint=seeker')}
+          />
+        </View>
+      </View>
+    </>
+  );
+}
+
+// ─────────────────────── Shared sub-components ───────────────────────
 
 function StepCard({ num, title, body }: { num: string; title: string; body: string }) {
   return (
@@ -499,47 +563,36 @@ function StepCard({ num, title, body }: { num: string; title: string; body: stri
   );
 }
 
-function RolePoint({ text, dark }: { text: string; dark?: boolean }) {
+function SafetyItem({ icon, title, body }: { icon: IconName; title: string; body: string }) {
   return (
-    <View style={styles.rolePoint}>
-      <View style={[styles.rolePointDot, dark && { backgroundColor: colors.white }]} />
-      <Text style={[styles.rolePointText, dark && { color: colors.white }]}>{text}</Text>
-    </View>
-  );
-}
-
-function VerifyCard({ title, items, color }: { title: string; items: string[]; color: string }) {
-  return (
-    <View style={styles.verifyCard}>
-      <View style={[styles.verifyAccent, { backgroundColor: color }]} />
-      <Text style={styles.verifyTitle}>{title}</Text>
-      {items.map((item, i) => (
-        <View key={i} style={styles.verifyItem}>
-          <Icon name="check" size={14} color={colors.success} />
-          <Text style={styles.verifyItemText}>{item}</Text>
-        </View>
-      ))}
-    </View>
-  );
-}
-
-function SafetyBadge({ icon, text }: { icon: IconName; text: string }) {
-  return (
-    <View style={styles.safetyBadge}>
-      <Icon name={icon} size={16} color={colors.primary} />
-      <Text style={styles.safetyBadgeText}>{text}</Text>
-    </View>
-  );
-}
-
-function TestimonialCard({ quote, name, role }: { quote: string; name: string; role: string }) {
-  return (
-    <View style={styles.testimonialCard}>
-      <Text style={styles.testimonialQuote}>"{quote}"</Text>
-      <View style={styles.testimonialAuthor}>
-        <Text style={styles.testimonialName}>{name}</Text>
-        <Text style={styles.testimonialRole}>{role}</Text>
+    <View style={styles.safetyCard}>
+      <View style={styles.safetyCardIcon}>
+        <Icon name={icon} size={20} color={colors.primary} />
       </View>
+      <Text style={styles.safetyCardTitle}>{title}</Text>
+      <Text style={styles.safetyCardBody}>{body}</Text>
+    </View>
+  );
+}
+
+function TrustBadge({ text }: { text: string }) {
+  return (
+    <View style={styles.trustBadge}>
+      <Icon name="check" size={14} color={colors.success} />
+      <Text style={styles.trustBadgeText}>{text}</Text>
+    </View>
+  );
+}
+
+function ComparePoint({ text, bad, good }: { text: string; bad?: boolean; good?: boolean }) {
+  return (
+    <View style={styles.comparePoint}>
+      <Text style={bad ? styles.comparePointIconBad : styles.comparePointIconGood}>
+        {bad ? '\u2715' : '\u2713'}
+      </Text>
+      <Text style={[styles.comparePointText, bad && styles.comparePointTextBad, good && styles.comparePointTextGood]}>
+        {text}
+      </Text>
     </View>
   );
 }
@@ -558,14 +611,6 @@ function FooterLink({ label, onPress }: { label: string; onPress: () => void }) 
 
 // ─────────────────────── Styles ───────────────────────
 
-const NEO_SHADOW = {
-  shadowColor: colors.shadow,
-  shadowOffset: { width: 3, height: 3 },
-  shadowOpacity: 1,
-  shadowRadius: 0,
-  elevation: 3,
-};
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -579,79 +624,7 @@ const styles = StyleSheet.create({
     paddingTop: spacing.xl,
   },
 
-  // NAV
-  nav: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.xl,
-  },
-  logo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  logoBox: {
-    width: 32,
-    height: 32,
-    borderRadius: borderRadius.sm,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: borderWidth.normal,
-    borderColor: colors.border,
-  },
-  logoText: {
-    fontFamily: typography.fonts.heading,
-    fontSize: 16,
-    color: colors.text,
-  },
-  signInBtn: {
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.md,
-    borderWidth: borderWidth.normal,
-    borderColor: colors.border,
-    borderRadius: borderRadius.sm,
-    ...NEO_SHADOW,
-    backgroundColor: colors.surface,
-    ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
-  } as any,
-  signInText: {
-    fontFamily: typography.fonts.bodyMedium,
-    fontSize: typography.sizes.sm,
-    color: colors.text,
-  },
-
-  // GENDER TOGGLE (navbar pill switcher)
-  genderToggle: {
-    flexDirection: 'row',
-    borderWidth: borderWidth.normal,
-    borderColor: colors.border,
-    borderRadius: borderRadius.sm,
-    overflow: 'hidden',
-    ...NEO_SHADOW,
-  },
-  genderToggleBtn: {
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.md,
-    backgroundColor: colors.surface,
-    ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
-  } as any,
-  genderToggleBtnActive: {
-    backgroundColor: colors.primary,
-  },
-  genderToggleBtnActiveMale: {
-    backgroundColor: colors.text,
-  },
-  genderToggleText: {
-    fontFamily: typography.fonts.bodySemiBold,
-    fontSize: typography.sizes.xs,
-    color: colors.text,
-  },
-  genderToggleTextActive: {
-    color: colors.white,
-  },
-
-  // SPLASH (full-screen gender selection overlay)
+  // SPLASH
   splash: {
     position: 'absolute',
     top: 0,
@@ -720,11 +693,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   splashCardMale: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.text,
   },
   splashCardSymbol: {
     fontSize: 40,
     marginBottom: spacing.sm,
+    color: colors.white,
   },
   splashCardTitle: {
     fontFamily: typography.fonts.heading,
@@ -739,10 +713,99 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // HERO
-  hero: {
+  // NAV
+  nav: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.xl,
+  },
+  logo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  logoBox: {
+    width: 32,
+    height: 32,
+    borderRadius: borderRadius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: borderWidth.normal,
+    borderColor: colors.border,
+  },
+  logoText: {
+    fontFamily: typography.fonts.heading,
+    fontSize: 16,
+    color: colors.text,
+  },
+  signInBtn: {
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+    borderWidth: borderWidth.normal,
+    borderColor: colors.border,
+    borderRadius: borderRadius.sm,
+    ...NEO_SHADOW,
+    backgroundColor: colors.surface,
+    ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
+  } as any,
+  signInText: {
+    fontFamily: typography.fonts.bodyMedium,
+    fontSize: typography.sizes.sm,
+    color: colors.text,
+  },
+
+  // GENDER TOGGLE
+  genderToggle: {
+    flexDirection: 'row',
+    borderWidth: borderWidth.normal,
+    borderColor: colors.border,
+    borderRadius: borderRadius.sm,
+    overflow: 'hidden',
+    ...NEO_SHADOW,
+  },
+  genderToggleBtn: {
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+    backgroundColor: colors.surface,
+    ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
+  } as any,
+  genderToggleBtnActive: {
+    backgroundColor: colors.primary,
+  },
+  genderToggleBtnActiveMale: {
+    backgroundColor: colors.text,
+  },
+  genderToggleText: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.xs,
+    color: colors.text,
+  },
+  genderToggleTextActive: {
+    color: colors.white,
+  },
+
+  // SECTIONS
+  section: {
     marginBottom: GAP,
   },
+  sectionLabel: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.xs,
+    color: colors.textLight,
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    marginBottom: spacing.sm,
+  },
+  sectionTitle: {
+    fontFamily: typography.fonts.heading,
+    fontSize: 30,
+    color: colors.text,
+    marginBottom: spacing.md,
+    letterSpacing: -0.5,
+  },
+
+  // HERO
   eyebrowRow: {
     flexDirection: 'row',
     marginBottom: spacing.md,
@@ -756,8 +819,14 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     ...NEO_SHADOW,
   },
-  eyebrowMale: {
+  eyebrowMaleWrap: {
     backgroundColor: colors.text,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.sm,
+    borderWidth: borderWidth.normal,
+    borderColor: colors.border,
+    ...NEO_SHADOW,
   },
   eyebrowText: {
     fontFamily: typography.fonts.bodySemiBold,
@@ -778,6 +847,12 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontFamily: typography.fonts.headingItalic,
     fontStyle: 'italic',
+  },
+  headlineAccentMale: {
+    color: colors.text,
+    fontFamily: typography.fonts.headingItalic,
+    fontStyle: 'italic',
+    textDecorationLine: 'underline',
   },
   heroBody: {
     fontFamily: typography.fonts.body,
@@ -806,68 +881,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
     ...NEO_SHADOW,
   },
-  heroImageText: {
-    fontFamily: typography.fonts.bodySemiBold,
-    fontSize: typography.sizes.xs,
-    color: colors.primary,
-    opacity: 0.5,
-    letterSpacing: 2,
-    textTransform: 'uppercase' as const,
-    marginTop: spacing.sm,
-  },
-  activityRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-    marginTop: spacing.xs,
-  },
-  activityTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: colors.surface,
-    borderWidth: borderWidth.normal,
-    borderColor: colors.border,
-    borderRadius: borderRadius.sm,
-    paddingVertical: 6,
-    paddingHorizontal: spacing.sm,
-    ...NEO_SHADOW,
-  },
-  activityLabel: {
-    fontFamily: typography.fonts.bodySemiBold,
-    fontSize: typography.sizes.xs,
-    color: colors.text,
-  },
 
-  // SECTIONS
-  section: {
-    marginBottom: GAP,
-  },
-  sectionLabel: {
-    fontFamily: typography.fonts.bodySemiBold,
-    fontSize: typography.sizes.xs,
-    color: colors.textLight,
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-    marginBottom: spacing.sm,
-  },
-  sectionTitle: {
-    fontFamily: typography.fonts.heading,
-    fontSize: 30,
-    color: colors.text,
-    marginBottom: spacing.md,
-    letterSpacing: -0.5,
-  },
-  sectionBody: {
-    fontFamily: typography.fonts.body,
-    fontSize: typography.sizes.md,
-    color: colors.textMuted,
-    lineHeight: 26,
-    marginBottom: spacing.xl,
-    maxWidth: 580,
-  },
-
-  // HOW IT WORKS — 4 steps
+  // STEPS
   stepsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -903,161 +918,48 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 
-  // DUAL AUDIENCE
-  twoCol: {
+  // SAFETY (female)
+  safetyCards: {
     flexDirection: 'row',
-    gap: spacing.md,
     flexWrap: 'wrap',
-  },
-  roleCard: {
-    flex: 1,
-    minWidth: 280,
-    borderWidth: borderWidth.normal,
-    borderColor: colors.border,
-    borderRadius: borderRadius.lg,
-    padding: spacing.xl,
-    ...NEO_SHADOW,
-  },
-  roleCardSeeker: {
-    backgroundColor: colors.surface,
-  },
-  roleCardCompanion: {
-    backgroundColor: colors.text,
-  },
-  roleIconWrap: {
-    width: 52,
-    height: 52,
-    borderRadius: borderRadius.md,
-    backgroundColor: colors.primary + '15',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.md,
-    borderWidth: borderWidth.normal,
-    borderColor: colors.border,
-  },
-  roleCardTitle: {
-    fontFamily: typography.fonts.heading,
-    fontSize: 22,
-    color: colors.text,
-    marginBottom: spacing.sm,
-  },
-  roleCardBody: {
-    fontFamily: typography.fonts.body,
-    fontSize: typography.sizes.sm,
-    color: colors.textMuted,
-    lineHeight: 22,
-    marginBottom: spacing.lg,
-  },
-  roleList: {
-    gap: spacing.sm,
-    marginBottom: spacing.xl,
-  },
-  rolePoint: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  rolePointDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.primary,
-    flexShrink: 0,
-  },
-  rolePointText: {
-    fontFamily: typography.fonts.body,
-    fontSize: typography.sizes.sm,
-    color: colors.textSecondary,
-  },
-  roleBtn: {
-    backgroundColor: colors.primary,
-    borderWidth: borderWidth.normal,
-    borderColor: colors.border,
-    borderRadius: borderRadius.sm,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    alignSelf: 'flex-start',
-    ...NEO_SHADOW,
-    ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
-  } as any,
-  roleBtnText: {
-    fontFamily: typography.fonts.heading,
-    fontSize: typography.sizes.sm,
-    color: colors.white,
-    letterSpacing: 0.5,
-  },
-
-  // VERIFICATION
-  verifyGrid: {
-    flexDirection: 'row',
     gap: spacing.md,
-    flexWrap: 'wrap',
-    marginBottom: spacing.lg,
   },
-  verifyCard: {
+  safetyCard: {
     flex: 1,
-    minWidth: 240,
+    minWidth: 220,
     backgroundColor: colors.surface,
     borderWidth: borderWidth.normal,
     borderColor: colors.border,
     borderRadius: borderRadius.lg,
     padding: spacing.lg,
     ...NEO_SHADOW,
-    overflow: 'hidden',
   },
-  verifyAccent: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 4,
+  safetyCardIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.primary + '15',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: borderWidth.normal,
+    borderColor: colors.border,
+    marginBottom: spacing.md,
   },
-  verifyTitle: {
+  safetyCardTitle: {
     fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.md,
     color: colors.text,
-    marginBottom: spacing.md,
-    marginTop: spacing.sm,
+    marginBottom: spacing.sm,
   },
-  verifyItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
-  },
-  verifyItemText: {
+  safetyCardBody: {
     fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
-    color: colors.textSecondary,
-  },
-  safetyRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-    marginTop: spacing.md,
-  },
-  safetyBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    backgroundColor: colors.surface,
-    borderWidth: borderWidth.normal,
-    borderColor: colors.border,
-    borderRadius: borderRadius.sm,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    ...NEO_SHADOW,
-  },
-  safetyBadgeText: {
-    fontFamily: typography.fonts.bodyMedium,
-    fontSize: typography.sizes.sm,
-    color: colors.text,
+    color: colors.textMuted,
+    lineHeight: 20,
   },
 
-  // PRICING BLOCK
-  pricingBlock: {
+  // EARNINGS BLOCK (female)
+  earningsBlock: {
     backgroundColor: colors.text,
     borderRadius: borderRadius.lg,
     borderWidth: borderWidth.normal,
@@ -1068,7 +970,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: PAGE_PADDING + spacing.md,
     ...NEO_SHADOW,
   },
-  pricingEyebrow: {
+  earningsEyebrow: {
     fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.xs,
     color: colors.primary,
@@ -1076,14 +978,14 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     marginBottom: spacing.sm,
   },
-  pricingTitle: {
+  earningsTitle: {
     fontFamily: typography.fonts.heading,
     fontSize: 28,
     color: colors.white,
     marginBottom: spacing.md,
     letterSpacing: -0.5,
   },
-  pricingBody: {
+  earningsBody: {
     fontFamily: typography.fonts.body,
     fontSize: typography.sizes.md,
     color: colors.white,
@@ -1092,80 +994,39 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
     maxWidth: 540,
   },
-  pricingCards: {
+  earningsStats: {
     flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap',
     gap: spacing.md,
   },
-  pricingCard: {
+  earningsStat: {
     flex: 1,
     minWidth: 140,
     alignItems: 'center',
   },
-  pricingCardValue: {
+  earningsStatValue: {
     fontFamily: typography.fonts.heading,
-    fontSize: 36,
+    fontSize: 30,
     color: colors.primary,
     letterSpacing: -1,
     marginBottom: spacing.xs,
   },
-  pricingCardLabel: {
+  earningsStatLabel: {
     fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     color: colors.white,
     opacity: 0.6,
     textAlign: 'center',
   },
-  pricingDivider: {
+  earningsDivider: {
     width: 1,
     height: 60,
     backgroundColor: colors.white,
     opacity: 0.15,
   },
 
-  // TESTIMONIALS
-  testimonialGrid: {
-    flexDirection: 'row',
-    gap: spacing.md,
-    flexWrap: 'wrap',
-  },
-  testimonialCard: {
-    backgroundColor: colors.surface,
-    borderWidth: borderWidth.normal,
-    borderColor: colors.border,
-    borderRadius: borderRadius.lg,
-    padding: spacing.lg,
-    ...NEO_SHADOW,
-    flex: 1,
-    minWidth: 240,
-  },
-  testimonialQuote: {
-    fontFamily: typography.fonts.body,
-    fontSize: typography.sizes.md,
-    color: colors.textSecondary,
-    lineHeight: 26,
-    marginBottom: spacing.md,
-    flex: 1,
-  },
-  testimonialAuthor: {
-    borderTopWidth: 1,
-    borderTopColor: colors.borderLight,
-    paddingTop: spacing.md,
-  },
-  testimonialName: {
-    fontFamily: typography.fonts.bodySemiBold,
-    fontSize: typography.sizes.sm,
-    color: colors.text,
-  },
-  testimonialRole: {
-    fontFamily: typography.fonts.body,
-    fontSize: typography.sizes.xs,
-    color: colors.textLight,
-    marginTop: 2,
-  },
-
-  // FINAL CTA
+  // FINAL CTA (shared)
   finalCta: {
     alignItems: 'center',
     marginBottom: GAP,
@@ -1179,10 +1040,11 @@ const styles = StyleSheet.create({
   },
   finalCtaTitle: {
     fontFamily: typography.fonts.heading,
-    fontSize: 48,
+    fontSize: 36,
     color: colors.text,
-    letterSpacing: -1.5,
+    letterSpacing: -1,
     marginBottom: spacing.sm,
+    textAlign: 'center',
   },
   finalCtaBody: {
     fontFamily: typography.fonts.body,
@@ -1190,12 +1052,212 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     textAlign: 'center',
     marginBottom: spacing.lg,
+    maxWidth: 460,
   },
-  finalCtaBtns: {
+
+  // PROFILE SCROLL (male)
+  profileScroll: {
+    flexGrow: 0,
+    marginHorizontal: -PAGE_PADDING,
+  },
+  profileScrollContent: {
+    paddingHorizontal: PAGE_PADDING,
+    gap: spacing.md,
+    flexDirection: 'row',
+  },
+  profileCard: {
+    width: 140,
+    borderWidth: borderWidth.normal,
+    borderColor: colors.border,
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.surface,
+    overflow: 'hidden',
+    ...NEO_SHADOW,
+    ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
+  } as any,
+  profileCardPhoto: {
+    width: 140,
+    height: 170,
+    backgroundColor: colors.borderLight,
+  },
+  profileCardPhotoPlaceholder: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.backgroundWarm,
+  },
+  profileCardInitial: {
+    fontFamily: typography.fonts.heading,
+    fontSize: 40,
+    color: colors.textLight,
+  },
+  profileCardInfo: {
+    padding: spacing.sm,
+  },
+  profileCardName: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.sm,
+    color: colors.text,
+    marginBottom: 2,
+  },
+  profileCardRate: {
+    fontFamily: typography.fonts.heading,
+    fontSize: typography.sizes.sm,
+    color: colors.primary,
+    marginBottom: 2,
+  },
+  profileCardCity: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.xs,
+    color: colors.textLight,
+    marginBottom: spacing.sm,
+  },
+  profileCardBtn: {
+    backgroundColor: colors.text,
+    borderWidth: borderWidth.thin,
+    borderColor: colors.border,
+    borderRadius: borderRadius.sm,
+    paddingVertical: 6,
+    alignItems: 'center',
+    ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
+  } as any,
+  profileCardBtnText: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.xs,
+    color: colors.white,
+  },
+  profileCardSkeleton: {
+    width: 140,
+    height: 260,
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.borderLight,
+    borderWidth: borderWidth.normal,
+    borderColor: colors.border,
+  },
+  profileCardEmpty: {
+    width: 140,
+    height: 260,
+    borderRadius: borderRadius.lg,
+    borderWidth: borderWidth.normal,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...NEO_SHADOW,
+  },
+  profileCardEmptyIcon: {
+    marginBottom: spacing.sm,
+  },
+  profileCardEmptyText: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.xs,
+    color: colors.textLight,
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  profileCardCta: {
+    width: 140,
+    height: 260,
+    borderRadius: borderRadius.lg,
+    borderWidth: borderWidth.normal,
+    borderColor: colors.border,
+    backgroundColor: colors.text,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...NEO_SHADOW,
+    ...(Platform.OS === 'web' ? { cursor: 'pointer' } : {}),
+  } as any,
+  profileCardCtaText: {
+    fontFamily: typography.fonts.heading,
+    fontSize: 20,
+    color: colors.white,
+    textAlign: 'center',
+    lineHeight: 28,
+    letterSpacing: -0.5,
+  },
+
+  // TRUST BADGES (male)
+  trustRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  trustBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.surface,
+    borderWidth: borderWidth.normal,
+    borderColor: colors.border,
+    borderRadius: borderRadius.sm,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    ...NEO_SHADOW,
+  },
+  trustBadgeText: {
+    fontFamily: typography.fonts.bodyMedium,
+    fontSize: typography.sizes.sm,
+    color: colors.text,
+  },
+
+  // COMPARE (male)
+  compareGrid: {
     flexDirection: 'row',
     gap: spacing.md,
     flexWrap: 'wrap',
-    justifyContent: 'center',
+  },
+  compareCard: {
+    flex: 1,
+    minWidth: 240,
+    borderWidth: borderWidth.normal,
+    borderColor: colors.border,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    ...NEO_SHADOW,
+  },
+  compareCardBad: {
+    backgroundColor: colors.surface,
+  },
+  compareCardGood: {
+    backgroundColor: colors.text,
+  },
+  compareCardLabel: {
+    fontFamily: typography.fonts.heading,
+    fontSize: typography.sizes.md,
+    color: colors.text,
+    marginBottom: spacing.md,
+  },
+  comparePoint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderLight,
+  },
+  comparePointIconBad: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: 13,
+    color: colors.error,
+    width: 16,
+    textAlign: 'center',
+  },
+  comparePointIconGood: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: 13,
+    color: colors.success,
+    width: 16,
+    textAlign: 'center',
+  },
+  comparePointText: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.sm,
+    color: colors.textSecondary,
+  },
+  comparePointTextBad: {
+    color: colors.textMuted,
+  },
+  comparePointTextGood: {
+    color: colors.white,
   },
 
   // FOOTER
