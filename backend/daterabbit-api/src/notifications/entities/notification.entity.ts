@@ -13,12 +13,15 @@ export enum NotificationType {
   BOOKING_DECLINED = 'booking_declined',
   BOOKING_CANCELLED = 'booking_cancelled',
   BOOKING_COMPLETED = 'booking_completed',
+  BOOKING_REQUEST = 'booking_request',
   NEW_MESSAGE = 'new_message',
   NO_SHOW = 'no_show',
   SOS_ALERT = 'sos_alert',
   SAFETY_ALERT = 'safety_alert',
   REPORT_ISSUE = 'report_issue',
   COMPANION_ONLINE = 'companion_online',
+  PAYMENT_RECEIVED = 'payment_received',
+  NEW_REVIEW = 'new_review',
 }
 
 @Entity('notifications')

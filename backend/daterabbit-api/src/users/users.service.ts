@@ -71,6 +71,10 @@ export class UsersService {
     return this.findById(id);
   }
 
+  async updatePushToken(userId: string, token: string): Promise<void> {
+    await this.usersRepository.update(userId, { expoPushToken: token });
+  }
+
   async updateLastSeen(userId: string): Promise<void> {
     // Check if user was offline before updating — needed to know whether to notify watchers
     const user = await this.usersRepository.findOne({ where: { id: userId }, select: ['id', 'name', 'lastSeen'] });

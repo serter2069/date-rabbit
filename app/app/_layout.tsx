@@ -16,6 +16,8 @@ import { colors } from '../src/constants/theme';
 import { StripeProvider } from '../src/components/StripeProvider';
 import { OfflineBanner } from '../src/components/OfflineBanner';
 import { useNetworkStore } from '../src/store/networkStore';
+// expo-notifications is native-only — all usage is wrapped in Platform.OS !== 'web' guards
+import * as Notifications from 'expo-notifications';
 
 // Listen to browser online/offline events (web only)
 function useWebNetworkStatus() {
@@ -66,6 +68,51 @@ function useHeartbeat() {
       return () => subscription.remove();
     }
   }, [sendHeartbeat]);
+}
+
+// Register for Expo push notifications (native only)
+// Requests permission, retrieves ExponentPushToken, saves to backend
+function usePushNotifications() {
+  const { isAuthenticated } = useAuthStore();
+
+  useEffect(() => {
+    // Push notifications are not supported on web
+    if (Platform.OS === 'web') return;
+    if (!isAuthenticated) return;
+
+    async function register() {
+      try {
+        const { status: existingStatus } = await Notifications.getPermissionsAsync();
+        let finalStatus = existingStatus;
+        if (existingStatus !== 'granted') {
+          const { status } = await Notifications.requestPermissionsAsync();
+          finalStatus = status;
+        }
+        if (finalStatus !== 'granted') return;
+
+        const tokenData = await Notifications.getExpoPushTokenAsync();
+        const token = tokenData.data;
+        if (token?.startsWith('ExponentPushToken[')) {
+          await usersApi.updatePushToken(token);
+        }
+      } catch {
+        // Push registration is best-effort — never crash the app
+      }
+    }
+
+    register();
+
+    // Show notifications when app is in foreground
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+        shouldShowBanner: true,
+        shouldShowList: true,
+      }),
+    });
+  }, [isAuthenticated]);
 }
 
 // Strip __EXPO_ROUTER_key from browser URL bar (Expo Router internal param)
@@ -213,6 +260,8 @@ export default function RootLayout() {
   useWebNetworkStatus();
   // Send heartbeat to update online status
   useHeartbeat();
+  // Register for push notifications (native only)
+  usePushNotifications();
 
   // Load Neo-Brutalism font
   const [fontsLoaded] = useFonts({

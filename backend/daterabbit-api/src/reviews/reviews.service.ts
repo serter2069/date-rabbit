@@ -5,6 +5,9 @@ import { Review } from './entities/review.entity';
 import { Booking, BookingStatus } from '../bookings/entities/booking.entity';
 import { User } from '../users/entities/user.entity';
 import { sanitizeText } from '../common/sanitize';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '../notifications/entities/notification.entity';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class ReviewsService {
@@ -15,6 +18,8 @@ export class ReviewsService {
     private bookingsRepo: Repository<Booking>,
     @InjectRepository(User)
     private usersRepo: Repository<User>,
+    private notificationsService: NotificationsService,
+    private emailService: EmailService,
   ) {}
 
   async createReview(
@@ -66,6 +71,31 @@ export class ReviewsService {
 
     // Update reviewee's average rating
     await this.updateUserRating(revieweeId);
+
+    // UC-124: Notify reviewee about new review (push + email, fire-and-forget)
+    const reviewerName =
+      booking.seekerId === reviewerId
+        ? booking.seeker?.name || 'Someone'
+        : booking.companion?.name || 'Someone';
+
+    this.notificationsService.create({
+      userId: revieweeId,
+      type: NotificationType.NEW_REVIEW,
+      title: 'New Review',
+      body: `${reviewerName} gave you a ${rating}-star review.`,
+      data: { bookingId, reviewId: saved.id, rating },
+    }).catch(() => {/* swallow */});
+
+    const reviewee = await this.usersRepo.findOne({ where: { id: revieweeId } });
+    if (reviewee?.email) {
+      this.emailService.sendNewReview({
+        revieweeEmail: reviewee.email,
+        revieweeName: reviewee.name || 'there',
+        reviewerName,
+        rating,
+        comment,
+      }).catch(() => {/* swallow */});
+    }
 
     return saved;
   }

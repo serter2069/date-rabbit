@@ -260,7 +260,6 @@ export class BookingsService {
     const booking = await this.updateStatus(id, BookingStatus.CONFIRMED);
     if (!booking) return null;
 
-    // Send confirmation emails to both parties (fire-and-forget)
     const emailData = {
       dateTime: booking.dateTime,
       duration: booking.duration,
@@ -269,6 +268,27 @@ export class BookingsService {
       totalPrice: booking.totalPrice,
     };
 
+    // UC-121: In-app push notifications for booking confirmed (fire-and-forget)
+    if (booking.seekerId) {
+      this.notificationsService.create({
+        userId: booking.seekerId,
+        type: NotificationType.BOOKING_CONFIRMED,
+        title: 'Booking Confirmed!',
+        body: `${booking.companion?.name || 'Your companion'} confirmed your date request.`,
+        data: { bookingId: booking.id },
+      }).catch(() => {/* swallow */});
+    }
+    if (booking.companionId) {
+      this.notificationsService.create({
+        userId: booking.companionId,
+        type: NotificationType.BOOKING_CONFIRMED,
+        title: 'Booking Confirmed',
+        body: `You confirmed the booking with ${booking.seeker?.name || 'your guest'}.`,
+        data: { bookingId: booking.id },
+      }).catch(() => {/* swallow */});
+    }
+
+    // Send confirmation emails to both parties (fire-and-forget)
     if (booking.seeker?.email) {
       this.emailService
         .sendBookingConfirmedToSeeker({

@@ -138,6 +138,112 @@ export class EmailService {
     });
   }
 
+  // ─── Transactional email methods ────────────────────────────────────────────
+
+  async sendNewBookingRequest(data: {
+    companionEmail: string;
+    companionName: string;
+    seekerName: string;
+    dateTime: Date;
+    duration: number;
+    activity: string;
+    location?: string;
+  }): Promise<boolean> {
+    const dateStr = data.dateTime.toLocaleDateString('en-US', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+    });
+    const timeStr = data.dateTime.toLocaleTimeString('en-US', {
+      hour: '2-digit', minute: '2-digit',
+    });
+    const activityFormatted = data.activity.charAt(0).toUpperCase() + data.activity.slice(1).toLowerCase();
+    const locationRow = data.location
+      ? `<tr><td style="padding:6px 0;font-size:14px;color:#555;">Location</td><td style="padding:6px 0;font-size:14px;color:#000;font-weight:600;">${data.location}</td></tr>`
+      : '';
+    return this.sendEmail({
+      to: data.companionEmail,
+      subject: `New Booking Request from ${data.seekerName}`,
+      htmlContent: `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><title>New Booking Request</title></head><body style="margin:0;padding:0;background:#F4F0EA;font-family:Arial,sans-serif;"><table width="100%" cellpadding="0" cellspacing="0" style="background:#F4F0EA;padding:40px 20px;"><tr><td align="center"><table width="480" cellpadding="0" cellspacing="0" style="background:#F4F0EA;border:3px solid #000;border-radius:12px;padding:32px;"><tr><td><p style="margin:0 0 4px 0;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#FF2A5F;">DateRabbit</p><h1 style="margin:0 0 8px 0;font-size:24px;font-weight:700;color:#000;">New Booking Request!</h1><p style="margin:0 0 24px 0;font-size:15px;color:#333;">Hi ${data.companionName}, <strong>${data.seekerName}</strong> wants to book a date with you.</p><div style="background:#fff;border:3px solid #000;border-radius:8px;padding:20px;margin:0 0 24px 0;"><table width="100%" cellpadding="0" cellspacing="0"><tr><td colspan="2" style="padding:0 0 12px 0;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#FF2A5F;border-bottom:2px solid #000;">Request Details</td></tr><tr><td style="padding:6px 0;font-size:14px;color:#555;">Guest</td><td style="padding:6px 0;font-size:14px;color:#000;font-weight:600;">${data.seekerName}</td></tr><tr><td style="padding:6px 0;font-size:14px;color:#555;">Date</td><td style="padding:6px 0;font-size:14px;color:#000;font-weight:600;">${dateStr}</td></tr><tr><td style="padding:6px 0;font-size:14px;color:#555;">Time</td><td style="padding:6px 0;font-size:14px;color:#000;font-weight:600;">${timeStr}</td></tr><tr><td style="padding:6px 0;font-size:14px;color:#555;">Duration</td><td style="padding:6px 0;font-size:14px;color:#000;font-weight:600;">${data.duration} hour${data.duration !== 1 ? 's' : ''}</td></tr><tr><td style="padding:6px 0;font-size:14px;color:#555;">Activity</td><td style="padding:6px 0;font-size:14px;color:#000;font-weight:600;">${activityFormatted}</td></tr>${locationRow}</table></div><p style="margin:0;font-size:13px;color:#666;">Open the DateRabbit app to accept or decline this request.</p></td></tr></table></td></tr></table></body></html>`,
+    });
+  }
+
+  async sendBookingCancelledToCompanion(data: {
+    companionEmail: string;
+    companionName: string;
+    seekerName: string;
+    dateTime: Date;
+    activity: string;
+    reason?: string;
+  }): Promise<boolean> {
+    const dateStr = data.dateTime.toLocaleDateString('en-US', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+    });
+    const reasonRow = data.reason
+      ? `<tr><td style="padding:6px 0;font-size:14px;color:#555;">Reason</td><td style="padding:6px 0;font-size:14px;color:#000;font-weight:600;">${data.reason}</td></tr>`
+      : '';
+    return this.sendEmail({
+      to: data.companionEmail,
+      subject: `Booking Cancelled by ${data.seekerName}`,
+      htmlContent: `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>Booking Cancelled</title></head><body style="margin:0;padding:0;background:#F4F0EA;font-family:Arial,sans-serif;"><table width="100%" cellpadding="0" cellspacing="0" style="background:#F4F0EA;padding:40px 20px;"><tr><td align="center"><table width="480" cellpadding="0" cellspacing="0" style="background:#F4F0EA;border:3px solid #000;border-radius:12px;padding:32px;"><tr><td><p style="margin:0 0 4px 0;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#FF2A5F;">DateRabbit</p><h1 style="margin:0 0 8px 0;font-size:24px;font-weight:700;color:#000;">Booking Cancelled</h1><p style="margin:0 0 24px 0;font-size:15px;color:#333;">Hi ${data.companionName}, <strong>${data.seekerName}</strong> has cancelled your booking on ${dateStr}.</p><div style="background:#fff;border:3px solid #000;border-radius:8px;padding:20px;margin:0 0 24px 0;"><table width="100%" cellpadding="0" cellspacing="0"><tr><td style="padding:6px 0;font-size:14px;color:#555;">Guest</td><td style="padding:6px 0;font-size:14px;color:#000;font-weight:600;">${data.seekerName}</td></tr><tr><td style="padding:6px 0;font-size:14px;color:#555;">Date</td><td style="padding:6px 0;font-size:14px;color:#000;font-weight:600;">${dateStr}</td></tr>${reasonRow}</table></div><p style="margin:0;font-size:13px;color:#666;">Your time slot is now available again.</p></td></tr></table></td></tr></table></body></html>`,
+    });
+  }
+
+  async sendBookingDeclinedToSeeker(data: {
+    seekerEmail: string;
+    seekerName: string;
+    companionName: string;
+    dateTime: Date;
+    activity: string;
+    reason?: string;
+  }): Promise<boolean> {
+    const dateStr = data.dateTime.toLocaleDateString('en-US', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+    });
+    const reasonRow = data.reason
+      ? `<tr><td style="padding:6px 0;font-size:14px;color:#555;">Reason</td><td style="padding:6px 0;font-size:14px;color:#000;font-weight:600;">${data.reason}</td></tr>`
+      : '';
+    return this.sendEmail({
+      to: data.seekerEmail,
+      subject: `Booking Declined by ${data.companionName}`,
+      htmlContent: `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>Booking Declined</title></head><body style="margin:0;padding:0;background:#F4F0EA;font-family:Arial,sans-serif;"><table width="100%" cellpadding="0" cellspacing="0" style="background:#F4F0EA;padding:40px 20px;"><tr><td align="center"><table width="480" cellpadding="0" cellspacing="0" style="background:#F4F0EA;border:3px solid #000;border-radius:12px;padding:32px;"><tr><td><p style="margin:0 0 4px 0;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#FF2A5F;">DateRabbit</p><h1 style="margin:0 0 8px 0;font-size:24px;font-weight:700;color:#000;">Booking Declined</h1><p style="margin:0 0 24px 0;font-size:15px;color:#333;">Hi ${data.seekerName}, unfortunately <strong>${data.companionName}</strong> has declined your booking request for ${dateStr}.</p><div style="background:#fff;border:3px solid #000;border-radius:8px;padding:20px;margin:0 0 24px 0;"><table width="100%" cellpadding="0" cellspacing="0"><tr><td style="padding:6px 0;font-size:14px;color:#555;">Companion</td><td style="padding:6px 0;font-size:14px;color:#000;font-weight:600;">${data.companionName}</td></tr><tr><td style="padding:6px 0;font-size:14px;color:#555;">Date</td><td style="padding:6px 0;font-size:14px;color:#000;font-weight:600;">${dateStr}</td></tr>${reasonRow}</table></div><p style="margin:0;font-size:13px;color:#666;">Browse other companions on DateRabbit and find your perfect match.</p></td></tr></table></td></tr></table></body></html>`,
+    });
+  }
+
+  async sendPaymentReceived(data: {
+    companionEmail: string;
+    companionName: string;
+    seekerName: string;
+    amount: number;
+    activity: string;
+    dateTime: Date;
+  }): Promise<boolean> {
+    const dateStr = data.dateTime.toLocaleDateString('en-US', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+    });
+    return this.sendEmail({
+      to: data.companionEmail,
+      subject: `Payment received — $${Number(data.amount).toFixed(2)} from ${data.seekerName}`,
+      htmlContent: `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>Payment Received</title></head><body style="margin:0;padding:0;background:#F4F0EA;font-family:Arial,sans-serif;"><table width="100%" cellpadding="0" cellspacing="0" style="background:#F4F0EA;padding:40px 20px;"><tr><td align="center"><table width="480" cellpadding="0" cellspacing="0" style="background:#F4F0EA;border:3px solid #000;border-radius:12px;padding:32px;"><tr><td><p style="margin:0 0 4px 0;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#FF2A5F;">DateRabbit</p><h1 style="margin:0 0 8px 0;font-size:24px;font-weight:700;color:#000;">Payment Received!</h1><p style="margin:0 0 24px 0;font-size:15px;color:#333;">Hi ${data.companionName}, you received a payment from <strong>${data.seekerName}</strong>.</p><div style="background:#fff;border:3px solid #000;border-radius:8px;padding:20px;margin:0 0 24px 0;"><table width="100%" cellpadding="0" cellspacing="0"><tr><td style="padding:6px 0;font-size:14px;color:#555;">From</td><td style="padding:6px 0;font-size:14px;color:#000;font-weight:600;">${data.seekerName}</td></tr><tr><td style="padding:6px 0;font-size:14px;color:#555;">Date</td><td style="padding:6px 0;font-size:14px;color:#000;font-weight:600;">${dateStr}</td></tr><tr><td style="padding:12px 0 6px 0;font-size:14px;color:#555;border-top:2px solid #eee;">Amount</td><td style="padding:12px 0 6px 0;font-size:18px;color:#000;font-weight:700;border-top:2px solid #eee;">$${Number(data.amount).toFixed(2)}</td></tr></table></div><p style="margin:0;font-size:13px;color:#666;">Your earnings will be available for payout via your Stripe account.</p></td></tr></table></td></tr></table></body></html>`,
+    });
+  }
+
+  async sendNewReview(data: {
+    revieweeEmail: string;
+    revieweeName: string;
+    reviewerName: string;
+    rating: number;
+    comment?: string;
+  }): Promise<boolean> {
+    const stars = '★'.repeat(Math.round(data.rating)) + '☆'.repeat(5 - Math.round(data.rating));
+    const commentRow = data.comment
+      ? `<tr><td colspan="2" style="padding:12px 0 6px 0;font-size:14px;color:#333;border-top:2px solid #eee;font-style:italic;">"${data.comment}"</td></tr>`
+      : '';
+    return this.sendEmail({
+      to: data.revieweeEmail,
+      subject: `${data.reviewerName} left you a ${data.rating}-star review`,
+      htmlContent: `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>New Review</title></head><body style="margin:0;padding:0;background:#F4F0EA;font-family:Arial,sans-serif;"><table width="100%" cellpadding="0" cellspacing="0" style="background:#F4F0EA;padding:40px 20px;"><tr><td align="center"><table width="480" cellpadding="0" cellspacing="0" style="background:#F4F0EA;border:3px solid #000;border-radius:12px;padding:32px;"><tr><td><p style="margin:0 0 4px 0;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#FF2A5F;">DateRabbit</p><h1 style="margin:0 0 8px 0;font-size:24px;font-weight:700;color:#000;">New Review!</h1><p style="margin:0 0 24px 0;font-size:15px;color:#333;">Hi ${data.revieweeName}, <strong>${data.reviewerName}</strong> just reviewed you.</p><div style="background:#fff;border:3px solid #000;border-radius:8px;padding:20px;margin:0 0 24px 0;"><table width="100%" cellpadding="0" cellspacing="0"><tr><td style="padding:6px 0;font-size:14px;color:#555;">From</td><td style="padding:6px 0;font-size:14px;color:#000;font-weight:600;">${data.reviewerName}</td></tr><tr><td style="padding:6px 0;font-size:14px;color:#555;">Rating</td><td style="padding:6px 0;font-size:22px;color:#FF2A5F;">${stars}</td></tr>${commentRow}</table></div><p style="margin:0;font-size:13px;color:#666;">Open the DateRabbit app to view your full reviews and respond.</p></td></tr></table></td></tr></table></body></html>`,
+    });
+  }
+
   // ─── HTML Templates ─────────────────────────────────────────────────────────
 
   private buildOtpTemplate(otp: string): string {
