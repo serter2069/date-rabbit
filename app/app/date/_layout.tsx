@@ -1,5 +1,5 @@
 import { Stack } from 'expo-router';
-import { typography } from '../../../src/constants/theme';
+import { typography } from '../../src/constants/theme';
 
 export default function DateLayout() {
   return (
