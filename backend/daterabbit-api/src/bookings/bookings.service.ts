@@ -234,6 +234,28 @@ export class BookingsService {
     return this.findById(id);
   }
 
+  /**
+   * Cancel a booking and record who cancelled + the refund percent that was applied.
+   * Used by the tiered refund policy flow.
+   */
+  async cancelWithRefund(
+    id: string,
+    cancelledByUserId: string,
+    refundPercent: number,
+    reason?: string,
+  ): Promise<Booking | null> {
+    const update: Partial<Booking> = {
+      status: BookingStatus.CANCELLED,
+      cancelledByUserId,
+      refundPercent,
+    };
+    if (reason) {
+      update.cancellationReason = sanitizeText(reason);
+    }
+    await this.bookingsRepository.update(id, update);
+    return this.findById(id);
+  }
+
   async confirm(id: string): Promise<Booking | null> {
     const booking = await this.updateStatus(id, BookingStatus.CONFIRMED);
     if (!booking) return null;

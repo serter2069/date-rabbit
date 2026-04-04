@@ -199,6 +199,36 @@ export class BookingsController {
     return this.formatBooking(updated);
   }
 
+  /**
+   * GET /bookings/:id/cancel-preview
+   * Returns the refund amount the seeker would receive if they cancel now.
+   * Used by frontend to display refund info in the cancel confirmation dialog.
+   */
+  @Get(':id/cancel-preview')
+  async getCancelPreview(@Param('id', ParseUUIDPipe) id: string, @Request() req) {
+    const booking = await this.bookingsService.findById(id);
+    if (!booking) {
+      throw new HttpException('Booking not found', HttpStatus.NOT_FOUND);
+    }
+    if (booking.seekerId !== req.user.id && booking.companionId !== req.user.id) {
+      throw new HttpException('Unauthorized', HttpStatus.FORBIDDEN);
+    }
+    if (booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.COMPLETED) {
+      throw new HttpException('Booking cannot be cancelled', HttpStatus.BAD_REQUEST);
+    }
+
+    const refundPercent = this.paymentsService.calculateRefundPercent(booking, req.user.id);
+    const totalPrice = Number(booking.totalPrice);
+    const refundAmount = Math.round(totalPrice * refundPercent) / 100;
+
+    return {
+      refundPercent,
+      refundAmount,
+      totalPrice,
+      cancelledByRole: req.user.id === booking.companionId ? 'companion' : 'seeker',
+    };
+  }
+
   @Put(':id/cancel')
   async cancelBooking(@Param('id', ParseUUIDPipe) id: string, @Request() req, @Body() body: { reason?: string }) {
     const booking = await this.bookingsService.findById(id);
@@ -214,10 +244,16 @@ export class BookingsController {
     if (booking.status === BookingStatus.COMPLETED) {
       throw new HttpException('Cannot cancel a completed booking', HttpStatus.BAD_REQUEST);
     }
-    const updated = await this.bookingsService.updateStatus(id, BookingStatus.CANCELLED, body.reason);
-    // Release Stripe hold or refund (fire-and-forget, don't fail the cancel if Stripe fails)
-    this.paymentsService.cancelPaymentHold(id).catch(err =>
-      console.error('Stripe cancel error for booking', id, err),
+
+    // Calculate refund percent before marking cancelled
+    const refundPercent = this.paymentsService.calculateRefundPercent(booking, req.user.id);
+
+    // Save cancellation metadata alongside status update
+    const updated = await this.bookingsService.cancelWithRefund(id, req.user.id, refundPercent, body.reason);
+
+    // Apply tiered refund on Stripe (fire-and-forget, don't fail the cancel if Stripe fails)
+    this.paymentsService.tieredRefund(id, refundPercent).catch(err =>
+      console.error('Stripe tiered refund error for booking', id, err),
     );
 
     // UC-051: Notify the other party about cancellation
@@ -446,6 +482,8 @@ export class BookingsController {
       totalPrice: booking.totalPrice,
       status: booking.status,
       cancellationReason: booking.cancellationReason || undefined,
+      cancelledByUserId: booking.cancelledByUserId || undefined,
+      refundPercent: booking.refundPercent !== null && booking.refundPercent !== undefined ? booking.refundPercent : undefined,
       seekerCheckinAt: booking.seekerCheckinAt || undefined,
       companionCheckinAt: booking.companionCheckinAt || undefined,
       activeDateStartedAt: booking.activeDateStartedAt || undefined,

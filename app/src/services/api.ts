@@ -341,6 +341,8 @@ export interface Booking {
   location?: string;
   message?: string;
   cancellationReason?: string;
+  cancelledByUserId?: string;
+  refundPercent?: number;
   hourlyRate: number;
   subtotal: number;
   platformFee: number;
@@ -441,6 +443,11 @@ export const bookingsApi = {
 
   getRequests: (status: 'pending' | 'accepted' | 'completed' = 'pending') =>
     apiRequest<{ bookings: Booking[]; total: number }>(`/bookings/requests?status=${status}`),
+
+  getCancelPreview: (id: string) =>
+    apiRequest<{ refundPercent: number; refundAmount: number; totalPrice: number; cancelledByRole: string }>(
+      `/bookings/${id}/cancel-preview`,
+    ),
 
   updateStatus: (id: string, status: 'accepted' | 'declined' | 'cancelled', reason?: string) => {
     if (status === 'accepted') {
