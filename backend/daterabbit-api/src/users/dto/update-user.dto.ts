@@ -78,6 +78,10 @@ export class UpdateUserDto {
   notificationsEnabled?: boolean;
 
   @IsOptional()
+  @IsBoolean()
+  isPublicProfile?: boolean;
+
+  @IsOptional()
   @IsString()
   @MaxLength(200)
   expoPushToken?: string;

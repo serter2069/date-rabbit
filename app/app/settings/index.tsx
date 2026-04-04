@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Switch,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,6 +14,7 @@ import { Card } from '../../src/components/Card';
 import { Button } from '../../src/components/Button';
 import { useAuthStore } from '../../src/store/authStore';
 import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
+import { showAlert } from '../../src/utils/alert';
 
 function SettingsMenuItem({
   icon,
@@ -52,11 +54,23 @@ function SettingsMenuItem({
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const { user, logout } = useAuthStore();
+  const { user, logout, updateProfile } = useAuthStore();
+
+  const [isPublicProfile, setIsPublicProfile] = useState(user?.isPublicProfile ?? true);
 
   const handleLogout = () => {
     logout();
     router.replace('/(auth)/welcome');
+  };
+
+  const togglePublicProfile = async (value: boolean) => {
+    const prev = isPublicProfile;
+    setIsPublicProfile(value);
+    const result = await updateProfile({ isPublicProfile: value });
+    if (!result.success) {
+      setIsPublicProfile(prev);
+      showAlert('Error', result.error || 'Failed to update profile visibility.');
+    }
   };
 
   return (
@@ -129,6 +143,24 @@ export default function SettingsScreen() {
                   onPress={() => router.push('/settings/my-packages')}
                   colors={colors}
                 />
+                <View style={[styles.divider, { backgroundColor: colors.divider }]} />
+                <View style={styles.toggleRow}>
+                  <View style={[styles.menuIconContainer, { backgroundColor: colors.primary + '15' }]}>
+                    <Icon name="eye" size={18} color={colors.primary} />
+                  </View>
+                  <View style={styles.menuTextContainer}>
+                    <Text style={[styles.menuLabel, { color: colors.text }]}>Public Profile</Text>
+                    <Text style={[styles.menuDescription, { color: colors.textSecondary }]}>
+                      {isPublicProfile ? 'Visible in browse & discover' : 'Hidden from browse & discover'}
+                    </Text>
+                  </View>
+                  <Switch
+                    value={isPublicProfile}
+                    onValueChange={togglePublicProfile}
+                    trackColor={{ false: colors.border, true: colors.primary + '60' }}
+                    thumbColor={isPublicProfile ? colors.primary : colors.textSecondary}
+                  />
+                </View>
               </>
             )}
           </Card>
@@ -245,5 +277,11 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+    minHeight: 56,
   },
 });

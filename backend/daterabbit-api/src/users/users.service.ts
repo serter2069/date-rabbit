@@ -154,7 +154,8 @@ export class UsersService {
     const query = this.usersRepository
       .createQueryBuilder('user')
       .where('user.role = :role', { role: UserRole.COMPANION })
-      .andWhere('user.isActive = true');
+      .andWhere('user.isActive = true')
+      .andWhere('user.isPublicProfile = true');
 
     if (hasLocation) {
       query.addSelect(distanceExpr, 'distance');
