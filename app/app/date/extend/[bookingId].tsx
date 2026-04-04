@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { activeDateApi } from '../../../src/services/activeDateApi';
-import { colors } from '../../../src/constants/theme';
+import { colors, typography } from '../../../src/constants/theme';
 
 const HOURS_OPTIONS = [0.5, 1, 2];
 
@@ -82,7 +82,7 @@ export default function ExtendDateScreen() {
 
       {sent ? (
         responseStatus === 'approved' ? (
-          <View style={[styles.sentCard, { backgroundColor: '#4DF0FF' }]}>
+          <View style={[styles.sentCard, { backgroundColor: colors.accent }]}>
             <Text style={styles.sentText}>Extension Approved!</Text>
             <Text style={styles.sentSubtext}>Your date has been extended by {formatHoursDuration(selected)}.</Text>
           </View>
@@ -126,18 +126,18 @@ export default function ExtendDateScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F4F0EA', padding: 24, paddingTop: 60 },
-  title: { fontSize: 36, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000', marginBottom: 8 },
+  title: { fontSize: 36, fontFamily: typography.fonts.heading, fontWeight: '700', color: '#000', marginBottom: 8 },
   subtitle: { fontSize: 16, color: colors.textMuted, marginBottom: 40 },
   optionsRow: { flexDirection: 'row', gap: 12, marginBottom: 40 },
   option: { flex: 1, paddingVertical: 24, alignItems: 'center', borderWidth: 2, borderColor: '#000', backgroundColor: colors.surface, shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
-  optionSelected: { backgroundColor: '#4DF0FF' },
-  optionText: { fontSize: 24, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
+  optionSelected: { backgroundColor: colors.accent },
+  optionText: { fontSize: 24, fontFamily: typography.fonts.heading, fontWeight: '700', color: '#000' },
   optionTextSelected: { color: '#000' },
   button: { backgroundColor: '#FF2A5F', borderWidth: 2, borderColor: '#000', paddingVertical: 18, alignItems: 'center', shadowOffset: { width: 4, height: 4 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
   buttonDisabled: { opacity: 0.6 },
-  buttonText: { fontSize: 20, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: colors.white },
+  buttonText: { fontSize: 20, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.white },
   sentCard: { backgroundColor: '#FF5A85', borderWidth: 2, borderColor: '#000', padding: 24, alignItems: 'center', shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
-  sentText: { fontSize: 22, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
+  sentText: { fontSize: 22, fontFamily: typography.fonts.heading, fontWeight: '700', color: '#000' },
   sentSubtext: { fontSize: 14, color: '#000', marginTop: 8, textAlign: 'center' },
   backBtn: { marginTop: 24, alignItems: 'center', padding: 12 },
   backText: { fontSize: 16, color: colors.textMuted, textDecorationLine: 'underline' },

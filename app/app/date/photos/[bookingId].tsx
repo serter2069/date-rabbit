@@ -6,7 +6,7 @@ import {
 import { useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { activeDateApi } from '../../../src/services/activeDateApi';
-import { colors } from '../../../src/constants/theme';
+import { colors, typography } from '../../../src/constants/theme';
 
 const SCREEN_W = Dimensions.get('window').width;
 const PHOTO_SIZE = (SCREEN_W - 48 - 12) / 2; // 2 columns with gaps
@@ -132,12 +132,12 @@ export default function DatePhotosScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F4F0EA' },
   list: { padding: 24, paddingBottom: 100 },
-  title: { fontSize: 28, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000', marginBottom: 20 },
+  title: { fontSize: 28, fontFamily: typography.fonts.heading, fontWeight: '700', color: '#000', marginBottom: 20 },
   row: { justifyContent: 'space-between', marginBottom: 12 },
   photoWrap: { width: PHOTO_SIZE, height: PHOTO_SIZE, borderWidth: 2, borderColor: '#000' },
   photo: { width: '100%', height: '100%' },
   empty: { alignItems: 'center', paddingTop: 60 },
-  emptyTitle: { fontSize: 20, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
+  emptyTitle: { fontSize: 20, fontFamily: typography.fonts.heading, fontWeight: '700', color: '#000' },
   emptySubtext: { fontSize: 14, color: colors.textMuted, marginTop: 8 },
   addBtn: {
     position: 'absolute', bottom: 24, left: 24, right: 24,
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16, alignItems: 'center',
     shadowOffset: { width: 4, height: 4 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0,
   },
-  addBtnText: { fontSize: 18, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
+  addBtnText: { fontSize: 18, fontFamily: typography.fonts.heading, fontWeight: '700', color: '#000' },
   btnDisabled: { opacity: 0.6 },
   modal: { flex: 1, backgroundColor: 'rgba(0,0,0,0.95)', justifyContent: 'center', alignItems: 'center' },
   fullscreenImage: { width: SCREEN_W, height: SCREEN_W },
