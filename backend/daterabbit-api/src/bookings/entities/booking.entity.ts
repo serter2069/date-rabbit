@@ -16,6 +16,7 @@ export enum BookingStatus {
   ACTIVE = 'active',
   CANCELLED = 'cancelled',
   COMPLETED = 'completed',
+  PENDING_COMPLETION = 'pending_completion',
 }
 
 export enum ActivityType {
@@ -138,6 +139,19 @@ export class Booking {
   // Refund percentage applied at cancellation time (0, 50, or 100)
   @Column({ type: 'int', nullable: true })
   refundPercent: number;
+
+  // UC-048: Post-date completion confirmation flow
+  // Set by companion when they mark the date as completed; moves booking to PENDING_COMPLETION
+  @Column({ type: 'timestamp', nullable: true })
+  completionRequestedAt: Date;
+
+  // Actual hours reported by companion at completion time
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
+  completionActualHours: number;
+
+  // Set when seeker confirms (or auto-set after 24h timeout)
+  @Column({ type: 'timestamp', nullable: true })
+  completionConfirmedAt: Date;
 
   @CreateDateColumn()
   createdAt: Date;

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AddPendingCompletionStatus1743763200000 } from './migrations/1743763200000-add-pending-completion-status';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { ScheduleModule } from '@nestjs/schedule';
 import { APP_GUARD } from '@nestjs/core';
@@ -50,6 +51,8 @@ import { CitiesModule } from './cities/cities.module';
         database: configService.get('DB_NAME'),
         autoLoadEntities: true,
         synchronize: configService.get('NODE_ENV') !== 'production',
+        migrations: [AddPendingCompletionStatus1743763200000],
+        migrationsRun: configService.get('NODE_ENV') === 'production',
         logging: configService.get('NODE_ENV') === 'development',
       }),
     }),

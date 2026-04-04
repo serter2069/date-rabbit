@@ -330,7 +330,8 @@ export type BookingStatus =
   | 'checkin_ready'
   | 'active'
   | 'cancelled'
-  | 'completed';
+  | 'completed'
+  | 'pending_completion';
 
 export interface Booking {
   id: string;
@@ -363,6 +364,10 @@ export interface Booking {
   seekerRating?: { average: number; count: number } | null;
   noShowReason?: string;
   createdAt: string;
+  // UC-048: post-date completion confirmation
+  completionRequestedAt?: string;
+  completionActualHours?: number;
+  completionConfirmedAt?: string;
 }
 
 export interface CreateBookingData {
@@ -457,8 +462,14 @@ export const bookingsApi = {
     }
   },
 
-  complete: (id: string) =>
+  complete: (id: string, actualDurationHours: number) =>
     apiRequest<Booking>(`/bookings/${id}/complete`, {
+      method: 'PUT',
+      body: { actualDurationHours },
+    }),
+
+  confirmCompletion: (id: string) =>
+    apiRequest<Booking>(`/bookings/${id}/confirm-completion`, {
       method: 'PUT',
     }),
 

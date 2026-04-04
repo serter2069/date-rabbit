@@ -19,6 +19,8 @@ export enum NotificationType {
   SAFETY_ALERT = 'safety_alert',
   REPORT_ISSUE = 'report_issue',
   COMPANION_ONLINE = 'companion_online',
+  DATE_COMPLETION_REQUEST = 'date_completion_request',
+  DATE_COMPLETION_CONFIRMED = 'date_completion_confirmed',
 }
 
 @Entity('notifications')

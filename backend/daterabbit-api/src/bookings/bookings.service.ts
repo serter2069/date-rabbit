@@ -189,14 +189,17 @@ export class BookingsService {
 
       case 'past':
         // Completed/cancelled bookings with past dates OR confirmed/paid bookings with past dates
+        // PENDING_COMPLETION: seeker sees it in "past" tab so they can confirm
         seekerWhere = [
           { seekerId: userId, status: BookingStatus.COMPLETED },
+          { seekerId: userId, status: BookingStatus.PENDING_COMPLETION },
           { seekerId: userId, status: BookingStatus.CANCELLED, dateTime: LessThan(now) },
           { seekerId: userId, dateTime: LessThan(now), status: BookingStatus.CONFIRMED },
           { seekerId: userId, dateTime: LessThan(now), status: BookingStatus.PAID },
         ];
         companionWhere = [
           { companionId: userId, status: BookingStatus.COMPLETED },
+          { companionId: userId, status: BookingStatus.PENDING_COMPLETION },
           { companionId: userId, status: BookingStatus.CANCELLED, dateTime: LessThan(now) },
           { companionId: userId, dateTime: LessThan(now), status: BookingStatus.CONFIRMED },
           { companionId: userId, dateTime: LessThan(now), status: BookingStatus.PAID },
@@ -320,21 +323,61 @@ export class BookingsService {
     });
   }
 
-  async complete(id: string, userId: string): Promise<Booking> {
+  /**
+   * Get companion requests filtered by tab status.
+   * - pending: PENDING
+   * - accepted: CONFIRMED, PAID, ACTIVE, PENDING_COMPLETION
+   * - completed: COMPLETED
+   */
+  async getRequestsByStatus(companionId: string, status: 'pending' | 'accepted' | 'completed'): Promise<Booking[]> {
+    let statuses: BookingStatus[];
+
+    switch (status) {
+      case 'pending':
+        statuses = [BookingStatus.PENDING];
+        break;
+      case 'accepted':
+        statuses = [
+          BookingStatus.CONFIRMED,
+          BookingStatus.PAID,
+          BookingStatus.ACTIVE,
+          BookingStatus.PENDING_COMPLETION,
+        ];
+        break;
+      case 'completed':
+        statuses = [BookingStatus.COMPLETED, BookingStatus.CANCELLED];
+        break;
+      default:
+        statuses = [BookingStatus.PENDING];
+    }
+
+    const whereConditions = statuses.map(s => ({ companionId, status: s }));
+
+    return this.bookingsRepository.find({
+      where: whereConditions,
+      relations: ['seeker'],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  /**
+   * UC-048: Companion marks the date as completed, providing actual duration.
+   * Transitions booking to PENDING_COMPLETION and notifies the seeker.
+   * Seeker has 24h to confirm; payment capture only happens after real COMPLETED.
+   */
+  async complete(id: string, companionId: string, actualDurationHours: number): Promise<Booking> {
     const booking = await this.findById(id);
 
     if (!booking) {
       throw new HttpException('Booking not found', HttpStatus.NOT_FOUND);
     }
 
-    if (booking.seekerId !== userId && booking.companionId !== userId) {
-      throw new HttpException('Unauthorized', HttpStatus.FORBIDDEN);
+    if (booking.companionId !== companionId) {
+      throw new HttpException('Only the companion can mark a date as completed', HttpStatus.FORBIDDEN);
     }
 
-    if (
-      booking.status !== BookingStatus.CONFIRMED &&
-      booking.status !== BookingStatus.PAID
-    ) {
+    const validStatuses = [BookingStatus.ACTIVE, BookingStatus.CONFIRMED, BookingStatus.PAID];
+    if (!validStatuses.includes(booking.status)) {
       throw new HttpException(
         `Cannot complete a ${booking.status} booking`,
         HttpStatus.BAD_REQUEST,
@@ -351,23 +394,138 @@ export class BookingsService {
       );
     }
 
-    const updated = await this.updateStatus(id, BookingStatus.COMPLETED);
+    if (typeof actualDurationHours !== 'number' || actualDurationHours <= 0 || actualDurationHours > 24) {
+      throw new HttpException('actualDurationHours must be a positive number up to 24', HttpStatus.BAD_REQUEST);
+    }
+
+    await this.bookingsRepository.update(id, {
+      status: BookingStatus.PENDING_COMPLETION,
+      completionRequestedAt: now,
+      completionActualHours: actualDurationHours,
+      activeDateEndedAt: now,
+    });
+
+    const updated = await this.findById(id);
     if (!updated) {
       throw new HttpException('Failed to update booking', HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    // Credit referral bonus if seeker was referred and has no credited referral yet
-    try {
-      const seeker = await this.usersService.findById(updated.seekerId);
-      if (seeker?.referredBy) {
-        await this.referralService.creditBonus(updated.seekerId);
-      }
-    } catch (err) {
-      // Referral credit failure must not break booking completion
-      console.error('[REFERRAL] Failed to credit bonus:', err);
-    }
+    // Notify seeker: they have 24h to confirm or it auto-completes
+    const companionName = booking.companion?.name || 'Your companion';
+    await this.notificationsService.create({
+      userId: booking.seekerId,
+      type: NotificationType.DATE_COMPLETION_REQUEST,
+      title: 'Date completed — confirm?',
+      body: `${companionName} marked your date as completed (${actualDurationHours}h). Confirm within 24 hours or it will be auto-confirmed.`,
+      data: {
+        bookingId: id,
+        actualDurationHours,
+        companionId,
+        companionName,
+      },
+    }).catch(err => console.error('[COMPLETION] Failed to notify seeker:', err));
 
     return updated;
+  }
+
+  /**
+   * UC-048: Seeker confirms the date was completed as reported.
+   * Transitions booking to COMPLETED. Caller must trigger payment capture.
+   */
+  async confirmCompletion(id: string, seekerId: string): Promise<Booking> {
+    const booking = await this.findById(id);
+
+    if (!booking) {
+      throw new HttpException('Booking not found', HttpStatus.NOT_FOUND);
+    }
+
+    if (booking.seekerId !== seekerId) {
+      throw new HttpException('Only the seeker can confirm completion', HttpStatus.FORBIDDEN);
+    }
+
+    if (booking.status !== BookingStatus.PENDING_COMPLETION) {
+      throw new HttpException(
+        `Cannot confirm a ${booking.status} booking`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const now = new Date();
+    await this.bookingsRepository.update(id, {
+      status: BookingStatus.COMPLETED,
+      completionConfirmedAt: now,
+      actualDurationHours: booking.completionActualHours,
+    });
+
+    const updated = await this.findById(id);
+    if (!updated) {
+      throw new HttpException('Failed to update booking', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    // Credit referral bonus if seeker was referred
+    try {
+      const seeker = await this.usersService.findById(seekerId);
+      if (seeker?.referredBy) {
+        await this.referralService.creditBonus(seekerId);
+      }
+    } catch (err) {
+      console.error('[REFERRAL] Failed to credit bonus on confirm:', err);
+    }
+
+    // Notify companion that payment will be released
+    const seekerName = booking.seeker?.name || 'The seeker';
+    await this.notificationsService.create({
+      userId: booking.companionId,
+      type: NotificationType.DATE_COMPLETION_CONFIRMED,
+      title: 'Date confirmed',
+      body: `${seekerName} confirmed the date. Payment will be released to you shortly.`,
+      data: { bookingId: id, seekerId },
+    }).catch(err => console.error('[COMPLETION] Failed to notify companion:', err));
+
+    return updated;
+  }
+
+  /**
+   * UC-048: Auto-complete PENDING_COMPLETION bookings after 24h if seeker has not responded.
+   * Returns list of booking IDs that were auto-completed (so caller can trigger Stripe captures).
+   */
+  async autoCompleteExpiredCompletions(): Promise<string[]> {
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    const expired = await this.bookingsRepository.find({
+      where: {
+        status: BookingStatus.PENDING_COMPLETION,
+        completionRequestedAt: LessThan(cutoff),
+      },
+      relations: ['seeker', 'companion'],
+    });
+
+    const completedIds: string[] = [];
+
+    for (const booking of expired) {
+      try {
+        await this.bookingsRepository.update(booking.id, {
+          status: BookingStatus.COMPLETED,
+          completionConfirmedAt: new Date(),
+          actualDurationHours: booking.completionActualHours,
+        });
+        completedIds.push(booking.id);
+
+        // Credit referral bonus
+        try {
+          const seeker = await this.usersService.findById(booking.seekerId);
+          if (seeker?.referredBy) {
+            await this.referralService.creditBonus(booking.seekerId);
+          }
+        } catch (err) {
+          console.error('[REFERRAL] Failed to credit bonus on auto-complete:', err);
+        }
+      } catch (err) {
+        console.error(`[COMPLETION] Auto-complete failed for ${booking.id}:`, err);
+      }
+    }
+
+    return completedIds;
   }
 
   async seekerCheckin(bookingId: string, seekerId: string, lat?: number, lon?: number): Promise<Booking> {

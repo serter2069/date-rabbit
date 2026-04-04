@@ -111,9 +111,14 @@ export class BookingsController {
   }
 
   @Get('requests')
-  async getPendingRequests(@Request() req) {
+  async getPendingRequests(
+    @Request() req,
+    @Query('status') status: 'pending' | 'accepted' | 'completed' = 'pending',
+  ) {
     const companionId = req.user.id;
-    const requests = await this.bookingsService.getPendingRequests(companionId);
+    const validStatuses = ['pending', 'accepted', 'completed'];
+    const safeStatus = validStatuses.includes(status) ? status : 'pending';
+    const requests = await this.bookingsService.getRequestsByStatus(companionId, safeStatus);
 
     // Batch-query seeker ratings to avoid N+1
     const seekerIds = [...new Set(requests.map((b) => b.seekerId).filter(Boolean))];
@@ -291,10 +296,32 @@ export class BookingsController {
     return this.formatBooking(updated);
   }
 
+  /**
+   * UC-048: Companion marks date as completed with actual duration.
+   * Moves booking to PENDING_COMPLETION; seeker gets 24h to confirm.
+   * Stripe capture does NOT happen here — it fires after seeker confirms.
+   */
   @Put(':id/complete')
-  async completeBooking(@Param('id', ParseUUIDPipe) id: string, @Request() req) {
-    const updated = await this.bookingsService.complete(id, req.user.id);
-    // Capture the Stripe hold (fire-and-forget)
+  async completeBooking(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Request() req,
+    @Body() body: { actualDurationHours: number },
+  ) {
+    if (typeof body.actualDurationHours !== 'number' || body.actualDurationHours <= 0) {
+      throw new HttpException('actualDurationHours is required and must be a positive number', HttpStatus.BAD_REQUEST);
+    }
+    const updated = await this.bookingsService.complete(id, req.user.id, body.actualDurationHours);
+    return this.formatBooking(updated);
+  }
+
+  /**
+   * UC-048: Seeker confirms the date completion.
+   * Moves booking to COMPLETED and triggers Stripe payment capture.
+   */
+  @Put(':id/confirm-completion')
+  async confirmCompletion(@Param('id', ParseUUIDPipe) id: string, @Request() req) {
+    const updated = await this.bookingsService.confirmCompletion(id, req.user.id);
+    // Capture the Stripe hold now that seeker confirmed (fire-and-forget)
     this.paymentsService.capturePayment(id).catch(err =>
       console.error('Stripe capture error for booking', id, err),
     );
@@ -501,6 +528,9 @@ export class BookingsController {
       reportIssueText: booking.reportIssueText || undefined,
       packageId: booking.packageId || undefined,
       selfieVerified: booking.selfieVerified || false,
+      completionRequestedAt: booking.completionRequestedAt || undefined,
+      completionActualHours: booking.completionActualHours !== null && booking.completionActualHours !== undefined ? booking.completionActualHours : undefined,
+      completionConfirmedAt: booking.completionConfirmedAt || undefined,
       seeker: booking.seeker ? {
         id: booking.seeker.id,
         name: booking.seeker.name,

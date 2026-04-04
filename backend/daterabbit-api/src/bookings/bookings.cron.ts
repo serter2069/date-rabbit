@@ -84,6 +84,24 @@ export class BookingsCron {
     }
   }
 
+  /**
+   * UC-048: Auto-complete PENDING_COMPLETION bookings that have been waiting >24h.
+   * Runs hourly. Also triggers Stripe payment capture for each auto-completed booking.
+   */
+  @Cron(CronExpression.EVERY_HOUR)
+  async autoCompleteExpiredCompletions() {
+    const completedIds = await this.bookingsService.autoCompleteExpiredCompletions();
+
+    for (const bookingId of completedIds) {
+      this.logger.log(`Auto-completing booking ${bookingId} after 24h timeout`);
+
+      // Capture Stripe payment (fire-and-forget)
+      this.paymentsService.capturePayment(bookingId).catch(err => {
+        this.logger.error(`Stripe capture error on auto-complete for booking ${bookingId}: ${err.message}`);
+      });
+    }
+  }
+
   private async sendNoShowNotifications(
     booking: Booking,
     reason: 'seeker' | 'companion' | 'both',
