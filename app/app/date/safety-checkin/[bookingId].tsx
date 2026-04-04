@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { activeDateApi } from '../../../src/services/activeDateApi';
-import { colors } from '../../../src/constants/theme';
+import { colors, typography } from '../../../src/constants/theme';
 
 export default function SafetyCheckinScreen() {
   const { bookingId } = useLocalSearchParams<{ bookingId: string }>();
@@ -64,13 +64,13 @@ export default function SafetyCheckinScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F4F0EA', padding: 24, paddingTop: 60 },
   card: { backgroundColor: '#FF5A85', borderWidth: 2, borderColor: '#000', padding: 24, marginBottom: 40, shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
-  title: { fontSize: 28, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000', marginBottom: 12 },
+  title: { fontSize: 28, fontFamily: typography.fonts.heading, fontWeight: '700', color: '#000', marginBottom: 12 },
   subtitle: { fontSize: 18, color: '#000', lineHeight: 28 },
   okBtn: { backgroundColor: colors.successStrong, borderWidth: 2, borderColor: '#000', paddingVertical: 28, alignItems: 'center', marginBottom: 16, shadowOffset: { width: 4, height: 4 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
-  okBtnText: { fontSize: 28, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: colors.white },
+  okBtnText: { fontSize: 28, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.white },
   helpBtn: { backgroundColor: colors.error, borderWidth: 2, borderColor: '#000', paddingVertical: 18, alignItems: 'center' },
-  helpBtnText: { fontSize: 18, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: colors.white },
+  helpBtnText: { fontSize: 18, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.white },
   btnDisabled: { opacity: 0.6 },
-  doneCard: { backgroundColor: '#4DF0FF', borderWidth: 2, borderColor: '#000', padding: 32, alignItems: 'center', shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
-  doneText: { fontSize: 24, fontFamily: 'SpaceGrotesk-Bold', fontWeight: '700', color: '#000' },
+  doneCard: { backgroundColor: colors.accent, borderWidth: 2, borderColor: '#000', padding: 32, alignItems: 'center', shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
+  doneText: { fontSize: 24, fontFamily: typography.fonts.heading, fontWeight: '700', color: '#000' },
 });
