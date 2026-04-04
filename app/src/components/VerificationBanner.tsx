@@ -19,7 +19,7 @@ export function VerificationBanner({ compact = false }: VerificationBannerProps)
   const router = useRouter();
 
   const isVerified = user?.verificationStatus === 'approved';
-  const isPending = user?.verificationStatus === 'pending';
+  const isPending = user?.verificationStatus === 'pending_review';
 
   if (isVerified) return null;
 
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
   text: {
     fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.sm,
-    color: colors.textPrimary,
+    color: colors.text,
     flex: 1,
   },
   compactText: {

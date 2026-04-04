@@ -18,7 +18,7 @@ export function useVerificationGate() {
   const router = useRouter();
 
   const isVerified = user?.verificationStatus === 'approved';
-  const isPending = user?.verificationStatus === 'pending';
+  const isPending = user?.verificationStatus === 'pending_review';
 
   /**
    * Call before a gated action. Returns true if action should be blocked.
