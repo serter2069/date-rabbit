@@ -39,6 +39,18 @@ export class BookingsService {
     notes?: string;
     packageId?: string;
   }): Promise<Booking> {
+    // UC-SECURITY-01: Verify seeker has completed identity verification before booking
+    const seeker = await this.usersService.findById(data.seekerId);
+    if (!seeker) {
+      throw new HttpException('Seeker not found', HttpStatus.NOT_FOUND);
+    }
+    if (seeker.verificationStatus !== 'approved') {
+      throw new HttpException(
+        'Identity verification required. Complete verification to book a companion.',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
     const companion = await this.usersService.findById(data.companionId);
     if (!companion) {
       throw new HttpException('Companion not found', HttpStatus.NOT_FOUND);
