@@ -3,7 +3,6 @@ import { UsersService } from '../users/users.service';
 import { ReviewsService } from '../reviews/reviews.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
-@UseGuards(JwtAuthGuard)
 @Controller('companions')
 export class CompanionsController {
   constructor(
@@ -11,6 +10,54 @@ export class CompanionsController {
     private reviewsService: ReviewsService,
   ) {}
 
+  @Get('public')
+  async searchPublicCompanions(
+    @Query('priceMin') priceMin?: string,
+    @Query('priceMax') priceMax?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('search') search?: string,
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
+    @Query('page') page?: string,
+  ) {
+    const parsedLimit = limit ? parseInt(limit) : 20;
+    const parsedOffset = page
+      ? (parseInt(page) - 1) * parsedLimit
+      : offset
+        ? parseInt(offset)
+        : 0;
+
+    const { companions, total } = await this.usersService.getCompanions({
+      priceMin: priceMin ? parseFloat(priceMin) : undefined,
+      priceMax: priceMax ? parseFloat(priceMax) : undefined,
+      sortBy,
+      search,
+      limit: parsedLimit,
+      offset: parsedOffset,
+    });
+
+    const currentPage = page ? parseInt(page) : Math.floor(parsedOffset / parsedLimit) + 1;
+
+    return {
+      companions: companions.map((c: any) => ({
+        id: c.id,
+        name: c.name,
+        age: c.age,
+        location: c.location,
+        shortBio: c.bio ? c.bio.substring(0, 100) : null,
+        primaryPhoto: c.photos?.[0]?.url || null,
+        hourlyRate: c.hourlyRate != null ? Number(c.hourlyRate) : 0,
+        rating: c.rating ? Number(c.rating) : null,
+        reviewCount: c.reviewCount || 0,
+        isVerified: c.isVerified || false,
+      })),
+      total,
+      page: currentPage,
+      totalPages: Math.ceil(total / parsedLimit),
+    };
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get()
   async searchCompanions(
     @Request() req,
@@ -87,6 +134,7 @@ export class CompanionsController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   async getCompanion(@Param('id', ParseUUIDPipe) id: string) {
     const user = await this.usersService.findById(id);

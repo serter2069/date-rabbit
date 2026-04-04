@@ -315,7 +315,7 @@ function MaleLanding() {
     const fetchCompanions = async () => {
       try {
         const res = await apiRequest<{ companions: CompanionListItem[]; total: number }>(
-          '/companions?limit=10',
+          '/companions/public?limit=10',
           { auth: false }
         );
         setCompanions(res.companions ?? []);
@@ -451,7 +451,7 @@ function MaleLanding() {
             accessibilityLabel="See 200+ girls"
             accessibilityRole="button"
           >
-            <Text style={styles.profileCardCtaText}>200+{'\n'}girls</Text>
+            <Text style={styles.profileCardCtaText}>See all →</Text>
           </TouchableOpacity>
         </ScrollView>
       </View>
@@ -461,7 +461,7 @@ function MaleLanding() {
         <View style={styles.trustRow}>
           <TrustBadge text="Real people, not virtual" />
           <TrustBadge text="ID-Verified" />
-          <TrustBadge text="Full Refund" />
+          <TrustBadge text="Full refund if she cancels" />
           <TrustBadge text="Book in 2 min" />
         </View>
       </View>
@@ -508,6 +508,7 @@ function MaleLanding() {
             onPress={() => router.push('/onboarding?roleHint=seeker')}
           />
         </View>
+        <Text style={styles.refundNote}>Full refund if she cancels · No hidden fees</Text>
       </View>
     </>
   );
@@ -1023,6 +1024,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: spacing.lg,
     maxWidth: 460,
+  },
+  refundNote: {
+    fontSize: 12,
+    color: colors.textMuted,
+    textAlign: 'center',
+    marginTop: spacing.sm,
   },
 
   // PROFILE SCROLL (male)
