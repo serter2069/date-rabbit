@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Platform, Modal, TextInput } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { showAlert, showConfirm } from '../../../src/utils/alert';
@@ -21,7 +21,12 @@ export default function RequestsScreen() {
   const [activeTab, setActiveTab] = useState<TabType>('pending');
   const [refreshing, setRefreshing] = useState(false);
 
-  const { requests = [], isLoading, fetchRequests, acceptRequest, declineRequest } = useBookingsStore();
+  // UC-048: completion modal state
+  const [completionModalBooking, setCompletionModalBooking] = useState<Booking | null>(null);
+  const [actualHoursInput, setActualHoursInput] = useState('');
+  const [isSubmittingCompletion, setIsSubmittingCompletion] = useState(false);
+
+  const { requests = [], isLoading, fetchRequests, acceptRequest, declineRequest, completeBooking } = useBookingsStore();
 
   useEffect(() => {
     fetchRequests(activeTab);
@@ -67,6 +72,32 @@ export default function RequestsScreen() {
     );
   }, [activeTab]);
 
+  // UC-048: Companion marks date as completed
+  const handleDateCompleted = useCallback((booking: Booking) => {
+    setActualHoursInput(String(booking.duration || ''));
+    setCompletionModalBooking(booking);
+  }, []);
+
+  const handleSubmitCompletion = useCallback(async () => {
+    if (!completionModalBooking) return;
+    const hours = parseFloat(actualHoursInput);
+    if (isNaN(hours) || hours <= 0 || hours > 24) {
+      showAlert('Invalid Hours', 'Please enter a valid number of hours (0–24).');
+      return;
+    }
+    setIsSubmittingCompletion(true);
+    const result = await completeBooking(completionModalBooking.id, hours);
+    setIsSubmittingCompletion(false);
+    if (result.success) {
+      setCompletionModalBooking(null);
+      setActualHoursInput('');
+      showAlert('Done', 'Date marked as completed. Seeker has 24 hours to confirm.');
+      fetchRequests(activeTab);
+    } else {
+      showAlert('Error', result.error || 'Failed to submit completion');
+    }
+  }, [completionModalBooking, actualHoursInput, activeTab]);
+
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString(undefined, {
@@ -83,6 +114,56 @@ export default function RequestsScreen() {
       <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
         <Text style={[styles.title, { color: colors.text }]}>Date Requests</Text>
       </View>
+
+      {/* UC-048: Date completion modal */}
+      <Modal
+        visible={completionModalBooking !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setCompletionModalBooking(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>Date Completed</Text>
+            <Text style={[styles.modalSubtitle, { color: colors.textSecondary }]}>
+              How many hours did the date actually last?
+            </Text>
+            <TextInput
+              style={[styles.hoursInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
+              value={actualHoursInput}
+              onChangeText={setActualHoursInput}
+              keyboardType="decimal-pad"
+              placeholder={`Booked: ${completionModalBooking?.duration}h`}
+              placeholderTextColor={colors.textSecondary}
+              maxLength={4}
+              accessibilityLabel="Actual hours"
+            />
+            <Text style={[styles.modalHint, { color: colors.textSecondary }]}>
+              The seeker will receive a notification and has 24 hours to confirm.
+            </Text>
+            <View style={styles.modalActions}>
+              <Button
+                title="Cancel"
+                variant="outline"
+                size="sm"
+                style={{ flex: 1 }}
+                onPress={() => {
+                  setCompletionModalBooking(null);
+                  setActualHoursInput('');
+                }}
+                disabled={isSubmittingCompletion}
+              />
+              <Button
+                title={isSubmittingCompletion ? 'Submitting...' : 'Confirm'}
+                size="sm"
+                style={{ flex: 1 }}
+                onPress={handleSubmitCompletion}
+                disabled={isSubmittingCompletion}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       <View style={styles.tabs}>
         {(['pending', 'accepted', 'completed'] as TabType[]).map((tab) => (
@@ -139,6 +220,7 @@ export default function RequestsScreen() {
               colors={colors}
               onAccept={() => handleAccept(request)}
               onDecline={() => handleDecline(request)}
+              onComplete={() => handleDateCompleted(request)}
               formatDate={formatDate}
             />
           ))
@@ -154,10 +236,11 @@ interface RequestCardProps {
   colors: any;
   onAccept: () => void;
   onDecline: () => void;
+  onComplete: () => void;
   formatDate: (date: string) => string;
 }
 
-function RequestCard({ request, type, colors, onAccept, onDecline, formatDate }: RequestCardProps) {
+function RequestCard({ request, type, colors, onAccept, onDecline, onComplete, formatDate }: RequestCardProps) {
   const seeker = request.seeker || { name: 'Unknown', photo: null };
 
   const getStatusStyle = (status: string) => {
@@ -165,6 +248,7 @@ function RequestCard({ request, type, colors, onAccept, onDecline, formatDate }:
       case 'completed': return { bg: colors.primary + '20', text: colors.primary };
       case 'cancelled': return { bg: colors.error + '20', text: colors.error };
       case 'no_show': return { bg: colors.error + '20', text: colors.error };
+      case 'pending_completion': return { bg: colors.warning + '20', text: colors.warning };
       default: return { bg: colors.textSecondary + '20', text: colors.textSecondary };
     }
   };
@@ -232,7 +316,16 @@ function RequestCard({ request, type, colors, onAccept, onDecline, formatDate }:
         </View>
       )}
 
-      {type === 'accepted' && (
+      {type === 'accepted' && request.status === 'pending_completion' && (
+        <View style={[styles.pendingCompletionBanner, { backgroundColor: colors.warning + '15' }]}>
+          <Icon name="clock" size={14} color={colors.warning} />
+          <Text style={[styles.pendingCompletionText, { color: colors.warning }]}>
+            Waiting for seeker to confirm ({request.completionActualHours}h reported)
+          </Text>
+        </View>
+      )}
+
+      {type === 'accepted' && request.status !== 'pending_completion' && (
         <View style={styles.actions}>
           <Button
             title="Message"
@@ -259,7 +352,20 @@ function RequestCard({ request, type, colors, onAccept, onDecline, formatDate }:
         </View>
       )}
 
-      {request.status === 'active' && (
+      {type === 'accepted' && (request.status === 'active' || request.status === 'paid' || request.status === 'confirmed') && (
+        <View style={[styles.actions, { marginTop: spacing.sm }]}>
+          <Button
+            title="Date Completed"
+            onPress={onComplete}
+            size="sm"
+            style={{ flex: 1, backgroundColor: colors.success }}
+            testID={`complete-date-${request.id}`}
+            accessibilityLabel="Mark date as completed"
+          />
+        </View>
+      )}
+
+      {request.status === 'active' && type !== 'accepted' && (
         <View style={styles.actions}>
           <Button
             title="Resume Date"
@@ -425,5 +531,59 @@ const styles = StyleSheet.create({
   ratingText: {
     fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
+  },
+  pendingCompletionBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.md,
+  },
+  pendingCompletionText: {
+    fontFamily: typography.fonts.bodyMedium,
+    fontSize: typography.sizes.sm,
+    flex: 1,
+  },
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.lg,
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 400,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    gap: spacing.md,
+  },
+  modalTitle: {
+    fontFamily: typography.fonts.heading,
+    fontSize: typography.sizes.lg,
+  },
+  modalSubtitle: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.sm,
+  },
+  hoursInput: {
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.md,
+    minHeight: 48,
+  },
+  modalHint: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.xs,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: spacing.md,
   },
 });

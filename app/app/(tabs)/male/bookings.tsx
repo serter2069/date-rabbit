@@ -26,7 +26,7 @@ export default function BookingsScreen() {
   const [activeTab, setActiveTab] = useState<TabType>('upcoming');
   const [refreshing, setRefreshing] = useState(false);
 
-  const { bookings = [], isLoading, fetchMyBookings, cancelBooking } = useBookingsStore();
+  const { bookings = [], isLoading, fetchMyBookings, cancelBooking, confirmCompletion } = useBookingsStore();
 
   useEffect(() => {
     fetchMyBookings(filterMap[activeTab]);
@@ -71,6 +71,27 @@ export default function BookingsScreen() {
       },
       'Yes, Cancel',
       'No'
+    );
+  }, [activeTab]);
+
+  // UC-048: Seeker confirms completion after companion marks date done
+  const handleConfirmCompletion = useCallback(async (booking: Booking) => {
+    const companionName = booking.companion?.name || 'your companion';
+    const hours = booking.completionActualHours;
+    showConfirm(
+      'Confirm Date Completed',
+      `${companionName} reported the date lasted ${hours}h. Do you confirm?`,
+      async () => {
+        const result = await confirmCompletion(booking.id);
+        if (result.success) {
+          showAlert('Confirmed', 'Date confirmed. Payment will be released to the companion.');
+          fetchMyBookings(filterMap[activeTab]);
+        } else {
+          showAlert('Error', result.error || 'Failed to confirm');
+        }
+      },
+      'Yes, Confirm',
+      'Not Now',
     );
   }, [activeTab]);
 
@@ -159,6 +180,7 @@ export default function BookingsScreen() {
               type={activeTab}
               colors={colors}
               onCancel={() => handleCancelBooking(booking)}
+              onConfirmCompletion={() => handleConfirmCompletion(booking)}
               formatDate={formatDate}
             />
           ))
@@ -173,10 +195,11 @@ interface BookingCardProps {
   type: TabType;
   colors: any;
   onCancel: () => void;
+  onConfirmCompletion: () => void;
   formatDate: (date: string) => string;
 }
 
-function BookingCard({ booking, type, colors, onCancel, formatDate }: BookingCardProps) {
+function BookingCard({ booking, type, colors, onCancel, onConfirmCompletion, formatDate }: BookingCardProps) {
   // Guard against undefined companion OR empty object {} produced by normalization
   const rawCompanion = booking.companion;
   const companion = (rawCompanion && rawCompanion.name)
@@ -193,6 +216,7 @@ function BookingCard({ booking, type, colors, onCancel, formatDate }: BookingCar
       case 'no_show': return { bg: colors.error + '20', text: colors.error };
       case 'paid': return { bg: colors.success + '20', text: colors.success };
       case 'active': return { bg: colors.accent + '20', text: colors.accent };
+      case 'pending_completion': return { bg: colors.warning + '20', text: colors.warning };
       default: return { bg: colors.warning + '20', text: colors.warning };
     }
   };
@@ -291,7 +315,24 @@ function BookingCard({ booking, type, colors, onCancel, formatDate }: BookingCar
         </View>
       )}
 
-      {type === 'past' && (
+      {type === 'past' && booking.status === 'pending_completion' && (
+        <View style={[styles.confirmSection, { borderTopColor: colors.border, backgroundColor: colors.warning + '10' }]}>
+          <Icon name="clock" size={16} color={colors.warning} />
+          <Text style={[styles.confirmText, { color: colors.text }]}>
+            {companion.name} marked this date as completed ({booking.completionActualHours}h).
+          </Text>
+          <Button
+            title="Confirm Date Completed"
+            onPress={onConfirmCompletion}
+            size="sm"
+            style={{ alignSelf: 'stretch', backgroundColor: colors.success, marginTop: spacing.sm }}
+            testID={`confirm-completion-${booking.id}`}
+            accessibilityLabel="Confirm date completed"
+          />
+        </View>
+      )}
+
+      {type === 'past' && booking.status !== 'pending_completion' && (
         <View style={[styles.ratingSection, { borderTopColor: colors.border }]}>
           <Text style={[styles.ratingLabel, { color: colors.textSecondary }]}>Rating</Text>
           <View style={{ flexDirection: 'row', gap: 4 }}>
@@ -464,5 +505,20 @@ const styles = StyleSheet.create({
   paidText: {
     fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.sm,
+  },
+  confirmSection: {
+    marginTop: spacing.md,
+    alignItems: 'center',
+    paddingTop: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.md,
+    borderTopWidth: 1,
+    borderRadius: borderRadius.md,
+    gap: spacing.xs,
+  },
+  confirmText: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.sm,
+    textAlign: 'center',
   },
 });

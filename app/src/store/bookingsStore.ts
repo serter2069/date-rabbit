@@ -21,7 +21,8 @@ interface BookingsState {
 
   // Shared actions
   cancelBooking: (id: string, reason?: string) => Promise<{ success: boolean; error?: string }>;
-  completeBooking: (id: string) => Promise<{ success: boolean; error?: string }>;
+  completeBooking: (id: string, actualDurationHours: number) => Promise<{ success: boolean; error?: string }>;
+  confirmCompletion: (id: string) => Promise<{ success: boolean; error?: string }>;
   createReview: (bookingId: string, rating: number, comment?: string) => Promise<{ success: boolean; error?: string }>;
 
   // Fetch actions
@@ -118,11 +119,11 @@ export const useBookingsStore = create<BookingsState>((set, get) => ({
     }
   },
 
-  completeBooking: async (id) => {
+  completeBooking: async (id, actualDurationHours) => {
     set({ isLoading: true, error: null });
 
     try {
-      const updated = await bookingsApi.complete(id);
+      const updated = await bookingsApi.complete(id, actualDurationHours);
       set((state) => ({
         bookings: state.bookings.map((b) => (b.id === id ? updated : b)),
         requests: state.requests.map((r) => (r.id === id ? updated : r)),
@@ -131,6 +132,24 @@ export const useBookingsStore = create<BookingsState>((set, get) => ({
       return { success: true };
     } catch (err) {
       const message = err instanceof ApiError ? err.message : 'Failed to complete booking';
+      set({ error: message, isLoading: false });
+      return { success: false, error: message };
+    }
+  },
+
+  confirmCompletion: async (id) => {
+    set({ isLoading: true, error: null });
+
+    try {
+      const updated = await bookingsApi.confirmCompletion(id);
+      set((state) => ({
+        bookings: state.bookings.map((b) => (b.id === id ? updated : b)),
+        requests: state.requests.map((r) => (r.id === id ? updated : r)),
+        isLoading: false,
+      }));
+      return { success: true };
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : 'Failed to confirm completion';
       set({ error: message, isLoading: false });
       return { success: false, error: message };
     }
