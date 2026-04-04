@@ -20,6 +20,8 @@ interface VerificationState {
   submitReferences: (refs: VerificationReference[]) => Promise<boolean>;
   submitConsent: () => Promise<boolean>;
   submitForReview: () => Promise<boolean>;
+  startIdentitySession: () => Promise<{ url: string; sessionId: string } | null>;
+  checkIdentityStatus: () => Promise<{ status: string; verificationStatus: string } | null>;
   reset: () => void;
 }
 
@@ -194,6 +196,32 @@ export const useVerificationStore = create<VerificationState>()((set, get) => ({
       const message = err instanceof ApiError ? err.message : 'Failed to submit for review';
       set({ error: message, isLoading: false });
       return false;
+    }
+  },
+
+  startIdentitySession: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const result = await verificationApi.createIdentitySession();
+      set({ isLoading: false });
+      return result;
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : 'Failed to start identity verification';
+      set({ error: message, isLoading: false });
+      return null;
+    }
+  },
+
+  checkIdentityStatus: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const result = await verificationApi.getIdentityStatus();
+      set({ isLoading: false });
+      return result;
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : 'Failed to check identity status';
+      set({ error: message, isLoading: false });
+      return null;
     }
   },
 

@@ -7,6 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
+import Stripe from 'stripe';
 import {
   Verification,
   VerificationStatus,
@@ -21,13 +22,20 @@ import { UserRole, UserVerificationStatus } from '../users/entities/user.entity'
 
 @Injectable()
 export class VerificationService {
+  private stripe: Stripe | null = null;
+
   constructor(
     @InjectRepository(Verification)
     private verificationRepository: Repository<Verification>,
     private usersService: UsersService,
     private uploadsService: UploadsService,
     private configService: ConfigService,
-  ) {}
+  ) {
+    const secretKey = this.configService.get<string>('STRIPE_SECRET_KEY');
+    if (secretKey) {
+      this.stripe = new Stripe(secretKey);
+    }
+  }
 
   async startVerification(userId: string): Promise<Verification> {
     const existing = await this.verificationRepository.findOne({
@@ -171,6 +179,96 @@ export class VerificationService {
 
     verification.status = VerificationStatus.PENDING_REVIEW;
     return this.verificationRepository.save(verification);
+  }
+
+  async createIdentitySession(
+    userId: string,
+  ): Promise<{ url: string; sessionId: string }> {
+    const verification = await this.getOrFail(userId);
+    const isDevMode = this.configService.get('DEV_AUTH') === 'true';
+
+    if (isDevMode) {
+      // In dev mode: store a mock session ID and return a placeholder URL
+      verification.stripeVerificationSessionId = `dev_vs_${userId}`;
+      verification.stripeVerificationStatus = 'requires_input';
+      await this.verificationRepository.save(verification);
+      return {
+        sessionId: verification.stripeVerificationSessionId,
+        url: 'https://verify.stripe.com/start/dev-mode-mock',
+      };
+    }
+
+    if (!this.stripe) {
+      throw new BadRequestException('Stripe is not configured');
+    }
+
+    const session = await this.stripe.identity.verificationSessions.create({
+      type: 'document',
+      options: {
+        document: {
+          require_matching_selfie: true,
+        },
+      },
+      metadata: { userId },
+    });
+
+    verification.stripeVerificationSessionId = session.id;
+    verification.stripeVerificationStatus = session.status;
+    await this.verificationRepository.save(verification);
+
+    return { sessionId: session.id, url: session.url ?? '' };
+  }
+
+  async checkIdentityStatus(
+    userId: string,
+  ): Promise<{ status: string; verificationStatus: string }> {
+    const verification = await this.getOrFail(userId);
+    const isDevMode = this.configService.get('DEV_AUTH') === 'true';
+
+    if (isDevMode) {
+      // In dev mode: auto-approve after first check
+      if (verification.stripeVerificationSessionId?.startsWith('dev_vs_')) {
+        verification.stripeVerificationStatus = 'verified';
+        verification.status = VerificationStatus.PENDING_REVIEW;
+        await this.verificationRepository.save(verification);
+
+        // Auto-approve after 2 seconds
+        setTimeout(async () => {
+          await this.approveVerification(userId);
+        }, 2000);
+      }
+      return {
+        status: 'verified',
+        verificationStatus: verification.status,
+      };
+    }
+
+    if (!this.stripe || !verification.stripeVerificationSessionId) {
+      return {
+        status: verification.stripeVerificationStatus || 'requires_input',
+        verificationStatus: verification.status,
+      };
+    }
+
+    const session = await this.stripe.identity.verificationSessions.retrieve(
+      verification.stripeVerificationSessionId,
+    );
+
+    verification.stripeVerificationStatus = session.status;
+
+    if (session.status === 'verified') {
+      verification.status = VerificationStatus.PENDING_REVIEW;
+      await this.verificationRepository.save(verification);
+      // Trigger approval — in production this would come via webhook
+      await this.approveVerification(userId);
+    } else {
+      await this.verificationRepository.save(verification);
+    }
+
+    return {
+      status: session.status,
+      verificationStatus: verification.status,
+    };
   }
 
   async handleWebhook(payload: any): Promise<{ received: boolean }> {

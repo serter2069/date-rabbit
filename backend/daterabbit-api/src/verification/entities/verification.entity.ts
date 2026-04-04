@@ -56,6 +56,12 @@ export class Verification {
   consentDate: Date;
 
   @Column({ nullable: true })
+  stripeVerificationSessionId: string;
+
+  @Column({ nullable: true })
+  stripeVerificationStatus: string;
+
+  @Column({ nullable: true })
   checkrCandidateId: string;
 
   @Column({ nullable: true })
