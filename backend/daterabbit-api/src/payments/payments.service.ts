@@ -270,7 +270,7 @@ export class PaymentsService {
     const transactions = bookings.map((b) => ({
       id: b.id,
       type: 'earning' as const,
-      amount: Math.round(Number(b.totalPrice) * 0.85 * 100) / 100,
+      amount: Math.round(Number(b.totalPrice) * 0.80 * 100) / 100,
       status: 'completed' as const,
       description: `Booking with ${b.seeker?.name || 'Unknown'}`,
       seekerName: b.seeker?.name,
