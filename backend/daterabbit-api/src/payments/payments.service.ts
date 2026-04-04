@@ -170,6 +170,88 @@ export class PaymentsService {
     }
   }
 
+  // --- Tiered refund policy ---
+
+  /**
+   * Calculate refund percentage based on who cancelled and how far in advance.
+   * Rules:
+   *   - Companion-initiated cancel → always 100% refund to seeker
+   *   - 48+ hours before date → 100% refund
+   *   - 24–48 hours before date → 50% refund
+   *   - < 24 hours before date → 0% refund
+   */
+  calculateRefundPercent(booking: Booking, cancelledByUserId: string): number {
+    // Companion-first rule: companion cancels → seeker always gets full refund
+    if (cancelledByUserId === booking.companionId) {
+      return 100;
+    }
+
+    const now = new Date();
+    const dateTime = new Date(booking.dateTime);
+    const hoursUntilDate = (dateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+    if (hoursUntilDate >= 48) return 100;
+    if (hoursUntilDate >= 24) return 50;
+    return 0;
+  }
+
+  /**
+   * Execute tiered refund on Stripe based on refundPercent.
+   * - 100%: cancel hold (if requires_capture) or full refund (if succeeded)
+   * - 50%: capture first then partial refund (half amount)
+   * - 0%: capture full amount (companion gets paid in full)
+   * - No paymentIntentId (PENDING bookings): skip Stripe, no-op
+   */
+  async tieredRefund(bookingId: string, refundPercent: number): Promise<void> {
+    const booking = await this.bookingsRepo.findOne({ where: { id: bookingId } });
+    if (!booking?.paymentIntentId) return; // PENDING booking — no payment yet, nothing to do
+
+    if (!this.stripe) return; // Stripe not configured
+
+    try {
+      const pi = await this.stripe.paymentIntents.retrieve(booking.paymentIntentId);
+      const totalAmountCents = Math.round(Number(booking.totalPrice) * 100);
+
+      if (refundPercent === 100) {
+        if (pi.status === 'requires_capture') {
+          // Cancel the hold — no charge at all
+          await this.stripe.paymentIntents.cancel(booking.paymentIntentId);
+        } else if (pi.status === 'succeeded') {
+          // Already captured — full refund
+          await this.stripe.refunds.create({ payment_intent: booking.paymentIntentId });
+        }
+      } else if (refundPercent === 50) {
+        // 50% refund: seeker gets half back, companion keeps half
+        const refundAmountCents = Math.round(totalAmountCents * 0.5);
+        if (pi.status === 'requires_capture') {
+          // Must capture first, then refund 50%
+          await this.stripe.paymentIntents.capture(booking.paymentIntentId);
+          if (refundAmountCents >= 50) {
+            await this.stripe.refunds.create({
+              payment_intent: booking.paymentIntentId,
+              amount: refundAmountCents,
+            });
+          }
+        } else if (pi.status === 'succeeded') {
+          if (refundAmountCents >= 50) {
+            await this.stripe.refunds.create({
+              payment_intent: booking.paymentIntentId,
+              amount: refundAmountCents,
+            });
+          }
+        }
+      } else {
+        // 0% refund: companion gets full payment — capture the hold
+        if (pi.status === 'requires_capture') {
+          await this.stripe.paymentIntents.capture(booking.paymentIntentId);
+        }
+        // If already succeeded, nothing to do
+      }
+    } catch (err: any) {
+      console.error(`[TIERED_REFUND] Stripe error for booking ${bookingId}:`, err.message);
+    }
+  }
+
   // --- Partial refund for end-early ---
 
   async partialRefundForEndEarly(bookingId: string, actualHours: number): Promise<void> {

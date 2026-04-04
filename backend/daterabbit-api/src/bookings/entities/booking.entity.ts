@@ -131,6 +131,14 @@ export class Booking {
   @Column({ type: 'boolean', default: false })
   selfieVerified: boolean;
 
+  // Who initiated the cancellation (seekerId or companionId) — used for tiered refund policy
+  @Column({ nullable: true })
+  cancelledByUserId: string;
+
+  // Refund percentage applied at cancellation time (0, 50, or 100)
+  @Column({ type: 'int', nullable: true })
+  refundPercent: number;
+
   @CreateDateColumn()
   createdAt: Date;
 

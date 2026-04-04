@@ -10,7 +10,7 @@ import { Icon } from '../../../src/components/Icon';
 import { EmptyState } from '../../../src/components/EmptyState';
 import { useTheme, spacing, typography, borderRadius } from '../../../src/constants/theme';
 import { useBookingsStore } from '../../../src/store/bookingsStore';
-import { Booking } from '../../../src/services/api';
+import { Booking, bookingsApi } from '../../../src/services/api';
 
 type TabType = 'upcoming' | 'pending' | 'past';
 
@@ -38,11 +38,28 @@ export default function BookingsScreen() {
     setRefreshing(false);
   }, [activeTab]);
 
-  const handleCancelBooking = useCallback((booking: Booking) => {
+  const handleCancelBooking = useCallback(async (booking: Booking) => {
     const companionName = booking.companion?.name || 'this companion';
+
+    // Fetch refund preview before showing confirm dialog
+    let refundMessage = '';
+    try {
+      const preview = await bookingsApi.getCancelPreview(booking.id);
+      if (preview.refundPercent === 100) {
+        refundMessage = `\n\nYou will receive a full refund of $${preview.refundAmount.toFixed(2)}.`;
+      } else if (preview.refundPercent === 50) {
+        refundMessage = `\n\nCancelling now gives you a 50% refund of $${preview.refundAmount.toFixed(2)} (48h–24h policy).`;
+      } else {
+        refundMessage = `\n\nNo refund applies — cancellation within 24 hours of the date.`;
+      }
+    } catch {
+      // Preview failed (network or PENDING booking) — show generic message
+      refundMessage = '';
+    }
+
     showConfirm(
       'Cancel Booking',
-      `Are you sure you want to cancel your date with ${companionName}?`,
+      `Are you sure you want to cancel your date with ${companionName}?${refundMessage}`,
       async () => {
         const result = await cancelBooking(booking.id, 'Cancelled by user');
         if (result.success) {
