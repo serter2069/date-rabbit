@@ -20,6 +20,17 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Patch('me/push-token')
+  async updatePushToken(@Request() req, @Body() body: { expoPushToken: string }) {
+    const token = body?.expoPushToken;
+    if (!token || typeof token !== 'string') {
+      throw new BadRequestException('expoPushToken is required');
+    }
+    await this.usersService.updatePushToken(req.user.id, token);
+    return { success: true };
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('me')
   async getProfile(@Request() req) {
     const user = await this.usersService.findById(req.user.id);

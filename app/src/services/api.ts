@@ -150,6 +150,12 @@ export const usersApi = {
   getMe: () =>
     apiRequest<User>('/users/me'),
 
+  updatePushToken: (expoPushToken: string) =>
+    apiRequest<{ success: boolean }>('/users/me/push-token', {
+      method: 'PATCH',
+      body: { expoPushToken },
+    }),
+
   updateProfile: (data: Partial<User>) =>
     apiRequest<User>('/users/me', {
       method: 'PUT',

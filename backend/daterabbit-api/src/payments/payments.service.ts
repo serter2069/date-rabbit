@@ -1,14 +1,18 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import Stripe from 'stripe';
 import { User } from '../users/entities/user.entity';
 import { Booking, BookingStatus } from '../bookings/entities/booking.entity';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '../notifications/entities/notification.entity';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class PaymentsService {
   private stripe: Stripe;
+  private readonly logger = new Logger(PaymentsService.name);
 
   constructor(
     private configService: ConfigService,
@@ -16,6 +20,8 @@ export class PaymentsService {
     private usersRepo: Repository<User>,
     @InjectRepository(Booking)
     private bookingsRepo: Repository<Booking>,
+    private notificationsService: NotificationsService,
+    private emailService: EmailService,
   ) {
     const secretKey = this.configService.get('STRIPE_SECRET_KEY');
     if (secretKey) {
@@ -588,6 +594,33 @@ export class PaymentsService {
           await this.bookingsRepo.update(bookingId, {
             status: BookingStatus.PAID,
           });
+
+          // UC-123: Notify companion of payment received (fire-and-forget)
+          const booking = await this.bookingsRepo.findOne({
+            where: { id: bookingId },
+            relations: ['seeker', 'companion'],
+          });
+          if (booking?.companionId) {
+            const amount = Number(pi.amount_received ?? pi.amount) / 100;
+            this.notificationsService.create({
+              userId: booking.companionId,
+              type: NotificationType.PAYMENT_RECEIVED,
+              title: 'Payment Received',
+              body: `$${amount.toFixed(2)} received from ${booking.seeker?.name || 'your guest'}.`,
+              data: { bookingId, amount },
+            }).catch((err) => this.logger.error('payment_received notification error', err));
+
+            if (booking.companion?.email) {
+              this.emailService.sendPaymentReceived({
+                companionEmail: booking.companion.email,
+                companionName: booking.companion.name || 'there',
+                seekerName: booking.seeker?.name || 'your guest',
+                amount,
+                activity: booking.activity,
+                dateTime: booking.dateTime,
+              }).catch((err) => this.logger.error('payment_received email error', err));
+            }
+          }
         }
         break;
       }

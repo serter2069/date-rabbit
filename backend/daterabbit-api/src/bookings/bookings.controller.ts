@@ -3,6 +3,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { BookingsService } from './bookings.service';
 import { PaymentsService } from '../payments/payments.service';
 import { UploadsService } from '../uploads/uploads.service';
+import { EmailService } from '../email/email.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { BookingStatus, ActivityType } from './entities/booking.entity';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -16,6 +17,7 @@ export class BookingsController {
     private bookingsService: BookingsService,
     private paymentsService: PaymentsService,
     private notificationsService: NotificationsService,
+    private emailService: EmailService,
     private uploadsService: UploadsService,
     @Inject(forwardRef(() => ReviewsService))
     private reviewsService: ReviewsService,
@@ -76,6 +78,29 @@ export class BookingsController {
       notes: body.notes,
       packageId: body.packageId,
     });
+
+    // UC-120: Notify companion of new booking request (push + email, fire-and-forget)
+    if (booking.companion) {
+      this.notificationsService.create({
+        userId: body.companionId,
+        type: NotificationType.BOOKING_REQUEST,
+        title: 'New Booking Request',
+        body: `${booking.seeker?.name || 'Someone'} wants to book a date with you.`,
+        data: { bookingId: booking.id, seekerId: req.user.id },
+      }).catch(() => {/* swallow */});
+
+      if (booking.companion.email) {
+        this.emailService.sendNewBookingRequest({
+          companionEmail: booking.companion.email,
+          companionName: booking.companion.name || 'there',
+          seekerName: booking.seeker?.name || 'A guest',
+          dateTime,
+          duration: body.duration,
+          activity: body.activity,
+          location: body.location,
+        }).catch(() => {/* swallow */});
+      }
+    }
 
     return booking;
   }
@@ -256,10 +281,10 @@ export class BookingsController {
       console.error('Stripe tiered refund error for booking', id, err),
     );
 
-    // UC-051: Notify the other party about cancellation
+    // UC-051: Notify the other party about cancellation (push + email)
     const isCompanionCancelling = booking.companionId === req.user.id;
     if (isCompanionCancelling) {
-      // Companion declined -> notify seeker
+      // Companion declined -> notify seeker via push
       await this.notificationsService.create({
         userId: booking.seekerId,
         type: NotificationType.BOOKING_DECLINED,
@@ -272,8 +297,19 @@ export class BookingsController {
           reason: body.reason,
         },
       });
+      // Email to seeker (fire-and-forget)
+      if (booking.seeker?.email) {
+        this.emailService.sendBookingDeclinedToSeeker({
+          seekerEmail: booking.seeker.email,
+          seekerName: booking.seeker.name || 'there',
+          companionName: booking.companion?.name || 'The companion',
+          dateTime: booking.dateTime,
+          activity: booking.activity,
+          reason: body.reason,
+        }).catch(() => {/* swallow */});
+      }
     } else {
-      // Seeker cancelled -> notify companion
+      // Seeker cancelled -> notify companion via push
       await this.notificationsService.create({
         userId: booking.companionId,
         type: NotificationType.BOOKING_CANCELLED,
@@ -286,6 +322,17 @@ export class BookingsController {
           reason: body.reason,
         },
       });
+      // Email to companion (fire-and-forget)
+      if (booking.companion?.email) {
+        this.emailService.sendBookingCancelledToCompanion({
+          companionEmail: booking.companion.email,
+          companionName: booking.companion.name || 'there',
+          seekerName: booking.seeker?.name || 'The seeker',
+          dateTime: booking.dateTime,
+          activity: booking.activity,
+          reason: body.reason,
+        }).catch(() => {/* swallow */});
+      }
     }
 
     return this.formatBooking(updated);
