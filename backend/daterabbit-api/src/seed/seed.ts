@@ -6,6 +6,7 @@ import { User, UserRole, UserVerificationStatus } from '../users/entities/user.e
 import { Booking, BookingStatus, ActivityType } from '../bookings/entities/booking.entity';
 import { Message, Conversation } from '../messages/entities/message.entity';
 import { Verification } from '../verification/entities/verification.entity';
+import { City } from '../cities/entities/city.entity';
 
 // Load .env — try backend root first, then project root
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
@@ -18,7 +19,7 @@ const AppDataSource = new DataSource({
   username: process.env.DB_USERNAME || 'postgres',
   password: process.env.DB_PASSWORD || 'postgres',
   database: process.env.DB_NAME || 'daterabbit',
-  entities: [User, Booking, Message, Conversation, Verification],
+  entities: [User, Booking, Message, Conversation, Verification, City],
   synchronize: false,
   logging: false,
 });
@@ -966,6 +967,133 @@ async function seed() {
     console.log(`  Created ${conversationScripts.length} conversations with ${totalMessages} messages.\n`);
 
     // -----------------------------------------------------------------------
+    // 6. Seed 100 US cities (idempotent — upsert by name+state)
+    // -----------------------------------------------------------------------
+    console.log('Seeding 100 US cities...');
+
+    const usCities: { name: string; state: string }[] = [
+      { name: 'New York', state: 'NY' },
+      { name: 'Los Angeles', state: 'CA' },
+      { name: 'Chicago', state: 'IL' },
+      { name: 'Houston', state: 'TX' },
+      { name: 'Phoenix', state: 'AZ' },
+      { name: 'Philadelphia', state: 'PA' },
+      { name: 'San Antonio', state: 'TX' },
+      { name: 'San Diego', state: 'CA' },
+      { name: 'Dallas', state: 'TX' },
+      { name: 'San Jose', state: 'CA' },
+      { name: 'Austin', state: 'TX' },
+      { name: 'Jacksonville', state: 'FL' },
+      { name: 'Fort Worth', state: 'TX' },
+      { name: 'Columbus', state: 'OH' },
+      { name: 'Charlotte', state: 'NC' },
+      { name: 'Indianapolis', state: 'IN' },
+      { name: 'San Francisco', state: 'CA' },
+      { name: 'Seattle', state: 'WA' },
+      { name: 'Denver', state: 'CO' },
+      { name: 'Nashville', state: 'TN' },
+      { name: 'Oklahoma City', state: 'OK' },
+      { name: 'El Paso', state: 'TX' },
+      { name: 'Washington', state: 'DC' },
+      { name: 'Boston', state: 'MA' },
+      { name: 'Las Vegas', state: 'NV' },
+      { name: 'Memphis', state: 'TN' },
+      { name: 'Louisville', state: 'KY' },
+      { name: 'Portland', state: 'OR' },
+      { name: 'Baltimore', state: 'MD' },
+      { name: 'Milwaukee', state: 'WI' },
+      { name: 'Albuquerque', state: 'NM' },
+      { name: 'Tucson', state: 'AZ' },
+      { name: 'Fresno', state: 'CA' },
+      { name: 'Sacramento', state: 'CA' },
+      { name: 'Mesa', state: 'AZ' },
+      { name: 'Kansas City', state: 'MO' },
+      { name: 'Atlanta', state: 'GA' },
+      { name: 'Omaha', state: 'NE' },
+      { name: 'Colorado Springs', state: 'CO' },
+      { name: 'Raleigh', state: 'NC' },
+      { name: 'Long Beach', state: 'CA' },
+      { name: 'Virginia Beach', state: 'VA' },
+      { name: 'Minneapolis', state: 'MN' },
+      { name: 'Tampa', state: 'FL' },
+      { name: 'New Orleans', state: 'LA' },
+      { name: 'Arlington', state: 'TX' },
+      { name: 'Bakersfield', state: 'CA' },
+      { name: 'Honolulu', state: 'HI' },
+      { name: 'Anaheim', state: 'CA' },
+      { name: 'Aurora', state: 'CO' },
+      { name: 'Santa Ana', state: 'CA' },
+      { name: 'Corpus Christi', state: 'TX' },
+      { name: 'Riverside', state: 'CA' },
+      { name: 'St. Louis', state: 'MO' },
+      { name: 'Lexington', state: 'KY' },
+      { name: 'Pittsburgh', state: 'PA' },
+      { name: 'Stockton', state: 'CA' },
+      { name: 'Anchorage', state: 'AK' },
+      { name: 'Cincinnati', state: 'OH' },
+      { name: 'St. Paul', state: 'MN' },
+      { name: 'Greensboro', state: 'NC' },
+      { name: 'Toledo', state: 'OH' },
+      { name: 'Newark', state: 'NJ' },
+      { name: 'Plano', state: 'TX' },
+      { name: 'Henderson', state: 'NV' },
+      { name: 'Lincoln', state: 'NE' },
+      { name: 'Buffalo', state: 'NY' },
+      { name: 'Fort Wayne', state: 'IN' },
+      { name: 'Jersey City', state: 'NJ' },
+      { name: 'Chula Vista', state: 'CA' },
+      { name: 'Orlando', state: 'FL' },
+      { name: 'St. Petersburg', state: 'FL' },
+      { name: 'Norfolk', state: 'VA' },
+      { name: 'Chandler', state: 'AZ' },
+      { name: 'Laredo', state: 'TX' },
+      { name: 'Madison', state: 'WI' },
+      { name: 'Durham', state: 'NC' },
+      { name: 'Lubbock', state: 'TX' },
+      { name: 'Winston-Salem', state: 'NC' },
+      { name: 'Garland', state: 'TX' },
+      { name: 'Glendale', state: 'AZ' },
+      { name: 'Hialeah', state: 'FL' },
+      { name: 'Reno', state: 'NV' },
+      { name: 'Baton Rouge', state: 'LA' },
+      { name: 'Irvine', state: 'CA' },
+      { name: 'Chesapeake', state: 'VA' },
+      { name: 'Irving', state: 'TX' },
+      { name: 'Scottsdale', state: 'AZ' },
+      { name: 'North Las Vegas', state: 'NV' },
+      { name: 'Fremont', state: 'CA' },
+      { name: 'Gilbert', state: 'AZ' },
+      { name: 'San Bernardino', state: 'CA' },
+      { name: 'Boise', state: 'ID' },
+      { name: 'Birmingham', state: 'AL' },
+      { name: 'Rochester', state: 'NY' },
+      { name: 'Richmond', state: 'VA' },
+      { name: 'Spokane', state: 'WA' },
+      { name: 'Des Moines', state: 'IA' },
+      { name: 'Montgomery', state: 'AL' },
+      { name: 'Modesto', state: 'CA' },
+      { name: 'Tacoma', state: 'WA' },
+    ];
+
+    const cityRepo = AppDataSource.getRepository(City);
+    let citiesCreated = 0;
+    let citiesSkipped = 0;
+
+    for (const c of usCities) {
+      const existing = await cityRepo.findOne({
+        where: { name: c.name, state: c.state },
+      });
+      if (existing) {
+        citiesSkipped++;
+        continue;
+      }
+      await cityRepo.save(cityRepo.create({ name: c.name, state: c.state, isActive: true }));
+      citiesCreated++;
+    }
+
+    console.log(`  Cities: ${citiesCreated} created, ${citiesSkipped} already existed.\n`);
+
+    // -----------------------------------------------------------------------
     // Summary
     // -----------------------------------------------------------------------
     const pendingCount = bookings.filter((b) => b.status === BookingStatus.PENDING).length;
@@ -985,6 +1113,7 @@ async function seed() {
     console.log(`    Cancelled:   ${cancelledCount}`);
     console.log(`  Conversations: ${conversationScripts.length}`);
     console.log(`  Messages:      ${totalMessages}`);
+    console.log(`  Cities:        ${citiesCreated} new (${citiesSkipped} existed)`);
     console.log('='.repeat(50));
     console.log('\nSample test accounts (OTP: 000000 in DEV mode):');
     console.log('  Seeker:    james.mitchell@seed.daterabbit.com');

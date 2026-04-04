@@ -17,6 +17,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { CalendarModule } from './calendar/calendar.module';
 import { ReferralModule } from './referral/referral.module';
 import { PackagesModule } from './packages/packages.module';
+import { CitiesModule } from './cities/cities.module';
 
 @Module({
   imports: [
@@ -66,6 +67,7 @@ import { PackagesModule } from './packages/packages.module';
     CalendarModule,
     ReferralModule,
     PackagesModule,
+    CitiesModule,
   ],
   providers: [
     {
