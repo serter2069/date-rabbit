@@ -215,6 +215,7 @@ export class UsersController {
     return { success: true };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   async getUserById(@Param('id', ParseUUIDPipe) id: string) {
     const user = await this.usersService.findById(id);
