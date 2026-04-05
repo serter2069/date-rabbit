@@ -240,9 +240,8 @@ export class UsersService {
             AND b."dateTime" <= :availNow
             AND b."dateTime" + (b.duration * interval '1 hour') > :availNow
         )`,
+        { availStatuses: ['confirmed', 'paid', 'active'], availNow: new Date() },
       );
-      query.setParameter('availStatuses', ['confirmed', 'paid', 'active']);
-      query.setParameter('availNow', new Date());
     }
 
     if (hasLocation && filters.maxDistance) {
