@@ -20,6 +20,25 @@ export class BookingsCron {
     private notificationsService: NotificationsService,
   ) {}
 
+  @Cron(CronExpression.EVERY_HOUR)
+  async expirePendingBookings(): Promise<void> {
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const result = await this.bookingsRepository.update(
+      {
+        status: BookingStatus.PENDING,
+        createdAt: LessThan(cutoff),
+      },
+      {
+        status: BookingStatus.CANCELLED,
+        cancellationReason: 'expired: companion did not respond within 24 hours',
+      },
+    );
+    const count = result.affected ?? 0;
+    if (count > 0) {
+      this.logger.log(`[BookingsCron] Expired ${count} pending bookings`);
+    }
+  }
+
   @Cron(CronExpression.EVERY_5_MINUTES)
   async checkNoShows() {
     const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
