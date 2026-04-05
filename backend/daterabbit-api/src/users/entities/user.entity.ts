@@ -116,6 +116,12 @@ export class User {
   referredBy: string;
 
   @Column({ nullable: true })
+  emergencyContactName: string;
+
+  @Column({ nullable: true })
+  emergencyContactEmail: string;
+
+  @Column({ nullable: true })
   otpCode: string;
 
   @Column({ nullable: true })

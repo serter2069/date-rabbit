@@ -418,9 +418,17 @@ export class BookingsService {
     if (booking.seekerId !== userId && booking.companionId !== userId) {
       throw new HttpException('Unauthorized', HttpStatus.FORBIDDEN);
     }
+
+    // Guard: prevent duplicate SOS within 60 seconds
+    if (booking.sosTriggeredAt && Date.now() - new Date(booking.sosTriggeredAt).getTime() < 60000) {
+      return booking;
+    }
+
     const update: Partial<Booking> = {
       sosTriggeredAt: new Date(),
       sosTriggeredBy: userId,
+      status: BookingStatus.CANCELLED,
+      cancellationReason: 'SOS triggered by user',
     };
     if (lat !== undefined) update.sosLat = lat;
     if (lon !== undefined) update.sosLon = lon;
@@ -448,6 +456,29 @@ export class BookingsService {
       }),
     ];
     await Promise.all(notifications.map(p => p.catch(e => console.error('[SOS] notification error', e))));
+
+    // Send admin alert email (fire-and-forget)
+    this.emailService.sendSOSAlertToAdmin({
+      bookingId,
+      companionName: booking.companion?.name || 'companion',
+      seekerName: booking.seeker?.name || 'seeker',
+      triggeredBy,
+      bookingTime: booking.dateTime ? new Date(booking.dateTime).toISOString() : undefined,
+    }).catch(e => console.error('[SOS] admin email error', e));
+
+    // Send emergency contact alert if triggering user has one (fire-and-forget)
+    try {
+      const triggeringUser = await this.usersService.findById(userId);
+      if (triggeringUser?.emergencyContactEmail) {
+        this.emailService.sendSOSAlertToEmergencyContact({
+          contactEmail: triggeringUser.emergencyContactEmail,
+          contactName: triggeringUser.emergencyContactName || undefined,
+          userName: triggeringUser.name,
+        }).catch(e => console.error('[SOS] emergency contact email error', e));
+      }
+    } catch (e) {
+      console.error('[SOS] failed to look up emergency contact', e);
+    }
 
     return (await this.findById(bookingId))!;
   }

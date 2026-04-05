@@ -1,6 +1,7 @@
 import {
   IsArray,
   IsBoolean,
+  IsEmail,
   IsInt,
   IsNumber,
   IsObject,
@@ -94,4 +95,15 @@ export class UpdateUserDto {
     reminders: boolean;
     payments: boolean;
   };
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  @Transform(({ value }) => stripHtml(value))
+  emergencyContactName?: string;
+
+  @IsOptional()
+  @IsEmail()
+  @MaxLength(200)
+  emergencyContactEmail?: string;
 }

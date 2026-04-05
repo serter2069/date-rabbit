@@ -34,6 +34,8 @@ interface ProfileUpdateData {
     payments: boolean;
   };
   isPublicProfile?: boolean;
+  emergencyContactName?: string;
+  emergencyContactEmail?: string;
 }
 
 interface AuthState {
