@@ -187,9 +187,9 @@ export function Button({
     );
   };
 
-  // Primary button with dark gradient
+  // Primary button with brand pink gradient
   if (variant === 'primary') {
-    return renderGradientButton(colors.gradient.dark as readonly [string, string, ...string[]]);
+    return renderGradientButton(colors.gradient.primary as readonly [string, string, ...string[]]);
   }
 
   // Pink button with pink gradient
