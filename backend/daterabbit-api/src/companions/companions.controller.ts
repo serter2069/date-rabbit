@@ -17,6 +17,7 @@ export class CompanionsController {
     @Query('sortBy') sortBy?: string,
     @Query('search') search?: string,
     @Query('city') city?: string,
+    @Query('availability') availability?: string,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
     @Query('page') page?: string,
@@ -34,6 +35,7 @@ export class CompanionsController {
       sortBy,
       search,
       city,
+      availability,
       limit: parsedLimit,
       offset: parsedOffset,
     });
