@@ -89,6 +89,7 @@ function mapApiUserToUser(apiUser: ApiUser): User {
     isVerified: apiUser.isVerified,
     verificationStatus: apiUser.verificationStatus as VerificationStatus | undefined,
     stripeOnboardingComplete: apiUser.stripeOnboardingComplete,
+    isPublicProfile: apiUser.isPublicProfile,
     latitude: apiUser.latitude,
     longitude: apiUser.longitude,
     notificationsEnabled: apiUser.notificationsEnabled,

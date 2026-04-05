@@ -840,6 +840,7 @@ export interface User {
   verificationStatus?: import('../types').VerificationStatus;
   photos?: { id: string; url: string; order: number; isPrimary: boolean }[];
   stripeOnboardingComplete?: boolean;
+  isPublicProfile?: boolean;
   expoPushToken?: string;
   notificationsEnabled?: boolean;
   notificationPreferences?: {

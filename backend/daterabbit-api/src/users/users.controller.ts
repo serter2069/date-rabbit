@@ -4,6 +4,7 @@ import { UsersService } from './users.service';
 import { UploadsService } from '../uploads/uploads.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserRole, UserVerificationStatus } from './entities/user.entity';
 
 @Controller('users')
 export class UsersController {
@@ -46,6 +47,30 @@ export class UsersController {
       }
       if (hourlyRate >= 10000) {
         throw new BadRequestException('Hourly rate must be less than 10000');
+      }
+    }
+
+    // Companion onboarding completion gate — enforce when trying to publish profile
+    if (isPublicProfile === true) {
+      const currentUser = await this.usersService.findById(req.user.id);
+      if (currentUser && currentUser.role === UserRole.COMPANION) {
+        // Determine effective values: prefer incoming body values, fall back to current
+        const effectivePhotos = photos !== undefined ? photos : currentUser.photos;
+        const effectiveBio = bio !== undefined ? bio : currentUser.bio;
+        const effectiveHourlyRate = hourlyRate !== undefined ? hourlyRate : currentUser.hourlyRate;
+
+        if (!effectivePhotos || effectivePhotos.length === 0) {
+          throw new BadRequestException('Upload at least one photo before publishing your profile');
+        }
+        if (currentUser.verificationStatus !== UserVerificationStatus.APPROVED) {
+          throw new BadRequestException('Complete identity verification before publishing your profile');
+        }
+        if (!effectiveHourlyRate || Number(effectiveHourlyRate) <= 0) {
+          throw new BadRequestException('Set your hourly rate before publishing your profile');
+        }
+        if (!effectiveBio || !effectiveBio.trim()) {
+          throw new BadRequestException('Add a bio before publishing your profile');
+        }
       }
     }
 
