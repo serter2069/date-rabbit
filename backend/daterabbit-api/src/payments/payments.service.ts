@@ -102,6 +102,20 @@ export class PaymentsService {
     if (booking.status !== BookingStatus.CONFIRMED)
       throw new HttpException('Booking must be confirmed first', HttpStatus.BAD_REQUEST);
 
+    // Idempotency: return existing payment intent if one already exists and is still active
+    if (booking.paymentIntentId) {
+      const existingIntent = await this.stripe.paymentIntents.retrieve(booking.paymentIntentId);
+      if (
+        existingIntent.status === 'requires_payment_method' ||
+        existingIntent.status === 'requires_confirmation' ||
+        existingIntent.status === 'requires_action'
+      ) {
+        return { clientSecret: existingIntent.client_secret! };
+      }
+      // Intent is cancelled/failed — clear it and create a new one
+      await this.bookingsRepo.update(bookingId, { paymentIntentId: null as any });
+    }
+
     const companion = await this.usersRepo.findOne({
       where: { id: booking.companionId },
     });
@@ -585,9 +599,13 @@ export class PaymentsService {
         const pi = event.data.object as Stripe.PaymentIntent;
         const bookingId = pi.metadata.bookingId;
         if (bookingId) {
-          await this.bookingsRepo.update(bookingId, {
-            status: BookingStatus.PAID,
-          });
+          const booking = await this.bookingsRepo.findOne({ where: { id: bookingId } });
+          // Verify this payment intent actually belongs to this booking (IDOR protection)
+          if (booking && booking.paymentIntentId === pi.id) {
+            await this.bookingsRepo.update(bookingId, {
+              status: BookingStatus.PAID,
+            });
+          }
         }
         break;
       }
