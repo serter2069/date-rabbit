@@ -266,6 +266,13 @@ export default function SettingsScreen() {
               onPress={() => router.push('/privacy')}
               colors={colors}
             />
+            <View style={[styles.divider, { backgroundColor: colors.divider }]} />
+            <SettingsMenuItem
+              icon="alert"
+              label="Safety Guidelines"
+              onPress={() => router.push('/safety')}
+              colors={colors}
+            />
           </Card>
         </View>
 

@@ -148,6 +148,8 @@ export default function MaleProfileScreen() {
           <MenuItem icon="file-text" label="Terms of Service" onPress={() => router.push('/terms')} colors={colors} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
           <MenuItem icon="shield" label="Privacy Policy" onPress={() => router.push('/privacy')} colors={colors} />
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+          <MenuItem icon="alert" label="Safety Guidelines" onPress={() => router.push('/safety')} colors={colors} />
         </Card>
       </View>
 
