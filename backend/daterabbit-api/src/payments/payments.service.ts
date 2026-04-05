@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import Stripe from 'stripe';
-import { User } from '../users/entities/user.entity';
+import { User, UserRole } from '../users/entities/user.entity';
 import { Booking, BookingStatus } from '../bookings/entities/booking.entity';
 
 @Injectable()
@@ -307,6 +307,11 @@ export class PaymentsService {
     pendingPayouts: number;
     completedBookings: number;
   }> {
+    const caller = await this.usersRepo.findOne({ where: { id: userId } });
+    if (!caller || caller.role !== UserRole.COMPANION) {
+      throw new HttpException('Access restricted to companions', HttpStatus.FORBIDDEN);
+    }
+
     const completedBookings = await this.bookingsRepo
       .createQueryBuilder('b')
       .where('b.companionId = :userId', { userId })

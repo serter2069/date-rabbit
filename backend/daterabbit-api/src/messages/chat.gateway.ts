@@ -15,7 +15,7 @@ import { MessagesService } from './messages.service';
 
 @WebSocketGateway({
   cors: {
-    origin: '*',
+    origin: process.env.FRONTEND_URL || 'https://daterabbit.smartlaunchhub.com',
     credentials: true,
   },
   namespace: '/chat',
