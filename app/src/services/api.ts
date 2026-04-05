@@ -260,6 +260,7 @@ export interface SearchCompanionsParams {
   page?: number;
   limit?: number;
   activityTypes?: string[];
+  availability?: string;
 }
 
 export interface CompanionListItem {

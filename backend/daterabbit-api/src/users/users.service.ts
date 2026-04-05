@@ -144,6 +144,7 @@ export class UsersService {
     sortBy?: string;
     search?: string;
     activityTypes?: string[];
+    availability?: string;
     limit?: number;
     offset?: number;
     excludeUserIds?: string[];
@@ -198,6 +199,24 @@ export class UsersService {
             AND dpt."defaultActivity" IN (:...activityTypes)
         )`,
         { activityTypes: filters.activityTypes },
+      );
+    }
+
+    if (filters.availability && filters.availability !== 'any') {
+      // Filter out companions who have an active booking right now (CONFIRMED, PAID, or ACTIVE status
+      // with a time window that overlaps the current moment)
+      query.andWhere(
+        `NOT EXISTS (
+          SELECT 1 FROM bookings b
+          WHERE b."companionId" = user.id
+            AND b.status IN (:...availStatuses)
+            AND b."dateTime" <= :availNow
+            AND b."dateTime" + (b.duration * interval '1 hour') > :availNow
+        )`,
+        {
+          availStatuses: ['confirmed', 'paid', 'active'],
+          availNow: new Date(),
+        },
       );
     }
 

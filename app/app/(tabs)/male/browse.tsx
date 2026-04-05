@@ -132,6 +132,7 @@ export default function BrowseScreen() {
         longitude: userLocation?.longitude,
         search: searchQuery.trim() || undefined,
         activityTypes: appliedFilters.activityTypes.length > 0 ? appliedFilters.activityTypes : undefined,
+        availability: appliedFilters.availability !== 'any' ? appliedFilters.availability : undefined,
       });
 
       // Only update state if this is still the latest fetch (prevents stale overwrites)
