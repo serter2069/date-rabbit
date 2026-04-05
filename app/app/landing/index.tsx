@@ -8,6 +8,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { Image as ExpoImage } from 'expo-image';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -310,6 +311,7 @@ function FemaleLanding() {
 function MaleLanding() {
   const [companions, setCompanions] = useState<CompanionListItem[]>([]);
   const [loadingCompanions, setLoadingCompanions] = useState(true);
+  const [failedPhotos, setFailedPhotos] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const fetchCompanions = async () => {
@@ -411,11 +413,12 @@ function MaleLanding() {
                 accessibilityRole="button"
               >
                 {/* Photo or initial circle */}
-                {p.photo ? (
-                  <Image
+                {p.photo && !failedPhotos.has(p.id) ? (
+                  <ExpoImage
                     source={{ uri: p.photo }}
                     style={styles.profileCardPhoto}
-                    resizeMode="cover"
+                    contentFit="cover"
+                    onError={() => setFailedPhotos(prev => { const next = new Set(prev); next.add(p.id); return next; })}
                   />
                 ) : (
                   <View style={[styles.profileCardPhoto, styles.profileCardPhotoPlaceholder, { backgroundColor: p.color + '20' }]}>
