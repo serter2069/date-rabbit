@@ -10,13 +10,13 @@ export class AuthController {
 
   // Alias for admin panel compatibility
   @Post('send-otp')
-  @Throttle({ default: { limit: 20, ttl: 3600000 } })
+  @Throttle({ default: { limit: 3, ttl: 900000 } })
   async sendOtp(@Body() body: { email: string }) {
     return this.startAuth(body);
   }
 
   @Post('start')
-  @Throttle({ default: { limit: 20, ttl: 3600000 } }) // 20 emails per hour
+  @Throttle({ default: { limit: 3, ttl: 900000 } }) // 3 emails per 15 minutes
   async startAuth(@Body() body: { email: string }) {
     if (!body || !body.email || typeof body.email !== 'string') {
       throw new HttpException('Email is required', HttpStatus.BAD_REQUEST);
