@@ -64,6 +64,22 @@ export default function SettingsScreen() {
   };
 
   const togglePublicProfile = async (value: boolean) => {
+    // Companion profile completion gate — checked client-side before API call
+    if (value && user?.role === 'companion') {
+      const missing: string[] = [];
+      if (!user.photos || user.photos.length === 0) missing.push('Upload at least one photo');
+      if (user.verificationStatus !== 'approved') missing.push('Complete identity verification');
+      if (!user.hourlyRate || Number(user.hourlyRate) <= 0) missing.push('Set your hourly rate');
+      if (!user.bio || !user.bio.trim()) missing.push('Add a bio');
+      if (missing.length > 0) {
+        showAlert(
+          'Profile incomplete',
+          `To publish your profile, please:\n\n• ${missing.join('\n• ')}`,
+        );
+        return;
+      }
+    }
+
     const prev = isPublicProfile;
     setIsPublicProfile(value);
     const result = await updateProfile({ isPublicProfile: value });
