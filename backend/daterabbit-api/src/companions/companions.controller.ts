@@ -16,6 +16,7 @@ export class CompanionsController {
     @Query('priceMax') priceMax?: string,
     @Query('sortBy') sortBy?: string,
     @Query('search') search?: string,
+    @Query('city') city?: string,
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
     @Query('page') page?: string,
@@ -32,6 +33,7 @@ export class CompanionsController {
       priceMax: priceMax ? parseFloat(priceMax) : undefined,
       sortBy,
       search,
+      city,
       limit: parsedLimit,
       offset: parsedOffset,
     });
