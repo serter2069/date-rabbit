@@ -106,6 +106,8 @@ const NON_TAB_AUTH_ROUTES = [
 ];
 
 // Routes that REQUIRE verification — unverified users get redirected to verification prompt
+// NOTE: browse/(tabs) is intentionally NOT in this list.
+// Checkr background check deferred to v2. Browse = JWT auth only. Seeker verified = Stripe Identity passed.
 const VERIFICATION_REQUIRED_ROUTES = [
   'payment',
   'stripe',

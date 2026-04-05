@@ -63,6 +63,8 @@ export class CompanionsController {
     };
   }
 
+  // Browse requires JWT auth only — no fingerprintStatus/Checkr gate.
+  // Checkr background check deferred to v2. Seeker verified = Stripe Identity passed only.
   @UseGuards(JwtAuthGuard)
   @Get()
   async searchCompanions(
