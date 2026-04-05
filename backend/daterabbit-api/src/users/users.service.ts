@@ -143,6 +143,7 @@ export class UsersService {
     ageMax?: number;
     sortBy?: string;
     search?: string;
+    city?: string;
     activityTypes?: string[];
     availability?: string;
     limit?: number;
@@ -188,6 +189,9 @@ export class UsersService {
       query.andWhere('(user.name ILIKE :search OR user.location ILIKE :search)', {
         search: `%${filters.search}%`,
       });
+    }
+    if (filters.city) {
+      query.andWhere('user.location ILIKE :city', { city: `%${filters.city}%` });
     }
 
     if (filters.activityTypes && filters.activityTypes.length > 0) {

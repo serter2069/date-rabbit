@@ -106,6 +106,12 @@ export class MessagesController {
       throw new HttpException('Message too long (max 5000 chars)', HttpStatus.BAD_REQUEST);
     }
 
+    // Ensure recipient user exists
+    const recipient = await this.usersService.findById(receiverId);
+    if (!recipient) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+
     // Prevent messaging blocked users (in either direction)
     const [blockedByMe, blockedByThem] = await Promise.all([
       this.usersService.isBlocked(req.user.id, receiverId),
