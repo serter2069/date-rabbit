@@ -159,6 +159,8 @@ export class UsersService {
       .andWhere('user.isPublicProfile = true');
 
     if (hasLocation) {
+      // Explicitly select all entity columns first so addSelect doesn't drop them in getRawAndEntities
+      query.addSelect('user.photos');
       query.addSelect(distanceExpr, 'distance');
       query.setParameters({ lat: filters.latitude, lng: filters.longitude });
     }

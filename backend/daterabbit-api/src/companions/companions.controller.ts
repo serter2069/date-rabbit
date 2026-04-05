@@ -45,7 +45,9 @@ export class CompanionsController {
         age: c.age,
         location: c.location,
         shortBio: c.bio ? c.bio.substring(0, 100) : null,
-        primaryPhoto: c.photos?.[0]?.url || null,
+        primaryPhoto: (Array.isArray(c.photos) && c.photos.length > 0)
+          ? (c.photos.find((p: any) => p.isPrimary) ?? c.photos[0])?.url ?? null
+          : null,
         hourlyRate: c.hourlyRate != null ? Number(c.hourlyRate) : 0,
         rating: c.rating ? Number(c.rating) : null,
         reviewCount: c.reviewCount || 0,
@@ -122,7 +124,9 @@ export class CompanionsController {
         age: c.age,
         location: c.location,
         shortBio: c.bio ? c.bio.substring(0, 100) : null,
-        primaryPhoto: c.photos?.[0]?.url || null,
+        primaryPhoto: (Array.isArray(c.photos) && c.photos.length > 0)
+          ? (c.photos.find((p: any) => p.isPrimary) ?? c.photos[0])?.url ?? null
+          : null,
         hourlyRate: c.hourlyRate != null ? Number(c.hourlyRate) : 0,
         rating: c.rating ? Number(c.rating) : null,
         reviewCount: c.reviewCount || 0,
