@@ -3,6 +3,7 @@ import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { UserRole } from '../users/entities/user.entity';
+import { SendOtpDto, VerifyOtpDto } from './dto/auth.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -11,45 +12,28 @@ export class AuthController {
   // Alias for admin panel compatibility
   @Post('send-otp')
   @Throttle({ default: { limit: 3, ttl: 900000 } })
-  async sendOtp(@Body() body: { email: string }) {
+  async sendOtp(@Body() body: SendOtpDto) {
     return this.startAuth(body);
   }
 
   @Post('start')
   @Throttle({ default: { limit: 3, ttl: 900000 } }) // 3 emails per 15 minutes
-  async startAuth(@Body() body: { email: string }) {
-    if (!body || !body.email || typeof body.email !== 'string') {
-      throw new HttpException('Email is required', HttpStatus.BAD_REQUEST);
-    }
-
-    if (body.email.length > 254) {
-      throw new HttpException('Email too long', HttpStatus.BAD_REQUEST);
-    }
-
-    const email = body.email.toLowerCase().trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      throw new HttpException('Invalid email format', HttpStatus.BAD_REQUEST);
-    }
-
-    const result = await this.authService.startAuth(email);
+  async startAuth(@Body() body: SendOtpDto) {
+    const result = await this.authService.startAuth(body.email);
     return result;
   }
 
   // Alias for admin panel compatibility
   @Post('verify-otp')
   @Throttle({ default: { limit: 10, ttl: 600000 } })
-  async verifyOtpAlias(@Body() body: { email: string; code: string }) {
+  async verifyOtpAlias(@Body() body: VerifyOtpDto) {
     return this.verifyOtp(body);
   }
 
   @Post('verify')
   @Throttle({ default: { limit: 10, ttl: 600000 } }) // 10 OTP attempts per 10 min
-  async verifyOtp(@Body() body: { email: string; code: string }) {
-    if (!body.email || !body.code) {
-      throw new HttpException('Email and code are required', HttpStatus.BAD_REQUEST);
-    }
-
-    const result = await this.authService.verifyOtp(body.email.toLowerCase(), body.code);
+  async verifyOtp(@Body() body: VerifyOtpDto) {
+    const result = await this.authService.verifyOtp(body.email, body.code);
 
     if (!result.success) {
       throw new HttpException(result.error || 'Verification failed', HttpStatus.UNAUTHORIZED);
