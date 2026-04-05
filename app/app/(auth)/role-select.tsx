@@ -38,49 +38,51 @@ export default function RoleSelectScreen() {
           Choose how you want to use DateRabbit
         </Text>
 
-        <TouchableOpacity
-          style={[styles.roleCard, { backgroundColor: colors.surface, borderColor: colors.black }]}
-          onPress={() => handleSelectRole('companion')}
-          testID="role-select-companion-btn"
-          accessibilityLabel="Join as Date Companion"
-          accessibilityRole="button"
-          accessibilityHint="Get paid for going on dates"
-        >
-          <View style={[styles.iconContainer, { backgroundColor: colors.accent }]}>
-            <Icon name="user" size={32} color={colors.black} />
-          </View>
-          <View style={styles.roleInfo}>
-            <Text style={[styles.roleTitle, { color: colors.text }]}>Date Companion</Text>
-            <Text style={[styles.roleDescription, { color: colors.textSecondary }]}>
-              Get paid for going on dates. Set your own rates and schedule.
-            </Text>
-          </View>
-          <View style={[styles.badge, { backgroundColor: colors.accent }]}>
-            <Text style={[styles.badgeText, { color: colors.white }]}>Earn $$$</Text>
-          </View>
-        </TouchableOpacity>
+        <View style={styles.cardsRow}>
+          <TouchableOpacity
+            style={[styles.roleCard, { backgroundColor: colors.surface, borderColor: colors.black }]}
+            onPress={() => handleSelectRole('companion')}
+            testID="role-select-companion-btn"
+            accessibilityLabel="Join as Date Companion"
+            accessibilityRole="button"
+            accessibilityHint="Get paid for going on dates"
+          >
+            <View style={[styles.iconContainer, { backgroundColor: colors.accent }]}>
+              <Icon name="user" size={32} color={colors.black} />
+            </View>
+            <View style={styles.roleInfo}>
+              <Text style={[styles.roleTitle, { color: colors.text }]}>Date Companion</Text>
+              <Text style={[styles.roleDescription, { color: colors.textSecondary }]}>
+                Get paid for going on dates. Set your own rates and schedule.
+              </Text>
+            </View>
+            <View style={[styles.badge, { backgroundColor: colors.accent }]}>
+              <Text style={[styles.badgeText, { color: colors.white }]}>Earn $$$</Text>
+            </View>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.roleCard, { backgroundColor: colors.surface, borderColor: colors.black }]}
-          onPress={() => handleSelectRole('seeker')}
-          testID="role-select-seeker-btn"
-          accessibilityLabel="Join as Date Seeker"
-          accessibilityRole="button"
-          accessibilityHint="Book dates with verified companions"
-        >
-          <View style={[styles.iconContainer, { backgroundColor: colors.secondary }]}>
-            <Icon name="search" size={32} color={colors.black} />
-          </View>
-          <View style={styles.roleInfo}>
-            <Text style={[styles.roleTitle, { color: colors.text }]}>Date Seeker</Text>
-            <Text style={[styles.roleDescription, { color: colors.textSecondary }]}>
-              Book dates with verified companions. Premium experiences guaranteed.
-            </Text>
-          </View>
-          <View style={[styles.badge, { backgroundColor: colors.secondary }]}>
-            <Text style={[styles.badgeText, { color: colors.black }]}>Book dates</Text>
-          </View>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.roleCard, { backgroundColor: colors.surface, borderColor: colors.black }]}
+            onPress={() => handleSelectRole('seeker')}
+            testID="role-select-seeker-btn"
+            accessibilityLabel="Join as Date Seeker"
+            accessibilityRole="button"
+            accessibilityHint="Book dates with verified companions"
+          >
+            <View style={[styles.iconContainer, { backgroundColor: colors.secondary }]}>
+              <Icon name="search" size={32} color={colors.black} />
+            </View>
+            <View style={styles.roleInfo}>
+              <Text style={[styles.roleTitle, { color: colors.text }]}>Date Seeker</Text>
+              <Text style={[styles.roleDescription, { color: colors.textSecondary }]}>
+                Book dates with verified companions. Premium experiences guaranteed.
+              </Text>
+            </View>
+            <View style={[styles.badge, { backgroundColor: colors.secondary }]}>
+              <Text style={[styles.badgeText, { color: colors.black }]}>Book dates</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <Text style={[styles.note, { color: colors.textSecondary }]}>
@@ -143,17 +145,20 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.md,
     marginBottom: spacing.xl,
   },
+  cardsRow: {
+    flexDirection: 'column',
+    gap: spacing.md,
+  },
   roleCard: {
+    flex: 1,
     borderRadius: borderRadius.xl,
     padding: spacing.lg,
-    marginBottom: spacing.md,
     borderWidth: 3,
     shadowColor: '#000000',
     shadowOffset: { width: 4, height: 4 },
     shadowOpacity: 1,
     shadowRadius: 0,
     elevation: 4,
-    minHeight: 140,
   },
   iconContainer: {
     width: 56,

@@ -309,6 +309,11 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    ...(Platform.OS === 'web' ? {
+      maxWidth: 430,
+      width: '100%',
+      alignSelf: 'center' as const,
+    } : {}),
   },
   loadingContainer: {
     flex: 1,
