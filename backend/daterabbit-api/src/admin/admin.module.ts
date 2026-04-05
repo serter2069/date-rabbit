@@ -10,12 +10,13 @@ import { Booking } from '../bookings/entities/booking.entity';
 import { Verification } from '../verification/entities/verification.entity';
 import { Review } from '../reviews/entities/review.entity';
 import { PlatformSettings } from './entities/platform-settings.entity';
+import { Dispute } from '../disputes/entities/dispute.entity';
 import { UsersModule } from '../users/users.module';
 import { CitiesModule } from '../cities/cities.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Booking, Verification, Review, PlatformSettings]),
+    TypeOrmModule.forFeature([User, Booking, Verification, Review, PlatformSettings, Dispute]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

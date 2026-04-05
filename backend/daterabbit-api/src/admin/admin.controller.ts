@@ -172,6 +172,29 @@ export class AdminController {
     return this.adminService.updateSettings(body);
   }
 
+  // #2071 - disputes
+  @Get('disputes')
+  getDisputes(
+    @Query('status') status?: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page = 1,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit = 20,
+  ) {
+    return this.adminService.getDisputes(status, page, Math.min(limit, 100));
+  }
+
+  @Get('disputes/:id')
+  getDisputeById(@Param('id', ParseUUIDPipe) id: string) {
+    return this.adminService.getDisputeById(id);
+  }
+
+  @Patch('disputes/:id/resolve')
+  resolveDispute(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: { status: 'resolved' | 'closed'; adminNote?: string },
+  ) {
+    return this.adminService.resolveDispute(id, body);
+  }
+
   // #2039 - cities management
   @Get('cities')
   getCities() {

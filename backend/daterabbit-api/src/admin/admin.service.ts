@@ -9,6 +9,7 @@ import { PlatformSettings } from './entities/platform-settings.entity';
 import { CitiesService } from '../cities/cities.service';
 import { CreateCityDto } from '../cities/dto/create-city.dto';
 import { UpdateCityDto } from '../cities/dto/update-city.dto';
+import { Dispute, DisputeStatus } from '../disputes/entities/dispute.entity';
 
 @Injectable()
 export class AdminService {
@@ -23,6 +24,8 @@ export class AdminService {
     private reviewsRepo: Repository<Review>,
     @InjectRepository(PlatformSettings)
     private settingsRepo: Repository<PlatformSettings>,
+    @InjectRepository(Dispute)
+    private disputesRepo: Repository<Dispute>,
     private readonly citiesService: CitiesService,
   ) {}
 
@@ -397,6 +400,63 @@ export class AdminService {
 
     await this.settingsRepo.save(settings);
     return this.getSettings();
+  }
+
+  // #2071 - disputes
+  async getDisputes(status: string | undefined, page: number, limit: number) {
+    const skip = (page - 1) * limit;
+    const where = status ? { status: status as DisputeStatus } : {};
+
+    const [items, total] = await this.disputesRepo.findAndCount({
+      where,
+      relations: ['booking', 'booking.seeker', 'booking.companion', 'openedByUser'],
+      order: { createdAt: 'DESC' },
+      skip,
+      take: limit,
+    });
+
+    return { items, total, page, limit };
+  }
+
+  async getDisputeById(id: string) {
+    const dispute = await this.disputesRepo.findOne({
+      where: { id },
+      relations: ['booking', 'booking.seeker', 'booking.companion', 'openedByUser'],
+    });
+
+    if (!dispute) {
+      throw new NotFoundException('Dispute not found');
+    }
+
+    return dispute;
+  }
+
+  async resolveDispute(
+    id: string,
+    data: { status: 'resolved' | 'closed'; adminNote?: string },
+  ) {
+    const dispute = await this.disputesRepo.findOne({ where: { id } });
+    if (!dispute) {
+      throw new NotFoundException('Dispute not found');
+    }
+
+    if (
+      dispute.status === DisputeStatus.RESOLVED ||
+      dispute.status === DisputeStatus.CLOSED
+    ) {
+      throw new BadRequestException(`Dispute is already ${dispute.status}`);
+    }
+
+    const newStatus =
+      data.status === 'resolved' ? DisputeStatus.RESOLVED : DisputeStatus.CLOSED;
+
+    await this.disputesRepo.update(id, {
+      status: newStatus,
+      adminNote: data.adminNote ?? null,
+      resolvedAt: new Date(),
+    });
+
+    return this.getDisputeById(id);
   }
 
   // #2039 - cities management
