@@ -64,6 +64,8 @@ export interface User {
   isPublicProfile?: boolean;
   latitude?: number;
   longitude?: number;
+  emergencyContactName?: string;
+  emergencyContactEmail?: string;
   createdAt: string;
 }
 

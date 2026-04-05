@@ -6,6 +6,8 @@ import {
   ScrollView,
   TouchableOpacity,
   Switch,
+  TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -57,6 +59,9 @@ export default function SettingsScreen() {
   const { user, logout, updateProfile } = useAuthStore();
 
   const [isPublicProfile, setIsPublicProfile] = useState(user?.isPublicProfile ?? true);
+  const [emergencyName, setEmergencyName] = useState(user?.emergencyContactName ?? '');
+  const [emergencyEmail, setEmergencyEmail] = useState(user?.emergencyContactEmail ?? '');
+  const [isSavingEmergency, setIsSavingEmergency] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -86,6 +91,20 @@ export default function SettingsScreen() {
     if (!result.success) {
       setIsPublicProfile(prev);
       showAlert('Error', result.error || 'Failed to update profile visibility.');
+    }
+  };
+
+  const handleSaveEmergencyContact = async () => {
+    setIsSavingEmergency(true);
+    const result = await updateProfile({
+      emergencyContactName: emergencyName.trim() || undefined,
+      emergencyContactEmail: emergencyEmail.trim() || undefined,
+    });
+    setIsSavingEmergency(false);
+    if (!result.success) {
+      showAlert('Error', result.error || 'Failed to save emergency contact.');
+    } else {
+      showAlert('Saved', 'Emergency contact updated.');
     }
   };
 
@@ -180,6 +199,55 @@ export default function SettingsScreen() {
               </>
             )}
           </Card>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Emergency Contact</Text>
+          <Text style={[styles.sectionDescription, { color: colors.textSecondary }]}>
+            If you trigger the SOS button during a date, this person will be notified automatically.
+          </Text>
+          <Card>
+            <View style={styles.emergencyField}>
+              <Text style={[styles.emergencyLabel, { color: colors.textSecondary }]}>Name</Text>
+              <TextInput
+                style={[styles.emergencyInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
+                value={emergencyName}
+                onChangeText={setEmergencyName}
+                placeholder="Contact name"
+                placeholderTextColor={colors.textSecondary}
+                maxLength={100}
+                accessibilityLabel="Emergency contact name"
+              />
+            </View>
+            <View style={[styles.divider, { backgroundColor: colors.divider }]} />
+            <View style={styles.emergencyField}>
+              <Text style={[styles.emergencyLabel, { color: colors.textSecondary }]}>Email</Text>
+              <TextInput
+                style={[styles.emergencyInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
+                value={emergencyEmail}
+                onChangeText={setEmergencyEmail}
+                placeholder="contact@example.com"
+                placeholderTextColor={colors.textSecondary}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                maxLength={200}
+                accessibilityLabel="Emergency contact email"
+              />
+            </View>
+          </Card>
+          <TouchableOpacity
+            style={[styles.emergencySaveBtn, { backgroundColor: colors.primary, opacity: isSavingEmergency ? 0.6 : 1 }]}
+            onPress={handleSaveEmergencyContact}
+            disabled={isSavingEmergency}
+            accessibilityLabel="Save emergency contact"
+            accessibilityRole="button"
+          >
+            {isSavingEmergency ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <Text style={styles.emergencySaveBtnText}>Save Emergency Contact</Text>
+            )}
+          </TouchableOpacity>
         </View>
 
         <View style={styles.section}>
@@ -299,5 +367,45 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing.sm,
     minHeight: 56,
+  },
+  sectionDescription: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.sm,
+    marginBottom: spacing.md,
+    lineHeight: 18,
+  },
+  emergencyField: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    minHeight: 56,
+    justifyContent: 'center',
+  },
+  emergencyLabel: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.xs,
+    marginBottom: 4,
+  },
+  emergencyInput: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.md,
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    minHeight: 44,
+  },
+  emergencySaveBtn: {
+    marginTop: spacing.md,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 48,
+  },
+  emergencySaveBtnText: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.md,
+    fontWeight: '600',
+    color: '#fff',
   },
 });

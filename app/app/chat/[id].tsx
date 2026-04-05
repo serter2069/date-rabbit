@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, router, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,6 +17,7 @@ import { Icon } from '../../src/components/Icon';
 import { EmptyState } from '../../src/components/EmptyState';
 import { useMessagesStore, POLL_INTERVAL } from '../../src/store/messagesStore';
 import { useAuthStore } from '../../src/store/authStore';
+import { useActiveDateStore } from '../../src/store/activeDateStore';
 import { useVerificationGate } from '../../src/hooks/useVerificationGate';
 import { useTheme, spacing, typography, borderRadius, colors as themeColors } from '../../src/constants/theme';
 import * as Haptics from 'expo-haptics';
@@ -36,6 +38,7 @@ export default function ChatScreen() {
 
   const { user } = useAuthStore();
   const { messages, sendMessage, getMessages, fetchMessages, fetchChats, chats, isSending, preChatStatus, fetchPreChatStatus } = useMessagesStore();
+  const { activeBooking, fetchActive } = useActiveDateStore();
   const { requireVerification } = useVerificationGate();
 
   // id param is the otherUser's id
@@ -48,6 +51,13 @@ export default function ChatScreen() {
 
   const isPreBooking = preBooking === '1';
   const isCompanion = user?.role === 'companion';
+
+  // Check if there's an active booking with the other user — used to show SOS button
+  const activeDateBookingId =
+    activeBooking &&
+    (activeBooking.seekerId === otherUserId || activeBooking.companionId === otherUserId)
+      ? activeBooking.id
+      : null;
 
   // Whether to show the pre-booking banner
   const showPreBookingBanner = isPreBooking && preChatStatus && !preChatStatus.hasBooking && !preChatStatus.companionReplied;
@@ -65,6 +75,8 @@ export default function ChatScreen() {
       if (!chat) fetchChats(true);
       // Fetch pre-chat status if navigated from profile
       if (isPreBooking) fetchPreChatStatus(otherUserId);
+      // Check for active booking to conditionally show SOS button
+      fetchActive();
 
       // Poll every 5s silently (no loading spinner)
       const interval = setInterval(() => {
@@ -128,6 +140,22 @@ export default function ChatScreen() {
   const handleBook = () => {
     if (requireVerification()) return;
     router.push(`/booking/${id || ''}`);
+  };
+
+  const handleSOSPress = () => {
+    if (!activeDateBookingId) return;
+    Alert.alert(
+      'Feel unsafe?',
+      'This will alert DateRabbit support and cancel your date.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Alert Support',
+          style: 'destructive',
+          onPress: () => router.push(`/date/sos/${activeDateBookingId}`),
+        },
+      ],
+    );
   };
 
   const formatTime = (date: Date) => {
@@ -225,6 +253,18 @@ export default function ChatScreen() {
             )}
           </View>
         </TouchableOpacity>
+
+        {activeDateBookingId && (
+          <TouchableOpacity
+            style={styles.sosButton}
+            onPress={handleSOSPress}
+            testID="chat-sos-btn"
+            accessibilityLabel="I feel unsafe — trigger SOS"
+            accessibilityRole="button"
+          >
+            <Text style={styles.sosButtonText}>!</Text>
+          </TouchableOpacity>
+        )}
 
         <TouchableOpacity
           style={[styles.bookButton, { backgroundColor: colors.primary }]}
@@ -488,6 +528,21 @@ const styles = StyleSheet.create({
     fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.sm,
     fontWeight: '600',
+  },
+  sosButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#FF2A5F',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.sm,
+  },
+  sosButtonText: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: '700',
+    lineHeight: 22,
   },
   messagesContainer: {
     flex: 1,
