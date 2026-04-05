@@ -1,3 +1,4 @@
+import { createHmac, timingSafeEqual } from 'crypto';
 import {
   Controller,
   Post,
@@ -11,6 +12,7 @@ import {
   HttpStatus,
   BadRequestException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { VerificationService } from './verification.service';
@@ -94,22 +96,46 @@ export class VerificationController {
 // Separate controller for external webhooks — no JWT guard
 @Controller('verification')
 export class VerificationWebhookController {
-  constructor(private readonly verificationService: VerificationService) {}
+  constructor(
+    private readonly verificationService: VerificationService,
+    private readonly configService: ConfigService,
+  ) {}
 
   @Post('webhook')
   handleWebhook(
     @Body() payload: any,
     @Req() req: any,
   ) {
-    // Validate webhook signature from Checkr
-    const signature = req.headers['x-checkr-signature'];
-    if (!signature) {
-      throw new HttpException('Missing webhook signature', HttpStatus.UNAUTHORIZED);
+    const secret = this.configService.get<string>('CHECKR_WEBHOOK_SECRET');
+
+    if (!secret) {
+      // Secret not configured — skip HMAC check (e.g. staging without Checkr)
+      console.warn('CHECKR_WEBHOOK_SECRET not configured — skipping HMAC validation');
+    } else {
+      const signature = req.headers['x-checkr-signature'] as string | undefined;
+
+      if (!signature) {
+        throw new HttpException('Missing webhook signature', HttpStatus.UNAUTHORIZED);
+      }
+
+      // Compute expected HMAC-SHA256 over the raw body
+      const rawBody: Buffer = req.rawBody;
+      const expectedHex = createHmac('sha256', secret)
+        .update(rawBody)
+        .digest('hex');
+
+      const expectedBuf = Buffer.from(expectedHex, 'utf8');
+      const receivedBuf = Buffer.from(signature, 'utf8');
+
+      // Lengths must match before timingSafeEqual (it throws otherwise)
+      if (
+        expectedBuf.length !== receivedBuf.length ||
+        !timingSafeEqual(expectedBuf, receivedBuf)
+      ) {
+        throw new HttpException('Invalid webhook signature', HttpStatus.UNAUTHORIZED);
+      }
     }
 
-    // TODO: Verify HMAC signature against CHECKR_WEBHOOK_SECRET when configured
-    // For now, log the webhook but don't auto-approve verifications
-    console.log('Verification webhook received (signature validation pending)');
-    return { received: true };
+    return this.verificationService.handleWebhook(payload);
   }
 }
