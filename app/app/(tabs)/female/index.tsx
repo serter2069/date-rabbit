@@ -9,6 +9,7 @@ import { Avatar } from '../../../src/components/Avatar';
 import { Badge } from '../../../src/components/Badge';
 import { Icon } from '../../../src/components/Icon';
 import { VerificationBanner } from '../../../src/components/VerificationBanner';
+import { EmptyState } from '../../../src/components/EmptyState';
 import { colors, spacing, typography, borderRadius, shadows, PAGE_PADDING } from '../../../src/constants/theme';
 import { bookingsApi, Booking } from '../../../src/services/api';
 
@@ -18,6 +19,7 @@ export default function FemaleDashboard() {
   const showTour = isAuthenticated && _hasHydrated && !hasSeenTour;
 
   const [refreshing, setRefreshing] = useState(false);
+  const [statsLoaded, setStatsLoaded] = useState(false);
   const [recentRequests, setRecentRequests] = useState<Booking[]>([]);
   const [stats, setStats] = useState({
     pendingRequests: 0,
@@ -45,8 +47,10 @@ export default function FemaleDashboard() {
       if (requestsRes.status === 'fulfilled') {
         setRecentRequests((requestsRes.value.bookings ?? []).slice(0, 3));
       }
+      setStatsLoaded(true);
     } catch {
       // keep existing values on error
+      setStatsLoaded(true);
     }
   }, [user?.reviewCount, user?.rating]);
 
@@ -124,6 +128,17 @@ export default function FemaleDashboard() {
           color={colors.primary}
         />
       </View>
+
+      {/* Empty state — shown when no pending requests and no upcoming dates */}
+      {statsLoaded && stats.pendingRequests === 0 && stats.upcomingDates === 0 && (
+        <EmptyState
+          icon="star"
+          title="Your profile is visible to seekers"
+          description="Complete your profile and set your availability to start receiving booking requests."
+          actionLabel="Update Profile"
+          onAction={() => router.push('/settings/edit-profile')}
+        />
+      )}
 
       {/* Recent Requests */}
       <View style={styles.section}>
