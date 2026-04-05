@@ -36,13 +36,17 @@ export class AdminGuard implements CanActivate {
       throw new UnauthorizedException('Invalid token');
     }
 
-    const user = await this.usersService.findById(payload.id);
+    const user = await this.usersService.findByIdWithDeleted(payload.id);
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
 
     if (!user.isAdmin) {
       throw new ForbiddenException('Admin access required');
+    }
+
+    if (!user.isActive || user.deletedAt) {
+      throw new UnauthorizedException('Account is deactivated');
     }
 
     request.user = user;
