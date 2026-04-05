@@ -305,7 +305,7 @@ export default function CalendarScreen() {
           <Text style={[styles.legendText, { color: colors.textSecondary }]}>Booking</Text>
         </View>
         <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: '#CC0000' }]} />
+          <View style={[styles.legendDot, { backgroundColor: colors.error }]} />
           <Text style={[styles.legendText, { color: colors.textSecondary }]}>Blocked</Text>
         </View>
       </View>

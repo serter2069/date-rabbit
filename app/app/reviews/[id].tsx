@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingLeft: 12,
     borderLeftWidth: 3,
-    borderLeftColor: '#FF2A5F',
+    borderLeftColor: colors.primary,
     backgroundColor: '#F9F6F1',
     padding: 12,
   },
@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: 'SpaceGrotesk-Bold',
     fontWeight: '700',
-    color: '#FF2A5F',
+    color: colors.primary,
     marginBottom: 2,
   },
   replyDate: {
@@ -421,7 +421,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderWidth: 2,
     borderColor: '#000',
-    backgroundColor: '#FF2A5F',
+    backgroundColor: colors.primary,
   },
   submitButtonText: {
     fontSize: 14,
