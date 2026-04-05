@@ -12,8 +12,16 @@ import { UploadsModule } from '../uploads/uploads.module';
   imports: [
     TypeOrmModule.forFeature([Verification]),
     MulterModule.register({
-      limits: { fileSize: 20 * 1024 * 1024 }, // 20MB max (video verification)
+      limits: { fileSize: 50 * 1024 * 1024 }, // 50MB max (video verification)
       storage: multer.memoryStorage(),
+      fileFilter: (_req, file, cb) => {
+        const allowed = ['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/quicktime'];
+        if (allowed.includes(file.mimetype)) {
+          cb(null, true);
+        } else {
+          cb(new Error('Invalid file type'), false);
+        }
+      },
     }),
     UsersModule,
     UploadsModule,

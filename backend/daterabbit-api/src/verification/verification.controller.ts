@@ -9,6 +9,7 @@ import {
   UploadedFile,
   HttpException,
   HttpStatus,
+  BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -44,18 +45,21 @@ export class VerificationController {
   @Post('upload-id')
   @UseInterceptors(FileInterceptor('file'))
   uploadId(@Req() req: any, @UploadedFile() file: Express.Multer.File) {
+    if (!file) throw new BadRequestException('No file provided or invalid file type');
     return this.verificationService.uploadIdPhoto(req.user.id, file);
   }
 
   @Post('selfie')
   @UseInterceptors(FileInterceptor('file'))
   uploadSelfie(@Req() req: any, @UploadedFile() file: Express.Multer.File) {
+    if (!file) throw new BadRequestException('No file provided or invalid file type');
     return this.verificationService.uploadSelfie(req.user.id, file);
   }
 
   @Post('video')
   @UseInterceptors(FileInterceptor('file'))
   uploadVideo(@Req() req: any, @UploadedFile() file: Express.Multer.File) {
+    if (!file) throw new BadRequestException('No file provided or invalid file type');
     return this.verificationService.uploadVideo(req.user.id, file);
   }
 
