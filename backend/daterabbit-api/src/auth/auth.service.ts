@@ -9,8 +9,7 @@ import { sanitizeText } from '../common/sanitize';
 
 @Injectable()
 export class AuthService {
-  // Per-email OTP attempt tracking to prevent brute force
-  private otpAttempts = new Map<string, { count: number; lockedUntil: number }>();
+  // OTP brute-force limits — attempt counter is stored in DB so PM2 cluster instances share state
   private readonly MAX_OTP_ATTEMPTS = 3;
   private readonly LOCKOUT_MINUTES = 15;
 
@@ -19,17 +18,7 @@ export class AuthService {
     private jwtService: JwtService,
     private configService: ConfigService,
     private emailService: EmailService,
-  ) {
-    // Cleanup stale entries every hour
-    setInterval(() => {
-      const now = Date.now();
-      for (const [email, data] of this.otpAttempts) {
-        if (data.lockedUntil < now && data.count === 0) {
-          this.otpAttempts.delete(email);
-        }
-      }
-    }, 60 * 60 * 1000);
-  }
+  ) {}
 
   generateOtp(): string {
     // DEV mode: fixed code for quick testing
@@ -75,20 +64,19 @@ export class AuthService {
   }
 
   async verifyOtp(email: string, code: string): Promise<{ success: boolean; token?: string; user?: User; error?: string }> {
-    // Check per-email lockout
-    const attempts = this.otpAttempts.get(email);
-    if (attempts && attempts.lockedUntil > Date.now()) {
-      const minutesLeft = Math.ceil((attempts.lockedUntil - Date.now()) / 60000);
-      throw new HttpException(
-        `Too many attempts. Try again in ${minutesLeft} minutes`,
-        HttpStatus.TOO_MANY_REQUESTS,
-      );
-    }
-
     const user = await this.usersService.findByEmail(email);
 
     if (!user) {
       return { success: false, error: 'User not found' };
+    }
+
+    // Check per-user lockout stored in DB (shared across all PM2 cluster instances)
+    if (user.otpLockedUntil && user.otpLockedUntil > new Date()) {
+      const minutesLeft = Math.ceil((user.otpLockedUntil.getTime() - Date.now()) / 60000);
+      throw new HttpException(
+        `Too many attempts. Try again in ${minutesLeft} minutes`,
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
     }
 
     if (!user.otpCode || !user.otpExpiresAt) {
@@ -102,30 +90,28 @@ export class AuthService {
     const isValid = user.otpCode.length === code.length &&
       crypto.timingSafeEqual(Buffer.from(user.otpCode), Buffer.from(code));
     if (!isValid) {
-      // Track failed attempt for rate limiting
-      const current = this.otpAttempts.get(email) || { count: 0, lockedUntil: 0 };
-      current.count++;
-      if (current.count >= this.MAX_OTP_ATTEMPTS) {
-        current.lockedUntil = Date.now() + this.LOCKOUT_MINUTES * 60 * 1000;
-        current.count = 0;
-        this.otpAttempts.set(email, current);
-        // Invalidate OTP so it cannot be used even if rate limit is bypassed
+      // Increment attempt counter in DB — visible to all PM2 cluster instances
+      const newCount = await this.usersService.incrementOtpAttempts(
+        user.id,
+        this.LOCKOUT_MINUTES,
+        this.MAX_OTP_ATTEMPTS,
+      );
+      if (newCount >= this.MAX_OTP_ATTEMPTS) {
+        // Invalidate OTP so it cannot be used even if lockout is bypassed
         await this.usersService.clearOtp(user.id);
         return { success: false, error: 'Too many failed attempts. Please request a new code.' };
       }
-      this.otpAttempts.set(email, current);
-
       return { success: false, error: 'Invalid OTP' };
     }
 
-    // Successful verification -- clear attempts and OTP
-    this.otpAttempts.delete(email);
+    // Successful verification — reset attempts and clear OTP
+    await this.usersService.resetOtpAttempts(user.id);
     await this.usersService.clearOtp(user.id);
 
     // Generate JWT
     const token = this.jwtService.sign({ id: user.id, email: user.email });
 
-    const { otpCode, otpExpiresAt, ...safeUser } = user;
+    const { otpCode, otpExpiresAt, otpAttempts, otpLockedUntil, ...safeUser } = user;
     return { success: true, token, user: safeUser as User };
   }
 
@@ -161,7 +147,7 @@ export class AuthService {
     }
 
     const token = this.jwtService.sign({ id: user.id, email: user.email });
-    const { otpCode, otpExpiresAt, ...safeUser } = user;
+    const { otpCode, otpExpiresAt, otpAttempts, otpLockedUntil, ...safeUser } = user;
 
     return { success: true, token, user: safeUser as User };
   }
