@@ -11,7 +11,7 @@ import { sanitizeText } from '../common/sanitize';
 export class AuthService {
   // Per-email OTP attempt tracking to prevent brute force
   private otpAttempts = new Map<string, { count: number; lockedUntil: number }>();
-  private readonly MAX_OTP_ATTEMPTS = 5;
+  private readonly MAX_OTP_ATTEMPTS = 3;
   private readonly LOCKOUT_MINUTES = 15;
 
   constructor(
@@ -108,10 +108,13 @@ export class AuthService {
       if (current.count >= this.MAX_OTP_ATTEMPTS) {
         current.lockedUntil = Date.now() + this.LOCKOUT_MINUTES * 60 * 1000;
         current.count = 0;
+        this.otpAttempts.set(email, current);
+        // Invalidate OTP so it cannot be used even if rate limit is bypassed
+        await this.usersService.clearOtp(user.id);
+        return { success: false, error: 'Too many failed attempts. Please request a new code.' };
       }
       this.otpAttempts.set(email, current);
 
-      // Don't clear OTP on failed attempt -- let users retry until 10-min TTL expires
       return { success: false, error: 'Invalid OTP' };
     }
 
