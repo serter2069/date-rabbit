@@ -210,7 +210,9 @@ export class UsersService {
 
     if (filters.availability && filters.availability !== 'any') {
       // Filter out companions who have an active booking right now (CONFIRMED, PAID, or ACTIVE status
-      // with a time window that overlaps the current moment)
+      // with a time window that overlaps the current moment).
+      // Split into setParameter() calls to avoid TypeORM conflict between
+      // spread params (:...availStatuses) and regular params (:availNow) in one andWhere().
       query.andWhere(
         `NOT EXISTS (
           SELECT 1 FROM bookings b
@@ -219,11 +221,9 @@ export class UsersService {
             AND b."dateTime" <= :availNow
             AND b."dateTime" + (b.duration * interval '1 hour') > :availNow
         )`,
-        {
-          availStatuses: ['confirmed', 'paid', 'active'],
-          availNow: new Date(),
-        },
       );
+      query.setParameter('availStatuses', ['confirmed', 'paid', 'active']);
+      query.setParameter('availNow', new Date());
     }
 
     if (hasLocation && filters.maxDistance) {
