@@ -26,8 +26,11 @@ function useWebNetworkStatus() {
     const handleOffline = () => setOffline();
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
-    // Sync initial state
-    if (!navigator.onLine) setOffline();
+    // Sync initial state — delayed 1s to avoid false offline on cold start
+    // (navigator.onLine can briefly read as false before the network stack is ready)
+    setTimeout(() => {
+      if (typeof navigator !== 'undefined' && !navigator.onLine) setOffline();
+    }, 1000);
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);

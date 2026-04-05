@@ -12,6 +12,9 @@ const API_TIMEOUT_MS = 10_000; // 10 seconds
 const TOKEN_KEY = 'authToken';
 let authToken: string | null = null;
 
+// Debounce timer for offline detection — prevents false banner on cold start / slow API
+let offlineTimer: ReturnType<typeof setTimeout> | null = null;
+
 export async function getToken(): Promise<string | null> {
   if (authToken) return authToken;
   if (Platform.OS === 'web') {
@@ -91,12 +94,21 @@ export async function apiRequest<T>(
       throw new ApiError('Request timed out. Please try again.', 408);
     }
     // Network error (no connection, DNS failure, etc.)
-    useNetworkStore.getState().setOffline();
+    // Debounce: only mark offline after 2500ms grace period to avoid false banner on cold start
+    if (offlineTimer) clearTimeout(offlineTimer);
+    offlineTimer = setTimeout(() => {
+      useNetworkStore.getState().setOffline();
+      offlineTimer = null;
+    }, 2500);
     throw new ApiError('Network error. Please check your connection.', 0);
   }
   clearTimeout(timeoutId);
 
-  // Successful network response — mark as online
+  // Successful network response — cancel any pending offline timer and mark as online
+  if (offlineTimer) {
+    clearTimeout(offlineTimer);
+    offlineTimer = null;
+  }
   useNetworkStore.getState().setOnline();
 
   const data = await response.json().catch(() => ({}));
