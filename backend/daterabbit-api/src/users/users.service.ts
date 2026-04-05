@@ -219,7 +219,7 @@ export class UsersService {
         `EXISTS (
           SELECT 1 FROM date_packages dp
           INNER JOIN date_package_templates dpt ON dpt.id = dp."templateId"
-          WHERE dp."companionId" = user.id
+          WHERE dp."companionId" = "user"."id"
             AND dp."isActive" = true
             AND dpt."defaultActivity" IN (:...activityTypes)
         )`,
@@ -235,7 +235,7 @@ export class UsersService {
       query.andWhere(
         `NOT EXISTS (
           SELECT 1 FROM bookings b
-          WHERE b."companionId" = user.id
+          WHERE b."companionId" = "user"."id"
             AND b.status IN (:...availStatuses)
             AND b."dateTime" <= :availNow
             AND b."dateTime" + (b.duration * interval '1 hour') > :availNow
