@@ -127,6 +127,13 @@ export class User {
   @Column({ nullable: true })
   otpExpiresAt: Date;
 
+  // OTP brute-force protection — stored in DB so PM2 cluster instances share state
+  @Column({ default: 0 })
+  otpAttempts: number;
+
+  @Column({ type: 'timestamp', nullable: true })
+  otpLockedUntil: Date;
+
   @CreateDateColumn()
   createdAt: Date;
 

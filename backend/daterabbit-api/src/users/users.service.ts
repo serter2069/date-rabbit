@@ -124,6 +124,25 @@ export class UsersService {
     } as any);
   }
 
+  async incrementOtpAttempts(userId: string, lockoutMinutes: number, maxAttempts: number): Promise<number> {
+    // Atomically increment and return new count
+    await this.usersRepository.increment({ id: userId }, 'otpAttempts', 1);
+    const user = await this.usersRepository.findOne({ where: { id: userId }, select: ['id', 'otpAttempts'] });
+    const newCount = user?.otpAttempts ?? 1;
+    if (newCount >= maxAttempts) {
+      const lockedUntil = new Date(Date.now() + lockoutMinutes * 60 * 1000);
+      await this.usersRepository.update(userId, { otpLockedUntil: lockedUntil });
+    }
+    return newCount;
+  }
+
+  async resetOtpAttempts(userId: string): Promise<void> {
+    await this.usersRepository.update(userId, {
+      otpAttempts: 0,
+      otpLockedUntil: undefined,
+    } as any);
+  }
+
   async deactivateAccount(userId: string): Promise<void> {
     // Soft delete: set isActive=false and deletedAt timestamp via TypeORM softDelete
     await this.usersRepository.update(userId, {
