@@ -142,7 +142,7 @@ export class PaymentsService {
         seekerId: userId,
         companionId: booking.companionId,
       },
-    });
+    }, { idempotencyKey: bookingId });
 
     await this.bookingsRepo.update(bookingId, {
       paymentIntentId: paymentIntent.id,
