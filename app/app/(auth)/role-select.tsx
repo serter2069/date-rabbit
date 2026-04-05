@@ -26,6 +26,12 @@ export default function RoleSelectScreen() {
         <Text style={[styles.backText, { color: colors.primary }]}> Back</Text>
       </TouchableOpacity>
 
+      <View style={styles.hero}>
+        <Text style={[styles.heroLogo, { color: colors.primary }]}>DateRabbit</Text>
+        <Text style={[styles.heroTagline, { color: colors.text }]}>Real dates. Real connections.</Text>
+        <Text style={[styles.heroSubtext, { color: colors.textMuted }]}>Verified companions. On your schedule.</Text>
+      </View>
+
       <View style={styles.content}>
         <Text style={[styles.title, { color: colors.text }]}>Join as...</Text>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
@@ -99,6 +105,30 @@ const styles = StyleSheet.create({
     fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.md,
   },
+  hero: {
+    alignItems: 'center',
+    marginBottom: spacing.xl,
+    paddingVertical: spacing.md,
+  },
+  heroLogo: {
+    fontFamily: typography.fonts.heading,
+    fontSize: typography.sizes.display,
+    fontWeight: '700',
+    letterSpacing: -1,
+    marginBottom: spacing.xs,
+  },
+  heroTagline: {
+    fontFamily: typography.fonts.headingMedium,
+    fontSize: typography.sizes.lg,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: spacing.xs,
+  },
+  heroSubtext: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.sm,
+    textAlign: 'center',
+  },
   content: {
     flex: 1,
   },
@@ -137,6 +167,7 @@ const styles = StyleSheet.create({
   },
   roleInfo: {
     marginBottom: spacing.md,
+    minHeight: 60,
   },
   roleTitle: {
     fontFamily: typography.fonts.headingMedium,
