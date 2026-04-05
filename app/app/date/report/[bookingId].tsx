@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { activeDateApi } from '../../../src/services/activeDateApi';
@@ -20,17 +20,19 @@ export default function ReportIssueScreen() {
   const [description, setDescription] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async () => {
-    if (!type) { Alert.alert('Select an issue type'); return; }
-    if (!description.trim()) { Alert.alert('Please describe the issue'); return; }
+    if (!type) { setError('Select an issue type'); return; }
+    if (!description.trim()) { setError('Please describe the issue'); return; }
+    setError(null);
     setSubmitting(true);
     try {
       await activeDateApi.reportIssue(bookingId, type, description);
       setSubmitted(true);
       setTimeout(() => router.back(), 2500);
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to submit');
+      setError(e.message || 'Failed to submit');
     } finally {
       setSubmitting(false);
     }
@@ -78,6 +80,8 @@ export default function ReportIssueScreen() {
         textAlignVertical="top"
       />
 
+      {error && <Text style={styles.errorText}>{error}</Text>}
+
       <TouchableOpacity
         style={[styles.submitBtn, submitting && styles.btnDisabled]}
         onPress={handleSubmit}
@@ -107,6 +111,7 @@ const styles = StyleSheet.create({
   submitBtn: { backgroundColor: '#FF2A5F', borderWidth: 2, borderColor: '#000', paddingVertical: 18, alignItems: 'center', shadowOffset: { width: 4, height: 4 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
   submitBtnText: { fontSize: 18, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.white },
   btnDisabled: { opacity: 0.6 },
+  errorText: { color: '#FF2A5F', fontSize: 14, marginTop: 8, textAlign: 'center', marginBottom: 8 },
   successCard: { backgroundColor: colors.accent, borderWidth: 2, borderColor: '#000', padding: 32, alignItems: 'center', shadowOffset: { width: 4, height: 4 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
   successText: { fontSize: 24, fontFamily: typography.fonts.heading, fontWeight: '700', color: '#000' },
   successSubtext: { fontSize: 15, color: '#000', marginTop: 8, textAlign: 'center' },

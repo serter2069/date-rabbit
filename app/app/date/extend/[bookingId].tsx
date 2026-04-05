@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { activeDateApi } from '../../../src/services/activeDateApi';
 import { colors, typography } from '../../../src/constants/theme';
@@ -24,6 +24,7 @@ export default function ExtendDateScreen() {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [responseStatus, setResponseStatus] = useState<'pending' | 'approved' | 'rejected'>('pending');
+  const [error, setError] = useState<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Poll for companion's response after request is sent
@@ -48,11 +49,12 @@ export default function ExtendDateScreen() {
 
   const handleSend = async () => {
     setSending(true);
+    setError(null);
     try {
       await activeDateApi.extendDate(bookingId, selected);
       setSent(true);
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to send request');
+      setError(e.message || 'Failed to send request');
     } finally {
       setSending(false);
     }
@@ -79,6 +81,8 @@ export default function ExtendDateScreen() {
           </TouchableOpacity>
         ))}
       </View>
+
+      {error && <Text style={styles.errorText}>{error}</Text>}
 
       {sent ? (
         responseStatus === 'approved' ? (
@@ -141,4 +145,5 @@ const styles = StyleSheet.create({
   sentSubtext: { fontSize: 14, color: '#000', marginTop: 8, textAlign: 'center' },
   backBtn: { marginTop: 24, alignItems: 'center', padding: 12 },
   backText: { fontSize: 16, color: colors.textMuted, textDecorationLine: 'underline' },
+  errorText: { color: '#FF2A5F', fontSize: 14, marginTop: 8, textAlign: 'center', marginBottom: 8 },
 });

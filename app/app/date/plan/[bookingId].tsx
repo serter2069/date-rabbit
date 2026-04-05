@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, FlatList,
-  TextInput, Alert, ActivityIndicator, KeyboardAvoidingView, Platform
+  TextInput, ActivityIndicator, KeyboardAvoidingView, Platform
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { activeDateApi } from '../../../src/services/activeDateApi';
@@ -30,6 +30,7 @@ export default function DatePlanScreen() {
   const [newName, setNewName] = useState('');
   const [newAddress, setNewAddress] = useState('');
   const [newTime, setNewTime] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   const auth = useAuthStore?.() ?? { user: { role: 'seeker' } };
   const isSeeker = auth?.user?.role === 'seeker';
@@ -43,11 +44,12 @@ export default function DatePlanScreen() {
 
   const handleAdd = async () => {
     if (!newName.trim() || !newAddress.trim()) {
-      Alert.alert('Name and address are required');
+      setError('Name and address are required');
       return;
     }
     const updated = [...places, { name: newName.trim(), address: newAddress.trim(), time: newTime.trim() || undefined }];
     setSaving(true);
+    setError(null);
     try {
       await activeDateApi.savePlan(bookingId, updated);
       setPlaces(updated);
@@ -56,7 +58,7 @@ export default function DatePlanScreen() {
       setNewTime('');
       setAdding(false);
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to save');
+      setError(e.message || 'Failed to save');
     } finally {
       setSaving(false);
     }
@@ -140,7 +142,8 @@ export default function DatePlanScreen() {
                   onChangeText={setNewTime}
                   placeholder="Time (e.g. 7:00 PM)"
                 />
-                <View style={styles.formBtns}>
+                {error && <Text style={styles.errorText}>{error}</Text>}
+              <View style={styles.formBtns}>
                   <TouchableOpacity
                     style={[styles.saveBtn, saving && styles.btnDisabled]}
                     onPress={handleAdd}
@@ -205,4 +208,5 @@ const styles = StyleSheet.create({
   cancelBtn: { flex: 1, backgroundColor: colors.surface, borderWidth: 2, borderColor: colors.border, paddingVertical: 12, alignItems: 'center' },
   cancelText: { fontSize: typography.sizes.md, color: colors.text },
   btnDisabled: { opacity: 0.6 },
+  errorText: { color: colors.primary, fontSize: 14, marginTop: 8, textAlign: 'center', marginBottom: 8 },
 });
