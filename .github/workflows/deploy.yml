@@ -86,7 +86,7 @@ jobs:
             cat > /var/www/daterabbit/api/.env << 'ENVEOF'
           PORT=3004
           NODE_ENV=staging
-          DEV_AUTH=false
+          DEV_AUTH=true
           DB_HOST=localhost
           DB_PORT=5432
           DB_USERNAME=daterabbit
@@ -162,11 +162,11 @@ jobs:
               echo "BREVO_API_KEY=${BREVO_API_KEY}" >> "$ENV_FILE"
             fi
           fi
-          # Disable DEV_AUTH so real emails are sent via Brevo
+          # Enable DEV_AUTH on staging for E2E testing (OTP bypass 000000)
           if grep -q "^DEV_AUTH=" "$ENV_FILE"; then
-            sed -i "s|^DEV_AUTH=.*|DEV_AUTH=false|" "$ENV_FILE"
+            sed -i "s|^DEV_AUTH=.*|DEV_AUTH=true|" "$ENV_FILE"
           else
-            echo "DEV_AUTH=false" >> "$ENV_FILE"
+            echo "DEV_AUTH=true" >> "$ENV_FILE"
           fi
           # Set sender email for Brevo
           if grep -q "^BREVO_SENDER_EMAIL=" "$ENV_FILE"; then
