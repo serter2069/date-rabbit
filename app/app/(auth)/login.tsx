@@ -137,16 +137,6 @@ export default function LoginScreen() {
           testID="login-continue-btn"
         />
 
-        {/* Trouble signing in */}
-        <TouchableOpacity
-          style={styles.troubleLink}
-          onPress={() => router.push('/(auth)/forgot-password')}
-          accessibilityRole="button"
-          testID="login-trouble-btn"
-        >
-          <Text style={styles.troubleLinkText}>Trouble signing in?</Text>
-        </TouchableOpacity>
-
         {/* Divider */}
         <View style={styles.divider}>
           <View style={styles.dividerLine} />
@@ -223,16 +213,5 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     color: colors.textLight,
     paddingHorizontal: spacing.md,
-  },
-  troubleLink: {
-    alignItems: 'center',
-    marginTop: spacing.md,
-    minHeight: 44,
-    justifyContent: 'center',
-  },
-  troubleLinkText: {
-    fontFamily: typography.fonts.body,
-    fontSize: typography.sizes.sm,
-    color: colors.textMuted,
   },
 });
