@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, FlatList,
-  Image, Modal, Alert, ActivityIndicator, Dimensions
+  Image, Modal, ActivityIndicator, Dimensions
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
@@ -24,6 +24,7 @@ export default function DatePhotosScreen() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [fullscreen, setFullscreen] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const loadPhotos = useCallback(async () => {
     try {
@@ -38,7 +39,7 @@ export default function DatePhotosScreen() {
   const handleAddPhoto = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission needed', 'Please allow photo access to add photos.');
+      setError('Please allow photo access to add photos.');
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -50,11 +51,12 @@ export default function DatePhotosScreen() {
     if (result.canceled || !result.assets[0]) return;
 
     setUploading(true);
+    setError(null);
     try {
       await activeDateApi.uploadPhoto(bookingId, result.assets[0].uri);
       await loadPhotos(); // refresh
     } catch (e: any) {
-      Alert.alert('Upload failed', e.message || 'Please try again');
+      setError(e.message || 'Please try again');
     } finally {
       setUploading(false);
     }
@@ -92,6 +94,8 @@ export default function DatePhotosScreen() {
           </TouchableOpacity>
         )}
       />
+
+      {error && <Text style={styles.errorText}>{error}</Text>}
 
       <TouchableOpacity
         style={[styles.addBtn, uploading && styles.btnDisabled]}
@@ -147,6 +151,7 @@ const styles = StyleSheet.create({
   },
   addBtnText: { fontSize: 18, fontFamily: typography.fonts.heading, fontWeight: '700', color: '#000' },
   btnDisabled: { opacity: 0.6 },
+  errorText: { color: '#FF2A5F', fontSize: 14, textAlign: 'center', marginBottom: 8, paddingHorizontal: 24 },
   modal: { flex: 1, backgroundColor: 'rgba(0,0,0,0.95)', justifyContent: 'center', alignItems: 'center' },
   fullscreenImage: { width: SCREEN_W, height: SCREEN_W },
 });

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Linking, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import * as Location from 'expo-location';
 import { activeDateApi } from '../../../src/services/activeDateApi';
@@ -9,6 +9,7 @@ export default function SOSScreen() {
   const { bookingId } = useLocalSearchParams<{ bookingId: string }>();
   const [alerted, setAlerted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleAlert = async () => {
     setLoading(true);
@@ -27,7 +28,7 @@ export default function SOSScreen() {
       await activeDateApi.triggerSOS(bookingId, coords);
       setAlerted(true);
     } catch (e) {
-      Alert.alert('Error', 'Failed to send alert. Please call 911 directly.');
+      setError('Failed to send alert. Please call 911 directly.');
     } finally {
       setLoading(false);
     }
@@ -50,6 +51,8 @@ export default function SOSScreen() {
       >
         <Text style={styles.callBtnText}>CALL 911</Text>
       </TouchableOpacity>
+
+      {error && <Text style={styles.errorText}>{error}</Text>}
 
       {!alerted ? (
         <TouchableOpacity
@@ -97,4 +100,5 @@ const styles = StyleSheet.create({
   confirmedSubtext: { fontSize: 14, color: colors.text, marginTop: 8, textAlign: 'center' },
   cancelBtn: { marginTop: 24, alignItems: 'center', padding: 16, borderWidth: 1, borderColor: colors.borderLight },
   cancelText: { fontSize: 16, color: colors.textMuted },
+  errorText: { color: colors.textInverse, fontSize: 14, textAlign: 'center', marginBottom: 16, backgroundColor: colors.error, padding: 12, borderWidth: 2, borderColor: colors.border },
 });

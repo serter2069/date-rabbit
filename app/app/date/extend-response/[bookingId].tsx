@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { activeDateApi, ActiveBooking } from '../../../src/services/activeDateApi';
 import { colors, typography, shadows } from '../../../src/constants/theme';
@@ -9,27 +9,35 @@ export default function ExtendResponseScreen() {
   const [booking, setBooking] = useState<ActiveBooking | null>(null);
   const [loading, setLoading] = useState(true);
   const [responding, setResponding] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   useEffect(() => {
     activeDateApi.getBookingById(bookingId)
       .then(data => setBooking(data))
-      .catch(() => Alert.alert('Error', 'Could not load booking'))
+      .catch(() => setError('Could not load booking'))
       .finally(() => setLoading(false));
   }, [bookingId]);
 
+  useEffect(() => {
+    if (successMsg) {
+      const timer = setTimeout(() => router.back(), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMsg]);
+
   const handleRespond = async (approved: boolean) => {
     setResponding(true);
+    setError(null);
     try {
       await activeDateApi.extendResponse(bookingId, approved);
-      Alert.alert(
-        approved ? 'Extension Approved' : 'Extension Declined',
+      setSuccessMsg(
         approved
-          ? `You approved extending the date by ${booking?.extendRequestedHours} hour${booking?.extendRequestedHours !== 1 ? 's' : ''}.`
-          : 'You declined the extension request.',
-        [{ text: 'OK', onPress: () => router.back() }]
+          ? `Extension approved! Date extended by ${booking?.extendRequestedHours} hour${booking?.extendRequestedHours !== 1 ? 's' : ''}.`
+          : 'Extension declined.'
       );
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Failed to respond');
+      setError(e.message || 'Failed to respond');
       setResponding(false);
     }
   };
@@ -64,6 +72,9 @@ export default function ExtendResponseScreen() {
           This will add {booking.extendRequestedHours} hour{booking.extendRequestedHours !== 1 ? 's' : ''} to your date.
         </Text>
       </View>
+
+      {error && <Text style={styles.errorText}>{error}</Text>}
+      {successMsg && <Text style={styles.successText}>{successMsg}</Text>}
 
       <View style={styles.buttonRow}>
         <TouchableOpacity
@@ -131,4 +142,6 @@ const styles = StyleSheet.create({
   noRequest: { fontSize: 18, fontFamily: typography.fonts.heading, color: colors.text, textAlign: 'center', marginBottom: 24 },
   backBtn: { alignItems: 'center', padding: 12 },
   backText: { fontSize: 16, color: colors.textMuted, textDecorationLine: 'underline' },
+  errorText: { color: colors.error, fontSize: 14, marginTop: 8, textAlign: 'center', marginBottom: 8 },
+  successText: { color: colors.success, fontSize: 14, marginTop: 8, textAlign: 'center', marginBottom: 8 },
 });

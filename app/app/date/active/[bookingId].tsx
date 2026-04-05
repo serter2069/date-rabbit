@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ScrollView, Modal } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal } from 'react-native';
 import { MessageCircle } from 'lucide-react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { activeDateApi, ActiveBooking } from '../../../src/services/activeDateApi';
@@ -23,6 +23,7 @@ export default function ActiveDateScreen() {
   const [remaining, setRemaining] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showCheckinModal, setShowCheckinModal] = useState(false);
+  const [showEndEarlyModal, setShowEndEarlyModal] = useState(false);
   const [checkinLoading, setCheckinLoading] = useState(false);
   const lastCheckinRef = useRef<number>(Date.now());
   const user = useAuthStore(s => s.user);
@@ -112,21 +113,13 @@ export default function ActiveDateScreen() {
   };
 
   const handleEndEarly = () => {
-    Alert.alert(
-      'End Date Early?',
-      'Are you sure you want to end the date now?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'End Date',
-          style: 'destructive',
-          onPress: async () => {
-            await activeDateApi.endEarly(bookingId).catch(() => {});
-            router.replace(`/date/summary/${bookingId}`);
-          },
-        },
-      ]
-    );
+    setShowEndEarlyModal(true);
+  };
+
+  const handleEndEarlyConfirm = async () => {
+    setShowEndEarlyModal(false);
+    await activeDateApi.endEarly(bookingId).catch(() => {});
+    router.replace(`/date/summary/${bookingId}`);
   };
 
   if (loading || !booking) {
@@ -190,6 +183,37 @@ export default function ActiveDateScreen() {
           </TouchableOpacity>
         ))}
       </View>
+
+      {/* End Early confirmation modal */}
+      <Modal
+        visible={showEndEarlyModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowEndEarlyModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>End Date Early?</Text>
+            <Text style={styles.modalBody}>Are you sure you want to end the date now?</Text>
+            <TouchableOpacity
+              style={styles.modalOkBtn}
+              onPress={handleEndEarlyConfirm}
+              accessibilityLabel="End date"
+              accessibilityRole="button"
+            >
+              <Text style={styles.modalOkText}>End Date</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.modalSosBtn}
+              onPress={() => setShowEndEarlyModal(false)}
+              accessibilityLabel="Cancel"
+              accessibilityRole="button"
+            >
+              <Text style={styles.modalSosText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* Safety check-in modal */}
       <Modal

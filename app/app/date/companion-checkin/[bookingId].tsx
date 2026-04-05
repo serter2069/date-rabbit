@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   Image,
   ScrollView,
 } from 'react-native';
@@ -23,6 +22,7 @@ export default function CompanionCheckinScreen() {
   const [loading, setLoading] = useState(true);
   const [checkingIn, setCheckingIn] = useState(false);
   const [step, setStep] = useState<Step>('selfie');
+  const [error, setError] = useState<string | null>(null);
 
   const [selfieUri, setSelfieUri] = useState<string | null>(null);
   const [selfieUploadStatus, setSelfieUploadStatus] = useState<'idle' | 'uploading' | 'done' | 'failed'>('idle');
@@ -65,7 +65,7 @@ export default function CompanionCheckinScreen() {
   const handleTakeSelfie = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Camera Required', 'Camera access is needed for identity verification.');
+      setError('Camera access is needed for identity verification.');
       return;
     }
     const result = await ImagePicker.launchCameraAsync({
@@ -120,6 +120,7 @@ export default function CompanionCheckinScreen() {
 
   const handleCheckin = async () => {
     setCheckingIn(true);
+    setError(null);
     try {
       const updated = await activeDateApi.companionCheckin(bookingId, coords ?? undefined);
       setBooking(updated);
@@ -129,7 +130,7 @@ export default function CompanionCheckinScreen() {
         setStep('waiting');
       }
     } catch (e: any) {
-      Alert.alert('Error', e.message || 'Check-in failed');
+      setError(e.message || 'Check-in failed');
     } finally {
       setCheckingIn(false);
     }
@@ -267,6 +268,8 @@ export default function CompanionCheckinScreen() {
         )}
       </View>
 
+      {error && <Text style={styles.errorText}>{error}</Text>}
+
       {/* Check In Button */}
       <TouchableOpacity
         style={[styles.checkinBtn, (step !== 'ready' || checkingIn) && styles.btnDisabled]}
@@ -329,4 +332,5 @@ const styles = StyleSheet.create({
   dotGreen: { backgroundColor: colors.successStrong },
   dotGray: { backgroundColor: colors.textLight },
   statusName: { fontSize: 14, fontFamily: typography.fonts.heading, marginLeft: 6, color: colors.text },
+  errorText: { color: colors.error, fontSize: 14, marginTop: 8, textAlign: 'center', marginBottom: 8 },
 });
