@@ -1,0 +1,177 @@
+import React, { useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+} from 'react-native';
+import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
+import { Button } from '../../src/components/Button';
+import { Icon } from '../../src/components/Icon';
+import { colors, spacing, typography, borderRadius, PAGE_PADDING } from '../../src/constants/theme';
+
+export default function CompanionApprovedScreen() {
+  const insets = useSafeAreaInsets();
+
+  const checkScale = useSharedValue(0);
+  const checkOpacity = useSharedValue(0);
+  const ringScale = useSharedValue(0.5);
+  const ringOpacity = useSharedValue(0);
+  const textOpacity = useSharedValue(0);
+  const textTranslateY = useSharedValue(20);
+
+  useEffect(() => {
+    ringScale.value = withSpring(1, { damping: 12, stiffness: 150 });
+    ringOpacity.value = withTiming(1, { duration: 400 });
+
+    checkScale.value = withDelay(
+      300,
+      withSpring(1, { damping: 10, stiffness: 200 })
+    );
+    checkOpacity.value = withDelay(300, withTiming(1, { duration: 300 }));
+
+    textOpacity.value = withDelay(600, withTiming(1, { duration: 400 }));
+    textTranslateY.value = withDelay(
+      600,
+      withSpring(0, { damping: 15, stiffness: 200 })
+    );
+  }, [checkScale, checkOpacity, ringScale, ringOpacity, textOpacity, textTranslateY]);
+
+  const ringStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: ringScale.value }],
+    opacity: ringOpacity.value,
+  }));
+
+  const checkStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: checkScale.value }],
+    opacity: checkOpacity.value,
+  }));
+
+  const textStyle = useAnimatedStyle(() => ({
+    opacity: textOpacity.value,
+    transform: [{ translateY: textTranslateY.value }],
+  }));
+
+  const handleGetStarted = () => {
+    router.replace('/(tabs)/female');
+  };
+
+  return (
+    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+      <View style={styles.content}>
+        <Animated.View style={[styles.ringContainer, ringStyle]}>
+          <Animated.View style={[styles.checkContainer, checkStyle]}>
+            <Icon name="check" size={48} color={colors.white} strokeWidth={2.5} />
+          </Animated.View>
+        </Animated.View>
+
+        <Animated.View style={[styles.textContainer, textStyle]}>
+          <Text style={styles.title}>You're Approved!</Text>
+          <Text style={styles.description}>
+            Your companion profile has been verified. You're now ready to receive bookings.
+          </Text>
+
+          <View style={styles.featuresRow}>
+            <View style={styles.featureItem}>
+              <Icon name="star" size={20} color={colors.primary} />
+              <Text style={styles.featureText}>Get bookings</Text>
+            </View>
+            <View style={styles.featureItem}>
+              <Icon name="message-circle" size={20} color={colors.primary} />
+              <Text style={styles.featureText}>Message</Text>
+            </View>
+            <View style={styles.featureItem}>
+              <Icon name="calendar" size={20} color={colors.primary} />
+              <Text style={styles.featureText}>Manage dates</Text>
+            </View>
+          </View>
+        </Animated.View>
+      </View>
+
+      <View style={[styles.footer, { paddingHorizontal: PAGE_PADDING }]}>
+        <Button
+          title="Get Started"
+          onPress={handleGetStarted}
+          variant="pink"
+          fullWidth
+          size="lg"
+          testID="companion-approved-get-started-btn"
+        />
+      </View>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  content: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.xl,
+  },
+  ringContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.primary,
+    borderWidth: 3,
+    borderColor: colors.black,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.xl,
+    shadowColor: '#000000',
+    shadowOffset: { width: 6, height: 6 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 6,
+  },
+  checkContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  textContainer: {
+    alignItems: 'center',
+  },
+  title: {
+    fontFamily: typography.fonts.heading,
+    fontSize: typography.sizes.xxl,
+    color: colors.text,
+    textAlign: 'center',
+    marginBottom: spacing.md,
+  },
+  description: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.md,
+    color: colors.textMuted,
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: spacing.xl,
+  },
+  featuresRow: {
+    flexDirection: 'row',
+    gap: spacing.xl,
+  },
+  featureItem: {
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  featureText: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.xs,
+    color: colors.textMuted,
+  },
+  footer: {
+    paddingBottom: spacing.xl,
+  },
+});

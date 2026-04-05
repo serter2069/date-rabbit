@@ -17,6 +17,7 @@ export default function CompOnboardLayout() {
       <Stack.Screen name="video" />
       <Stack.Screen name="refs" />
       <Stack.Screen name="pending" />
+      <Stack.Screen name="approved" />
     </Stack>
   );
 }

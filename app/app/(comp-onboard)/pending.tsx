@@ -36,7 +36,7 @@ export default function CompPendingScreen() {
   useEffect(() => {
     if (status === 'approved') {
       if (intervalRef.current) clearInterval(intervalRef.current);
-      router.replace('/(tabs)/female');
+      router.replace('/(comp-onboard)/approved');
     } else if (status === 'rejected') {
       if (intervalRef.current) clearInterval(intervalRef.current);
       // Stay on screen, show rejection state
