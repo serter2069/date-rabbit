@@ -471,6 +471,22 @@ export class BookingsController {
     return this.formatBooking(booking);
   }
 
+  // --- UC-2070: No-show report (companion-initiated) ---
+
+  @Post(':id/report-no-show')
+  async reportNoShow(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Request() req,
+    @Body() body: { reason?: string },
+  ) {
+    const booking = await this.bookingsService.reportNoShow(id, req.user.id, body.reason);
+    // Fire-and-forget: apply 50% tiered refund to seeker
+    this.paymentsService.tieredRefund(id, 50).catch(err =>
+      console.error('Stripe tiered refund error for no-show booking', id, err),
+    );
+    return this.formatBooking(booking);
+  }
+
   private formatBooking(booking: any) {
     return {
       id: booking.id,

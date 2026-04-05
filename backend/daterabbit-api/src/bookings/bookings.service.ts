@@ -484,6 +484,56 @@ export class BookingsService {
     return (await this.findById(bookingId))!;
   }
 
+  /**
+   * UC-2070: Companion-initiated no-show report.
+   * Companion reports that the seeker did not show up.
+   * Guards: booking must be CONFIRMED/PAID, seeker must not have checked in,
+   * date must have started (dateTime < now) but within 6h window.
+   * Updates booking to CANCELLED with 50% refund split.
+   */
+  async reportNoShow(bookingId: string, companionId: string, reason?: string): Promise<Booking> {
+    const booking = await this.findById(bookingId);
+    if (!booking) throw new HttpException('Booking not found', HttpStatus.NOT_FOUND);
+
+    if (booking.companionId !== companionId) {
+      throw new HttpException('Unauthorized', HttpStatus.FORBIDDEN);
+    }
+
+    if (booking.status !== BookingStatus.CONFIRMED && booking.status !== BookingStatus.PAID) {
+      throw new HttpException('Booking is not in a payable state', HttpStatus.BAD_REQUEST);
+    }
+
+    if (booking.seekerCheckinAt !== null && booking.seekerCheckinAt !== undefined) {
+      throw new HttpException('Seeker already checked in', HttpStatus.BAD_REQUEST);
+    }
+
+    const now = new Date();
+    const bookingTime = new Date(booking.dateTime);
+
+    if (bookingTime >= now) {
+      throw new HttpException('Date has not started yet', HttpStatus.BAD_REQUEST);
+    }
+
+    const sixHoursAgo = new Date(now.getTime() - 6 * 60 * 60 * 1000);
+    if (bookingTime < sixHoursAgo) {
+      throw new HttpException('Report window expired', HttpStatus.BAD_REQUEST);
+    }
+
+    const cancellationReason = reason
+      ? sanitizeText(reason)
+      : 'seeker no-show reported by companion';
+
+    await this.bookingsRepository.update(bookingId, {
+      status: BookingStatus.CANCELLED,
+      noShowReason: 'seeker',
+      cancelledByUserId: companionId,
+      refundPercent: 50,
+      cancellationReason,
+    });
+
+    return (await this.findById(bookingId))!;
+  }
+
   async getActiveDateBooking(userId: string): Promise<Booking | null> {
     return this.bookingsRepository.findOne({
       where: [
