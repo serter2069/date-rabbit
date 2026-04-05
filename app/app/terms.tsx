@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from '../src/components/Icon';
@@ -23,50 +23,60 @@ export default function TermsScreen() {
         style={styles.scrollView}
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + spacing.xl }]}
       >
-        <Text style={[styles.lastUpdated, { color: colors.textSecondary }]}>Last updated: February 2026</Text>
+        <Text style={[styles.lastUpdated, { color: colors.textSecondary }]}>Last updated: April 2026</Text>
 
         <Section title="1. Acceptance of Terms" colors={colors}>
-          By accessing or using DateRabbit ("the Platform"), you agree to be bound by these Terms of Service. If you do not agree, do not use the Platform.
+          By accessing or using DateRabbit ("the Platform," "we," "us," or "our"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms in their entirety, you must not access or use the Platform. These Terms constitute a legally binding agreement between you and DateRabbit, Inc., a Delaware corporation.
         </Section>
 
         <Section title="2. Eligibility" colors={colors}>
-          You must be at least 18 years old to use DateRabbit. By registering, you confirm that you meet this age requirement and that all information you provide is accurate.
+          You must be at least 18 years of age to use DateRabbit. Seekers (users who book Companions) must be at least 21 years of age and complete government-issued ID verification before their first booking. The Platform is available only to residents of the United States. By registering, you represent and warrant that you meet all eligibility requirements and that all information you provide is accurate, current, and complete.
         </Section>
 
-        <Section title="3. Account Registration" colors={colors}>
-          You are responsible for maintaining the confidentiality of your account credentials. You agree to notify us immediately of any unauthorized use of your account.
+        <Section title="3. Platform Description" colors={colors}>
+          DateRabbit is a paid companion platform that connects Seekers with Companions for in-person social and dating experiences in the United States. Seekers are users who pay to book time with Companions. Companions are users who set their own rates and availability and earn income through the Platform. DateRabbit facilitates bookings, handles payments via Stripe, and provides safety tools — but is not a party to any arrangement, agreement, or interaction between users.
         </Section>
 
-        <Section title="4. Platform Services" colors={colors}>
-          DateRabbit connects seekers with companions for social experiences. The Platform facilitates bookings, payments, and communication between users. DateRabbit is not a party to any arrangement between users.
+        <Section title="4. User Roles" colors={colors}>
+          Seekers: Browse Companion profiles, book sessions, and pay through the Platform. Seekers must complete ID verification (Stripe Identity) before their first booking. Cancellation policies apply per each booking as disclosed at checkout.
+
+          Companions: Set hourly rates, availability, and session preferences. Companions must complete identity verification (government ID + selfie) before accepting bookings. Companions are independent contractors, not employees of DateRabbit.
         </Section>
 
-        <Section title="5. Companion Guidelines" colors={colors}>
-          Companions set their own hourly rates and availability. Companions must complete identity verification before accepting bookings. All interactions must remain respectful and within legal boundaries.
+        <Section title="5. Payments & Platform Fee" colors={colors}>
+          All payments are processed securely via Stripe. DateRabbit charges a 15% platform service fee on each booking, deducted from the Companion's earnings. Seekers are charged the full booking amount at the time of booking. Companions receive payouts within 2 business days of a completed date, subject to Stripe's payout schedule. No cash exchanges between users are permitted. Circumventing the Platform's payment system is grounds for immediate account termination.
         </Section>
 
-        <Section title="6. Seeker Guidelines" colors={colors}>
-          Seekers must complete identity verification before booking. Cancellation policies apply as described in each booking. Harassment or inappropriate behavior will result in account termination.
+        <Section title="6. Prohibited Conduct" colors={colors}>
+          Users are strictly prohibited from: (a) soliciting, facilitating, or engaging in any form of sexual services or sex work; (b) exchanging money outside the Platform; (c) harassing, threatening, or discriminating against other users; (d) creating fake accounts or misrepresenting identity; (e) sharing another user's personal information without consent; (f) using the Platform for any illegal activity; (g) attempting to circumvent safety or verification systems; or (h) violating any applicable federal, state, or local law. Violations will result in immediate account suspension and may be reported to law enforcement.
         </Section>
 
-        <Section title="7. Payments & Fees" colors={colors}>
-          A 15% service fee is applied to all bookings. Payments are processed securely through Stripe. Refunds are handled on a case-by-case basis according to our cancellation policy.
+        <Section title="7. Identity Verification" colors={colors}>
+          DateRabbit uses Stripe Identity for identity verification. By submitting verification documents, you consent to Stripe's processing of your personal data per Stripe's Privacy Policy. DateRabbit does not store raw ID images after verification is complete. Falsifying identity documents or providing false information during verification is a violation of these Terms and may constitute a federal crime.
         </Section>
 
-        <Section title="8. Prohibited Conduct" colors={colors}>
-          Users may not: solicit illegal activities, harass other users, create fake accounts, circumvent Platform payments, or share another user's personal information without consent.
+        <Section title="8. Safety & Reporting" colors={colors}>
+          DateRabbit provides in-app safety tools including safety check-ins and an SOS feature during active bookings. Users are encouraged to meet in public places and share date details with trusted contacts. Any user who experiences or witnesses unsafe behavior must report it immediately via the in-app report function. DateRabbit reviews all reports within 24 hours. Serious safety violations result in immediate account suspension.
         </Section>
 
         <Section title="9. Account Termination" colors={colors}>
-          We reserve the right to suspend or terminate accounts that violate these Terms. You may delete your account at any time through the Settings page.
+          DateRabbit reserves the right to suspend, restrict, or permanently terminate any account at our sole discretion, with or without notice, for violation of these Terms or for any conduct we deem harmful to the Platform or its users. You may delete your account at any time through Settings. Upon deletion, your data is removed within 30 days in accordance with our Privacy Policy.
         </Section>
 
-        <Section title="10. Limitation of Liability" colors={colors}>
-          DateRabbit is not liable for any interactions between users. We provide the Platform "as is" without warranties of any kind.
+        <Section title="10. Disclaimers & Limitation of Liability" colors={colors}>
+          The Platform is provided "as is" without warranties of any kind, express or implied. DateRabbit is not responsible for the conduct, actions, or safety of any user. To the maximum extent permitted by law, DateRabbit's liability to you for any claim arising out of these Terms or your use of the Platform shall not exceed the greater of $100 or the amount you paid to DateRabbit in the past 12 months. DateRabbit is not liable for indirect, incidental, punitive, or consequential damages.
         </Section>
 
-        <Section title="11. Contact" colors={colors}>
-          For questions about these Terms, contact us at support@daterabbit.com.
+        <Section title="11. Dispute Resolution & Governing Law" colors={colors}>
+          These Terms are governed by and construed in accordance with the laws of the State of Delaware, without regard to conflict of law principles. Any disputes arising out of or relating to these Terms or the Platform shall first be submitted to DateRabbit's in-app dispute resolution system. Unresolved disputes shall be settled by binding individual arbitration in Wilmington, Delaware, under the rules of the American Arbitration Association. You waive the right to participate in class action lawsuits.
+        </Section>
+
+        <Section title="12. Changes to Terms" colors={colors}>
+          We may update these Terms at any time. Continued use of the Platform after changes constitutes acceptance of the updated Terms. Material changes will be communicated via email or in-app notification at least 14 days before taking effect.
+        </Section>
+
+        <Section title="13. Contact" colors={colors}>
+          {'DateRabbit, Inc. (Delaware)\nFor questions about these Terms: legal@daterabbit.app\nFor general support: support@daterabbit.app'}
         </Section>
       </ScrollView>
     </View>
