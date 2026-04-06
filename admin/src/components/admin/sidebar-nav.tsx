@@ -9,6 +9,7 @@ import {
   CreditCard,
   ShieldCheck,
   Star,
+  AlertTriangle,
   Settings,
   Rabbit,
 } from 'lucide-react';
@@ -21,6 +22,7 @@ const navItems = [
   { href: '/payments', label: 'Payments', icon: CreditCard },
   { href: '/verifications', label: 'Verifications', icon: ShieldCheck },
   { href: '/reviews', label: 'Reviews', icon: Star },
+  { href: '/disputes', label: 'Disputes', icon: AlertTriangle },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
 
