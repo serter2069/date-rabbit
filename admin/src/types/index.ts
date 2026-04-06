@@ -106,6 +106,32 @@ export interface Review {
   createdAt: string;
 }
 
+// Dispute types
+export type DisputeStatus = 'open' | 'under_review' | 'resolved' | 'closed';
+
+export interface Dispute {
+  id: string;
+  bookingId: string;
+  booking: {
+    id: string;
+    activity: string;
+    scheduledAt: string;
+    totalPrice: number;
+    seekerId: string;
+    companionId: string;
+    seeker: Pick<User, 'id' | 'name' | 'email' | 'avatarUrl'>;
+    companion: Pick<User, 'id' | 'name' | 'email' | 'avatarUrl'>;
+  };
+  openedByUserId: string;
+  openedByUser: Pick<User, 'id' | 'name' | 'email' | 'avatarUrl'>;
+  reason: string;
+  status: DisputeStatus;
+  adminNote: string | null;
+  resolvedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // Settings types
 export interface PlatformSettings {
   platformFeePercent: number;

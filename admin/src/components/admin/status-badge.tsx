@@ -28,6 +28,12 @@ const statusConfig: Record<string, { label: string; variant: 'default' | 'second
 
   // Transaction statuses
   FAILED: { label: 'Failed', variant: 'destructive' },
+
+  // Dispute statuses (lowercase from backend)
+  open: { label: 'Open', variant: 'secondary' },
+  under_review: { label: 'Under Review', variant: 'outline' },
+  resolved: { label: 'Resolved', variant: 'default' },
+  closed: { label: 'Closed', variant: 'secondary' },
 };
 
 export function StatusBadge({ status }: StatusBadgeProps) {

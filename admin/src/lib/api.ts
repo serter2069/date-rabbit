@@ -6,6 +6,8 @@ import {
   Transaction,
   VerificationSubmission,
   Review,
+  Dispute,
+  DisputeStatus,
   PlatformSettings,
   PaginatedResponse,
   DashboardStats,
@@ -202,6 +204,34 @@ class ApiClient {
 
   async deleteReview(id: string): Promise<void> {
     await this.client.delete(`/admin/reviews/${id}`);
+  }
+
+  // Disputes
+  async getDisputes(params: {
+    page?: number;
+    limit?: number;
+    status?: DisputeStatus | 'ALL';
+  }): Promise<PaginatedResponse<Dispute>> {
+    const { status, ...rest } = params;
+    const res = await this.client.get<{ items: Dispute[]; total: number; page: number; limit: number }>(
+      '/admin/disputes',
+      { params: { ...rest, status: status && status !== 'ALL' ? status : undefined } },
+    );
+    const { items, total, page, limit } = res.data;
+    return { data: items, total, page, limit, totalPages: Math.ceil(total / (limit || 20)) };
+  }
+
+  async getDisputeById(id: string): Promise<Dispute> {
+    const res = await this.client.get<Dispute>(`/admin/disputes/${id}`);
+    return res.data;
+  }
+
+  async resolveDispute(
+    id: string,
+    body: { status: 'resolved' | 'closed'; adminNote?: string },
+  ): Promise<Dispute> {
+    const res = await this.client.patch<Dispute>(`/admin/disputes/${id}/resolve`, body);
+    return res.data;
   }
 
   // Settings
