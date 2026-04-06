@@ -355,7 +355,7 @@ const styles = StyleSheet.create({
     paddingLeft: 12,
     borderLeftWidth: 3,
     borderLeftColor: colors.primary,
-    backgroundColor: '#F9F6F1',
+    backgroundColor: colors.backgroundWarm,
     padding: 12,
   },
   replyLabel: {
@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
   },
   replyDate: {
     fontSize: 12,
-    color: '#888',
+    color: colors.textLight,
     marginBottom: 6,
   },
   replyText: {

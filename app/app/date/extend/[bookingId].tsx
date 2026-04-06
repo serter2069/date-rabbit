@@ -91,7 +91,7 @@ export default function ExtendDateScreen() {
             <Text style={styles.sentSubtext}>Your date has been extended by {formatHoursDuration(selected)}.</Text>
           </View>
         ) : responseStatus === 'rejected' ? (
-          <View style={[styles.sentCard, { backgroundColor: '#FF5A85' }]}>
+          <View style={[styles.sentCard, { backgroundColor: colors.primaryLight }]}>
             <Text style={styles.sentText}>Request Declined</Text>
             <Text style={styles.sentSubtext}>The companion declined the extension request.</Text>
           </View>
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
   button: { backgroundColor: colors.primary, borderWidth: 2, borderColor: '#000', paddingVertical: 18, alignItems: 'center', shadowOffset: { width: 4, height: 4 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
   buttonDisabled: { opacity: 0.6 },
   buttonText: { fontSize: 20, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.white },
-  sentCard: { backgroundColor: '#FF5A85', borderWidth: 2, borderColor: '#000', padding: 24, alignItems: 'center', shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
+  sentCard: { backgroundColor: colors.primaryLight, borderWidth: 2, borderColor: '#000', padding: 24, alignItems: 'center', shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
   sentText: { fontSize: 22, fontFamily: typography.fonts.heading, fontWeight: '700', color: '#000' },
   sentSubtext: { fontSize: 14, color: '#000', marginTop: 8, textAlign: 'center' },
   backBtn: { marginTop: 24, alignItems: 'center', padding: 12 },

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Animated, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNetworkStore } from '../store/networkStore';
+import { colors } from '../constants/theme';
 
 const BANNER_HEIGHT = 40;
 const BACK_ONLINE_DURATION = 2000;
@@ -79,7 +80,7 @@ export function OfflineBanner() {
       pointerEvents="none"
     >
       <View style={styles.content}>
-        <View style={[styles.dot, { backgroundColor: showBackOnline && !isOffline ? '#6EE7A0' : '#FF6B6B' }]} />
+        <View style={[styles.dot, { backgroundColor: showBackOnline && !isOffline ? '#6EE7A0' : colors.error }]} />
         <Text style={styles.text}>{message}</Text>
       </View>
     </Animated.View>
