@@ -3,6 +3,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { BookingsService } from './bookings.service';
 import { PaymentsService } from '../payments/payments.service';
 import { UploadsService } from '../uploads/uploads.service';
+import { UsersService } from '../users/users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { BookingStatus, ActivityType } from './entities/booking.entity';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -17,6 +18,7 @@ export class BookingsController {
     private paymentsService: PaymentsService,
     private notificationsService: NotificationsService,
     private uploadsService: UploadsService,
+    private usersService: UsersService,
     @Inject(forwardRef(() => ReviewsService))
     private reviewsService: ReviewsService,
   ) {}
@@ -76,6 +78,21 @@ export class BookingsController {
       notes: body.notes,
       packageId: body.packageId,
     });
+
+    // Event 1: Notify companion about new booking request (fire-and-forget)
+    this.usersService.findById(body.companionId).then((companion) => {
+      if (!companion) return;
+      this.notificationsService.create({
+        userId: companion.id,
+        type: NotificationType.BOOKING_NEW,
+        title: 'New Booking Request',
+        body: `${req.user.name || 'Someone'} wants to book you for ${body.activity}.`,
+        data: { bookingId: booking.id, seekerId: req.user.id },
+        pushToken: companion.expoPushToken,
+        notificationPreferences: companion.notificationPreferences,
+        notificationsEnabled: companion.notificationsEnabled,
+      }).catch(() => undefined);
+    }).catch(() => undefined);
 
     return booking;
   }
@@ -196,6 +213,22 @@ export class BookingsController {
       );
     }
     const updated = await this.bookingsService.confirm(id);
+
+    // Event 2: Notify seeker that booking was confirmed (fire-and-forget)
+    this.usersService.findById(booking.seekerId).then((seeker) => {
+      if (!seeker) return;
+      this.notificationsService.create({
+        userId: seeker.id,
+        type: NotificationType.BOOKING_CONFIRMED,
+        title: 'Booking Confirmed',
+        body: `${booking.companion?.name || 'Your companion'} confirmed your booking request.`,
+        data: { bookingId: booking.id, companionId: booking.companionId },
+        pushToken: seeker.expoPushToken,
+        notificationPreferences: seeker.notificationPreferences,
+        notificationsEnabled: seeker.notificationsEnabled,
+      }).catch(() => undefined);
+    }).catch(() => undefined);
+
     return this.formatBooking(updated);
   }
 
@@ -259,7 +292,8 @@ export class BookingsController {
     // UC-051: Notify the other party about cancellation
     const isCompanionCancelling = booking.companionId === req.user.id;
     if (isCompanionCancelling) {
-      // Companion declined -> notify seeker
+      // Event 3: Companion declined -> notify seeker (with push)
+      const seeker = await this.usersService.findById(booking.seekerId);
       await this.notificationsService.create({
         userId: booking.seekerId,
         type: NotificationType.BOOKING_DECLINED,
@@ -271,9 +305,13 @@ export class BookingsController {
           companionName: booking.companion?.name,
           reason: body.reason,
         },
+        pushToken: seeker?.expoPushToken,
+        notificationPreferences: seeker?.notificationPreferences,
+        notificationsEnabled: seeker?.notificationsEnabled,
       });
     } else {
-      // Seeker cancelled -> notify companion
+      // Seeker cancelled -> notify companion (with push)
+      const companion = await this.usersService.findById(booking.companionId);
       await this.notificationsService.create({
         userId: booking.companionId,
         type: NotificationType.BOOKING_CANCELLED,
@@ -285,6 +323,9 @@ export class BookingsController {
           seekerName: booking.seeker?.name,
           reason: body.reason,
         },
+        pushToken: companion?.expoPushToken,
+        notificationPreferences: companion?.notificationPreferences,
+        notificationsEnabled: companion?.notificationsEnabled,
       });
     }
 

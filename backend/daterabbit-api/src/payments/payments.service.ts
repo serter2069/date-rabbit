@@ -6,6 +6,8 @@ import Stripe from 'stripe';
 import { User, UserRole } from '../users/entities/user.entity';
 import { Booking, BookingStatus } from '../bookings/entities/booking.entity';
 import { PlatformSettings } from '../admin/entities/platform-settings.entity';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '../notifications/entities/notification.entity';
 
 @Injectable()
 export class PaymentsService {
@@ -19,6 +21,7 @@ export class PaymentsService {
     private bookingsRepo: Repository<Booking>,
     @InjectRepository(PlatformSettings)
     private settingsRepo: Repository<PlatformSettings>,
+    private notificationsService: NotificationsService,
   ) {
     const secretKey = this.configService.get('STRIPE_SECRET_KEY');
     if (secretKey) {
@@ -480,6 +483,18 @@ export class PaymentsService {
       { amount: payoutCents, currency: 'usd' },
       { stripeAccount: user.stripeAccountId },
     );
+
+    // Event 5: Notify companion that payout was processed (fire-and-forget)
+    this.notificationsService.create({
+      userId,
+      type: NotificationType.PAYOUT_PROCESSED,
+      title: 'Payout Initiated',
+      body: `Your payout of $${(payoutCents / 100).toFixed(2)} has been initiated and is on its way.`,
+      data: { payoutId: payout.id, amount: payoutCents / 100 },
+      pushToken: user.expoPushToken,
+      notificationPreferences: user.notificationPreferences,
+      notificationsEnabled: user.notificationsEnabled,
+    }).catch(() => undefined);
 
     return {
       success: true,
