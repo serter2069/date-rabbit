@@ -1,11 +1,25 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+import { getDataSourceToken } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 import { AppModule } from './app.module';
+import { runRefreshTokensMigration } from './auth/migrations/create-refresh-tokens';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     rawBody: true,
   });
+
+  // Run idempotent bootstrap migration for refresh_tokens table
+  // Required because synchronize=false in production
+  try {
+    const dataSource = app.get<DataSource>(getDataSourceToken());
+    await runRefreshTokensMigration(dataSource);
+    console.log('refresh_tokens migration: OK');
+  } catch (err) {
+    console.error('refresh_tokens migration failed:', err);
+    // Non-fatal: app still starts, but refresh tokens won't work until fixed
+  }
 
   // Enable CORS
   const corsOrigins = ['https://daterabbit.smartlaunchhub.com'];
@@ -28,6 +42,6 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3000;
   await app.listen(port);
-  console.log(`🚀 DateRabbit API running on port ${port}`);
+  console.log(`DateRabbit API running on port ${port}`);
 }
 bootstrap();
