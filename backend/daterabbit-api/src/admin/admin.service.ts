@@ -392,8 +392,8 @@ export class AdminService {
       settings.requirePhotoForCompanion = data.requirePhotoForCompanion;
     }
     if (data.minimumAge !== undefined) {
-      if (data.minimumAge < 18) {
-        throw new BadRequestException('Minimum age cannot be less than 18');
+      if (data.minimumAge < 21) {
+        throw new BadRequestException('Minimum age cannot be less than 21');
       }
       settings.minimumAge = data.minimumAge;
     }
