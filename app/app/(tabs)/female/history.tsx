@@ -10,11 +10,11 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Card } from '../../../../src/components/Card';
-import { UserImage } from '../../../../src/components/UserImage';
-import { Icon } from '../../../../src/components/Icon';
-import { useTheme, spacing, typography, borderRadius } from '../../../../src/constants/theme';
-import { bookingsApi, Booking } from '../../../../src/services/api';
+import { Card } from '../../../src/components/Card';
+import { UserImage } from '../../../src/components/UserImage';
+import { Icon } from '../../../src/components/Icon';
+import { useTheme, spacing, typography, borderRadius } from '../../../src/constants/theme';
+import { bookingsApi, Booking } from '../../../src/services/api';
 
 export default function CompanionHistoryScreen() {
   const insets = useSafeAreaInsets();
