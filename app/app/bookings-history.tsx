@@ -10,13 +10,13 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Card } from '../../../../src/components/Card';
-import { UserImage } from '../../../../src/components/UserImage';
-import { Icon } from '../../../../src/components/Icon';
-import { useTheme, spacing, typography, borderRadius } from '../../../../src/constants/theme';
-import { bookingsApi, Booking } from '../../../../src/services/api';
+import { Card } from '../src/components/Card';
+import { UserImage } from '../src/components/UserImage';
+import { Icon } from '../src/components/Icon';
+import { useTheme, spacing, typography, borderRadius } from '../src/constants/theme';
+import { bookingsApi, Booking } from '../src/services/api';
 
-export default function EarningsHistoryScreen() {
+export default function BookingsHistoryScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { colors } = useTheme();
@@ -45,7 +45,7 @@ export default function EarningsHistoryScreen() {
         setBookings((prev) => [...prev, ...fetched]);
       }
 
-      // getMyBookings returns total items — derive pages with page size 20
+      // getMyBookings returns total items — derive pages at page size 20
       const pages = Math.max(1, Math.ceil(response.total / 20));
       setTotalPages(pages);
       setPage(pageNum);
@@ -75,16 +75,18 @@ export default function EarningsHistoryScreen() {
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString(undefined, {
+      weekday: 'short',
       month: 'short',
       day: 'numeric',
       year: 'numeric',
     });
   };
 
-  const getStatusStyle = (status: string) => {
+  const getStatusStyle = (status: string, noShowReason?: string) => {
+    if (noShowReason) return { bg: colors.error + '20', text: colors.error };
     switch (status) {
       case 'completed':
-        return { bg: colors.success + '20', text: colors.success };
+        return { bg: colors.primary + '20', text: colors.primary };
       case 'cancelled':
         return { bg: colors.error + '20', text: colors.error };
       case 'active':
@@ -95,21 +97,28 @@ export default function EarningsHistoryScreen() {
   };
 
   const renderItem = ({ item }: { item: Booking }) => {
-    const seeker = item.seeker ?? { name: 'Unknown', photo: undefined };
-    const statusStyle = getStatusStyle(item.status);
+    const rawCompanion = item.companion;
+    const companion =
+      rawCompanion && rawCompanion.name
+        ? rawCompanion
+        : { name: 'Unknown', photo: null, rating: 0, id: '' };
+    const statusStyle = getStatusStyle(item.status, item.noShowReason);
+    const statusLabel = item.noShowReason ? 'no show' : item.status;
 
     return (
       <TouchableOpacity
         onPress={() => router.push(`/booking/${item.id}`)}
         activeOpacity={0.85}
         accessibilityRole="button"
-        accessibilityLabel={`View date with ${seeker.name}`}
+        accessibilityLabel={`View booking with ${companion.name}`}
       >
         <Card style={styles.card}>
           <View style={styles.cardRow}>
-            <UserImage name={seeker.name} uri={seeker.photo} size={48} />
+            <UserImage name={companion.name} uri={companion.photo} size={52} showVerified />
             <View style={styles.cardInfo}>
-              <Text style={[styles.seekerName, { color: colors.text }]}>{seeker.name}</Text>
+              <Text style={[styles.companionName, { color: colors.text }]}>
+                {companion.name}
+              </Text>
               <Text style={[styles.activity, { color: colors.textSecondary }]}>
                 {item.activity || 'Date'} • {item.duration || 1}h
               </Text>
@@ -118,12 +127,12 @@ export default function EarningsHistoryScreen() {
               </Text>
             </View>
             <View style={styles.cardRight}>
-              <Text style={[styles.earnings, { color: colors.success }]}>
-                +${(item.companionEarnings ?? 0).toFixed(2)}
+              <Text style={[styles.amount, { color: colors.text }]}>
+                ${item.total}
               </Text>
               <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
                 <Text style={[styles.statusText, { color: statusStyle.text }]}>
-                  {item.status}
+                  {statusLabel}
                 </Text>
               </View>
             </View>
@@ -147,9 +156,9 @@ export default function EarningsHistoryScreen() {
     return (
       <View style={styles.emptyContainer}>
         <Icon name="calendar" size={64} color={colors.textSecondary} />
-        <Text style={[styles.emptyTitle, { color: colors.text }]}>No past dates yet</Text>
+        <Text style={[styles.emptyTitle, { color: colors.text }]}>No past bookings</Text>
         <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-          Your completed dates will appear here
+          Your date history will appear here
         </Text>
       </View>
     );
@@ -166,7 +175,7 @@ export default function EarningsHistoryScreen() {
         >
           <Icon name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.title, { color: colors.text }]}>Date History</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Booking History</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -239,7 +248,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: spacing.md,
   },
-  seekerName: {
+  companionName: {
     fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.md,
   },
@@ -256,7 +265,7 @@ const styles = StyleSheet.create({
   cardRight: {
     alignItems: 'flex-end',
   },
-  earnings: {
+  amount: {
     fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.md,
   },
