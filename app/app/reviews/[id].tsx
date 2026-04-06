@@ -151,7 +151,7 @@ function ReviewCard({
               disabled={submitting || !replyDraft.trim()}
             >
               {submitting ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <ActivityIndicator size="small" color={colors.white} />
               ) : (
                 <Text style={styles.submitButtonText}>Submit</Text>
               )}
@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderWidth: 2,
     borderColor: '#000',
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
   },
   replyButtonText: {
     fontSize: 14,
@@ -401,7 +401,7 @@ const styles = StyleSheet.create({
     color: '#000',
     minHeight: 80,
     textAlignVertical: 'top',
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
   },
   replyFormActions: {
     flexDirection: 'row',
@@ -414,7 +414,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderWidth: 2,
     borderColor: '#000',
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
   },
   cancelButtonText: {
     fontSize: 14,
@@ -431,6 +431,6 @@ const styles = StyleSheet.create({
   submitButtonText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#fff',
+    color: colors.white,
   },
 });

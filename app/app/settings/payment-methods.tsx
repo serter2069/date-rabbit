@@ -15,7 +15,7 @@ import { Card } from '../../src/components/Card';
 import { Button } from '../../src/components/Button';
 import { StripeSetupForm } from '../../src/components/StripeSetupForm';
 import { paymentsApi, ApiError } from '../../src/services/api';
-import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
+import { useTheme, colors, spacing, typography, borderRadius } from '../../src/constants/theme';
 import { showAlert } from '../../src/utils/alert';
 
 interface SavedCard {
@@ -499,27 +499,27 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     marginBottom: spacing.md,
     borderWidth: 2,
-    borderColor: '#000000',
+    borderColor: colors.border,
     borderRadius: borderRadius.md,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
   },
   errorText: {
     fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
-    color: '#FF2A5F',
+    color: colors.primary,
     flex: 1,
   },
   retryButton: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderWidth: 2,
-    borderColor: '#000000',
+    borderColor: colors.border,
     borderRadius: borderRadius.sm,
     marginLeft: spacing.sm,
   },
   retryText: {
     fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.sm,
-    color: '#FF2A5F',
+    color: colors.primary,
   },
 });

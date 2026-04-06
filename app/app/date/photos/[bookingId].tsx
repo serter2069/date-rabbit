@@ -75,7 +75,7 @@ export default function DatePhotosScreen() {
         }
         ListEmptyComponent={
           loading ? (
-            <ActivityIndicator color="#FF2A5F" size="large" style={{ marginTop: 60 }} />
+            <ActivityIndicator color={colors.primary} size="large" style={{ marginTop: 60 }} />
           ) : (
             <View style={styles.empty}>
               <Text style={styles.emptyTitle}>No photos yet</Text>
@@ -134,7 +134,7 @@ export default function DatePhotosScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F0EA' },
+  container: { flex: 1, backgroundColor: colors.background },
   list: { padding: 24, paddingBottom: 100 },
   title: { fontSize: 28, fontFamily: typography.fonts.heading, fontWeight: '700', color: '#000', marginBottom: 20 },
   row: { justifyContent: 'space-between', marginBottom: 12 },
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
   },
   addBtnText: { fontSize: 18, fontFamily: typography.fonts.heading, fontWeight: '700', color: '#000' },
   btnDisabled: { opacity: 0.6 },
-  errorText: { color: '#FF2A5F', fontSize: 14, textAlign: 'center', marginBottom: 8, paddingHorizontal: 24 },
+  errorText: { color: colors.primary, fontSize: 14, textAlign: 'center', marginBottom: 8, paddingHorizontal: 24 },
   modal: { flex: 1, backgroundColor: 'rgba(0,0,0,0.95)', justifyContent: 'center', alignItems: 'center' },
   fullscreenImage: { width: SCREEN_W, height: SCREEN_W },
 });

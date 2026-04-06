@@ -98,9 +98,9 @@ export default function ReportIssueScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F0EA' },
+  container: { flex: 1, backgroundColor: colors.background },
   content: { padding: 24 },
-  center: { flex: 1, backgroundColor: '#F4F0EA', justifyContent: 'center', alignItems: 'center', padding: 24 },
+  center: { flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center', padding: 24 },
   title: { fontSize: 32, fontFamily: typography.fonts.heading, fontWeight: '700', color: '#000', marginBottom: 32 },
   sectionLabel: { fontSize: 14, fontFamily: typography.fonts.heading, fontWeight: '700', color: '#000', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 1 },
   typeOption: { borderWidth: 2, borderColor: '#000', padding: 14, marginBottom: 8, backgroundColor: colors.surface, shadowOffset: { width: 2, height: 2 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
@@ -108,10 +108,10 @@ const styles = StyleSheet.create({
   typeText: { fontSize: 16, color: '#000' },
   typeTextSelected: { fontFamily: typography.fonts.heading, fontWeight: '700' },
   textarea: { borderWidth: 2, borderColor: '#000', backgroundColor: colors.surface, padding: 14, fontSize: 15, minHeight: 120, marginBottom: 32 },
-  submitBtn: { backgroundColor: '#FF2A5F', borderWidth: 2, borderColor: '#000', paddingVertical: 18, alignItems: 'center', shadowOffset: { width: 4, height: 4 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
+  submitBtn: { backgroundColor: colors.primary, borderWidth: 2, borderColor: '#000', paddingVertical: 18, alignItems: 'center', shadowOffset: { width: 4, height: 4 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
   submitBtnText: { fontSize: 18, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.white },
   btnDisabled: { opacity: 0.6 },
-  errorText: { color: '#FF2A5F', fontSize: 14, marginTop: 8, textAlign: 'center', marginBottom: 8 },
+  errorText: { color: colors.primary, fontSize: 14, marginTop: 8, textAlign: 'center', marginBottom: 8 },
   successCard: { backgroundColor: colors.accent, borderWidth: 2, borderColor: '#000', padding: 32, alignItems: 'center', shadowOffset: { width: 4, height: 4 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
   successText: { fontSize: 24, fontFamily: typography.fonts.heading, fontWeight: '700', color: '#000' },
   successSubtext: { fontSize: 15, color: '#000', marginTop: 8, textAlign: 'center' },

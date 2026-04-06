@@ -62,7 +62,7 @@ export default function SafetyCheckinScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F0EA', padding: 24, paddingTop: 60 },
+  container: { flex: 1, backgroundColor: colors.background, padding: 24, paddingTop: 60 },
   card: { backgroundColor: '#FF5A85', borderWidth: 2, borderColor: '#000', padding: 24, marginBottom: 40, shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
   title: { fontSize: 28, fontFamily: typography.fonts.heading, fontWeight: '700', color: '#000', marginBottom: 12 },
   subtitle: { fontSize: 18, color: '#000', lineHeight: 28 },

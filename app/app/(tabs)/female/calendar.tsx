@@ -5,7 +5,7 @@ import { showAlert } from '../../../src/utils/alert';
 import { Card } from '../../../src/components/Card';
 import { EmptyState } from '../../../src/components/EmptyState';
 import { Icon } from '../../../src/components/Icon';
-import { useTheme, spacing, typography, borderRadius } from '../../../src/constants/theme';
+import { useTheme, colors, spacing, typography, borderRadius } from '../../../src/constants/theme';
 import { calendarApi, bookingsApi, Booking } from '../../../src/services/api';
 
 const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -572,27 +572,27 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.lg,
     marginTop: spacing.sm,
     borderWidth: 2,
-    borderColor: '#000000',
+    borderColor: colors.border,
     borderRadius: borderRadius.md,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
   },
   errorText: {
     fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
-    color: '#FF2A5F',
+    color: colors.primary,
     flex: 1,
   },
   retryButton: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderWidth: 2,
-    borderColor: '#000000',
+    borderColor: colors.border,
     borderRadius: borderRadius.sm,
     marginLeft: spacing.sm,
   },
   retryText: {
     fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.sm,
-    color: '#FF2A5F',
+    color: colors.primary,
   },
 });

@@ -99,7 +99,7 @@ export default function ExtendDateScreen() {
           <View style={styles.sentCard}>
             <Text style={styles.sentText}>Request sent!</Text>
             <Text style={styles.sentSubtext}>Waiting for companion's response...</Text>
-            <ActivityIndicator color="#FF2A5F" style={{ marginTop: 16 }} />
+            <ActivityIndicator color={colors.primary} style={{ marginTop: 16 }} />
           </View>
         )
       ) : (
@@ -129,7 +129,7 @@ export default function ExtendDateScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F0EA', padding: 24, paddingTop: 60 },
+  container: { flex: 1, backgroundColor: colors.background, padding: 24, paddingTop: 60 },
   title: { fontSize: 36, fontFamily: typography.fonts.heading, fontWeight: '700', color: '#000', marginBottom: 8 },
   subtitle: { fontSize: 16, color: colors.textMuted, marginBottom: 40 },
   optionsRow: { flexDirection: 'row', gap: 12, marginBottom: 40 },
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
   optionSelected: { backgroundColor: colors.accent },
   optionText: { fontSize: 24, fontFamily: typography.fonts.heading, fontWeight: '700', color: '#000' },
   optionTextSelected: { color: '#000' },
-  button: { backgroundColor: '#FF2A5F', borderWidth: 2, borderColor: '#000', paddingVertical: 18, alignItems: 'center', shadowOffset: { width: 4, height: 4 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
+  button: { backgroundColor: colors.primary, borderWidth: 2, borderColor: '#000', paddingVertical: 18, alignItems: 'center', shadowOffset: { width: 4, height: 4 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
   buttonDisabled: { opacity: 0.6 },
   buttonText: { fontSize: 20, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.white },
   sentCard: { backgroundColor: '#FF5A85', borderWidth: 2, borderColor: '#000', padding: 24, alignItems: 'center', shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
@@ -145,5 +145,5 @@ const styles = StyleSheet.create({
   sentSubtext: { fontSize: 14, color: '#000', marginTop: 8, textAlign: 'center' },
   backBtn: { marginTop: 24, alignItems: 'center', padding: 12 },
   backText: { fontSize: 16, color: colors.textMuted, textDecorationLine: 'underline' },
-  errorText: { color: '#FF2A5F', fontSize: 14, marginTop: 8, textAlign: 'center', marginBottom: 8 },
+  errorText: { color: colors.primary, fontSize: 14, marginTop: 8, textAlign: 'center', marginBottom: 8 },
 });
