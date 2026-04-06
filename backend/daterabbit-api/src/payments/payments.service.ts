@@ -624,6 +624,32 @@ export class PaymentsService {
         }
         break;
       }
+      case 'charge.dispute.created': {
+        const dispute = event.data.object as Stripe.Dispute;
+        // dispute.payment_intent can be a string ID or an expanded PaymentIntent object
+        const paymentIntentId =
+          typeof dispute.payment_intent === 'string'
+            ? dispute.payment_intent
+            : dispute.payment_intent?.id ?? null;
+
+        if (paymentIntentId) {
+          const booking = await this.bookingsRepo.findOne({
+            where: { paymentIntentId },
+          });
+          // IDOR guard: only update if booking owns this payment intent
+          if (booking && booking.paymentIntentId === paymentIntentId) {
+            await this.bookingsRepo.update(booking.id, {
+              status: BookingStatus.DISPUTED,
+            });
+            console.warn(
+              `[DISPUTE] Stripe dispute opened — bookingId=${booking.id} disputeId=${dispute.id} ` +
+              `amount=${dispute.amount} currency=${dispute.currency} reason=${dispute.reason ?? 'unknown'} ` +
+              `seekerId=${booking.seekerId} companionId=${booking.companionId}`,
+            );
+          }
+        }
+        break;
+      }
     }
   }
 }
