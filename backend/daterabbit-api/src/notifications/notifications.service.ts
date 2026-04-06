@@ -1,14 +1,14 @@
 import { Injectable, Logger, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { InjectQueue } from '@nestjs/bull';
-import { Queue } from 'bull';
+import { InjectQueue } from '@nestjs/bullmq';
+import type { Queue } from 'bullmq';
 import { Notification, NotificationType } from './entities/notification.entity';
 import { NotificationPreference } from './entities/notification-preference.entity';
 import { NotificationDeliveryLog } from './entities/notification-delivery-log.entity';
-import type { EmailNotificationJob } from './workers/email.worker';
-import type { PushNotificationJob } from './workers/push.worker';
-import type { InAppNotificationJob } from './workers/inapp.worker';
+import type { EmailNotificationJob } from './channels/email.channel';
+import type { PushNotificationJob } from './channels/push.channel';
+import type { InAppNotificationJob } from './channels/inapp.channel';
 
 @Injectable()
 export class NotificationsService {
@@ -24,14 +24,8 @@ export class NotificationsService {
     @InjectRepository(NotificationDeliveryLog)
     private deliveryLogRepository: Repository<NotificationDeliveryLog>,
 
-    @Optional() @InjectQueue('notifications-email')
-    private emailQueue: Queue | null,
-
-    @Optional() @InjectQueue('notifications-push')
-    private pushQueue: Queue | null,
-
-    @Optional() @InjectQueue('notifications-inapp')
-    private inappQueue: Queue | null,
+    @Optional() @InjectQueue('notifications')
+    private notificationsQueue: Queue | null,
   ) {}
 
   /**
@@ -93,7 +87,7 @@ export class NotificationsService {
       notificationPreferences[prefKey] !== false;
 
     if (globalEnabled) {
-      // Fan-out via BullMQ queues (graceful degradation if Valkey unavailable)
+      // Fan-out via BullMQ queue (graceful degradation if Valkey unavailable)
       this.fanOut({
         notification: saved,
         pushToken,
@@ -140,9 +134,11 @@ export class NotificationsService {
     const pushEnabled = dbPref ? dbPref.pushEnabled : legacyCategoryEnabled;
     const inappEnabled = dbPref ? dbPref.inappEnabled : legacyCategoryEnabled;
 
+    const queueReady = this.notificationsQueue && isQueueClientReady(this.notificationsQueue);
+
     // Email channel
     if (emailEnabled) {
-      if (this.emailQueue && isQueueReady(this.emailQueue)) {
+      if (queueReady) {
         try {
           const job: EmailNotificationJob = {
             notificationId: notification.id,
@@ -152,7 +148,7 @@ export class NotificationsService {
             recipientEmail,
             deduplicationKey,
           };
-          await this.emailQueue.add(job, {
+          await this.notificationsQueue!.add('email', job, {
             attempts: 3,
             backoff: { type: 'exponential', delay: 5000 },
           });
@@ -165,7 +161,7 @@ export class NotificationsService {
 
     // Push channel
     if (pushEnabled) {
-      if (this.pushQueue && isQueueReady(this.pushQueue)) {
+      if (queueReady) {
         try {
           const job: PushNotificationJob = {
             notificationId: notification.id,
@@ -176,7 +172,7 @@ export class NotificationsService {
             data: notification.data,
             deduplicationKey,
           };
-          await this.pushQueue.add(job, {
+          await this.notificationsQueue!.add('push', job, {
             attempts: 3,
             backoff: { type: 'exponential', delay: 5000 },
           });
@@ -198,7 +194,7 @@ export class NotificationsService {
 
     // InApp channel
     if (inappEnabled) {
-      if (this.inappQueue && isQueueReady(this.inappQueue)) {
+      if (queueReady) {
         try {
           const job: InAppNotificationJob = {
             notificationId: notification.id,
@@ -210,7 +206,7 @@ export class NotificationsService {
             createdAt: notification.createdAt?.toISOString(),
             deduplicationKey,
           };
-          await this.inappQueue.add(job, {
+          await this.notificationsQueue!.add('inapp', job, {
             attempts: 3,
             backoff: { type: 'exponential', delay: 2000 },
           });
@@ -288,14 +284,16 @@ export class NotificationsService {
 }
 
 /**
- * Cheaply checks if a Bull queue's ioredis client is in ready state.
+ * Cheaply checks if a BullMQ queue's ioredis client is in ready state.
  * Prevents unhandled rejections when Valkey is temporarily unavailable.
  */
-function isQueueReady(queue: Queue): boolean {
+function isQueueClientReady(queue: Queue): boolean {
   try {
-    const client = (queue as unknown as { client?: { status?: string } }).client;
-    if (!client) return true; // assume ready if we can't inspect
-    return client.status === 'ready';
+    // BullMQ exposes the underlying ioredis client via opts.connection
+    const connection = (queue as unknown as { opts?: { connection?: { status?: string } } }).opts
+      ?.connection;
+    if (!connection) return true; // assume ready if we can't inspect
+    return connection.status === 'ready';
   } catch {
     return false;
   }
