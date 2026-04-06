@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   ActivityIndicator,
+  TouchableOpacity,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,7 +17,7 @@ const POLL_INTERVAL_MS = 10_000;
 
 export default function CompPendingScreen() {
   const insets = useSafeAreaInsets();
-  const { fetchStatus, status } = useVerificationStore();
+  const { fetchStatus, status, error: fetchError } = useVerificationStore();
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -44,6 +45,27 @@ export default function CompPendingScreen() {
   }, [status]);
 
   const isRejected = status === 'rejected';
+
+  if (fetchError && !status) {
+    return (
+      <View style={[styles.container, styles.errorContainer, { paddingTop: insets.top + spacing.lg, paddingBottom: insets.bottom + spacing.xl }]}>
+        <ProgressBar currentStep={6} totalSteps={7} />
+        <View style={styles.errorContent}>
+          <View style={[styles.errorIconCircle, { backgroundColor: colors.errorLight }]}>
+            <Icon name="alert" size={36} color={colors.error} />
+          </View>
+          <Text style={[styles.errorTitle, { color: colors.text }]}>Could Not Load Status</Text>
+          <Text style={[styles.errorMessage, { color: colors.textMuted }]}>{fetchError}</Text>
+          <TouchableOpacity
+            style={[styles.retryButton, { borderColor: colors.border }]}
+            onPress={fetchStatus}
+          >
+            <Text style={styles.retryButtonText}>Try Again</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View
@@ -203,5 +225,45 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     color: colors.textMuted,
     lineHeight: 20,
+  },
+  errorContainer: {
+    // same base as container
+  },
+  errorContent: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: spacing.xl,
+  },
+  errorIconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  errorTitle: {
+    fontFamily: typography.fonts.heading,
+    fontSize: typography.sizes.xl,
+    textAlign: 'center',
+    marginBottom: spacing.sm,
+  },
+  errorMessage: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.md,
+    textAlign: 'center',
+    marginBottom: spacing.lg,
+  },
+  retryButton: {
+    borderWidth: 2,
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xl,
+  },
+  retryButtonText: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.md,
+    color: colors.text,
   },
 });

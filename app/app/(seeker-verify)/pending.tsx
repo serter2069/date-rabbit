@@ -3,6 +3,7 @@ import {
   View,
   Text,
   StyleSheet,
+  TouchableOpacity,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -24,7 +25,7 @@ const POLL_INTERVAL_MS = 10_000;
 
 export default function SeekerVerifyPendingScreen() {
   const insets = useSafeAreaInsets();
-  const { fetchStatus, status } = useVerificationStore();
+  const { fetchStatus, status, error: fetchError } = useVerificationStore();
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const rotation = useSharedValue(0);
@@ -78,6 +79,24 @@ export default function SeekerVerifyPendingScreen() {
   const pulseStyle = useAnimatedStyle(() => ({
     transform: [{ scale: pulse.value }],
   }));
+
+  if (fetchError && !status) {
+    return (
+      <View style={[styles.container, styles.centered, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+        <View style={[styles.errorIcon, { backgroundColor: colors.error + '20' }]}>
+          <Icon name="alert" size={40} color={colors.error} />
+        </View>
+        <Text style={[styles.errorTitle, { color: colors.text }]}>Could Not Load Status</Text>
+        <Text style={[styles.errorMessage, { color: colors.textSecondary }]}>{fetchError}</Text>
+        <TouchableOpacity
+          style={[styles.retryButton, { borderColor: colors.border }]}
+          onPress={fetchStatus}
+        >
+          <Text style={[styles.retryButtonText, { color: colors.text }]}>Try Again</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
@@ -259,5 +278,41 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     textAlign: 'center',
     marginTop: spacing.sm,
+  },
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: spacing.xl,
+  },
+  errorIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  errorTitle: {
+    fontFamily: typography.fonts.heading,
+    fontSize: typography.sizes.xl,
+    textAlign: 'center',
+    marginBottom: spacing.sm,
+  },
+  errorMessage: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.md,
+    textAlign: 'center',
+    marginBottom: spacing.lg,
+  },
+  retryButton: {
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xl,
+  },
+  retryButtonText: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.md,
+    color: colors.text,
   },
 });

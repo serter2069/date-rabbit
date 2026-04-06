@@ -24,6 +24,7 @@ export default function RequestSentScreen() {
 
   const [booking, setBooking] = useState<Booking | null>(null);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const [elapsedMinutes, setElapsedMinutes] = useState(0);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -32,7 +33,12 @@ export default function RequestSentScreen() {
   const fetchBooking = useCallback(async () => {
     if (!bookingId) return;
     const b = await getBookingById(bookingId);
-    if (!b) return;
+    if (!b) {
+      setFetchError('Failed to load booking. Please try again.');
+      setLoading(false);
+      return;
+    }
+    setFetchError(null);
     setBooking(b);
     setLoading(false);
 
@@ -92,6 +98,24 @@ export default function RequestSentScreen() {
     return (
       <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
+  if (fetchError) {
+    return (
+      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
+        <View style={[styles.errorIcon, { backgroundColor: colors.error + '20' }]}>
+          <Icon name="alert" size={48} color={colors.error} />
+        </View>
+        <Text style={[styles.errorTitle, { color: colors.text }]}>Could Not Load Booking</Text>
+        <Text style={[styles.errorMessage, { color: colors.textSecondary }]}>{fetchError}</Text>
+        <Button
+          title="Try Again"
+          onPress={fetchBooking}
+          variant="outline"
+          style={{ marginTop: spacing.lg }}
+        />
       </View>
     );
   }
@@ -249,5 +273,23 @@ const styles = StyleSheet.create({
   },
   bottomBar: {
     padding: spacing.lg,
+  },
+  errorIcon: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  errorTitle: {
+    fontFamily: typography.fonts.heading,
+    fontSize: typography.sizes.xl,
+    marginBottom: spacing.sm,
+  },
+  errorMessage: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.md,
+    textAlign: 'center',
   },
 });

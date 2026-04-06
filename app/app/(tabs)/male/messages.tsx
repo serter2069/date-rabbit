@@ -1,17 +1,17 @@
 import React, { useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Pressable } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { UserImage } from '../../../src/components/UserImage';
 import { EmptyState } from '../../../src/components/EmptyState';
 import { useMessagesStore, POLL_INTERVAL } from '../../../src/store/messagesStore';
-import { useTheme, spacing, typography } from '../../../src/constants/theme';
+import { useTheme, spacing, typography, borderRadius } from '../../../src/constants/theme';
 import type { Chat } from '../../../src/types';
 
 export default function MessagesScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const { chats, isLoading, fetchChats } = useMessagesStore();
+  const { chats, isLoading, error, clearError, fetchChats } = useMessagesStore();
 
   // Poll conversations every 10 seconds while screen is focused
   useFocusEffect(
@@ -50,6 +50,26 @@ export default function MessagesScreen() {
     return (
       <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
+  if (error && chats.length === 0) {
+    return (
+      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
+        <View style={[styles.errorIcon, { backgroundColor: colors.error + '20' }]}>
+          <Text style={[styles.errorIconText, { color: colors.error }]}>!</Text>
+        </View>
+        <Text style={[styles.errorTitle, { color: colors.text }]}>Could Not Load Messages</Text>
+        <Text style={[styles.errorMessage, { color: colors.textSecondary }]}>
+          {error}
+        </Text>
+        <Pressable
+          style={[styles.retryButton, { borderColor: colors.border }]}
+          onPress={() => { clearError(); fetchChats(); }}
+        >
+          <Text style={[styles.retryButtonText, { color: colors.text }]}>Try Again</Text>
+        </Pressable>
       </View>
     );
   }
@@ -189,5 +209,40 @@ const styles = StyleSheet.create({
   unreadCount: {
     fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.xs,
+  },
+  errorIcon: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  errorIconText: {
+    fontFamily: typography.fonts.heading,
+    fontSize: 36,
+  },
+  errorTitle: {
+    fontFamily: typography.fonts.heading,
+    fontSize: typography.sizes.xl,
+    marginBottom: spacing.sm,
+    textAlign: 'center',
+  },
+  errorMessage: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.md,
+    textAlign: 'center',
+    marginBottom: spacing.lg,
+    paddingHorizontal: spacing.lg,
+  },
+  retryButton: {
+    borderWidth: 1,
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xl,
+  },
+  retryButtonText: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.md,
   },
 });
