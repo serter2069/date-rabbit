@@ -27,8 +27,10 @@ export default function BookingsHistoryScreen() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   const fetchBookings = useCallback(async (pageNum: number, isRefresh = false) => {
+    setFetchError(null);
     try {
       if (isRefresh) {
         setRefreshing(true);
@@ -51,6 +53,7 @@ export default function BookingsHistoryScreen() {
       setPage(pageNum);
     } catch (error) {
       console.error('Failed to fetch past bookings:', error);
+      setFetchError('Failed to load history. Please try again.');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -183,6 +186,20 @@ export default function BookingsHistoryScreen() {
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
+      ) : fetchError ? (
+        <View style={styles.errorContainer}>
+          <Icon name="alert-circle" size={64} color={colors.error} />
+          <Text style={[styles.errorTitle, { color: colors.text }]}>Something went wrong</Text>
+          <Text style={[styles.errorText, { color: colors.textSecondary }]}>{fetchError}</Text>
+          <TouchableOpacity
+            style={[styles.retryButton, { backgroundColor: colors.primary }]}
+            onPress={() => fetchBookings(1)}
+            accessibilityRole="button"
+            accessibilityLabel="Try again"
+          >
+            <Text style={[styles.retryButtonText, { color: colors.white }]}>Try Again</Text>
+          </TouchableOpacity>
+        </View>
       ) : (
         <FlatList
           data={bookings}
@@ -298,5 +315,33 @@ const styles = StyleSheet.create({
     fontFamily: typography.fonts.body,
     fontSize: typography.sizes.md,
     textAlign: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+  },
+  errorTitle: {
+    fontFamily: typography.fonts.heading,
+    fontSize: typography.sizes.lg,
+    marginTop: spacing.lg,
+    marginBottom: spacing.sm,
+  },
+  errorText: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.md,
+    textAlign: 'center',
+    marginBottom: spacing.lg,
+  },
+  retryButton: {
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.md,
+  },
+  retryButtonText: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.md,
+    fontWeight: '600',
   },
 });
