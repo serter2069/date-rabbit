@@ -183,7 +183,7 @@ function NavigationGuard() {
         if (isSeeker) {
           router.replace('/(seeker-verify)/intro');
         } else {
-          router.replace('/(comp-onboard)/step1');
+          router.replace('/(comp-onboard)/step2');
         }
         return;
       }
