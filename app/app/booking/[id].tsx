@@ -8,6 +8,8 @@ import {
   TextInput,
   ActivityIndicator,
   BackHandler,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -214,7 +216,10 @@ export default function BookingScreen() {
   }
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <KeyboardAvoidingView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + spacing.sm, backgroundColor: colors.white, borderBottomColor: colors.border }]}>
         <TouchableOpacity style={[styles.backButton, { backgroundColor: colors.surface }]} onPress={handleBack} testID="booking-back-btn"
@@ -540,7 +545,7 @@ export default function BookingScreen() {
           testID="booking-submit-btn"
         />
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
