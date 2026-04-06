@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan, IsNull } from 'typeorm';
+import { Repository, LessThan, IsNull, Between } from 'typeorm';
 import { Booking, BookingStatus } from './entities/booking.entity';
 import { BookingsService } from './bookings.service';
 import { PaymentsService } from '../payments/payments.service';
@@ -154,6 +154,97 @@ export class BookingsCron {
       // Notify both participants
       await this.sendNoShowNotifications(booking, reason);
     }
+  }
+
+  @Cron(CronExpression.EVERY_30_MINUTES)
+  async sendBookingReminders(): Promise<void> {
+    const now = new Date();
+
+    // 24h window: bookings starting between 23h and 25h from now
+    const window24hStart = new Date(now.getTime() + 23 * 60 * 60 * 1000);
+    const window24hEnd = new Date(now.getTime() + 25 * 60 * 60 * 1000);
+
+    // 1h window: bookings starting between 55min and 65min from now
+    const window1hStart = new Date(now.getTime() + 55 * 60 * 1000);
+    const window1hEnd = new Date(now.getTime() + 65 * 60 * 1000);
+
+    const [bookings24h, bookings1h] = await Promise.all([
+      this.bookingsRepository.find({
+        where: { status: BookingStatus.CONFIRMED, dateTime: Between(window24hStart, window24hEnd) },
+        relations: ['seeker', 'companion'],
+      }),
+      this.bookingsRepository.find({
+        where: { status: BookingStatus.CONFIRMED, dateTime: Between(window1hStart, window1hEnd) },
+        relations: ['seeker', 'companion'],
+      }),
+    ]);
+
+    for (const booking of bookings24h) {
+      await this.sendReminderNotifications(booking, '24h');
+    }
+    for (const booking of bookings1h) {
+      await this.sendReminderNotifications(booking, '1h');
+    }
+
+    const total = bookings24h.length + bookings1h.length;
+    if (total > 0) {
+      this.logger.log(
+        `[BookingsCron] Sent reminders for ${bookings24h.length} 24h and ${bookings1h.length} 1h upcoming bookings`,
+      );
+    }
+  }
+
+  private async sendReminderNotifications(booking: Booking, window: '24h' | '1h'): Promise<void> {
+    const companionName = booking.companion?.name || 'your companion';
+    const seekerName = booking.seeker?.name || 'your guest';
+    const timeLabel = window === '24h' ? 'tomorrow' : 'in 1 hour';
+    const type =
+      window === '24h'
+        ? NotificationType.BOOKING_REMINDER_24H
+        : NotificationType.BOOKING_REMINDER_1H;
+
+    const seekerDedupeKey = `reminder-${window}-${booking.id}-seeker`;
+    const companionDedupeKey = `reminder-${window}-${booking.id}-companion`;
+
+    await this.notificationsService
+      .create({
+        userId: booking.seekerId,
+        type,
+        title: `Date reminder — ${timeLabel}`,
+        body: `Your date with ${companionName} is ${timeLabel}. Don't forget to check in on arrival.`,
+        data: { bookingId: booking.id },
+        pushToken: booking.seeker?.expoPushToken,
+        notificationsEnabled: booking.seeker?.notificationsEnabled,
+        notificationPreferences: booking.seeker
+          ?.notificationPreferences as Record<string, boolean> | null,
+        recipientEmail: booking.seeker?.email,
+        deduplicationKey: seekerDedupeKey,
+      })
+      .catch((err) => {
+        this.logger.error(
+          `Failed to send ${window} reminder to seeker for booking ${booking.id}: ${err.message}`,
+        );
+      });
+
+    await this.notificationsService
+      .create({
+        userId: booking.companionId,
+        type,
+        title: `Date reminder — ${timeLabel}`,
+        body: `Your date with ${seekerName} is ${timeLabel}. Be ready and check in on arrival.`,
+        data: { bookingId: booking.id },
+        pushToken: booking.companion?.expoPushToken,
+        notificationsEnabled: booking.companion?.notificationsEnabled,
+        notificationPreferences: booking.companion
+          ?.notificationPreferences as Record<string, boolean> | null,
+        recipientEmail: booking.companion?.email,
+        deduplicationKey: companionDedupeKey,
+      })
+      .catch((err) => {
+        this.logger.error(
+          `Failed to send ${window} reminder to companion for booking ${booking.id}: ${err.message}`,
+        );
+      });
   }
 
   private async sendNoShowNotifications(
