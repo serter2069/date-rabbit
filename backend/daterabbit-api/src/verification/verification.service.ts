@@ -259,8 +259,8 @@ export class VerificationService {
     if (session.status === 'verified') {
       verification.status = VerificationStatus.PENDING_REVIEW;
       await this.verificationRepository.save(verification);
-      // Trigger approval — in production this would come via webhook
-      await this.approveVerification(userId);
+      // Trigger approval with age check — in production this would come via webhook
+      await this.approveOrRejectByAge(userId, session);
     } else {
       await this.verificationRepository.save(verification);
     }
@@ -303,7 +303,7 @@ export class VerificationService {
         if (!verification) break;
         verification.stripeVerificationStatus = 'verified';
         await this.verificationRepository.save(verification);
-        await this.approveVerification(verification.userId);
+        await this.approveOrRejectByAge(verification.userId, session);
         break;
       }
       case 'identity.verification_session.requires_input': {
@@ -347,6 +347,49 @@ export class VerificationService {
     }
 
     return { received: true };
+  }
+
+  private async approveOrRejectByAge(
+    userId: string,
+    session: import('stripe').Stripe.Identity.VerificationSession,
+  ): Promise<void> {
+    const dob = session.verified_outputs?.dob;
+    if (!dob || dob.year == null || dob.month == null || dob.day == null) {
+      const verification = await this.verificationRepository.findOne({ where: { userId } });
+      if (!verification) return;
+      verification.status = VerificationStatus.REJECTED;
+      verification.rejectionReason = 'Age could not be verified';
+      await this.verificationRepository.save(verification);
+      await this.usersService.update(userId, {
+        isVerified: false,
+        verificationStatus: UserVerificationStatus.REJECTED,
+      });
+      return;
+    }
+
+    // Stripe month is 1-indexed; JS Date month is 0-indexed
+    const birthDate = new Date(dob.year, dob.month - 1, dob.day);
+    const now = new Date();
+    let age = now.getFullYear() - birthDate.getFullYear();
+    const monthDiff = now.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birthDate.getDate())) {
+      age--;
+    }
+
+    if (age < 21) {
+      const verification = await this.verificationRepository.findOne({ where: { userId } });
+      if (!verification) return;
+      verification.status = VerificationStatus.REJECTED;
+      verification.rejectionReason = 'Under 21: age verification failed';
+      await this.verificationRepository.save(verification);
+      await this.usersService.update(userId, {
+        isVerified: false,
+        verificationStatus: UserVerificationStatus.REJECTED,
+      });
+      return;
+    }
+
+    await this.approveVerification(userId);
   }
 
   private async approveVerification(userId: string): Promise<void> {
