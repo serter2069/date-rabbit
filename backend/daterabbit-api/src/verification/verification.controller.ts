@@ -101,6 +101,13 @@ export class VerificationWebhookController {
     private readonly configService: ConfigService,
   ) {}
 
+  @Post('stripe-identity-webhook')
+  handleStripeIdentityWebhook(@Req() req: any) {
+    const rawBody: Buffer = req.rawBody;
+    const signature = req.headers['stripe-signature'] as string;
+    return this.verificationService.handleStripeIdentityWebhook(rawBody, signature);
+  }
+
   @Post('webhook')
   handleWebhook(
     @Body() payload: any,
