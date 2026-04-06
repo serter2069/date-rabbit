@@ -272,8 +272,12 @@ export class AuthService {
       }
       user = updated;
     } else {
-      // Create new user
-      user = await this.usersService.create(sanitizedData);
+      // Create new user — companions start with profile hidden until they complete onboarding
+      const createData =
+        sanitizedData.role === UserRole.COMPANION
+          ? { ...sanitizedData, isPublicProfile: false }
+          : sanitizedData;
+      user = await this.usersService.create(createData);
     }
 
     const accessToken = this.jwtService.sign({ id: user.id, email: user.email });

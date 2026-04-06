@@ -80,7 +80,7 @@ export class User {
   @Column({ default: false })
   isAdmin: boolean;
 
-  @Column({ default: true })
+  @Column({ default: false })
   isPublicProfile: boolean;
 
   @Column({ nullable: true })
