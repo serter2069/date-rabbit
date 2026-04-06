@@ -63,7 +63,7 @@ describe('bookingsStore', () => {
         const response = await result.current.createBooking({
           companionId: 'companion-1',
           activity: 'Dinner',
-          date: '2024-03-15T19:00:00Z',
+          dateTime: '2024-03-15T19:00:00Z',
           duration: 2,
           location: 'Downtown Restaurant',
         });
@@ -85,7 +85,7 @@ describe('bookingsStore', () => {
         const response = await result.current.createBooking({
           companionId: 'companion-1',
           activity: 'Dinner',
-          date: '2024-03-15T19:00:00Z',
+          dateTime: '2024-03-15T19:00:00Z',
           duration: 2,
         });
         expect(response.success).toBe(false);
@@ -105,7 +105,7 @@ describe('bookingsStore', () => {
         await result.current.createBooking({
           companionId: 'companion-1',
           activity: 'Dinner',
-          date: '2024-03-15T19:00:00Z',
+          dateTime: '2024-03-15T19:00:00Z',
           duration: 2,
         });
       });
@@ -113,7 +113,7 @@ describe('bookingsStore', () => {
       expect(mockCreate).toHaveBeenCalledWith({
         companionId: 'companion-1',
         activity: 'Dinner',
-        date: '2024-03-15T19:00:00Z',
+        dateTime: '2024-03-15T19:00:00Z',
         duration: 2,
       });
     });

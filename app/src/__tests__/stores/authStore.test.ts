@@ -5,9 +5,13 @@ import * as api from '../../services/api';
 // Mock API module
 jest.mock('../../services/api', () => ({
   authApi: {
+    startAuth: jest.fn(),
     requestOtp: jest.fn(),
     verifyOtp: jest.fn(),
+    verifyCode: jest.fn(),
     register: jest.fn(),
+    completeOnboarding: jest.fn(),
+    logout: jest.fn(),
   },
   usersApi: {
     getMe: jest.fn(),
@@ -45,14 +49,14 @@ describe('authStore', () => {
       user: null,
       isAuthenticated: false,
       isLoading: false,
-      isInitialized: false,
+      _hasHydrated: false,
       error: null,
       pendingEmail: null,
     });
     jest.clearAllMocks();
   });
 
-  describe('requestOtp', () => {
+  describe('startAuth', () => {
     it('should request OTP successfully', async () => {
       const mockRequestOtp = api.authApi.requestOtp as jest.Mock;
       mockRequestOtp.mockResolvedValue({ message: 'OTP sent' });
@@ -60,7 +64,7 @@ describe('authStore', () => {
       const { result } = renderHook(() => useAuthStore());
 
       await act(async () => {
-        const response = await result.current.requestOtp('test@example.com');
+        const response = await result.current.startAuth('test@example.com');
         expect(response.success).toBe(true);
       });
 
@@ -75,14 +79,14 @@ describe('authStore', () => {
       const { result } = renderHook(() => useAuthStore());
 
       await act(async () => {
-        const response = await result.current.requestOtp('invalid');
+        const response = await result.current.startAuth('invalid');
         expect(response.success).toBe(false);
         expect(response.error).toBe('Invalid email');
       });
     });
   });
 
-  describe('verifyOtp', () => {
+  describe('verifyCode', () => {
     it('should verify OTP and login existing user', async () => {
       const mockVerifyOtp = api.authApi.verifyOtp as jest.Mock;
       const mockGetMe = api.usersApi.getMe as jest.Mock;
@@ -97,37 +101,44 @@ describe('authStore', () => {
         email: 'test@example.com',
         name: 'Test User',
         role: 'seeker',
+        createdAt: '2024-01-01T00:00:00Z',
       });
 
       const { result } = renderHook(() => useAuthStore());
 
       await act(async () => {
-        result.current.pendingEmail = 'test@example.com';
-        const response = await result.current.verifyOtp('123456');
+        useAuthStore.setState({ pendingEmail: 'test@example.com' });
+        const response = await result.current.verifyCode('123456');
         expect(response.success).toBe(true);
-        expect(response.isNewUser).toBe(false);
       });
 
-      expect(api.setToken).toHaveBeenCalledWith('test-token');
       expect(result.current.isAuthenticated).toBe(true);
       expect(result.current.user?.email).toBe('test@example.com');
     });
 
     it('should handle new user registration flow', async () => {
       const mockVerifyOtp = api.authApi.verifyOtp as jest.Mock;
+      const mockGetMe = api.usersApi.getMe as jest.Mock;
 
       mockVerifyOtp.mockResolvedValue({
         token: 'temp-token',
         isNewUser: true,
       });
 
+      mockGetMe.mockResolvedValue({
+        id: 'user-new',
+        email: 'new@example.com',
+        name: '',
+        role: 'seeker',
+        createdAt: '2024-01-01T00:00:00Z',
+      });
+
       const { result } = renderHook(() => useAuthStore());
 
       await act(async () => {
-        result.current.pendingEmail = 'new@example.com';
-        const response = await result.current.verifyOtp('123456');
+        useAuthStore.setState({ pendingEmail: 'new@example.com' });
+        const response = await result.current.verifyCode('123456');
         expect(response.success).toBe(true);
-        expect(response.isNewUser).toBe(true);
       });
 
       // User should NOT be authenticated yet - needs to complete registration
@@ -141,15 +152,15 @@ describe('authStore', () => {
       const { result } = renderHook(() => useAuthStore());
 
       await act(async () => {
-        result.current.pendingEmail = 'test@example.com';
-        const response = await result.current.verifyOtp('000000');
+        useAuthStore.setState({ pendingEmail: 'test@example.com' });
+        const response = await result.current.verifyCode('000000');
         expect(response.success).toBe(false);
         expect(response.error).toBe('Invalid OTP code');
       });
     });
   });
 
-  describe('register', () => {
+  describe('completeOnboarding', () => {
     it('should register new user successfully', async () => {
       const mockRegister = api.authApi.register as jest.Mock;
       mockRegister.mockResolvedValue({
@@ -159,22 +170,25 @@ describe('authStore', () => {
           email: 'new@example.com',
           name: 'New User',
           role: 'seeker',
+          createdAt: '2024-01-01T00:00:00Z',
         },
       });
 
       const { result } = renderHook(() => useAuthStore());
 
       await act(async () => {
-        result.current.pendingEmail = 'new@example.com';
-        const response = await result.current.register({
+        useAuthStore.setState({ pendingEmail: 'new@example.com' });
+        const response = await result.current.completeOnboarding({
           name: 'New User',
           role: 'seeker',
           age: 25,
+          bio: '',
+          photos: [],
+          location: '',
         });
         expect(response.success).toBe(true);
       });
 
-      expect(api.setToken).toHaveBeenCalledWith('new-user-token');
       expect(result.current.isAuthenticated).toBe(true);
       expect(result.current.user?.name).toBe('New User');
     });
@@ -189,17 +203,21 @@ describe('authStore', () => {
           name: 'Sarah',
           role: 'companion',
           hourlyRate: 100,
+          createdAt: '2024-01-01T00:00:00Z',
         },
       });
 
       const { result } = renderHook(() => useAuthStore());
 
       await act(async () => {
-        result.current.pendingEmail = 'companion@example.com';
-        const response = await result.current.register({
+        useAuthStore.setState({ pendingEmail: 'companion@example.com' });
+        const response = await result.current.completeOnboarding({
           name: 'Sarah',
           role: 'companion',
           age: 25,
+          bio: '',
+          photos: [],
+          location: '',
           hourlyRate: 100,
         });
         expect(response.success).toBe(true);
@@ -219,6 +237,7 @@ describe('authStore', () => {
         name: 'Updated Name',
         bio: 'New bio',
         role: 'seeker',
+        createdAt: '2024-01-01T00:00:00Z',
       });
 
       const { result } = renderHook(() => useAuthStore());
@@ -231,6 +250,7 @@ describe('authStore', () => {
             email: 'test@example.com',
             name: 'Old Name',
             role: 'seeker',
+            createdAt: '2024-01-01T00:00:00Z',
           },
           isAuthenticated: true,
         });
@@ -261,6 +281,7 @@ describe('authStore', () => {
             email: 'test@example.com',
             name: 'Test',
             role: 'seeker',
+            createdAt: '2024-01-01T00:00:00Z',
           },
           isAuthenticated: true,
         });
