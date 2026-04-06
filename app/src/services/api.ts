@@ -686,9 +686,10 @@ export const messagesApi = {
 // Payments API
 export const paymentsApi = {
   createConnectAccount: () =>
-    apiRequest<{ url: string }>('/payments/connect/onboard', {
-      method: 'POST',
-    }),
+    apiRequest<{ url: string }>(
+      `/payments/connect/onboard${Platform.OS !== 'web' ? '?platform=native' : ''}`,
+      { method: 'POST' },
+    ),
 
   getConnectStatus: () =>
     apiRequest<{ complete: boolean; payoutsEnabled: boolean }>('/payments/connect/status'),

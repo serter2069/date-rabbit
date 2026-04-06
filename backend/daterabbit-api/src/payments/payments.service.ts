@@ -47,7 +47,7 @@ export class PaymentsService {
 
   // --- Connect (Companion onboarding) ---
 
-  async createConnectAccount(userId: string): Promise<{ url: string }> {
+  async createConnectAccount(userId: string, platform?: string): Promise<{ url: string }> {
     this.ensureStripe();
     const user = await this.usersRepo.findOne({ where: { id: userId } });
     if (!user) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
@@ -64,10 +64,15 @@ export class PaymentsService {
       await this.usersRepo.update(userId, { stripeAccountId: accountId });
     }
 
+    const isNative = platform === 'native';
+    const webBase = this.configService.get('APP_URL', 'https://daterabbit.smartlaunchhub.com');
+    const refreshUrl = isNative ? 'daterabbit://stripe/refresh' : `${webBase}/stripe/refresh`;
+    const returnUrl = isNative ? 'daterabbit://stripe/return' : `${webBase}/stripe/return`;
+
     const accountLink = await this.stripe.accountLinks.create({
       account: accountId,
-      refresh_url: `${this.configService.get('APP_URL', 'https://daterabbit.smartlaunchhub.com')}/stripe/refresh`,
-      return_url: `${this.configService.get('APP_URL', 'https://daterabbit.smartlaunchhub.com')}/stripe/return`,
+      refresh_url: refreshUrl,
+      return_url: returnUrl,
       type: 'account_onboarding',
     });
 
