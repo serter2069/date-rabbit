@@ -271,6 +271,56 @@ export class VerificationService {
     };
   }
 
+  async handleStripeIdentityWebhook(
+    rawBody: Buffer,
+    signature: string,
+  ): Promise<{ received: boolean }> {
+    if (!this.stripe) {
+      return { received: true };
+    }
+
+    const webhookSecret = this.configService.get<string>(
+      'STRIPE_IDENTITY_WEBHOOK_SECRET',
+    );
+
+    let event: import('stripe').Stripe.Event;
+    try {
+      event = this.stripe.webhooks.constructEvent(
+        rawBody,
+        signature,
+        webhookSecret ?? '',
+      );
+    } catch {
+      throw new BadRequestException('Invalid Stripe webhook signature');
+    }
+
+    switch (event.type) {
+      case 'identity.verification_session.verified': {
+        const session = event.data.object as import('stripe').Stripe.Identity.VerificationSession;
+        const verification = await this.verificationRepository.findOne({
+          where: { stripeVerificationSessionId: session.id },
+        });
+        if (!verification) break;
+        verification.stripeVerificationStatus = 'verified';
+        await this.verificationRepository.save(verification);
+        await this.approveVerification(verification.userId);
+        break;
+      }
+      case 'identity.verification_session.requires_input': {
+        const session = event.data.object as import('stripe').Stripe.Identity.VerificationSession;
+        const verification = await this.verificationRepository.findOne({
+          where: { stripeVerificationSessionId: session.id },
+        });
+        if (!verification) break;
+        verification.stripeVerificationStatus = 'requires_input';
+        await this.verificationRepository.save(verification);
+        break;
+      }
+    }
+
+    return { received: true };
+  }
+
   async handleWebhook(payload: any): Promise<{ received: boolean }> {
     // Mock webhook endpoint for future Checkr integration
     // In production, this would process Checkr background check results
