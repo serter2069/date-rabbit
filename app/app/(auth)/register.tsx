@@ -595,6 +595,11 @@ export default function RegisterScreen() {
                   keyExtractor={(item) => item.id}
                   style={styles.yearList}
                   showsVerticalScrollIndicator={false}
+                  ListEmptyComponent={
+                    <View style={styles.cityPickerLoading}>
+                      <Text style={styles.cityPickerLoadingText}>No cities available</Text>
+                    </View>
+                  }
                   renderItem={({ item }) => (
                     <TouchableOpacity
                       style={[
