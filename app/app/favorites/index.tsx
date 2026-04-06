@@ -15,7 +15,7 @@ import * as Haptics from 'expo-haptics';
 export default function FavoritesScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const { favorites, toggleFavorite } = useFavoritesStore();
+  const { favorites, toggleFavorite, syncFromServer } = useFavoritesStore();
   
   const [favoriteCompanions, setFavoriteCompanions] = useState<CompanionDetail[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -46,9 +46,10 @@ export default function FavoritesScreen() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
+    await syncFromServer();
     await fetchFavorites();
     setRefreshing(false);
-  }, [fetchFavorites]);
+  }, [fetchFavorites, syncFromServer]);
 
   const handleToggleFavorite = (id: string) => {
     if (Platform.OS !== 'web') {
