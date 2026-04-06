@@ -55,7 +55,7 @@ export default function ChatScreen() {
   // Check if there's an active booking with the other user — used to show SOS button
   const activeDateBookingId =
     activeBooking &&
-    (activeBooking.seekerId === otherUserId || activeBooking.companionId === otherUserId)
+    (activeBooking.seeker.id === otherUserId || activeBooking.companion.id === otherUserId)
       ? activeBooking.id
       : null;
 

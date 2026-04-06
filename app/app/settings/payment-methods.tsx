@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useCallback, Platform } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
+import { Platform } from 'react-native';
 import {
   View,
   Text,
@@ -16,7 +17,7 @@ import { Button } from '../../src/components/Button';
 import { StripeSetupForm } from '../../src/components/StripeSetupForm';
 import { paymentsApi, ApiError } from '../../src/services/api';
 import { useTheme, colors, spacing, typography, borderRadius } from '../../src/constants/theme';
-import { showAlert } from '../../src/utils/alert';
+import { showAlert, showConfirm } from '../../src/utils/alert';
 
 interface SavedCard {
   id: string;
@@ -103,28 +104,22 @@ export default function PaymentMethodsScreen() {
   };
 
   const handleDelete = (card: SavedCard) => {
-    showAlert(
+    showConfirm(
       'Remove Card',
       `Remove ${formatBrand(card.brand)} ending in ${card.last4}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: async () => {
-            setDeletingId(card.id);
-            try {
-              await paymentsApi.deletePaymentMethod(card.id);
-              setCards((prev) => prev.filter((c) => c.id !== card.id));
-            } catch (err) {
-              const msg = err instanceof ApiError ? err.message : 'Failed to remove card';
-              showAlert('Error', msg);
-            } finally {
-              setDeletingId(null);
-            }
-          },
-        },
-      ],
+      async () => {
+        setDeletingId(card.id);
+        try {
+          await paymentsApi.deletePaymentMethod(card.id);
+          setCards((prev) => prev.filter((c) => c.id !== card.id));
+        } catch (err) {
+          const msg = err instanceof ApiError ? err.message : 'Failed to remove card';
+          showAlert('Error', msg);
+        } finally {
+          setDeletingId(null);
+        }
+      },
+      'Remove',
     );
   };
 
@@ -344,6 +339,11 @@ const styles = StyleSheet.create({
     fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.sm,
   },
+  retryText: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.sm,
+    color: colors.primary,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -490,36 +490,5 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  errorBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    marginBottom: spacing.md,
-    borderWidth: 2,
-    borderColor: colors.border,
-    borderRadius: borderRadius.md,
-    backgroundColor: colors.white,
-  },
-  errorText: {
-    fontFamily: typography.fonts.body,
-    fontSize: typography.sizes.sm,
-    color: colors.primary,
-    flex: 1,
-  },
-  retryButton: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderWidth: 2,
-    borderColor: colors.border,
-    borderRadius: borderRadius.sm,
-    marginLeft: spacing.sm,
-  },
-  retryText: {
-    fontFamily: typography.fonts.bodySemiBold,
-    fontSize: typography.sizes.sm,
-    color: colors.primary,
   },
 });

@@ -17,7 +17,7 @@ import { Icon } from '../../src/components/Icon';
 import { Card } from '../../src/components/Card';
 import { Button } from '../../src/components/Button';
 import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
-import { showAlert } from '../../src/utils/alert';
+import { showAlert, showConfirm } from '../../src/utils/alert';
 import { packagesApi, DatePackageTemplate, DatePackage } from '../../src/services/api';
 
 export default function MyPackagesScreen() {
@@ -118,21 +118,19 @@ export default function MyPackagesScreen() {
   };
 
   const handleDelete = (id: string) => {
-    showAlert('Delete Package', 'Are you sure you want to delete this package?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await packagesApi.deletePackage(id);
-            fetchData();
-          } catch (err: any) {
-            showAlert('Error', err.message || 'Failed to delete');
-          }
-        },
+    showConfirm(
+      'Delete Package',
+      'Are you sure you want to delete this package?',
+      async () => {
+        try {
+          await packagesApi.deletePackage(id);
+          fetchData();
+        } catch (err: any) {
+          showAlert('Error', err.message || 'Failed to delete');
+        }
       },
-    ]);
+      'Delete',
+    );
   };
 
   const handleToggleActive = async (pkg: DatePackage) => {

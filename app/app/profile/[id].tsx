@@ -539,7 +539,7 @@ export default function ProfileViewScreen() {
                 <Icon name="globe" size={16} color={colors.textSecondary} />
                 <Text style={[styles.detailLabel, { color: colors.text }]}> Languages</Text>
               </View>
-              <Text style={[styles.detailValue, { color: colors.textSecondary }]}>{profile.languages.join(', ')}</Text>
+              <Text style={[styles.detailValue, { color: colors.textSecondary }]}>{(profile.languages ?? []).join(', ')}</Text>
             </View>
             <View style={[styles.detailRow, { borderBottomColor: colors.border }]}>
               <View style={styles.detailLabelRow}>
