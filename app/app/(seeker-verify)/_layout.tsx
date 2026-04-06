@@ -12,8 +12,7 @@ export default function SeekerVerifyLayout() {
       }}
     >
       <Stack.Screen name="intro" />
-      <Stack.Screen name="ssn" />
-      <Stack.Screen name="photo-id" />
+<Stack.Screen name="photo-id" />
       <Stack.Screen name="selfie" />
       <Stack.Screen name="consent" />
       <Stack.Screen name="pending" />
