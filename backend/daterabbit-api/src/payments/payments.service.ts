@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import Stripe from 'stripe';
 import { User, UserRole } from '../users/entities/user.entity';
 import { Booking, BookingStatus } from '../bookings/entities/booking.entity';
+import { PlatformSettings } from '../admin/entities/platform-settings.entity';
 
 @Injectable()
 export class PaymentsService {
@@ -16,6 +17,8 @@ export class PaymentsService {
     private usersRepo: Repository<User>,
     @InjectRepository(Booking)
     private bookingsRepo: Repository<Booking>,
+    @InjectRepository(PlatformSettings)
+    private settingsRepo: Repository<PlatformSettings>,
   ) {
     const secretKey = this.configService.get('STRIPE_SECRET_KEY');
     if (secretKey) {
@@ -30,6 +33,13 @@ export class PaymentsService {
         HttpStatus.SERVICE_UNAVAILABLE,
       );
     }
+  }
+
+  // Returns commission rate as a fraction (e.g. 20 -> 0.20). Defaults to 0.20 if no settings row exists.
+  private async getCommissionRate(): Promise<number> {
+    const settings = await this.settingsRepo.findOne({ where: {} });
+    if (!settings) return 0.20;
+    return parseFloat(String(settings.commissionRate)) / 100;
   }
 
   // --- Connect (Companion onboarding) ---
@@ -127,7 +137,8 @@ export class PaymentsService {
     }
 
     const amount = Math.round(Number(booking.totalPrice) * 100); // cents
-    const platformFee = Math.round(amount * 0.20); // 20% platform fee
+    const commissionRate = await this.getCommissionRate();
+    const platformFee = Math.round(amount * commissionRate); // dynamic platform fee from PlatformSettings
 
     const paymentIntent = await this.stripe.paymentIntents.create({
       amount,
@@ -320,8 +331,10 @@ export class PaymentsService {
       })
       .getMany();
 
+    const commissionRate = await this.getCommissionRate();
+    const companionShare = 1 - commissionRate;
     const totalEarnings = completedBookings.reduce(
-      (sum, b) => sum + Number(b.totalPrice) * 0.80, // minus 20% platform fee
+      (sum, b) => sum + Number(b.totalPrice) * companionShare,
       0,
     );
 
@@ -368,10 +381,12 @@ export class PaymentsService {
       take: limit,
     });
 
+    const commissionRate = await this.getCommissionRate();
+    const companionShare = 1 - commissionRate;
     const transactions = bookings.map((b) => ({
       id: b.id,
       type: 'earning' as const,
-      amount: Math.round(Number(b.totalPrice) * 0.80 * 100) / 100,
+      amount: Math.round(Number(b.totalPrice) * companionShare * 100) / 100,
       status: 'completed' as const,
       description: `Booking with ${b.seeker?.name || 'Unknown'}`,
       seekerName: b.seeker?.name,
