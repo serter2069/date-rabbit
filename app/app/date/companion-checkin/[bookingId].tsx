@@ -196,7 +196,7 @@ export default function CompanionCheckinScreen() {
               <View style={styles.selfieActions}>
                 {selfieUploadStatus === 'uploading' && (
                   <View style={styles.uploadingRow}>
-                    <ActivityIndicator color="#FF2A5F" size="small" />
+                    <ActivityIndicator color={colors.primary} size="small" />
                     <Text style={styles.uploadingText}>Uploading...</Text>
                   </View>
                 )}

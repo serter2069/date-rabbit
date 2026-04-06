@@ -331,7 +331,7 @@ function MaleLanding() {
   }, []);
 
   const PLACEHOLDER_PROFILES = [
-    { id: 'p1', name: 'Sofia', rate: 120, city: 'New York', initials: 'S', color: '#FF2A5F' },
+    { id: 'p1', name: 'Sofia', rate: 120, city: 'New York', initials: 'S', color: colors.primary },
     { id: 'p2', name: 'Emma', rate: 95, city: 'Los Angeles', initials: 'E', color: colors.primaryLight },
     { id: 'p3', name: 'Mia', rate: 140, city: 'Miami', initials: 'M', color: colors.accent },
     { id: 'p4', name: 'Ava', rate: 110, city: 'Chicago', initials: 'A', color: colors.accentDark },
@@ -347,7 +347,7 @@ function MaleLanding() {
       rate: c.hourlyRate,
       city: c.location ?? '',
       initials: c.name ? c.name.charAt(0).toUpperCase() : '?',
-      color: '#FF2A5F',
+      color: colors.primary,
       photo: c.primaryPhoto ?? null,
       isReal: true as const,
     }));

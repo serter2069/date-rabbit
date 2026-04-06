@@ -122,7 +122,7 @@ export default function ReferralScreen() {
             variant="pink"
             fullWidth
             size="lg"
-            icon={<Icon name="share-2" size={18} color="#FFFFFF" />}
+            icon={<Icon name="share-2" size={18} color={colors.white} />}
           />
         </View>
 
