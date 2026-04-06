@@ -20,6 +20,7 @@ export default function FavoritesScreen() {
   const [favoriteCompanions, setFavoriteCompanions] = useState<CompanionDetail[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchFavorites = useCallback(async () => {
     if (favorites.length === 0) {
@@ -29,12 +30,14 @@ export default function FavoritesScreen() {
     }
 
     setIsLoading(true);
+    setError(null);
     try {
       const companionPromises = favorites.map(id => companionsApi.getById(id));
       const companions = await Promise.all(companionPromises);
       setFavoriteCompanions(companions);
     } catch (err) {
       console.error('Failed to fetch favorites:', err);
+      setError('Failed to load favorites. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -46,6 +49,7 @@ export default function FavoritesScreen() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
+    setError(null);
     await syncFromServer();
     await fetchFavorites();
     setRefreshing(false);
@@ -72,14 +76,27 @@ export default function FavoritesScreen() {
         <View style={{ width: 44 }} />
       </View>
 
-      <ScrollView 
-        style={styles.scrollView} 
+      <ScrollView
+        style={styles.scrollView}
         contentContainerStyle={styles.content}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        {isLoading ? (
+        {error ? (
+          <View style={styles.errorContainer}>
+            <Icon name="alert-circle" size={48} color={colors.error} />
+            <Text style={[styles.errorText, { color: colors.text }]}>{error}</Text>
+            <TouchableOpacity
+              style={[styles.retryButton, { backgroundColor: colors.primary }]}
+              onPress={() => fetchFavorites()}
+              accessibilityRole="button"
+              accessibilityLabel="Retry loading favorites"
+            >
+              <Text style={[styles.retryButtonText, { color: colors.white }]}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        ) : isLoading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={colors.primary} />
             <Text style={[styles.loadingText, { color: colors.textSecondary, marginTop: spacing.md }]}>Loading favorites...</Text>
@@ -288,5 +305,26 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: 'row',
     gap: spacing.md,
+  },
+  errorContainer: {
+    alignItems: 'center',
+    paddingTop: 60,
+    paddingHorizontal: spacing.lg,
+  },
+  errorText: {
+    fontSize: typography.sizes.md,
+    textAlign: 'center',
+    marginTop: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  retryButton: {
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.md,
+  },
+  retryButtonText: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.md,
+    fontWeight: '600',
   },
 });
