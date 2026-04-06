@@ -605,7 +605,7 @@ const styles = StyleSheet.create({
   } as any,
   splashInner: {
     alignItems: 'center',
-    maxWidth: 480,
+    maxWidth: 430,
     width: '100%',
   },
   splashLogo: {
@@ -825,7 +825,7 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.md,
     lineHeight: 28,
     color: colors.textMuted,
-    maxWidth: 520,
+    maxWidth: 430,
     marginBottom: spacing.lg,
   },
   heroCtas: {
@@ -966,7 +966,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
     lineHeight: 26,
     marginBottom: spacing.xl,
-    maxWidth: 540,
+    maxWidth: 430,
   },
   earningsStats: {
     flexDirection: 'row',
