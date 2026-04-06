@@ -137,6 +137,12 @@ export class PaymentsService {
     }
 
     const amount = Math.round(Number(booking.totalPrice) * 100); // cents
+    if (amount <= 0) {
+      throw new HttpException(
+        'Booking total price must be greater than zero',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
     const commissionRate = await this.getCommissionRate();
     const platformFee = Math.round(amount * commissionRate); // dynamic platform fee from PlatformSettings
 
@@ -458,10 +464,16 @@ export class PaymentsService {
     const payoutCents = amount ? Math.round(amount * 100) : availableCents;
 
     if (payoutCents <= 0) {
-      return { success: false, message: 'No available balance to pay out' };
+      throw new HttpException(
+        'Payout amount must be greater than zero',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
     }
     if (payoutCents > availableCents) {
-      return { success: false, message: 'Insufficient available balance' };
+      throw new HttpException(
+        'Payout amount exceeds available balance',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
     }
 
     const payout = await this.stripe.payouts.create(
