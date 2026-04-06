@@ -7,6 +7,7 @@ import { VerificationService } from './verification.service';
 import { VerificationController, VerificationWebhookController } from './verification.controller';
 import { UsersModule } from '../users/users.module';
 import { UploadsModule } from '../uploads/uploads.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { UploadsModule } from '../uploads/uploads.module';
     }),
     UsersModule,
     UploadsModule,
+    NotificationsModule,
   ],
   providers: [VerificationService],
   controllers: [VerificationController, VerificationWebhookController],

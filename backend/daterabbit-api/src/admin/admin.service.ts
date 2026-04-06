@@ -10,6 +10,8 @@ import { CitiesService } from '../cities/cities.service';
 import { CreateCityDto } from '../cities/dto/create-city.dto';
 import { UpdateCityDto } from '../cities/dto/update-city.dto';
 import { Dispute, DisputeStatus } from '../disputes/entities/dispute.entity';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '../notifications/entities/notification.entity';
 
 @Injectable()
 export class AdminService {
@@ -27,6 +29,7 @@ export class AdminService {
     @InjectRepository(Dispute)
     private disputesRepo: Repository<Dispute>,
     private readonly citiesService: CitiesService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async getStats() {
@@ -314,6 +317,20 @@ export class AdminService {
       verificationStatus: 'approved' as any,
     });
 
+    const user = await this.usersRepo.findOne({ where: { id: verification.userId } });
+    if (user) {
+      this.notificationsService.create({
+        userId: user.id,
+        type: NotificationType.VERIFICATION_APPROVED,
+        title: 'Verification Approved',
+        body: 'Congratulations! Your profile is now live on DateRabbit.',
+        recipientEmail: user.email,
+        pushToken: user.expoPushToken,
+        notificationPreferences: user.notificationPreferences,
+        notificationsEnabled: user.notificationsEnabled,
+      }).catch(() => undefined);
+    }
+
     return { success: true };
   }
 
@@ -331,6 +348,20 @@ export class AdminService {
       isVerified: false,
       verificationStatus: 'rejected' as any,
     });
+
+    const user = await this.usersRepo.findOne({ where: { id: verification.userId } });
+    if (user) {
+      this.notificationsService.create({
+        userId: user.id,
+        type: NotificationType.VERIFICATION_REJECTED,
+        title: 'Verification Not Approved',
+        body: 'Your verification was not approved. Please re-submit with clearer photos.',
+        recipientEmail: user.email,
+        pushToken: user.expoPushToken,
+        notificationPreferences: user.notificationPreferences,
+        notificationsEnabled: user.notificationsEnabled,
+      }).catch(() => undefined);
+    }
 
     return { success: true };
   }

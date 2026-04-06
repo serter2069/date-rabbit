@@ -19,6 +19,8 @@ import { SubmitSsnDto } from './dto/submit-ssn.dto';
 import { SubmitReferencesDto } from './dto/submit-references.dto';
 import { SubmitConsentDto } from './dto/submit-consent.dto';
 import { UserRole, UserVerificationStatus } from '../users/entities/user.entity';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '../notifications/entities/notification.entity';
 
 @Injectable()
 export class VerificationService {
@@ -30,6 +32,7 @@ export class VerificationService {
     private usersService: UsersService,
     private uploadsService: UploadsService,
     private configService: ConfigService,
+    private readonly notificationsService: NotificationsService,
   ) {
     const secretKey = this.configService.get<string>('STRIPE_SECRET_KEY');
     if (secretKey) {
@@ -404,6 +407,20 @@ export class VerificationService {
       isVerified: true,
       verificationStatus: UserVerificationStatus.APPROVED,
     });
+
+    const user = await this.usersService.findById(userId);
+    if (user) {
+      this.notificationsService.create({
+        userId: user.id,
+        type: NotificationType.VERIFICATION_APPROVED,
+        title: 'Verification Approved',
+        body: 'Congratulations! Your profile is now live on DateRabbit.',
+        recipientEmail: user.email,
+        pushToken: user.expoPushToken,
+        notificationPreferences: user.notificationPreferences,
+        notificationsEnabled: user.notificationsEnabled,
+      }).catch(() => undefined);
+    }
   }
 
   private async getOrFail(userId: string): Promise<Verification> {
