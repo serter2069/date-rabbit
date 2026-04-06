@@ -1,4 +1,15 @@
-import { Controller, Get, Put, Param, Query, UseGuards, Request, ParseUUIDPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Put,
+  Post,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  Request,
+  ParseUUIDPipe,
+} from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -45,6 +56,28 @@ export class NotificationsController {
   @Put('read-all')
   async markAllAsRead(@Request() req) {
     await this.notificationsService.markAllAsRead(req.user.id);
+    return { success: true };
+  }
+
+  // ─── Preferences ────────────────────────────────────────────────────────────
+
+  @Get('preferences')
+  async getPreferences(@Request() req) {
+    return this.notificationsService.getPreferences(req.user.id);
+  }
+
+  @Put('preferences/:eventType')
+  async updatePreference(
+    @Param('eventType') eventType: string,
+    @Body() body: { emailEnabled?: boolean; pushEnabled?: boolean; inappEnabled?: boolean },
+    @Request() req,
+  ) {
+    return this.notificationsService.updatePreference(req.user.id, eventType, body);
+  }
+
+  @Post('preferences/reset')
+  async resetPreferences(@Request() req) {
+    await this.notificationsService.resetPreferences(req.user.id);
     return { success: true };
   }
 }

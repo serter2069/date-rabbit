@@ -4,6 +4,7 @@ import { getDataSourceToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { AppModule } from './app.module';
 import { runRefreshTokensMigration } from './auth/migrations/create-refresh-tokens';
+import { runNotificationTablesMigration } from './notifications/migrations/create-notification-tables';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -19,6 +20,15 @@ async function bootstrap() {
   } catch (err) {
     console.error('refresh_tokens migration failed:', err);
     // Non-fatal: app still starts, but refresh tokens won't work until fixed
+  }
+
+  try {
+    const dataSource = app.get<DataSource>(getDataSourceToken());
+    await runNotificationTablesMigration(dataSource);
+    console.log('notification_tables migration: OK');
+  } catch (err) {
+    console.error('notification_tables migration failed:', err);
+    // Non-fatal: app still starts, but notification preferences/logs won't work until fixed
   }
 
   // Enable CORS
