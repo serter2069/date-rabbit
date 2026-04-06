@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Message, Conversation } from './entities/message.entity';
 import { BookingsService } from '../bookings/bookings.service';
+import { UsersService } from '../users/users.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '../notifications/entities/notification.entity';
 import { sanitizeText } from '../common/sanitize';
@@ -18,6 +19,7 @@ export class MessagesService {
     @InjectRepository(Conversation)
     private conversationsRepository: Repository<Conversation>,
     private bookingsService: BookingsService,
+    private usersService: UsersService,
     private notificationsService: NotificationsService,
   ) {}
 
@@ -59,14 +61,18 @@ export class MessagesService {
       lastMessageAt: saved.createdAt,
     });
 
-    // Create notification for receiver (non-blocking)
+    // Event 4: Create notification for receiver with Expo push (non-blocking)
     try {
+      const receiver = await this.usersService.findById(receiverId);
       await this.notificationsService.create({
         userId: receiverId,
         type: NotificationType.NEW_MESSAGE,
         title: 'New Message',
         body: content.length > 100 ? content.slice(0, 100) + '...' : content,
         data: { senderId, conversationId: conversation.id },
+        pushToken: receiver?.expoPushToken,
+        notificationPreferences: receiver?.notificationPreferences,
+        notificationsEnabled: receiver?.notificationsEnabled,
       });
     } catch {
       // Notification failure must NOT break message delivery

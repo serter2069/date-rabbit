@@ -9,6 +9,7 @@ import {
 import { User } from '../../users/entities/user.entity';
 
 export enum NotificationType {
+  BOOKING_NEW = 'booking_new',
   BOOKING_CONFIRMED = 'booking_confirmed',
   BOOKING_DECLINED = 'booking_declined',
   BOOKING_CANCELLED = 'booking_cancelled',
@@ -19,6 +20,7 @@ export enum NotificationType {
   SAFETY_ALERT = 'safety_alert',
   REPORT_ISSUE = 'report_issue',
   COMPANION_ONLINE = 'companion_online',
+  PAYOUT_PROCESSED = 'payout_processed',
 }
 
 @Entity('notifications')
