@@ -56,7 +56,7 @@ export default function WithdrawScreen() {
       return;
     }
 
-    if (!useFullAmount && withdrawAmount > balance.available) {
+    if (!useFullAmount && (withdrawAmount ?? 0) > balance.available) {
       showAlert('Insufficient Balance', 'The amount exceeds your available balance');
       return;
     }

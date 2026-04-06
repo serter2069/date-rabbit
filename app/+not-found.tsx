@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useRouter, Redirect } from 'expo-router';
-import { useTheme, spacing, typography, borderRadius, borderWidth, shadows } from '../src/constants/theme';
-import { useAuthStore } from '../src/store/authStore';
+import { useTheme, spacing, typography, borderRadius, borderWidth, shadows } from './src/constants/theme';
+import { useAuthStore } from './src/store/authStore';
 
 export default function NotFoundScreen() {
   const router = useRouter();

@@ -264,7 +264,7 @@ function BookingCard({ booking, type, colors, onCancel, formatDate }: BookingCar
           )}
           <Button
             title="Message"
-            onPress={() => router.push(`/chat/${booking.companion?.id || booking.companion_id}?name=${encodeURIComponent(booking.companion?.name || companion.name)}`)}
+            onPress={() => router.push(`/chat/${booking.companion?.id}?name=${encodeURIComponent(booking.companion?.name || companion.name)}`)}
             variant="outline"
             size="sm"
             style={{ flex: 1 }}
