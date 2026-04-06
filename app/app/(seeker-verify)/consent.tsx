@@ -33,7 +33,8 @@ export default function SeekerConsentScreen() {
       Alert.alert('Submission Failed', apiError || 'Failed to submit for review. Please try again.');
       return;
     }
-    router.push('/(seeker-verify)/pending');
+    // After consent, send seeker to Stripe Identity verification (intro.tsx handles the session)
+    router.push('/(seeker-verify)/intro');
   };
 
   return (
