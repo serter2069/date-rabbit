@@ -7,13 +7,35 @@ import { useNetworkStore } from '../store/networkStore';
 const API_BASE_URL = 'http://localhost:3004/api'; // audit mode — local backend with DEV_AUTH=true
 const API_TIMEOUT_MS = 10_000; // 10 seconds
 
-// Token management — stored in SecureStore (iOS Keychain / Android Keystore)
-// On web, falls back to localStorage since SecureStore is not available
+// Token storage keys
 const TOKEN_KEY = 'authToken';
+const REFRESH_TOKEN_KEY = 'refreshToken';
+
+// In-memory cache for tokens (avoids repeated SecureStore reads)
 let authToken: string | null = null;
+let refreshTokenCache: string | null = null;
+
+// ─── Refresh-cycle state ───────────────────────────────────────────────────
+// isRefreshing prevents concurrent 401 responses from triggering parallel refresh calls.
+// pendingQueue holds resolve/reject callbacks of requests that arrived during a refresh.
+let isRefreshing = false;
+type QueueEntry = { resolve: (token: string) => void; reject: (err: unknown) => void };
+let pendingQueue: QueueEntry[] = [];
+
+function drainQueue(token: string) {
+  pendingQueue.forEach((entry) => entry.resolve(token));
+  pendingQueue = [];
+}
+
+function rejectQueue(err: unknown) {
+  pendingQueue.forEach((entry) => entry.reject(err));
+  pendingQueue = [];
+}
 
 // Debounce timer for offline detection — prevents false banner on cold start / slow API
 let offlineTimer: ReturnType<typeof setTimeout> | null = null;
+
+// ─── Access token helpers ──────────────────────────────────────────────────
 
 export async function getToken(): Promise<string | null> {
   if (authToken) return authToken;
@@ -42,11 +64,103 @@ export async function setToken(token: string | null): Promise<void> {
   }
 }
 
+// ─── Refresh token helpers ─────────────────────────────────────────────────
+
+export async function getRefreshToken(): Promise<string | null> {
+  if (refreshTokenCache) return refreshTokenCache;
+  if (Platform.OS === 'web') {
+    refreshTokenCache = localStorage.getItem(REFRESH_TOKEN_KEY);
+  } else {
+    refreshTokenCache = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+  }
+  return refreshTokenCache;
+}
+
+export async function setRefreshToken(token: string | null): Promise<void> {
+  refreshTokenCache = token;
+  if (Platform.OS === 'web') {
+    if (token) {
+      localStorage.setItem(REFRESH_TOKEN_KEY, token);
+    } else {
+      localStorage.removeItem(REFRESH_TOKEN_KEY);
+    }
+  } else {
+    if (token) {
+      await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, token);
+    } else {
+      await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+    }
+  }
+}
+
+// ─── Internal refresh execution (called by interceptor and proactive refresh) ─
+
+/**
+ * Performs a single token rotation call against POST /auth/refresh.
+ * Updates both tokens in storage on success.
+ * Returns new access token, or throws on failure.
+ * NOT exported — callers should use attemptTokenRefresh().
+ */
+async function executeRefresh(): Promise<string> {
+  const stored = await getRefreshToken();
+  if (!stored) {
+    throw new ApiError('No refresh token available', 401);
+  }
+
+  // Direct fetch — bypasses apiRequest to avoid recursive 401 interception
+  const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refreshToken: stored }),
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new ApiError(data.message || 'Token refresh failed', response.status);
+  }
+
+  const data = await response.json();
+  const newAccessToken: string = data.accessToken || data.token;
+  const newRefreshToken: string = data.refreshToken;
+
+  await setToken(newAccessToken);
+  await setRefreshToken(newRefreshToken);
+
+  return newAccessToken;
+}
+
+/**
+ * Thread-safe token refresh: if a refresh is already in progress, queues the
+ * caller and resolves when the first refresh completes. Only one /auth/refresh
+ * request will be sent regardless of how many concurrent 401s triggered this.
+ */
+export async function attemptTokenRefresh(): Promise<string> {
+  if (isRefreshing) {
+    // Wait for the in-progress refresh to finish
+    return new Promise<string>((resolve, reject) => {
+      pendingQueue.push({ resolve, reject });
+    });
+  }
+
+  isRefreshing = true;
+  try {
+    const newToken = await executeRefresh();
+    drainQueue(newToken);
+    return newToken;
+  } catch (err) {
+    rejectQueue(err);
+    throw err;
+  } finally {
+    isRefreshing = false;
+  }
+}
+
 // API request helper
 interface RequestOptions {
   method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
   body?: unknown;
   auth?: boolean;
+  _isRetry?: boolean; // internal flag — prevents recursive 401 retry
 }
 
 export class ApiError extends Error {
@@ -63,7 +177,7 @@ export async function apiRequest<T>(
   endpoint: string,
   options: RequestOptions = {}
 ): Promise<T> {
-  const { method = 'GET', body, auth = true } = options;
+  const { method = 'GET', body, auth = true, _isRetry = false } = options;
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -111,6 +225,30 @@ export async function apiRequest<T>(
   }
   useNetworkStore.getState().setOnline();
 
+  // ── Reactive 401 interceptor ──────────────────────────────────────────────
+  // On 401: attempt token refresh once, then retry the original request.
+  // Guards:
+  //   - _isRetry=true  → already retried, don't loop again
+  //   - endpoint contains /auth/refresh → never retry refresh itself (circular)
+  //   - auth=false → no-auth endpoints can't benefit from a refresh
+  if (
+    response.status === 401 &&
+    auth &&
+    !_isRetry &&
+    !endpoint.includes('/auth/refresh')
+  ) {
+    try {
+      await attemptTokenRefresh();
+      // Retry original request with the new access token (already saved in storage)
+      return apiRequest<T>(endpoint, { ...options, _isRetry: true, auth: true });
+    } catch {
+      // Refresh failed — clear tokens and propagate 401 so logout can happen
+      await setToken(null);
+      await setRefreshToken(null);
+      throw new ApiError('Session expired. Please log in again.', 401);
+    }
+  }
+
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
@@ -124,6 +262,15 @@ export async function apiRequest<T>(
 }
 
 // Auth API
+// Shape returned by verify/register — includes both tokens plus backward-compat `token` alias
+export interface AuthTokenResponse {
+  success: boolean;
+  accessToken: string;
+  token: string;         // backward compat — same value as accessToken
+  refreshToken: string;
+  user: User;
+}
+
 export const authApi = {
   requestOtp: (email: string) =>
     apiRequest<{ success: boolean; isNewUser: boolean }>('/auth/start', {
@@ -133,7 +280,7 @@ export const authApi = {
     }),
 
   verifyOtp: (email: string, code: string) =>
-    apiRequest<{ success: boolean; token: string; user: User }>('/auth/verify', {
+    apiRequest<AuthTokenResponse>('/auth/verify', {
       method: 'POST',
       body: { email, code },
       auth: false,
@@ -148,9 +295,21 @@ export const authApi = {
     location?: string;
     hourlyRate?: number;
   }) =>
-    apiRequest<{ success: boolean; token: string; user: User }>('/auth/register', {
+    apiRequest<AuthTokenResponse>('/auth/register', {
       method: 'POST',
       body: data,
+    }),
+
+  refresh: (refreshToken: string) =>
+    apiRequest<AuthTokenResponse>('/auth/refresh', {
+      method: 'POST',
+      body: { refreshToken },
+      auth: false,
+    }),
+
+  logout: () =>
+    apiRequest<{ success: boolean }>('/auth/logout', {
+      method: 'POST',
     }),
 };
 

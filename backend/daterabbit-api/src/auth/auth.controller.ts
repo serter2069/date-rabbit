@@ -3,7 +3,7 @@ import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { UserRole } from '../users/entities/user.entity';
-import { SendOtpDto, VerifyOtpDto } from './dto/auth.dto';
+import { SendOtpDto, VerifyOtpDto, RefreshTokenDto } from './dto/auth.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -40,6 +40,28 @@ export class AuthController {
     }
 
     return result;
+  }
+
+  /**
+   * POST /auth/refresh
+   * Accepts a valid refresh token, revokes it, and returns a new access+refresh pair.
+   * Rate limited to 30 calls per 10 minutes to prevent brute-force.
+   */
+  @Post('refresh')
+  @Throttle({ default: { limit: 30, ttl: 600000 } })
+  async refresh(@Body() body: RefreshTokenDto) {
+    return this.authService.rotateRefreshToken(body.refreshToken);
+  }
+
+  /**
+   * POST /auth/logout
+   * Revokes all refresh tokens for the authenticated user.
+   */
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  async logout(@Request() req) {
+    await this.authService.revokeAllUserTokens(req.user.id);
+    return { success: true };
   }
 
   @Post('register')

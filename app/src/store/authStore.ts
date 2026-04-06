@@ -2,8 +2,21 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { User, UserRole, VerificationStatus } from '../types';
-import { authApi, usersApi, setToken, getToken, ApiError, User as ApiUser } from '../services/api';
+import {
+  authApi,
+  usersApi,
+  setToken,
+  getToken,
+  setRefreshToken,
+  getRefreshToken,
+  attemptTokenRefresh,
+  ApiError,
+  User as ApiUser,
+} from '../services/api';
 import { useFavoritesStore } from './favoritesStore';
+
+// Proactive refresh: renew access token 20 minutes after last successful auth/refresh
+const PROACTIVE_REFRESH_INTERVAL_MS = 20 * 60 * 1000;
 
 type AuthStep = 'idle' | 'email' | 'otp' | 'onboarding' | 'authenticated';
 
@@ -101,6 +114,9 @@ function mapApiUserToUser(apiUser: ApiUser): User {
   };
 }
 
+// Module-level timer — survives re-renders, cleared on logout
+let proactiveRefreshTimer: ReturnType<typeof setInterval> | null = null;
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
@@ -115,29 +131,72 @@ export const useAuthStore = create<AuthState>()(
       pendingEmail: null,
       error: null,
 
-      // Initialize - check if we have a saved token and fetch user
+      // Initialize - check if we have a saved token and fetch user.
+      // Level 3 refresh: attempt proactive token refresh on app start so the
+      // access token is always fresh (avoids first-request 401 after 15m).
       initialize: async () => {
-        const token = await getToken();
-        if (token) {
+        const [accessToken, storedRefreshToken] = await Promise.all([
+          getToken(),
+          getRefreshToken(),
+        ]);
+
+        if (!accessToken && !storedRefreshToken) {
+          // No session at all
+          return;
+        }
+
+        // If we have a refresh token, eagerly rotate it on start so the
+        // access token won't expire mid-session.
+        if (storedRefreshToken) {
           try {
-            const apiUser = await usersApi.getMe();
-            set({
-              user: mapApiUserToUser(apiUser),
-              isAuthenticated: true,
-              hasCompletedOnboarding: true,
-              authStep: 'authenticated',
-            });
-            // Sync favorites from server after successful auth
-            useFavoritesStore.getState().syncFromServer();
+            await attemptTokenRefresh();
           } catch {
-            // Token invalid, clear it
+            // Refresh token expired/invalid — clear session
             await setToken(null);
-            set({
-              user: null,
-              isAuthenticated: false,
-              authStep: 'idle',
-            });
+            await setRefreshToken(null);
+            set({ user: null, isAuthenticated: false, authStep: 'idle' });
+            return;
           }
+        }
+
+        try {
+          const apiUser = await usersApi.getMe();
+          set({
+            user: mapApiUserToUser(apiUser),
+            isAuthenticated: true,
+            hasCompletedOnboarding: true,
+            authStep: 'authenticated',
+          });
+          // Sync favorites from server after successful auth
+          useFavoritesStore.getState().syncFromServer();
+
+          // Level 2 refresh: proactive 20-minute interval keeps access token alive
+          // without waiting for a 401. Timer is module-scoped so it survives re-renders.
+          if (!proactiveRefreshTimer) {
+            proactiveRefreshTimer = setInterval(async () => {
+              const rt = await getRefreshToken();
+              if (!rt) return;
+              try {
+                await attemptTokenRefresh();
+              } catch {
+                // Proactive refresh failed — clear session, user will see 401 on next request
+                clearInterval(proactiveRefreshTimer!);
+                proactiveRefreshTimer = null;
+                await setToken(null);
+                await setRefreshToken(null);
+                useAuthStore.getState().setUser(null);
+              }
+            }, PROACTIVE_REFRESH_INTERVAL_MS);
+          }
+        } catch {
+          // Access token invalid and refresh already attempted — clear session
+          await setToken(null);
+          await setRefreshToken(null);
+          set({
+            user: null,
+            isAuthenticated: false,
+            authStep: 'idle',
+          });
         }
       },
 
@@ -175,8 +234,9 @@ export const useAuthStore = create<AuthState>()(
         try {
           const result = await authApi.verifyOtp(pendingEmail, code);
 
-          // Save the token
-          await setToken(result.token);
+          // Save both tokens (accessToken + refreshToken)
+          await setToken(result.accessToken || result.token);
+          await setRefreshToken(result.refreshToken);
 
           // Fetch user profile to determine if onboarding is needed
           try {
@@ -253,8 +313,9 @@ export const useAuthStore = create<AuthState>()(
             hourlyRate: data.role === 'companion' ? data.hourlyRate : undefined,
           });
 
-          // Save the new token
-          await setToken(result.token);
+          // Save both tokens
+          await setToken(result.accessToken || result.token);
+          await setRefreshToken(result.refreshToken);
 
           set({
             user: mapApiUserToUser(result.user),
@@ -324,7 +385,17 @@ export const useAuthStore = create<AuthState>()(
       }),
 
       logout: async () => {
+        // Stop proactive refresh interval
+        if (proactiveRefreshTimer) {
+          clearInterval(proactiveRefreshTimer);
+          proactiveRefreshTimer = null;
+        }
+
+        // Revoke refresh tokens server-side (best-effort, non-blocking)
+        authApi.logout().catch(() => {});
+
         await setToken(null);
+        await setRefreshToken(null);
         useFavoritesStore.getState().clearFavorites();
         set({
           user: null,
