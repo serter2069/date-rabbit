@@ -75,7 +75,7 @@ export default function CompanionApprovedScreen() {
         <Animated.View style={[styles.textContainer, textStyle]}>
           <Text style={styles.title}>You're Approved!</Text>
           <Text style={styles.description}>
-            Your companion profile has been verified. You're now ready to receive bookings.
+            Your companion profile has been approved. Complete your profile to start receiving bookings.
           </Text>
 
           <View style={styles.featuresRow}>

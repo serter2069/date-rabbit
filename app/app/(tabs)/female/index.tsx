@@ -98,6 +98,28 @@ export default function FemaleDashboard() {
         />
       </View>
 
+      {/* Profile incomplete gate — shown when profile is not yet published */}
+      {!user?.isPublicProfile && (
+        <TouchableOpacity
+          style={styles.incompleteGate}
+          onPress={() => router.push('/settings')}
+          activeOpacity={0.85}
+          accessibilityLabel="Complete your profile to start receiving bookings"
+          accessibilityRole="button"
+        >
+          <View style={styles.incompleteGateLeft}>
+            <Icon name="alert-circle" size={20} color={colors.warning} />
+            <View style={styles.incompleteGateText}>
+              <Text style={styles.incompleteGateTitle}>Profile Incomplete</Text>
+              <Text style={styles.incompleteGateDesc}>
+                Add a photo, set your rate and bio to go live
+              </Text>
+            </View>
+          </View>
+          <Icon name="chevron-right" size={18} color={colors.warning} />
+        </TouchableOpacity>
+      )}
+
       {/* Verification reminder */}
       <VerificationBanner />
 
@@ -468,5 +490,37 @@ const styles = StyleSheet.create({
     fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     color: colors.textMuted,
+  },
+  incompleteGate: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.warningLight,
+    borderWidth: 1.5,
+    borderColor: colors.warning,
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  incompleteGateLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    flex: 1,
+  },
+  incompleteGateText: {
+    flex: 1,
+  },
+  incompleteGateTitle: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.sm,
+    color: colors.text,
+    marginBottom: 2,
+  },
+  incompleteGateDesc: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.xs,
+    color: colors.textSecondary,
   },
 });
