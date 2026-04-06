@@ -1026,7 +1026,7 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     textAlign: 'center',
     marginBottom: spacing.lg,
-    maxWidth: 460,
+    maxWidth: 430,
   },
   refundNote: {
     fontSize: 12,
