@@ -24,6 +24,8 @@ export enum NotificationType {
   VERIFICATION_APPROVED = 'verification_approved',
   VERIFICATION_REJECTED = 'verification_rejected',
   BOOKING_EXPIRED = 'booking_expired',
+  BOOKING_REMINDER_24H = 'booking_reminder_24h',
+  BOOKING_REMINDER_1H = 'booking_reminder_1h',
 }
 
 @Entity('notifications')
