@@ -99,14 +99,33 @@ export default function BookingsScreen() {
     switch (activeTab) {
       case 'upcoming': return 'Your confirmed dates will appear here';
       case 'pending': return 'Waiting for companions to accept your requests';
-      case 'past': return 'Your date history will be shown here';
+      case 'past': return 'Completed and cancelled dates will appear here';
     }
+  };
+
+  const getEmptyAction = (): { label: string; action: () => void } | undefined => {
+    if (activeTab === 'past') {
+      return {
+        label: 'View Full History',
+        action: () => router.push('/bookings-history'),
+      };
+    }
+    return { label: 'Browse Companions', action: () => router.push('/(tabs)/male/browse') };
   };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
         <Text style={[styles.title, { color: colors.text }]}>My Bookings</Text>
+        {activeTab === 'past' && (
+          <TouchableOpacity
+            onPress={() => router.push('/bookings-history')}
+            accessibilityLabel="View full booking history"
+            accessibilityRole="button"
+          >
+            <Text style={[styles.historyLink, { color: colors.primary }]}>History</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <View style={styles.tabs}>
@@ -148,8 +167,8 @@ export default function BookingsScreen() {
             icon="calendar"
             title={`No ${activeTab} bookings`}
             description={getEmptyDescription()}
-            actionLabel="Browse Companions"
-            onAction={() => router.push('/(tabs)/male/browse')}
+            actionLabel={getEmptyAction()?.label}
+            onAction={getEmptyAction()?.action}
           />
         ) : (
           bookings.map((booking) => (
@@ -352,10 +371,17 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   title: {
     fontFamily: typography.fonts.heading,
     fontSize: typography.sizes.xl,
+  },
+  historyLink: {
+    fontFamily: typography.fonts.bodyMedium,
+    fontSize: typography.sizes.sm,
   },
   tabs: {
     flexDirection: 'row',
