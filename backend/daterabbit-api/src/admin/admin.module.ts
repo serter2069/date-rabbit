@@ -13,6 +13,7 @@ import { PlatformSettings } from './entities/platform-settings.entity';
 import { Dispute } from '../disputes/entities/dispute.entity';
 import { UsersModule } from '../users/users.module';
 import { CitiesModule } from '../cities/cities.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { CitiesModule } from '../cities/cities.module';
     }),
     UsersModule,
     CitiesModule,
+    NotificationsModule,
   ],
   controllers: [AdminController],
   providers: [AdminService, AdminGuard],

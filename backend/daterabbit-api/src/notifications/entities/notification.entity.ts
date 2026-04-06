@@ -21,6 +21,8 @@ export enum NotificationType {
   REPORT_ISSUE = 'report_issue',
   COMPANION_ONLINE = 'companion_online',
   PAYOUT_PROCESSED = 'payout_processed',
+  VERIFICATION_APPROVED = 'verification_approved',
+  VERIFICATION_REJECTED = 'verification_rejected',
 }
 
 @Entity('notifications')
