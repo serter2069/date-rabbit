@@ -4,13 +4,13 @@ import { usePathname, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, spacing, typography, borderRadius, shadows } from '../constants/theme';
-import { Home, Search, Calendar, MessageCircle, User, Grid, Mail, Wallet } from 'lucide-react-native';
+import { Home, Search, Calendar, MessageCircle, User, Grid, Mail, Wallet, type LucideIcon } from 'lucide-react-native';
 import { useMessagesStore } from '../store/messagesStore';
 
 interface TabItem {
   name: string;
   path: string;
-  icon: React.ComponentType<{ size: number; color: string; strokeWidth?: number }>;
+  icon: LucideIcon;
   label: string;
 }
 
