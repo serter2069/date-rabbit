@@ -353,7 +353,7 @@ export default function EarningsScreen() {
           <Card style={[styles.chartCard, { borderColor: colors.border }]}>
             <View style={styles.chartHeader}>
               <Text style={[styles.chartTitle, { color: colors.text }]}>Earnings Overview</Text>
-              <View style={[styles.toggleRow, { backgroundColor: colors.backgroundSecondary || colors.background }]}>
+              <View style={[styles.toggleRow, { backgroundColor: (colors as any).backgroundSecondary || colors.background }]}>
                 <TouchableOpacity
                   style={[
                     styles.toggleBtn,

@@ -11,7 +11,7 @@ import { Icon } from '../../../src/components/Icon';
 import { VerificationBanner } from '../../../src/components/VerificationBanner';
 import { EmptyState } from '../../../src/components/EmptyState';
 import { colors, spacing, typography, borderRadius, shadows, PAGE_PADDING } from '../../../src/constants/theme';
-import { bookingsApi, Booking } from '../../../src/services/api';
+import { bookingsApi, paymentsApi, Booking } from '../../../src/services/api';
 
 export default function FemaleDashboard() {
   const insets = useSafeAreaInsets();
@@ -33,7 +33,7 @@ export default function FemaleDashboard() {
       const [pendingRes, upcomingRes, earningsRes, requestsRes] = await Promise.allSettled([
         bookingsApi.getMyBookings('pending'),
         bookingsApi.getMyBookings('upcoming'),
-        bookingsApi.getEarnings(),
+        paymentsApi.getEarnings(),
         bookingsApi.getRequests('pending'),
       ]);
 
