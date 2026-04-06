@@ -8,7 +8,7 @@ import { UserImage } from '../../../src/components/UserImage';
 import { Button } from '../../../src/components/Button';
 import { Icon } from '../../../src/components/Icon';
 import { EmptyState } from '../../../src/components/EmptyState';
-import { useTheme, spacing, typography, borderRadius } from '../../../src/constants/theme';
+import { useTheme, colors, spacing, typography, borderRadius } from '../../../src/constants/theme';
 import { useBookingsStore } from '../../../src/store/bookingsStore';
 import { Booking } from '../../../src/services/api';
 import * as Haptics from 'expo-haptics';
@@ -363,7 +363,7 @@ const styles = StyleSheet.create({
   },
   seekerRatingStars: {
     fontSize: typography.sizes.sm,
-    color: '#FF2A5F',
+    color: colors.primary,
   },
   seekerRatingCount: {
     fontFamily: typography.fonts.body,

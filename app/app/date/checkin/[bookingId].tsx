@@ -139,7 +139,7 @@ export default function SeekerCheckinScreen() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#FF2A5F" />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -157,7 +157,7 @@ export default function SeekerCheckinScreen() {
         <View style={styles.waitingCard}>
           <Text style={styles.waitingText}>Waiting for {booking?.companion?.name ?? 'your companion'}...</Text>
           <Text style={styles.waitingSubtext}>They'll check in when they arrive</Text>
-          <ActivityIndicator color="#FF2A5F" style={{ marginTop: 16 }} />
+          <ActivityIndicator color={colors.primary} style={{ marginTop: 16 }} />
         </View>
         <View style={styles.statusRow}>
           <View style={[styles.dot, styles.dotGreen]} />
@@ -196,7 +196,7 @@ export default function SeekerCheckinScreen() {
               <View style={styles.selfieActions}>
                 {selfieUploadStatus === 'uploading' && (
                   <View style={styles.uploadingRow}>
-                    <ActivityIndicator color="#FF2A5F" size="small" />
+                    <ActivityIndicator color={colors.primary} size="small" />
                     <Text style={styles.uploadingText}>Uploading...</Text>
                   </View>
                 )}
@@ -289,9 +289,9 @@ export default function SeekerCheckinScreen() {
 }
 
 const styles = StyleSheet.create({
-  scroll: { flex: 1, backgroundColor: '#F4F0EA' },
+  scroll: { flex: 1, backgroundColor: colors.background },
   container: { padding: 24, paddingTop: 60, paddingBottom: 40 },
-  center: { flex: 1, backgroundColor: '#F4F0EA', justifyContent: 'center', alignItems: 'center' },
+  center: { flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 40, fontFamily: typography.fonts.heading, fontWeight: '700', color: '#000', lineHeight: 48, marginBottom: 24 },
   locationCard: { backgroundColor: colors.accent, borderWidth: 2, borderColor: '#000', padding: 16, marginBottom: 24, shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
   locationLabel: { fontSize: 12, fontFamily: typography.fonts.heading, fontWeight: '700', textTransform: 'uppercase', color: '#000', marginBottom: 4 },
@@ -319,9 +319,9 @@ const styles = StyleSheet.create({
   cameraBtnText: { fontSize: 16, fontFamily: typography.fonts.heading, fontWeight: '700', color: '#000' },
   locationBtn: { backgroundColor: colors.accent, borderWidth: 2, borderColor: '#000', paddingVertical: 14, alignItems: 'center', shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
   locationBtnText: { fontSize: 16, fontFamily: typography.fonts.heading, fontWeight: '700', color: '#000' },
-  locationDoneRow: { backgroundColor: '#F4F0EA', borderWidth: 1, borderColor: colors.borderLight, padding: 10 },
+  locationDoneRow: { backgroundColor: colors.background, borderWidth: 1, borderColor: colors.borderLight, padding: 10 },
   locationDoneText: { fontSize: 14, fontFamily: typography.fonts.heading, color: '#000' },
-  checkinBtn: { backgroundColor: '#FF2A5F', borderWidth: 2, borderColor: '#000', paddingVertical: 20, alignItems: 'center', marginTop: 8, shadowOffset: { width: 4, height: 4 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
+  checkinBtn: { backgroundColor: colors.primary, borderWidth: 2, borderColor: '#000', paddingVertical: 20, alignItems: 'center', marginTop: 8, shadowOffset: { width: 4, height: 4 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0 },
   btnDisabled: { opacity: 0.4 },
   checkinBtnText: { fontSize: 20, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.white },
   waitingCard: { backgroundColor: '#FF5A85', borderWidth: 2, borderColor: '#000', padding: 20, alignItems: 'center', shadowOffset: { width: 3, height: 3 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0, marginBottom: 24 },
@@ -332,5 +332,5 @@ const styles = StyleSheet.create({
   dotGreen: { backgroundColor: colors.successStrong },
   dotGray: { backgroundColor: colors.borderLight },
   statusName: { fontSize: 14, fontFamily: typography.fonts.heading, marginLeft: 6, color: '#000' },
-  errorText: { color: '#FF2A5F', fontSize: 14, marginTop: 8, textAlign: 'center', marginBottom: 8 },
+  errorText: { color: colors.primary, fontSize: 14, marginTop: 8, textAlign: 'center', marginBottom: 8 },
 });

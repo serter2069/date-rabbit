@@ -17,7 +17,7 @@ import { Icon } from '../../src/components/Icon';
 import { Card } from '../../src/components/Card';
 import { Button } from '../../src/components/Button';
 import { useAuthStore } from '../../src/store/authStore';
-import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
+import { useTheme, colors, spacing, typography, borderRadius } from '../../src/constants/theme';
 import { showAlert } from '../../src/utils/alert';
 
 function SettingsMenuItem({
@@ -248,7 +248,7 @@ export default function SettingsScreen() {
             accessibilityRole="button"
           >
             {isSavingEmergency ? (
-              <ActivityIndicator color="#fff" size="small" />
+              <ActivityIndicator color={colors.white} size="small" />
             ) : (
               <Text style={styles.emergencySaveBtnText}>Save Emergency Contact</Text>
             )}
@@ -418,6 +418,6 @@ const styles = StyleSheet.create({
     fontFamily: typography.fonts.bodySemiBold,
     fontSize: typography.sizes.md,
     fontWeight: '600',
-    color: '#fff',
+    color: colors.white,
   },
 });
