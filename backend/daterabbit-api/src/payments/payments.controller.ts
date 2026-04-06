@@ -27,8 +27,11 @@ export class PaymentsController {
 
   @Post('connect/onboard')
   @UseGuards(JwtAuthGuard)
-  async createConnectAccount(@Request() req) {
-    return this.paymentsService.createConnectAccount(req.user.id);
+  async createConnectAccount(
+    @Request() req,
+    @Query('platform') platform?: string,
+  ) {
+    return this.paymentsService.createConnectAccount(req.user.id, platform);
   }
 
   @Get('connect/status')
