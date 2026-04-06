@@ -131,7 +131,7 @@ export default function ProfileSetupScreen() {
     // Navigate to verification flow based on role
     // Companions need identity/background verification before going live
     // Seekers need identity verification before booking
-    router.replace(role === 'companion' ? '/(comp-onboard)/step1' : '/(seeker-verify)/intro');
+    router.replace(role === 'companion' ? '/(comp-onboard)/step2' : '/(seeker-verify)/intro');
   };
 
   const handleBack = () => {

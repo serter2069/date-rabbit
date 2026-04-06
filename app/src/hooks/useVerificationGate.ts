@@ -42,7 +42,7 @@ export function useVerificationGate() {
         if (user?.role === 'seeker') {
           router.push('/(seeker-verify)/intro');
         } else {
-          router.push('/(comp-onboard)/step1');
+          router.push('/(comp-onboard)/step2');
         }
       },
       'Verify Now',

@@ -11,11 +11,8 @@ export default function CompOnboardLayout() {
         contentStyle: { backgroundColor: colors.background },
       }}
     >
-      <Stack.Screen name="step1" />
       <Stack.Screen name="step2" />
       <Stack.Screen name="verify" />
-      <Stack.Screen name="video" />
-      <Stack.Screen name="refs" />
       <Stack.Screen name="pending" />
       <Stack.Screen name="approved" />
     </Stack>

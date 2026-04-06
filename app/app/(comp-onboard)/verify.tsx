@@ -70,7 +70,7 @@ export default function CompVerifyScreen() {
   };
 
   const handleContinue = () => {
-    router.push('/(comp-onboard)/video');
+    router.push('/(comp-onboard)/pending');
   };
 
   return (
