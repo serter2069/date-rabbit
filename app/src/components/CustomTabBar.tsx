@@ -4,7 +4,7 @@ import { usePathname, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, spacing, typography, borderRadius, shadows } from '../constants/theme';
-import { Home, Search, Calendar, MessageCircle, User, Grid, Mail, Wallet, type LucideIcon } from 'lucide-react-native';
+import { Home, Search, Calendar, MessageCircle, User, Grid, Mail, Wallet, History, type LucideIcon } from 'lucide-react-native';
 import { useMessagesStore } from '../store/messagesStore';
 
 interface TabItem {
@@ -27,6 +27,7 @@ const companionTabs: TabItem[] = [
   { name: 'requests', path: '/female/requests', icon: Mail, label: 'Requests' },
   { name: 'calendar', path: '/female/calendar', icon: Calendar, label: 'Calendar' },
   { name: 'earnings', path: '/female/earnings', icon: Wallet, label: 'Earnings' },
+  { name: 'history', path: '/female/history', icon: History, label: 'History' },
   { name: 'profile', path: '/female/profile', icon: User, label: 'Profile' },
 ];
 
