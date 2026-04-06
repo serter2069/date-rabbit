@@ -77,6 +77,10 @@ export default function TabsLayout() {
         options={isCompanion ? undefined : { href: null }}
       />
       <Tabs.Screen
+        name="female/history"
+        options={isCompanion ? undefined : { href: null }}
+      />
+      <Tabs.Screen
         name="female/profile"
         options={isCompanion ? undefined : { href: null }}
       />
