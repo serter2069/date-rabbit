@@ -110,7 +110,7 @@ export class CompanionsController {
       latitude: latitude ? parseFloat(latitude) : undefined,
       longitude: longitude ? parseFloat(longitude) : undefined,
       minRating: minRating ? parseFloat(minRating) : undefined,
-      ageMin: ageMin ? parseInt(ageMin) : undefined,
+      ageMin: ageMin ? Math.max(parseInt(ageMin), 21) : undefined,
       ageMax: ageMax ? parseInt(ageMax) : undefined,
       sortBy,
       search,

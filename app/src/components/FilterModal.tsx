@@ -212,7 +212,7 @@ export function FilterModal({
             <View style={styles.sliderContainer}>
               <Slider
                 style={styles.slider}
-                minimumValue={18}
+                minimumValue={21}
                 maximumValue={60}
                 step={1}
                 value={filters.ageRange[0]}
@@ -228,7 +228,7 @@ export function FilterModal({
               />
               <Slider
                 style={styles.slider}
-                minimumValue={18}
+                minimumValue={21}
                 maximumValue={60}
                 step={1}
                 value={filters.ageRange[1]}
