@@ -49,6 +49,7 @@ interface ProfileUpdateData {
   isPublicProfile?: boolean;
   emergencyContactName?: string;
   emergencyContactEmail?: string;
+  photos?: string[];
 }
 
 interface AuthState {
@@ -353,7 +354,7 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
 
         try {
-          const apiUser = await usersApi.updateProfile(data);
+          const apiUser = await usersApi.updateProfile(data as Parameters<typeof usersApi.updateProfile>[0]);
           set({
             user: mapApiUserToUser(apiUser),
             isLoading: false,
