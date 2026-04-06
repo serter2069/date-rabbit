@@ -23,6 +23,7 @@ export enum NotificationType {
   PAYOUT_PROCESSED = 'payout_processed',
   VERIFICATION_APPROVED = 'verification_approved',
   VERIFICATION_REJECTED = 'verification_rejected',
+  BOOKING_EXPIRED = 'booking_expired',
 }
 
 @Entity('notifications')

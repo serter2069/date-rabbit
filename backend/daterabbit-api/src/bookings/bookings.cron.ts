@@ -23,7 +23,20 @@ export class BookingsCron {
   @Cron(CronExpression.EVERY_HOUR)
   async expirePendingBookings(): Promise<void> {
     const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const result = await this.bookingsRepository.update(
+
+    // Load bookings with seeker/companion so we can send notifications
+    const expiredBookings = await this.bookingsRepository.find({
+      where: {
+        status: BookingStatus.PENDING,
+        createdAt: LessThan(cutoff),
+      },
+      relations: ['seeker', 'companion'],
+    });
+
+    if (expiredBookings.length === 0) return;
+
+    // Bulk-update status to CANCELLED
+    await this.bookingsRepository.update(
       {
         status: BookingStatus.PENDING,
         createdAt: LessThan(cutoff),
@@ -33,10 +46,50 @@ export class BookingsCron {
         cancellationReason: 'expired: companion did not respond within 24 hours',
       },
     );
-    const count = result.affected ?? 0;
-    if (count > 0) {
-      this.logger.log(`[BookingsCron] Expired ${count} pending bookings`);
+
+    this.logger.log(`[BookingsCron] Expired ${expiredBookings.length} pending bookings`);
+
+    // Send push + email notifications for each expired booking
+    for (const booking of expiredBookings) {
+      await this.sendExpiryNotifications(booking).catch((err) => {
+        this.logger.error(`Failed to send expiry notifications for booking ${booking.id}: ${err.message}`);
+      });
     }
+  }
+
+  private async sendExpiryNotifications(booking: Booking): Promise<void> {
+    const companionName = booking.companion?.name || 'your companion';
+    const notifData = { bookingId: booking.id };
+
+    // Notify seeker: request expired, companion did not respond
+    await this.notificationsService.create({
+      userId: booking.seekerId,
+      type: NotificationType.BOOKING_EXPIRED,
+      title: 'Booking request expired',
+      body: `Your request to ${companionName} expired — they didn't respond in time. Try sending a request to another companion.`,
+      data: notifData,
+      pushToken: booking.seeker?.expoPushToken,
+      notificationsEnabled: booking.seeker?.notificationsEnabled,
+      notificationPreferences: booking.seeker?.notificationPreferences as Record<string, boolean> | null,
+      recipientEmail: booking.seeker?.email,
+    }).catch((err) => {
+      this.logger.error(`Failed to notify seeker ${booking.seekerId} for expired booking ${booking.id}: ${err.message}`);
+    });
+
+    // Notify companion: missed a booking request
+    await this.notificationsService.create({
+      userId: booking.companionId,
+      type: NotificationType.BOOKING_EXPIRED,
+      title: 'You missed a booking request',
+      body: `You missed a booking request — it expired before you responded. Check your availability settings to avoid missing future requests.`,
+      data: notifData,
+      pushToken: booking.companion?.expoPushToken,
+      notificationsEnabled: booking.companion?.notificationsEnabled,
+      notificationPreferences: booking.companion?.notificationPreferences as Record<string, boolean> | null,
+      recipientEmail: booking.companion?.email,
+    }).catch((err) => {
+      this.logger.error(`Failed to notify companion ${booking.companionId} for expired booking ${booking.id}: ${err.message}`);
+    });
   }
 
   @Cron(CronExpression.EVERY_5_MINUTES)
