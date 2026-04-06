@@ -45,7 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     api.removeToken();
     setUser(null);
     if (typeof window !== 'undefined') {
-      window.location.href = '/login';
+      window.location.href = '/admin/login';
     }
   };
 
