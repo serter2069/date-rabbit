@@ -1,7 +1,7 @@
 ## STATUS: QA
 ## BUILD_PHASE: C
 ## BUILD_CYCLES: 5
-## UC_PROGRESS: 58/64
+## UC_PROGRESS: 61/64
 
 ## DEPENDENCIES
 - [x] Stripe Connect — Express, Platform: DateRabbit, webhook configured, STRIPE_WEBHOOK_SECRET in Doppler
@@ -433,7 +433,7 @@ Updated: 2026-04-04 — добавлены UC-L01..L04 (Landing), UC-006..007 (r
   AC-01: Свободный ввод города запрещён — только из списка
   AC-02: Companion без города в списке может написать в поддержку ("My city isn't listed")
 
-[x] UC-033b: Настройка публичного профиля (Companion)
+[v] UC-033b: Настройка публичного профиля (Companion)
   Actor: COMPANION
   Страница: /settings или /settings/profile-visibility
   Поток:
@@ -601,7 +601,7 @@ Updated: 2026-04-04 — добавлены UC-L01..L04 (Landing), UC-006..007 (r
     5. Seeker оспаривает → статус dispute → admin разбирает → выносит решение
   API:
     PUT /bookings/:id/complete { actualDuration: 2.5 } — companion завершает
-    PUT /bookings/:id/confirm-duration — seeker подтверждает
+    POST /bookings/:id/confirm-duration — seeker подтверждает
     PUT /bookings/:id/dispute { reason } — seeker оспаривает
   Admin: GET /admin/bookings?status=dispute — очередь споров
   AC-01: Stripe capture на сумму actualDuration × rate + service fee
@@ -852,7 +852,7 @@ MONETIZATION MODEL:
     - payout.initiated → email + push: "Payout of $X sent to your bank account"
     - payout.failed → email + push: причина + как исправить
 
-[x] UC-125: Настройки уведомлений
+[v] UC-125: Настройки уведомлений
   Actor: SEEKER / COMPANION
   Страница: /settings/notifications
   Поток: управление какие push/email включены/выключены
@@ -1086,7 +1086,7 @@ MONETIZATION MODEL:
     - Минимум 1 фото загружено
     - Stripe Identity пройдена (isVerified=true)
     - hourlyRate > 0
-    - Bio заполнено (≥ 50 символов)
+    - Bio заполнено (≥ 20 символов)
   Acceptance criteria:
     - AC-01: isPublicProfile автоматически = false пока gate не пройден
     - AC-02: Companion видит checklist прогресса на dashboard
@@ -1148,7 +1148,7 @@ MONETIZATION MODEL:
     - AC-02: Admin может изменить статус dispute
     - AC-03: Dispute изменение логируется в audit_log
 
-[x] UC-MISSING-014: Date history screen (Seeker + Companion)
+[v] UC-MISSING-014: Date history screen (Seeker + Companion)
   Actor: SEEKER / COMPANION
   Priority: p1 | Category: needs_approval → approved (user 2026-04-05)
   Описание: Нет экрана истории прошлых дат. UC-084b помечен [x] но экрана не существует. UC-047b аналогично для seeker.
