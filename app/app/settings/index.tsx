@@ -184,6 +184,14 @@ export default function SettingsScreen() {
                   colors={colors}
                 />
                 <View style={[styles.divider, { backgroundColor: colors.divider }]} />
+                <SettingsMenuItem
+                  icon="dollar-sign"
+                  label="Payout Setup"
+                  description="Connect your bank account"
+                  onPress={() => router.push('/stripe/connect')}
+                  colors={colors}
+                />
+                <View style={[styles.divider, { backgroundColor: colors.divider }]} />
                 <View style={styles.toggleRow}>
                   <View style={[styles.menuIconContainer, { backgroundColor: colors.primary + '15' }]}>
                     <Icon name="eye" size={18} color={colors.primary} />

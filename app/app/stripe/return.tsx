@@ -4,12 +4,17 @@ import { useRouter } from 'expo-router';
 import { Icon } from '../../src/components/Icon';
 import { Button } from '../../src/components/Button';
 import { useTheme, spacing, typography } from '../../src/constants/theme';
+import { useEarningsStore } from '../../src/store/earningsStore';
 
 export default function StripeReturnScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const { fetchConnectStatus } = useEarningsStore();
 
   useEffect(() => {
+    // Refresh connect status in background so earnings screen is up-to-date on arrival
+    fetchConnectStatus().catch(() => {});
+
     const timer = setTimeout(() => {
       router.replace('/(tabs)/female/earnings');
     }, 3000);

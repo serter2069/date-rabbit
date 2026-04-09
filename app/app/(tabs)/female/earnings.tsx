@@ -1,8 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Platform, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
 import { Card } from '../../../src/components/Card';
 import { Button } from '../../../src/components/Button';
 import { Icon } from '../../../src/components/Icon';
@@ -190,13 +189,11 @@ export default function EarningsScreen() {
     isLoading: storeLoading,
     fetchEarnings,
     fetchConnectStatus,
-    startStripeOnboarding,
   } = useEarningsStore();
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [chartTransactions, setChartTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [onboardingLoading, setOnboardingLoading] = useState(false);
   const [chartPeriod, setChartPeriod] = useState<'7d' | '30d'>('7d');
 
   useEffect(() => {
@@ -237,22 +234,6 @@ export default function EarningsScreen() {
   const bestWeekday = useMemo(() => getBestWeekday(chartTransactions), [chartTransactions]);
   const monthTotal = useMemo(() => getMonthTotal(chartTransactions), [chartTransactions]);
 
-  const handleSetupPayments = async () => {
-    setOnboardingLoading(true);
-    const result = await startStripeOnboarding();
-    setOnboardingLoading(false);
-
-    if (result.success && result.url) {
-      if (Platform.OS === 'web') {
-        Linking.openURL(result.url);
-      } else {
-        await WebBrowser.openAuthSessionAsync(result.url, 'daterabbit://');
-        // Re-check status after returning from Stripe
-        fetchConnectStatus();
-      }
-    }
-  };
-
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     const now = new Date();
@@ -288,14 +269,10 @@ export default function EarningsScreen() {
           <View style={[styles.setupIcon, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
             <Icon name="credit-card" size={28} color={colors.white} />
           </View>
-          <Text style={styles.setupTitle}>Set Up Payments</Text>
-          <Text style={styles.setupDescription}>
-            Connect your bank account through Stripe to start receiving payments from bookings.
-          </Text>
+          <Text style={styles.setupTitle}>Connect your bank to receive payouts</Text>
           <Button
-            title={onboardingLoading ? 'Redirecting...' : 'Set Up Now'}
-            onPress={handleSetupPayments}
-            disabled={onboardingLoading}
+            title="Set Up Payouts"
+            onPress={() => router.push('/stripe/connect')}
             style={{ backgroundColor: colors.white, marginTop: spacing.md }}
             textStyle={{ color: colors.primary }}
           />
