@@ -23,6 +23,12 @@ export default function PaymentScreen() {
 
   const [booking, setBooking] = useState<Booking | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [feeBreakdown, setFeeBreakdown] = useState<{
+    subtotal: number;
+    platformFee: number;
+    stripeFee: number;
+    totalCharged: number;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,6 +49,9 @@ export default function PaymentScreen() {
       const result = await createPaymentIntent(bookingId);
       if (result.success && result.clientSecret) {
         setClientSecret(result.clientSecret);
+        if (result.feeBreakdown) {
+          setFeeBreakdown(result.feeBreakdown);
+        }
       } else {
         setError(result.error || 'Failed to initialize payment');
       }
@@ -138,20 +147,28 @@ export default function PaymentScreen() {
               ${booking.hourlyRate}/hr &times; {booking.duration || 1}h
             </Text>
             <Text style={[styles.priceValue, { color: colors.text }]}>
-              ${booking.subtotal.toFixed(2)}
+              ${(feeBreakdown?.subtotal ?? booking.subtotal).toFixed(2)}
             </Text>
           </View>
           <View style={styles.priceRow}>
             <Text style={[styles.priceLabel, { color: colors.textSecondary }]}>Platform fee</Text>
             <Text style={[styles.priceValue, { color: colors.text }]}>
-              ${booking.platformFee.toFixed(2)}
+              ${(feeBreakdown?.platformFee ?? booking.platformFee).toFixed(2)}
+            </Text>
+          </View>
+          <View style={styles.priceRow}>
+            <Text style={[styles.priceLabel, { color: colors.textSecondary }]}>
+              Stripe processing fee (2.9% + $0.30)
+            </Text>
+            <Text style={[styles.priceValue, { color: colors.text }]}>
+              ${(feeBreakdown?.stripeFee ?? 0).toFixed(2)}
             </Text>
           </View>
           <View style={[styles.divider, { borderBottomColor: colors.border + '30' }]} />
           <View style={styles.priceRow}>
-            <Text style={[styles.totalLabel, { color: colors.text }]}>Total</Text>
+            <Text style={[styles.totalLabel, { color: colors.text }]}>Total charged</Text>
             <Text style={[styles.totalValue, { color: colors.primary }]}>
-              ${booking.total.toFixed(2)}
+              ${(feeBreakdown?.totalCharged ?? booking.total).toFixed(2)}
             </Text>
           </View>
         </Card>
@@ -163,7 +180,7 @@ export default function PaymentScreen() {
         {clientSecret && booking && (
           <StripePaymentForm
             clientSecret={clientSecret}
-            amount={booking.total}
+            amount={feeBreakdown?.totalCharged ?? booking.total}
             onSuccess={handlePaymentSuccess}
           />
         )}

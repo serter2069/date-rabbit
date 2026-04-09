@@ -22,7 +22,12 @@ interface EarningsState {
   fetchEarnings: () => Promise<void>;
   fetchConnectStatus: () => Promise<void>;
   startStripeOnboarding: () => Promise<{ success: boolean; url?: string; error?: string }>;
-  createPaymentIntent: (bookingId: string) => Promise<{ success: boolean; clientSecret?: string; error?: string }>;
+  createPaymentIntent: (bookingId: string) => Promise<{
+    success: boolean;
+    clientSecret?: string;
+    feeBreakdown?: { subtotal: number; platformFee: number; stripeFee: number; totalCharged: number };
+    error?: string;
+  }>;
 
   // Utility
   clearError: () => void;
@@ -82,7 +87,7 @@ export const useEarningsStore = create<EarningsState>((set) => ({
     try {
       const result = await paymentsApi.createPaymentIntent(bookingId);
       set({ isLoading: false });
-      return { success: true, clientSecret: result.clientSecret };
+      return { success: true, clientSecret: result.clientSecret, feeBreakdown: result.feeBreakdown };
     } catch (err) {
       const message = err instanceof ApiError ? err.message : 'Failed to create payment';
       set({ error: message, isLoading: false });
