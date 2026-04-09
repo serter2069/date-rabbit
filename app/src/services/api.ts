@@ -1027,6 +1027,22 @@ export interface City {
 export const citiesApi = {
   getActive: () =>
     apiRequest<City[]>('/cities?active=true', { auth: false }),
+
+  // Admin endpoints
+  adminGetAll: () =>
+    apiRequest<City[]>('/admin/cities'),
+
+  adminCreate: (data: { name: string; state: string }) =>
+    apiRequest<City>('/admin/cities', {
+      method: 'POST',
+      body: data,
+    }),
+
+  adminToggle: (id: string, isActive: boolean) =>
+    apiRequest<City>(`/admin/cities/${id}`, {
+      method: 'PATCH',
+      body: { isActive },
+    }),
 };
 
 // Types
@@ -1035,6 +1051,7 @@ export interface User {
   email: string;
   name: string;
   role: 'seeker' | 'companion';
+  isAdmin?: boolean;
   age?: number;
   bio?: string;
   location?: string;

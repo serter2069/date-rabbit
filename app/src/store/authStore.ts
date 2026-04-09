@@ -95,6 +95,7 @@ function mapApiUserToUser(apiUser: ApiUser): User {
     email: apiUser.email,
     name: apiUser.name,
     role: apiUser.role,
+    isAdmin: apiUser.isAdmin,
     age: apiUser.age,
     location: apiUser.location,
     bio: apiUser.bio,
