@@ -17,7 +17,6 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { VerificationService } from './verification.service';
 import { UploadsService } from '../uploads/uploads.service';
-import { SubmitSsnDto } from './dto/submit-ssn.dto';
 import { SubmitReferencesDto } from './dto/submit-references.dto';
 import { SubmitConsentDto } from './dto/submit-consent.dto';
 
@@ -37,11 +36,6 @@ export class VerificationController {
   @Get('status')
   getStatus(@Req() req: any) {
     return this.verificationService.getStatus(req.user.id);
-  }
-
-  @Post('ssn')
-  submitSsn(@Req() req: any, @Body() dto: SubmitSsnDto) {
-    return this.verificationService.submitSsn(req.user.id, dto);
   }
 
   @Post('upload-id')

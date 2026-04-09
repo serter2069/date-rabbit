@@ -15,7 +15,6 @@ import {
 } from './entities/verification.entity';
 import { UsersService } from '../users/users.service';
 import { UploadsService } from '../uploads/uploads.service';
-import { SubmitSsnDto } from './dto/submit-ssn.dto';
 import { SubmitReferencesDto } from './dto/submit-references.dto';
 import { SubmitConsentDto } from './dto/submit-consent.dto';
 import { UserRole, UserVerificationStatus } from '../users/entities/user.entity';
@@ -75,12 +74,6 @@ export class VerificationService {
       throw new NotFoundException('Verification not started');
     }
     return verification;
-  }
-
-  async submitSsn(userId: string, dto: SubmitSsnDto): Promise<Verification> {
-    const verification = await this.getOrFail(userId);
-    verification.ssnLast4 = dto.ssnLast4;
-    return this.verificationRepository.save(verification);
   }
 
   async uploadIdPhoto(
