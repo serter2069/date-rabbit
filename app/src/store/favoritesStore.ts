@@ -6,7 +6,8 @@ import { usersApi } from '../services/api';
 interface FavoritesState {
   favorites: string[];
   synced: boolean;
-  toggleFavorite: (profileId: string) => void;
+  isToggling: boolean;
+  toggleFavorite: (profileId: string) => Promise<void>;
   isFavorite: (profileId: string) => boolean;
   clearFavorites: () => void;
   syncFromServer: () => Promise<void>;
@@ -17,18 +18,33 @@ export const useFavoritesStore = create<FavoritesState>()(
     (set, get) => ({
       favorites: [],
       synced: false,
+      isToggling: false,
 
-      toggleFavorite: (profileId: string) => {
+      toggleFavorite: async (profileId: string) => {
         const { favorites } = get();
-        if (favorites.includes(profileId)) {
-          set({ favorites: favorites.filter((id) => id !== profileId) });
-          // Sync removal to server (fire-and-forget)
-          usersApi.removeFavorite(profileId).catch(() => {});
-        } else {
-          set({ favorites: [...favorites, profileId] });
-          // Sync addition to server (fire-and-forget)
-          usersApi.addFavorite(profileId).catch(() => {});
+        const wasIncluded = favorites.includes(profileId);
+
+        // Optimistic update
+        set({
+          favorites: wasIncluded
+            ? favorites.filter((id) => id !== profileId)
+            : [...favorites, profileId],
+          isToggling: true,
+        });
+
+        try {
+          if (wasIncluded) {
+            await usersApi.removeFavorite(profileId);
+          } else {
+            await usersApi.addFavorite(profileId);
+          }
+        } catch {
+          // Rollback on failure
+          set({ favorites, isToggling: false });
+          return;
         }
+
+        set({ isToggling: false });
       },
 
       isFavorite: (profileId: string) => {
@@ -40,8 +56,15 @@ export const useFavoritesStore = create<FavoritesState>()(
       },
 
       syncFromServer: async () => {
+        // Skip sync while a toggle is in flight to avoid overwriting optimistic state
+        if (get().isToggling) return;
+
         try {
           const { favorites: serverFavorites } = await usersApi.getFavorites();
+
+          // Re-check after await — toggle may have started
+          if (get().isToggling) return;
+
           const { favorites: localFavorites } = get();
 
           // Merge: server is source of truth, but add any local-only items

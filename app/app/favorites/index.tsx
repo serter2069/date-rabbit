@@ -15,8 +15,8 @@ import * as Haptics from 'expo-haptics';
 export default function FavoritesScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const { favorites, toggleFavorite, syncFromServer } = useFavoritesStore();
-  
+  const { favorites, synced, toggleFavorite, syncFromServer } = useFavoritesStore();
+
   const [favoriteCompanions, setFavoriteCompanions] = useState<CompanionDetail[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -43,9 +43,20 @@ export default function FavoritesScreen() {
     }
   }, [favorites]);
 
+  // Kick off server sync on mount if not yet synced
   useEffect(() => {
-    fetchFavorites();
-  }, [fetchFavorites]);
+    if (!synced) {
+      syncFromServer();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Fetch companion details once synced, and whenever favorites list changes
+  useEffect(() => {
+    if (synced) {
+      fetchFavorites();
+    }
+  }, [favorites, synced, fetchFavorites]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -55,12 +66,15 @@ export default function FavoritesScreen() {
     setRefreshing(false);
   }, [fetchFavorites, syncFromServer]);
 
-  const handleToggleFavorite = (id: string) => {
+  const handleToggleFavorite = async (id: string) => {
     if (Platform.OS !== 'web') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-    toggleFavorite(id);
+    // Optimistic UI: remove from list immediately
     setFavoriteCompanions(prev => prev.filter(c => c.id !== id));
+    await toggleFavorite(id);
+    // If toggle failed (rollback happened in store), re-fetch to restore the item
+    // favorites selector change will trigger the useEffect above
   };
 
   return (
