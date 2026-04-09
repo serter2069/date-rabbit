@@ -1,6 +1,6 @@
 import { Injectable, HttpException, HttpStatus, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThanOrEqual, LessThan } from 'typeorm';
+import { Repository, MoreThanOrEqual, LessThan, MoreThan } from 'typeorm';
 import { Booking, BookingStatus, ActivityType } from './entities/booking.entity';
 import { DatePhoto } from './entities/date-photo.entity';
 import { SelfieVerification } from './entities/selfie-verification.entity';
@@ -769,6 +769,21 @@ export class BookingsService {
     }
     await this.bookingsRepository.update(bookingId, update);
     return this.findById(bookingId) as Promise<Booking>;
+  }
+
+  /**
+   * AC-03: Count cancellations initiated by a user in the last 30 days.
+   * Used for 3-strikes warning logic.
+   */
+  async countRecentCancellations(userId: string): Promise<number> {
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    return this.bookingsRepository.count({
+      where: {
+        cancelledByUserId: userId,
+        status: BookingStatus.CANCELLED,
+        updatedAt: MoreThan(thirtyDaysAgo),
+      },
+    });
   }
 
   /**

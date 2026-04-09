@@ -4,6 +4,7 @@ import { BookingsService } from './bookings.service';
 import { PaymentsService } from '../payments/payments.service';
 import { UploadsService } from '../uploads/uploads.service';
 import { UsersService } from '../users/users.service';
+import { EmailService } from '../email/email.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { BookingStatus, ActivityType } from './entities/booking.entity';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -19,6 +20,7 @@ export class BookingsController {
     private notificationsService: NotificationsService,
     private uploadsService: UploadsService,
     private usersService: UsersService,
+    private emailService: EmailService,
     @Inject(forwardRef(() => ReviewsService))
     private reviewsService: ReviewsService,
   ) {}
@@ -329,7 +331,26 @@ export class BookingsController {
       });
     }
 
-    return this.formatBooking(updated);
+    // AC-03: 3-strikes check — warn cancelling user + alert admin on 3rd cancellation in 30 days
+    let cancellationWarning: string | undefined;
+    try {
+      const cancelCount = await this.bookingsService.countRecentCancellations(req.user.id);
+      if (cancelCount >= 3) {
+        cancellationWarning = `You have cancelled ${cancelCount} bookings this month. Frequent cancellations may affect your rating and account standing.`;
+        // Send admin alert (fire-and-forget)
+        this.emailService.sendCancellationWarningToAdmin({
+          userId: req.user.id,
+          userName: req.user.name || req.user.email || req.user.id,
+          cancelCount,
+          bookingId: id,
+        }).catch(err => console.error('[CANCEL-STRIKES] admin email error', err));
+      }
+    } catch (err) {
+      // Strike check must never break the cancel flow
+      console.error('[CANCEL-STRIKES] count error', err);
+    }
+
+    return { ...this.formatBooking(updated), cancellationWarning };
   }
 
   @Put(':id/complete')

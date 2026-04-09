@@ -17,10 +17,10 @@ interface BookingsState {
 
   // Actions for companions (managing requests)
   acceptRequest: (id: string) => Promise<{ success: boolean; error?: string }>;
-  declineRequest: (id: string, reason?: string) => Promise<{ success: boolean; error?: string }>;
+  declineRequest: (id: string, reason?: string) => Promise<{ success: boolean; error?: string; cancellationWarning?: string }>;
 
   // Shared actions
-  cancelBooking: (id: string, reason?: string) => Promise<{ success: boolean; error?: string }>;
+  cancelBooking: (id: string, reason?: string) => Promise<{ success: boolean; error?: string; cancellationWarning?: string }>;
   completeBooking: (id: string) => Promise<{ success: boolean; error?: string }>;
   createReview: (bookingId: string, rating: number, comment?: string) => Promise<{ success: boolean; error?: string }>;
 
@@ -88,11 +88,12 @@ export const useBookingsStore = create<BookingsState>((set, get) => ({
 
     try {
       const updated = await bookingsApi.updateStatus(id, 'declined', reason);
+      const cancellationWarning = (updated as any).cancellationWarning as string | undefined;
       set((state) => ({
         requests: state.requests.map((r) => (r.id === id ? updated : r)),
         isLoading: false,
       }));
-      return { success: true };
+      return { success: true, cancellationWarning };
     } catch (err) {
       const message = err instanceof ApiError ? err.message : 'Failed to decline request';
       set({ error: message, isLoading: false });
@@ -105,12 +106,13 @@ export const useBookingsStore = create<BookingsState>((set, get) => ({
 
     try {
       const updated = await bookingsApi.updateStatus(id, 'cancelled', reason);
+      const cancellationWarning = (updated as any).cancellationWarning as string | undefined;
       set((state) => ({
         bookings: state.bookings.map((b) => (b.id === id ? updated : b)),
         requests: state.requests.map((r) => (r.id === id ? updated : r)),
         isLoading: false,
       }));
-      return { success: true };
+      return { success: true, cancellationWarning };
     } catch (err) {
       const message = err instanceof ApiError ? err.message : 'Failed to cancel booking';
       set({ error: message, isLoading: false });

@@ -64,6 +64,9 @@ export default function BookingsScreen() {
         const result = await cancelBooking(booking.id, 'Cancelled by user');
         if (result.success) {
           showAlert('Cancelled', 'Your booking has been cancelled.');
+          if (result.cancellationWarning) {
+            showAlert('Cancellation Warning', result.cancellationWarning);
+          }
           fetchMyBookings(filterMap[activeTab]);
         } else {
           showAlert('Error', result.error || 'Failed to cancel booking');
