@@ -701,7 +701,7 @@ const styles = StyleSheet.create({
   errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF0F0',
+    backgroundColor: colors.errorLight,
     borderWidth: 1,
     borderColor: colors.error,
     borderRadius: borderRadius.md,

@@ -22,7 +22,7 @@ import { useAuthStore } from '../../src/store/authStore';
 import { useImagePicker } from '../../src/hooks/useImagePicker';
 import { usersApi, citiesApi } from '../../src/services/api';
 import type { City } from '../../src/services/api';
-import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
+import { useTheme, colors, spacing, typography, borderRadius } from '../../src/constants/theme';
 import { showAlert } from '../../src/utils/alert';
 
 // Web-only: native <select> for city (RN Modal doesn't work well on web)
@@ -37,7 +37,7 @@ const WebCitySelect = Platform.OS === 'web'
       const selectStyle = {
         width: '100%' as const,
         height: 48,
-        border: `1px solid ${hasError ? '#FF3B30' : c.border}`,
+        border: `1px solid ${hasError ? colors.error : c.border}`,
         borderRadius: 12,
         backgroundColor: c.white,
         paddingLeft: 16,
@@ -301,7 +301,7 @@ export default function EditProfileScreen() {
               </TouchableOpacity>
             )}
             {citiesError && (
-              <Text style={[styles.hint, { color: '#FF3B30' }]}>Failed to load cities</Text>
+              <Text style={[styles.hint, { color: colors.error }]}>Failed to load cities</Text>
             )}
           </View>
 
@@ -422,7 +422,7 @@ export default function EditProfileScreen() {
                 </View>
               ) : citiesError ? (
                 <View style={styles.cityPickerLoading}>
-                  <Text style={{ color: '#FF3B30', fontSize: typography.sizes.sm }}>Failed to load cities. Please try again.</Text>
+                  <Text style={{ color: colors.error, fontSize: typography.sizes.sm }}>Failed to load cities. Please try again.</Text>
                 </View>
               ) : (
                 <FlatList
@@ -624,7 +624,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   cityItemSelected: {
-    backgroundColor: '#FF69B4',
+    backgroundColor: colors.primary,
   },
   cityItemText: {
     fontSize: typography.sizes.md,
