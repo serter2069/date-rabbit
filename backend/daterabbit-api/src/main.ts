@@ -5,6 +5,7 @@ import { DataSource } from 'typeorm';
 import { AppModule } from './app.module';
 import { runRefreshTokensMigration } from './auth/migrations/create-refresh-tokens';
 import { runNotificationTablesMigration } from './notifications/migrations/create-notification-tables';
+import { runAddExpiredBookingStatusMigration } from './bookings/migrations/add-expired-booking-status';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -29,6 +30,15 @@ async function bootstrap() {
   } catch (err) {
     console.error('notification_tables migration failed:', err);
     // Non-fatal: app still starts, but notification preferences/logs won't work until fixed
+  }
+
+  try {
+    const dataSource = app.get<DataSource>(getDataSourceToken());
+    await runAddExpiredBookingStatusMigration(dataSource);
+    console.log('add_expired_booking_status migration: OK');
+  } catch (err) {
+    console.error('add_expired_booking_status migration failed:', err);
+    // Non-fatal: app still starts, but expiry cron will fail until fixed
   }
 
   // Enable CORS

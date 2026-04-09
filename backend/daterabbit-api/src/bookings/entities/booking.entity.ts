@@ -17,6 +17,7 @@ export enum BookingStatus {
   CANCELLED = 'cancelled',
   COMPLETED = 'completed',
   DISPUTED = 'disputed',
+  EXPIRED = 'expired',
 }
 
 export enum ActivityType {
