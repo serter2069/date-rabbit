@@ -322,7 +322,7 @@ export class BookingsService {
     });
   }
 
-  async complete(id: string, userId: string): Promise<Booking> {
+  async complete(id: string, userId: string, options?: { actualDuration?: number }): Promise<Booking> {
     const booking = await this.findById(id);
 
     if (!booking) {
@@ -335,7 +335,8 @@ export class BookingsService {
 
     if (
       booking.status !== BookingStatus.CONFIRMED &&
-      booking.status !== BookingStatus.PAID
+      booking.status !== BookingStatus.PAID &&
+      booking.status !== BookingStatus.ACTIVE
     ) {
       throw new HttpException(
         `Cannot complete a ${booking.status} booking`,
@@ -353,7 +354,19 @@ export class BookingsService {
       );
     }
 
-    const updated = await this.updateStatus(id, BookingStatus.COMPLETED);
+    const update: Partial<Booking> = {
+      status: BookingStatus.COMPLETED,
+      completedAt: now,
+      activeDateEndedAt: now,
+    };
+
+    if (options?.actualDuration !== undefined) {
+      const actualDurationHours = options.actualDuration / 60;
+      update.actualDurationHours = actualDurationHours;
+    }
+
+    await this.bookingsRepository.update(id, update);
+    const updated = await this.findById(id);
     if (!updated) {
       throw new HttpException('Failed to update booking', HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -370,6 +383,31 @@ export class BookingsService {
     }
 
     return updated;
+  }
+
+  async confirmDuration(
+    bookingId: string,
+    seekerId: string,
+    confirmed: boolean,
+  ): Promise<Booking> {
+    const booking = await this.findById(bookingId);
+    if (!booking) {
+      throw new HttpException('Booking not found', HttpStatus.NOT_FOUND);
+    }
+    if (booking.seekerId !== seekerId) {
+      throw new HttpException('Only the seeker can confirm duration', HttpStatus.FORBIDDEN);
+    }
+    if (booking.status !== BookingStatus.COMPLETED) {
+      throw new HttpException('Booking must be completed first', HttpStatus.BAD_REQUEST);
+    }
+
+    const now = new Date();
+    await this.bookingsRepository.update(bookingId, {
+      durationConfirmedBySeeker: confirmed,
+      durationConfirmedAt: now,
+    });
+
+    return (await this.findById(bookingId))!;
   }
 
   async seekerCheckin(bookingId: string, seekerId: string, lat?: number, lon?: number): Promise<Booking> {

@@ -133,6 +133,15 @@ export class Booking {
   @Column({ type: 'boolean', default: false })
   selfieVerified: boolean;
 
+  @Column({ type: 'timestamp', nullable: true })
+  completedAt: Date;
+
+  @Column({ type: 'boolean', nullable: true })
+  durationConfirmedBySeeker: boolean;
+
+  @Column({ type: 'timestamp', nullable: true })
+  durationConfirmedAt: Date;
+
   // Who initiated the cancellation (seekerId or companionId) — used for tiered refund policy
   @Column({ nullable: true })
   cancelledByUserId: string;

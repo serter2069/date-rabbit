@@ -94,6 +94,43 @@ export class BookingsCron {
     });
   }
 
+  @Cron(CronExpression.EVERY_HOUR)
+  async autoCaptureCompletedBookings(): Promise<void> {
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    const bookings = await this.bookingsRepository.find({
+      where: {
+        status: BookingStatus.COMPLETED,
+        durationConfirmedBySeeker: IsNull(),
+        completedAt: LessThan(cutoff),
+      },
+    });
+
+    if (bookings.length === 0) return;
+
+    for (const booking of bookings) {
+      try {
+        // Guard: recheck inside iteration to avoid race conditions
+        const fresh = await this.bookingsRepository.findOne({
+          where: { id: booking.id, durationConfirmedBySeeker: IsNull() },
+        });
+        if (!fresh) continue;
+
+        await this.paymentsService.captureProportional(
+          booking.id,
+          Number(fresh.actualDurationHours ?? fresh.duration),
+        );
+        await this.bookingsRepository.update(booking.id, {
+          durationConfirmedBySeeker: true,
+          durationConfirmedAt: new Date(),
+        });
+        this.logger.log(`[AutoCapture] Captured payment for booking ${booking.id} after 24h timeout`);
+      } catch (err: any) {
+        this.logger.error(`[AutoCapture] Failed for booking ${booking.id}: ${err.message}`);
+      }
+    }
+  }
+
   @Cron(CronExpression.EVERY_5_MINUTES)
   async checkNoShows() {
     const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);

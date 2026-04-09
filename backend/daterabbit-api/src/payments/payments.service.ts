@@ -312,6 +312,32 @@ export class PaymentsService {
     }
   }
 
+  // --- Proportional capture for date completion ---
+
+  async captureProportional(
+    bookingId: string,
+    actualHours: number,
+  ): Promise<{ captured: number; refunded: number }> {
+    const booking = await this.bookingsRepo.findOne({ where: { id: bookingId } });
+    if (!booking?.paymentIntentId) return { captured: 0, refunded: 0 };
+
+    const totalPrice = Number(booking.totalPrice);
+    const bookedDuration = Number(booking.duration);
+
+    if (actualHours >= bookedDuration) {
+      // Full capture — no refund needed
+      await this.capturePayment(bookingId);
+      return { captured: totalPrice, refunded: 0 };
+    }
+
+    // Capture full amount first, then refund proportional unused time
+    await this.capturePayment(bookingId);
+    const refundFraction = 1 - actualHours / bookedDuration;
+    const refundAmount = Math.round(totalPrice * refundFraction * 100) / 100;
+    await this.partialRefundForEndEarly(bookingId, actualHours);
+    return { captured: Math.round((totalPrice - refundAmount) * 100) / 100, refunded: refundAmount };
+  }
+
   // --- Partial refund for end-early ---
 
   async partialRefundForEndEarly(bookingId: string, actualHours: number): Promise<void> {

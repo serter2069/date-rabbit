@@ -333,13 +333,50 @@ export class BookingsController {
   }
 
   @Put(':id/complete')
-  async completeBooking(@Param('id', ParseUUIDPipe) id: string, @Request() req) {
-    const updated = await this.bookingsService.complete(id, req.user.id);
-    // Capture the Stripe hold (fire-and-forget)
-    this.paymentsService.capturePayment(id).catch(err =>
-      console.error('Stripe capture error for booking', id, err),
-    );
+  async completeBooking(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Request() req,
+    @Body() body: { actualDuration?: number },
+  ) {
+    const updated = await this.bookingsService.complete(id, req.user.id, {
+      actualDuration: body.actualDuration,
+    });
+
+    // If actualDuration provided, defer payment capture to seeker confirmation flow.
+    // Otherwise, capture immediately for backwards compatibility.
+    if (body.actualDuration === undefined) {
+      this.paymentsService.capturePayment(id).catch(err =>
+        console.error('Stripe capture error for booking', id, err),
+      );
+    }
+
     return this.formatBooking(updated);
+  }
+
+  @Post(':id/confirm-duration')
+  async confirmDuration(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Request() req,
+    @Body() body: { confirmed: boolean },
+  ) {
+    if (typeof body.confirmed !== 'boolean') {
+      throw new HttpException('confirmed (boolean) is required', HttpStatus.BAD_REQUEST);
+    }
+
+    const booking = await this.bookingsService.confirmDuration(id, req.user.id, body.confirmed);
+
+    if (body.confirmed) {
+      // Capture proportional payment (fire-and-forget)
+      this.paymentsService.captureProportional(
+        id,
+        Number(booking.actualDurationHours ?? booking.duration),
+      ).catch(err =>
+        console.error('Stripe proportional capture error for booking', id, err),
+      );
+    }
+    // If !confirmed — leave for admin dispute resolution, no capture
+
+    return this.formatBooking(booking);
   }
 
   @Post(':id/checkin')
@@ -558,6 +595,9 @@ export class BookingsController {
       reportIssueText: booking.reportIssueText || undefined,
       packageId: booking.packageId || undefined,
       selfieVerified: booking.selfieVerified || false,
+      completedAt: booking.completedAt || undefined,
+      durationConfirmedBySeeker: booking.durationConfirmedBySeeker !== null && booking.durationConfirmedBySeeker !== undefined ? booking.durationConfirmedBySeeker : undefined,
+      durationConfirmedAt: booking.durationConfirmedAt || undefined,
       seeker: booking.seeker ? {
         id: booking.seeker.id,
         name: booking.seeker.name,
