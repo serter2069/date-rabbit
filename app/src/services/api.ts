@@ -454,6 +454,7 @@ export interface SearchCompanionsParams {
   latitude?: number;
   longitude?: number;
   search?: string;
+  city?: string;
   page?: number;
   limit?: number;
   activityTypes?: string[];
