@@ -1,5 +1,6 @@
-import { Controller, Get, Post, Put, Patch, Delete, Body, UseGuards, Request, Param, BadRequestException, ParseUUIDPipe, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Put, Patch, Delete, Body, UseGuards, Request, Param, BadRequestException, ForbiddenException, ParseUUIDPipe, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import * as multer from 'multer';
 import { UsersService } from './users.service';
 import { UploadsService } from '../uploads/uploads.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -105,6 +106,40 @@ export class UsersController {
     }
     this.uploadsService.validateImageFile(file);
     const url = await this.uploadsService.uploadFile(file, 'profile-photos');
+    return { url };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('me/video/upload')
+  @UseInterceptors(FileInterceptor('video', {
+    limits: { fileSize: 50 * 1024 * 1024 }, // 50MB — overrides module-level 10MB limit
+    storage: multer.memoryStorage(),
+    fileFilter: (_req, file, cb) => {
+      // Override module-level fileFilter which only allows images
+      const allowed = ['video/mp4', 'video/quicktime', 'video/mov'];
+      if (allowed.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new BadRequestException('Only MP4 and MOV videos are allowed'), false);
+      }
+    },
+  }))
+  async uploadProfileVideo(
+    @Request() req,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException('No video file provided');
+    }
+    // Only companions can upload a profile video
+    const user = await this.usersService.findById(req.user.id);
+    if (!user || user.role !== UserRole.COMPANION) {
+      throw new ForbiddenException('Only companions can upload a profile video');
+    }
+    this.uploadsService.validateVideoFile(file);
+    const url = await this.uploadsService.uploadFile(file, 'videos');
+    // Persist URL in user profile
+    await this.usersService.update(req.user.id, { profileVideoUrl: url } as any);
     return { url };
   }
 

@@ -6,6 +6,7 @@ import { AppModule } from './app.module';
 import { runRefreshTokensMigration } from './auth/migrations/create-refresh-tokens';
 import { runNotificationTablesMigration } from './notifications/migrations/create-notification-tables';
 import { runAddExpiredBookingStatusMigration } from './bookings/migrations/add-expired-booking-status';
+import { runAddProfileVideoUrlMigration } from './users/migrations/add-profile-video-url';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -39,6 +40,15 @@ async function bootstrap() {
   } catch (err) {
     console.error('add_expired_booking_status migration failed:', err);
     // Non-fatal: app still starts, but expiry cron will fail until fixed
+  }
+
+  try {
+    const dataSource = app.get<DataSource>(getDataSourceToken());
+    await runAddProfileVideoUrlMigration(dataSource);
+    console.log('add_profile_video_url migration: OK');
+  } catch (err) {
+    console.error('add_profile_video_url migration failed:', err);
+    // Non-fatal: app still starts
   }
 
   // Enable CORS

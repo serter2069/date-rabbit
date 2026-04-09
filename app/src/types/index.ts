@@ -66,6 +66,7 @@ export interface User {
   longitude?: number;
   emergencyContactName?: string;
   emergencyContactEmail?: string;
+  profileVideoUrl?: string;
   createdAt: string;
 }
 
