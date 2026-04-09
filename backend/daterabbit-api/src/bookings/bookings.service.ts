@@ -504,6 +504,8 @@ export class BookingsService {
       seekerName: booking.seeker?.name || 'seeker',
       triggeredBy,
       bookingTime: booking.dateTime ? new Date(booking.dateTime).toISOString() : undefined,
+      lat,
+      lon,
     }).catch(e => console.error('[SOS] admin email error', e));
 
     // Send emergency contact alert if triggering user has one (fire-and-forget)

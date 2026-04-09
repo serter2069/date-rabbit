@@ -144,12 +144,18 @@ export class EmailService {
     seekerName: string;
     triggeredBy: string;
     bookingTime?: string;
+    lat?: number;
+    lon?: number;
   }): Promise<boolean> {
     const adminEmail = this.configService.get<string>('ADMIN_EMAIL') || 'admin@daterabbit.app';
+    const mapsLink =
+      data.lat !== undefined && data.lon !== undefined
+        ? `<br/>Location: <a href="https://www.google.com/maps?q=${data.lat},${data.lon}" style="color:#cc0000;">View on Google Maps</a> (${data.lat.toFixed(5)}, ${data.lon.toFixed(5)})`
+        : '';
     return this.sendEmail({
       to: adminEmail,
       subject: `SOS Alert — ${data.triggeredBy} triggered safety button`,
-      htmlContent: `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/></head><body style="margin:0;padding:0;background:#F4F0EA;font-family:Arial,sans-serif;"><table width="100%" cellpadding="0" cellspacing="0" style="background:#F4F0EA;padding:40px 20px;"><tr><td align="center"><table width="480" cellpadding="0" cellspacing="0" style="background:#F4F0EA;border:3px solid #000;border-radius:12px;padding:32px;"><tr><td><p style="margin:0 0 4px 0;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#FF2A5F;">DateRabbit</p><h2 style="margin:0 0 16px 0;color:#cc0000;">SOS Alert</h2><p>User <strong>${data.triggeredBy}</strong> triggered the safety button.</p><p>Booking #${data.bookingId}<br/>Companion: ${data.companionName}<br/>Seeker: ${data.seekerName}${data.bookingTime ? '<br/>Time: ' + data.bookingTime : ''}</p><p>Booking has been automatically cancelled.</p></td></tr></table></td></tr></table></body></html>`,
+      htmlContent: `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/></head><body style="margin:0;padding:0;background:#F4F0EA;font-family:Arial,sans-serif;"><table width="100%" cellpadding="0" cellspacing="0" style="background:#F4F0EA;padding:40px 20px;"><tr><td align="center"><table width="480" cellpadding="0" cellspacing="0" style="background:#F4F0EA;border:3px solid #000;border-radius:12px;padding:32px;"><tr><td><p style="margin:0 0 4px 0;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#FF2A5F;">DateRabbit</p><h2 style="margin:0 0 16px 0;color:#cc0000;">SOS Alert</h2><p>User <strong>${data.triggeredBy}</strong> triggered the safety button.</p><p>Booking #${data.bookingId}<br/>Companion: ${data.companionName}<br/>Seeker: ${data.seekerName}${data.bookingTime ? '<br/>Time: ' + data.bookingTime : ''}${mapsLink}</p><p>Booking has been automatically cancelled.</p></td></tr></table></td></tr></table></body></html>`,
     });
   }
 
