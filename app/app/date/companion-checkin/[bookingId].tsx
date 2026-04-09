@@ -261,7 +261,7 @@ export default function CompanionCheckinScreen() {
             accessibilityState={{ disabled: !selfieUri || locationStatus === 'loading' }}
           >
             {locationStatus === 'loading'
-              ? <ActivityIndicator color="#000" size="small" />
+              ? <ActivityIndicator color={colors.text} size="small" />
               : <Text style={styles.locationBtnText}>Get Location</Text>
             }
           </TouchableOpacity>

@@ -97,7 +97,7 @@ export default function ExtendResponseScreen() {
           accessibilityState={{ disabled: responding }}
         >
           {responding
-            ? <ActivityIndicator color="#000" />
+            ? <ActivityIndicator color={colors.text} />
             : <Text style={styles.approveText}>Approve</Text>
           }
         </TouchableOpacity>

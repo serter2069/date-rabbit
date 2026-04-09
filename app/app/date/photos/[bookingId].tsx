@@ -106,7 +106,7 @@ export default function DatePhotosScreen() {
         accessibilityState={{ disabled: uploading }}
       >
         {uploading
-          ? <ActivityIndicator color="#000" />
+          ? <ActivityIndicator color={colors.text} />
           : <Text style={styles.addBtnText}>+ Add Photo</Text>
         }
       </TouchableOpacity>
@@ -136,20 +136,20 @@ export default function DatePhotosScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   list: { padding: 24, paddingBottom: 100 },
-  title: { fontSize: 28, fontFamily: typography.fonts.heading, fontWeight: '700', color: '#000', marginBottom: 20 },
+  title: { fontSize: 28, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.text, marginBottom: 20 },
   row: { justifyContent: 'space-between', marginBottom: 12 },
-  photoWrap: { width: PHOTO_SIZE, height: PHOTO_SIZE, borderWidth: 2, borderColor: '#000' },
+  photoWrap: { width: PHOTO_SIZE, height: PHOTO_SIZE, borderWidth: 2, borderColor: colors.border },
   photo: { width: '100%', height: '100%' },
   empty: { alignItems: 'center', paddingTop: 60 },
-  emptyTitle: { fontSize: 20, fontFamily: typography.fonts.heading, fontWeight: '700', color: '#000' },
+  emptyTitle: { fontSize: 20, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.text },
   emptySubtext: { fontSize: 14, color: colors.textMuted, marginTop: 8 },
   addBtn: {
     position: 'absolute', bottom: 24, left: 24, right: 24,
-    backgroundColor: colors.primaryLight, borderWidth: 2, borderColor: '#000',
+    backgroundColor: colors.primaryLight, borderWidth: 2, borderColor: colors.border,
     paddingVertical: 16, alignItems: 'center',
-    shadowOffset: { width: 4, height: 4 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0,
+    shadowOffset: { width: 4, height: 4 }, shadowColor: colors.shadow, shadowOpacity: 1, shadowRadius: 0,
   },
-  addBtnText: { fontSize: 18, fontFamily: typography.fonts.heading, fontWeight: '700', color: '#000' },
+  addBtnText: { fontSize: 18, fontFamily: typography.fonts.heading, fontWeight: '700', color: colors.text },
   btnDisabled: { opacity: 0.6 },
   errorText: { color: colors.primary, fontSize: 14, textAlign: 'center', marginBottom: 8, paddingHorizontal: 24 },
   modal: { flex: 1, backgroundColor: 'rgba(0,0,0,0.95)', justifyContent: 'center', alignItems: 'center' },
