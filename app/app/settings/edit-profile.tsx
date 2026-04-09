@@ -9,6 +9,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Modal,
+  FlatList,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
@@ -18,9 +20,54 @@ import { Icon } from '../../src/components/Icon';
 import { PhotoUpload } from '../../src/components/PhotoUpload';
 import { useAuthStore } from '../../src/store/authStore';
 import { useImagePicker } from '../../src/hooks/useImagePicker';
-import { usersApi } from '../../src/services/api';
+import { usersApi, citiesApi } from '../../src/services/api';
+import type { City } from '../../src/services/api';
 import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
 import { showAlert } from '../../src/utils/alert';
+
+// Web-only: native <select> for city (RN Modal doesn't work well on web)
+const WebCitySelect = Platform.OS === 'web'
+  ? ({ value, cities, onChange, hasError, colors: c }: {
+      value: string;
+      cities: City[];
+      onChange: (val: string) => void;
+      hasError: boolean;
+      colors: any;
+    }) => {
+      const selectStyle = {
+        width: '100%' as const,
+        height: 48,
+        border: `1px solid ${hasError ? '#FF3B30' : c.border}`,
+        borderRadius: 12,
+        backgroundColor: c.white,
+        paddingLeft: 16,
+        paddingRight: 16,
+        fontSize: 16,
+        color: value ? c.text : c.textSecondary,
+        appearance: 'none' as const,
+        WebkitAppearance: 'none' as const,
+        backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%23999%27 stroke-width=%272%27%3e%3cpolyline points=%276 9 12 15 18 9%27/%3e%3c/svg%3e")',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'right 12px center',
+        backgroundSize: '20px',
+        cursor: 'pointer' as const,
+        outline: 'none',
+      };
+      return (
+        // @ts-ignore - web-only DOM element
+        <select
+          value={value}
+          onChange={(e: any) => onChange(e.target.value)}
+          style={selectStyle}
+        >
+          <option value="">Select city</option>
+          {cities.map((city: City) => (
+            <option key={city.id} value={city.name}>{city.name}</option>
+          ))}
+        </select>
+      );
+    }
+  : null;
 
 export default function EditProfileScreen() {
   const insets = useSafeAreaInsets();
@@ -42,8 +89,31 @@ export default function EditProfileScreen() {
     hourlyRate: user?.hourlyRate?.toString() || '',
   });
   const [loading, setLoading] = useState(false);
+  const [cityPickerVisible, setCityPickerVisible] = useState(false);
+  const [cities, setCities] = useState<City[]>([]);
+  const [citiesLoading, setCitiesLoading] = useState(false);
+  const [citiesError, setCitiesError] = useState(false);
   const [videoLoading, setVideoLoading] = useState(false);
   const [profileVideoUrl, setProfileVideoUrl] = useState<string | null>(user?.profileVideoUrl || null);
+
+  // Fetch cities for dropdown
+  useEffect(() => {
+    let cancelled = false;
+    const fetchCities = async () => {
+      setCitiesLoading(true);
+      setCitiesError(false);
+      try {
+        const data = await citiesApi.getActive();
+        if (!cancelled) setCities(data);
+      } catch {
+        if (!cancelled) setCitiesError(true);
+      } finally {
+        if (!cancelled) setCitiesLoading(false);
+      }
+    };
+    fetchCities();
+    return () => { cancelled = true; };
+  }, []);
 
   // Initialize images from user profile
   useEffect(() => {
@@ -200,14 +270,39 @@ export default function EditProfileScreen() {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={[styles.label, { color: colors.text }]}>Location</Text>
-            <TextInput
-              style={[styles.input, { backgroundColor: colors.white, borderColor: colors.border, color: colors.text }]}
-              value={formData.location}
-              onChangeText={(v) => updateField('location', v)}
-              placeholder="City, State"
-              placeholderTextColor={colors.textSecondary}
-            />
+            <Text style={[styles.label, { color: colors.text }]}>City</Text>
+            {Platform.OS === 'web' && WebCitySelect ? (
+              <WebCitySelect
+                value={formData.location}
+                cities={cities}
+                onChange={(val) => updateField('location', val)}
+                hasError={false}
+                colors={colors}
+              />
+            ) : (
+              <TouchableOpacity
+                style={[styles.input, { backgroundColor: colors.white, borderColor: colors.border, flexDirection: 'row', alignItems: 'center' }]}
+                onPress={() => setCityPickerVisible(true)}
+                activeOpacity={0.7}
+                accessibilityLabel={formData.location ? `City: ${formData.location}` : 'Select city'}
+                accessibilityRole="button"
+              >
+                <Icon name="map-pin" size={20} color={colors.textSecondary} />
+                <Text
+                  style={[
+                    { flex: 1, fontSize: typography.sizes.md, marginLeft: spacing.sm },
+                    formData.location ? { color: colors.text } : { color: colors.textSecondary },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {formData.location || 'Select city'}
+                </Text>
+                <Icon name="arrow-down" size={16} color={colors.textSecondary} />
+              </TouchableOpacity>
+            )}
+            {citiesError && (
+              <Text style={[styles.hint, { color: '#FF3B30' }]}>Failed to load cities</Text>
+            )}
           </View>
 
           {isFemale && (
@@ -294,6 +389,84 @@ export default function EditProfileScreen() {
 
         <View style={{ height: spacing.xxl }} />
       </ScrollView>
+
+      {/* City Picker Modal (native only -- web uses <select>) */}
+      {Platform.OS !== 'web' && (
+        <Modal
+          visible={cityPickerVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setCityPickerVisible(false)}
+        >
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setCityPickerVisible(false)}
+            accessibilityLabel="Close city picker"
+            accessibilityRole="button"
+          >
+            <View style={[styles.modalContent, { backgroundColor: colors.white, borderColor: colors.border }]}>
+              <View style={[styles.modalHeader, { borderBottomColor: colors.border }]}>
+                <Text style={[styles.modalTitle, { color: colors.text }]}>Select City</Text>
+                <TouchableOpacity
+                  onPress={() => setCityPickerVisible(false)}
+                  accessibilityLabel="Close"
+                  accessibilityRole="button"
+                >
+                  <Icon name="x" size={24} color={colors.text} />
+                </TouchableOpacity>
+              </View>
+              {citiesLoading ? (
+                <View style={styles.cityPickerLoading}>
+                  <Text style={[styles.cityPickerLoadingText, { color: colors.textSecondary }]}>Loading cities...</Text>
+                </View>
+              ) : citiesError ? (
+                <View style={styles.cityPickerLoading}>
+                  <Text style={{ color: '#FF3B30', fontSize: typography.sizes.sm }}>Failed to load cities. Please try again.</Text>
+                </View>
+              ) : (
+                <FlatList
+                  data={cities}
+                  keyExtractor={(item) => item.id}
+                  style={styles.cityList}
+                  showsVerticalScrollIndicator={false}
+                  ListEmptyComponent={
+                    <View style={styles.cityPickerLoading}>
+                      <Text style={[styles.cityPickerLoadingText, { color: colors.textSecondary }]}>No cities available</Text>
+                    </View>
+                  }
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={[
+                        styles.cityItem,
+                        { borderBottomColor: colors.border },
+                        formData.location === item.name && styles.cityItemSelected,
+                      ]}
+                      onPress={() => {
+                        updateField('location', item.name);
+                        setCityPickerVisible(false);
+                      }}
+                      accessibilityLabel={`City ${item.name}`}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: formData.location === item.name }}
+                    >
+                      <Text
+                        style={[
+                          styles.cityItemText,
+                          { color: colors.text },
+                          formData.location === item.name && styles.cityItemTextSelected,
+                        ]}
+                      >
+                        {item.name}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                />
+              )}
+            </View>
+          </TouchableOpacity>
+        </Modal>
+      )}
     </KeyboardAvoidingView>
   );
 }
@@ -413,5 +586,60 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     fontWeight: '600',
     marginLeft: spacing.xs,
+  },
+  // City picker modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.lg,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 360,
+    maxHeight: 420,
+    borderWidth: 1,
+    borderRadius: borderRadius.lg,
+    overflow: 'hidden',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+  },
+  modalTitle: {
+    fontSize: typography.sizes.lg,
+    fontWeight: '600',
+  },
+  cityList: {
+    maxHeight: 360,
+  },
+  cityItem: {
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderBottomWidth: 1,
+  },
+  cityItemSelected: {
+    backgroundColor: '#FF69B4',
+  },
+  cityItemText: {
+    fontSize: typography.sizes.md,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  cityItemTextSelected: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  cityPickerLoading: {
+    paddingVertical: spacing.xl,
+    alignItems: 'center',
+  },
+  cityPickerLoadingText: {
+    fontSize: typography.sizes.md,
   },
 });
