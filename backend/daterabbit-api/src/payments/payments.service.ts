@@ -498,6 +498,12 @@ export class PaymentsService {
         HttpStatus.UNPROCESSABLE_ENTITY,
       );
     }
+    if (payoutCents < 100) {
+      throw new HttpException(
+        'Minimum payout amount is $1.00',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     if (payoutCents > availableCents) {
       throw new HttpException(
         'Payout amount exceeds available balance',

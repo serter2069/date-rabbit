@@ -7,6 +7,8 @@ import {
   Param,
   Query,
   UseGuards,
+  UsePipes,
+  ValidationPipe,
   Request,
   Headers,
   Req,
@@ -15,9 +17,17 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 import type { Request as ExpressRequest } from 'express';
+import { IsNumber, IsOptional, Min } from 'class-validator';
 import { SkipThrottle } from '@nestjs/throttler';
 import { PaymentsService } from './payments.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+
+class CreatePayoutDto {
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  amount?: number;
+}
 
 @Controller('payments')
 export class PaymentsController {
@@ -81,12 +91,8 @@ export class PaymentsController {
 
   @Post('payouts/create')
   @UseGuards(JwtAuthGuard)
-  async createPayout(@Request() req, @Body() body: { amount?: number }) {
-    if (body.amount !== undefined) {
-      if (typeof body.amount !== 'number' || body.amount <= 0) {
-        throw new HttpException('Amount must be a positive number', HttpStatus.BAD_REQUEST);
-      }
-    }
+  @UsePipes(new ValidationPipe({ whitelist: true, transform: true }))
+  async createPayout(@Request() req, @Body() body: CreatePayoutDto) {
     return this.paymentsService.createPayout(req.user.id, body.amount);
   }
 
