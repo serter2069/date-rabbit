@@ -7,7 +7,7 @@ export default function DateLayout() {
       screenOptions={{
         animation: 'slide_from_right',
         headerStyle: { backgroundColor: colors.background },
-        headerTintColor: '#000',
+        headerTintColor: colors.text,
         headerTitleStyle: { fontFamily: typography.fonts.heading, fontWeight: '700' },
         headerShadowVisible: false,
         headerBackTitle: '',

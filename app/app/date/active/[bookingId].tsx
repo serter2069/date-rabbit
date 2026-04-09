@@ -256,7 +256,7 @@ export default function ActiveDateScreen() {
         accessibilityLabel="Open chat"
         accessibilityRole="button"
       >
-        <MessageCircle size={26} color="#000" strokeWidth={2.5} />
+        <MessageCircle size={26} color={colors.text} strokeWidth={2.5} />
       </TouchableOpacity>
     )}
     </View>
