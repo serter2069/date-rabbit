@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, RefreshControl, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, RefreshControl, ActivityIndicator, Platform, KeyboardAvoidingView } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
@@ -190,7 +190,10 @@ export default function BrowseScreen() {
   }, [appliedFilters]);
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <KeyboardAvoidingView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
         <Text style={[styles.title, { color: colors.text }]}>Browse</Text>
         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Find your perfect companion</Text>
@@ -413,7 +416,7 @@ export default function BrowseScreen() {
         onApply={handleApplyFilters}
         initialFilters={appliedFilters}
       />
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
