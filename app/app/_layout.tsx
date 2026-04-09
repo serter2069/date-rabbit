@@ -131,6 +131,9 @@ function NavigationGuard() {
     const needsVerification = isAuthenticated && user?.verificationStatus !== 'approved';
     const isSeeker = user?.role === 'seeker';
 
+    // Admin routes — let the (admin) layout handle its own auth guard
+    if (currentSegment === '(admin)') return;
+
     // Allow public routes without any redirects
     if (PUBLIC_ROUTES.includes(currentSegment)) {
       // Only redirect from onboarding/auth if already authenticated
@@ -278,6 +281,7 @@ export default function RootLayout() {
         <Stack.Screen name="(auth)" options={{ animation: 'fade' }} />
         <Stack.Screen name="(auth)/forgot-password" />
         <Stack.Screen name="(dev)" options={{ headerShown: false }} />
+        <Stack.Screen name="(admin)" options={{ animation: 'fade' }} />
         <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
         <Stack.Screen name="(seeker-verify)" />
         <Stack.Screen name="(comp-onboard)" />

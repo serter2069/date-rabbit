@@ -43,6 +43,7 @@ export interface User {
   email: string;
   name: string;
   role: UserRole;
+  isAdmin?: boolean;
   age?: number;
   location?: string;
   bio?: string;
