@@ -188,16 +188,18 @@ export class BookingsService {
         break;
 
       case 'past':
-        // Completed/cancelled bookings with past dates OR confirmed/paid bookings with past dates
+        // Completed/cancelled/expired bookings OR confirmed/paid bookings with past dates
         seekerWhere = [
           { seekerId: userId, status: BookingStatus.COMPLETED },
           { seekerId: userId, status: BookingStatus.CANCELLED, dateTime: LessThan(now) },
+          { seekerId: userId, status: BookingStatus.EXPIRED },
           { seekerId: userId, dateTime: LessThan(now), status: BookingStatus.CONFIRMED },
           { seekerId: userId, dateTime: LessThan(now), status: BookingStatus.PAID },
         ];
         companionWhere = [
           { companionId: userId, status: BookingStatus.COMPLETED },
           { companionId: userId, status: BookingStatus.CANCELLED, dateTime: LessThan(now) },
+          { companionId: userId, status: BookingStatus.EXPIRED },
           { companionId: userId, dateTime: LessThan(now), status: BookingStatus.CONFIRMED },
           { companionId: userId, dateTime: LessThan(now), status: BookingStatus.PAID },
         ];

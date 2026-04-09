@@ -35,17 +35,19 @@ export class BookingsCron {
 
     if (expiredBookings.length === 0) return;
 
-    // Bulk-update status to CANCELLED
-    await this.bookingsRepository.update(
-      {
-        status: BookingStatus.PENDING,
-        createdAt: LessThan(cutoff),
-      },
-      {
-        status: BookingStatus.CANCELLED,
+    // Fix race condition: update only the IDs we just loaded, not a re-run of the where clause.
+    // This prevents marking bookings that were confirmed between the find() and update() calls.
+    const expiredIds = expiredBookings.map((b) => b.id);
+    await this.bookingsRepository
+      .createQueryBuilder()
+      .update()
+      .set({
+        status: BookingStatus.EXPIRED,
         cancellationReason: 'expired: companion did not respond within 24 hours',
-      },
-    );
+      })
+      .whereInIds(expiredIds)
+      .andWhere('status = :status', { status: BookingStatus.PENDING })
+      .execute();
 
     this.logger.log(`[BookingsCron] Expired ${expiredBookings.length} pending bookings`);
 
