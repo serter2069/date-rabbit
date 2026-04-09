@@ -7,6 +7,7 @@ import { runRefreshTokensMigration } from './auth/migrations/create-refresh-toke
 import { runNotificationTablesMigration } from './notifications/migrations/create-notification-tables';
 import { runAddExpiredBookingStatusMigration } from './bookings/migrations/add-expired-booking-status';
 import { runAddProfileVideoUrlMigration } from './users/migrations/add-profile-video-url';
+import { runAddCompletionDurationFieldsMigration } from './bookings/migrations/add-completion-duration-fields';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -48,6 +49,15 @@ async function bootstrap() {
     console.log('add_profile_video_url migration: OK');
   } catch (err) {
     console.error('add_profile_video_url migration failed:', err);
+    // Non-fatal: app still starts
+  }
+
+  try {
+    const dataSource = app.get<DataSource>(getDataSourceToken());
+    await runAddCompletionDurationFieldsMigration(dataSource);
+    console.log('add_completion_duration_fields migration: OK');
+  } catch (err) {
+    console.error('add_completion_duration_fields migration failed:', err);
     // Non-fatal: app still starts
   }
 
