@@ -105,7 +105,15 @@ export class PaymentsService {
   async createPaymentIntent(
     userId: string,
     bookingId: string,
-  ): Promise<{ clientSecret: string }> {
+  ): Promise<{
+    clientSecret: string;
+    feeBreakdown: {
+      subtotal: number;
+      platformFee: number;
+      stripeFee: number;
+      totalCharged: number;
+    };
+  }> {
     this.ensureStripe();
 
     const booking = await this.bookingsRepo.findOne({
@@ -120,6 +128,19 @@ export class PaymentsService {
     if (booking.status !== BookingStatus.CONFIRMED)
       throw new HttpException('Booking must be confirmed first', HttpStatus.BAD_REQUEST);
 
+    const subtotal = Math.round(Number(booking.totalPrice) * 100) / 100; // dollars, 2dp
+    const commissionRate = await this.getCommissionRate();
+    const platformFeeAmount = Math.round(subtotal * commissionRate * 100) / 100;
+    const stripeFee = Math.round(((subtotal + platformFeeAmount) * 0.029 + 0.30) * 100) / 100;
+    const totalCharged = Math.round((subtotal + platformFeeAmount + stripeFee) * 100) / 100;
+
+    const feeBreakdown = {
+      subtotal,
+      platformFee: platformFeeAmount,
+      stripeFee,
+      totalCharged,
+    };
+
     // Idempotency: return existing payment intent if one already exists and is still active
     if (booking.paymentIntentId) {
       const existingIntent = await this.stripe.paymentIntents.retrieve(booking.paymentIntentId);
@@ -128,7 +149,7 @@ export class PaymentsService {
         existingIntent.status === 'requires_confirmation' ||
         existingIntent.status === 'requires_action'
       ) {
-        return { clientSecret: existingIntent.client_secret! };
+        return { clientSecret: existingIntent.client_secret!, feeBreakdown };
       }
       // Intent is cancelled/failed — clear it and create a new one
       await this.bookingsRepo.update(bookingId, { paymentIntentId: null as any });
@@ -144,21 +165,21 @@ export class PaymentsService {
       );
     }
 
-    const amount = Math.round(Number(booking.totalPrice) * 100); // cents
-    if (amount <= 0) {
+    const totalChargedCents = Math.round(totalCharged * 100);
+    if (totalChargedCents <= 0) {
       throw new HttpException(
         'Booking total price must be greater than zero',
         HttpStatus.UNPROCESSABLE_ENTITY,
       );
     }
-    const commissionRate = await this.getCommissionRate();
-    const platformFee = Math.round(amount * commissionRate); // dynamic platform fee from PlatformSettings
+    // Platform fee applied on the subtotal only (companion gets subtotal minus platform fee)
+    const platformFeeCents = Math.round(platformFeeAmount * 100);
 
     const paymentIntent = await this.stripe.paymentIntents.create({
-      amount,
+      amount: totalChargedCents,
       currency: 'usd',
       capture_method: 'manual',
-      application_fee_amount: platformFee,
+      application_fee_amount: platformFeeCents,
       transfer_data: {
         destination: companion.stripeAccountId,
       },
@@ -173,7 +194,7 @@ export class PaymentsService {
       paymentIntentId: paymentIntent.id,
     });
 
-    return { clientSecret: paymentIntent.client_secret! };
+    return { clientSecret: paymentIntent.client_secret!, feeBreakdown };
   }
 
   // --- Capture / Cancel (escrow) ---

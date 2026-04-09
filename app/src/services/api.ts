@@ -695,7 +695,15 @@ export const paymentsApi = {
     apiRequest<{ complete: boolean; payoutsEnabled: boolean }>('/payments/connect/status'),
 
   createPaymentIntent: (bookingId: string) =>
-    apiRequest<{ clientSecret: string }>(`/payments/bookings/${bookingId}/pay`, {
+    apiRequest<{
+      clientSecret: string;
+      feeBreakdown?: {
+        subtotal: number;
+        platformFee: number;
+        stripeFee: number;
+        totalCharged: number;
+      };
+    }>(`/payments/bookings/${bookingId}/pay`, {
       method: 'POST',
     }),
 
