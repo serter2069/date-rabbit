@@ -12,6 +12,7 @@ import { VerificationBanner } from '../../../src/components/VerificationBanner';
 import { EmptyState } from '../../../src/components/EmptyState';
 import { colors, spacing, typography, borderRadius, shadows, PAGE_PADDING } from '../../../src/constants/theme';
 import { bookingsApi, paymentsApi, Booking } from '../../../src/services/api';
+import { User } from '../../../src/types';
 
 export default function FemaleDashboard() {
   const insets = useSafeAreaInsets();
@@ -98,26 +99,9 @@ export default function FemaleDashboard() {
         />
       </View>
 
-      {/* Profile incomplete gate — shown when profile is not yet published */}
+      {/* Profile completion checklist — shown when profile is not yet published */}
       {!user?.isPublicProfile && (
-        <TouchableOpacity
-          style={styles.incompleteGate}
-          onPress={() => router.push('/settings')}
-          activeOpacity={0.85}
-          accessibilityLabel="Complete your profile to start receiving bookings"
-          accessibilityRole="button"
-        >
-          <View style={styles.incompleteGateLeft}>
-            <Icon name="alert-circle" size={20} color={colors.warning} />
-            <View style={styles.incompleteGateText}>
-              <Text style={styles.incompleteGateTitle}>Profile Incomplete</Text>
-              <Text style={styles.incompleteGateDesc}>
-                Add a photo, set your rate and bio to go live
-              </Text>
-            </View>
-          </View>
-          <Icon name="chevron-right" size={18} color={colors.warning} />
-        </TouchableOpacity>
+        <ProfileChecklist user={user!} />
       )}
 
       {/* Verification reminder */}
@@ -217,6 +201,50 @@ export default function FemaleDashboard() {
       onDone={setTourSeen}
     />
     </>
+  );
+}
+
+function ProfileChecklist({ user }: { user: User }) {
+  const items = [
+    { label: 'Add at least 4 photos', done: (user?.photos?.length ?? 0) >= 4, link: '/settings/edit-profile' as const },
+    { label: 'Write a bio', done: !!user?.bio?.trim(), link: '/settings/edit-profile' as const },
+    { label: 'Set your hourly rate', done: Number(user?.hourlyRate ?? 0) > 0, link: '/settings/edit-profile' as const },
+    { label: 'Set your city', done: !!user?.location?.trim(), link: '/settings/edit-profile' as const },
+    { label: 'Connect bank account', done: user?.stripeOnboardingComplete === true, link: '/stripe/connect' as const },
+  ];
+  const completed = items.filter(i => i.done).length;
+
+  return (
+    <View style={styles.checklistCard}>
+      <View style={styles.checklistHeader}>
+        <Icon name="alert-circle" size={20} color={colors.warning} />
+        <Text style={styles.checklistTitle}>Complete Your Profile</Text>
+      </View>
+      <Text style={styles.checklistProgress}>{completed}/5 completed</Text>
+      {items.map((item, idx) => (
+        <React.Fragment key={idx}>
+          {idx > 0 && <View style={styles.checklistDivider} />}
+          {item.done ? (
+            <View style={styles.checklistRow}>
+              <Icon name="check-circle" size={20} color={colors.success} />
+              <Text style={[styles.checklistLabel, styles.checklistLabelDone]}>{item.label}</Text>
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={styles.checklistRow}
+              activeOpacity={0.7}
+              onPress={() => router.push(item.link)}
+              accessibilityLabel={item.label}
+              accessibilityRole="button"
+            >
+              <View style={styles.checklistCircle} />
+              <Text style={styles.checklistLabel}>{item.label}</Text>
+              <Icon name="chevron-right" size={16} color={colors.textMuted} />
+            </TouchableOpacity>
+          )}
+        </React.Fragment>
+      ))}
+    </View>
   );
 }
 
@@ -491,36 +519,61 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     color: colors.textMuted,
   },
-  incompleteGate: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: colors.warningLight,
-    borderWidth: 1.5,
-    borderColor: colors.warning,
-    borderRadius: borderRadius.md,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.md,
+  checklistCard: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    padding: spacing.md,
     marginBottom: spacing.lg,
+    maxWidth: 430,
+    alignSelf: 'center' as const,
+    width: '100%',
+    ...shadows.sm,
   },
-  incompleteGateLeft: {
+  checklistHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    flex: 1,
+    marginBottom: spacing.xs,
   },
-  incompleteGateText: {
-    flex: 1,
-  },
-  incompleteGateTitle: {
+  checklistTitle: {
     fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.md,
+    color: colors.text,
+  },
+  checklistProgress: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.sm,
+    color: colors.textMuted,
+    marginBottom: spacing.md,
+    marginLeft: 28,
+  },
+  checklistRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+  },
+  checklistLabel: {
+    fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     color: colors.text,
-    marginBottom: 2,
+    flex: 1,
   },
-  incompleteGateDesc: {
-    fontFamily: typography.fonts.body,
-    fontSize: typography.sizes.xs,
-    color: colors.textSecondary,
+  checklistLabelDone: {
+    color: colors.textMuted,
+    textDecorationLine: 'line-through',
+  },
+  checklistCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: colors.textMuted,
+  },
+  checklistDivider: {
+    height: 1,
+    backgroundColor: colors.divider,
   },
 });
