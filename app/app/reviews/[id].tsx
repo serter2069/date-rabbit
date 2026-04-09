@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
   },
   replyLabel: {
     fontSize: 13,
-    fontFamily: 'SpaceGrotesk-Bold',
+    fontFamily: 'SpaceGrotesk_700Bold',
     fontWeight: '700',
     color: colors.primary,
     marginBottom: 2,
@@ -386,7 +386,7 @@ const styles = StyleSheet.create({
   },
   replyButtonText: {
     fontSize: 14,
-    fontFamily: 'SpaceGrotesk-Bold',
+    fontFamily: 'SpaceGrotesk_700Bold',
     fontWeight: '700',
     color: '#000',
   },
