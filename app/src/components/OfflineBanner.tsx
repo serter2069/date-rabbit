@@ -63,7 +63,7 @@ export function OfflineBanner() {
     return null;
   }
 
-  const backgroundColor = showBackOnline && !isOffline ? '#2D9557' : '#1A1A1A';
+  const backgroundColor = showBackOnline && !isOffline ? colors.successStrong : colors.text;
   const message = showBackOnline && !isOffline ? 'Back online' : 'No internet connection';
 
   return (
@@ -80,7 +80,7 @@ export function OfflineBanner() {
       pointerEvents="none"
     >
       <View style={styles.content}>
-        <View style={[styles.dot, { backgroundColor: showBackOnline && !isOffline ? '#6EE7A0' : colors.error }]} />
+        <View style={[styles.dot, { backgroundColor: showBackOnline && !isOffline ? colors.successStrong : colors.error }]} />
         <Text style={styles.text}>{message}</Text>
       </View>
     </Animated.View>
