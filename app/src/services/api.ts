@@ -1063,6 +1063,7 @@ export interface User {
   isVerified?: boolean;
   verificationStatus?: import('../types').VerificationStatus;
   photos?: { id: string; url: string; order: number; isPrimary: boolean }[];
+  profileVideoUrl?: string;
   stripeOnboardingComplete?: boolean;
   isPublicProfile?: boolean;
   expoPushToken?: string;

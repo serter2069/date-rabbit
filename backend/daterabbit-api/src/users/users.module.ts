@@ -16,7 +16,6 @@ import { NotificationsModule } from '../notifications/notifications.module';
   imports: [
     TypeOrmModule.forFeature([User, BlockedUser, UserReport, Favorite, OnlineWatcher]),
     MulterModule.register({
-      limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
       storage: multer.memoryStorage(),
       fileFilter: (_req, file, cb) => {
         const allowed = ['image/jpeg', 'image/png', 'image/webp'];
