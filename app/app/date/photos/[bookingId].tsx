@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
   emptySubtext: { fontSize: 14, color: colors.textMuted, marginTop: 8 },
   addBtn: {
     position: 'absolute', bottom: 24, left: 24, right: 24,
-    backgroundColor: '#FF5A85', borderWidth: 2, borderColor: '#000',
+    backgroundColor: colors.primaryLight, borderWidth: 2, borderColor: '#000',
     paddingVertical: 16, alignItems: 'center',
     shadowOffset: { width: 4, height: 4 }, shadowColor: '#000', shadowOpacity: 1, shadowRadius: 0,
   },
