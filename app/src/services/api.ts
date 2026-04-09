@@ -652,7 +652,7 @@ export const bookingsApi = {
     if (status === 'accepted') {
       return apiRequest<Booking>(`/bookings/${id}/confirm`, { method: 'PUT' });
     } else {
-      return apiRequest<Booking>(`/bookings/${id}/cancel`, { method: 'PUT', body: { reason } });
+      return apiRequest<Booking & { cancellationWarning?: string }>(`/bookings/${id}/cancel`, { method: 'PUT', body: { reason } });
     }
   },
 

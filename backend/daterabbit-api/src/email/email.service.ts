@@ -138,6 +138,20 @@ export class EmailService {
     });
   }
 
+  async sendCancellationWarningToAdmin(data: {
+    userId: string;
+    userName: string;
+    cancelCount: number;
+    bookingId: string;
+  }): Promise<boolean> {
+    const adminEmail = this.configService.get<string>('ADMIN_EMAIL') || 'admin@daterabbit.app';
+    return this.sendEmail({
+      to: adminEmail,
+      subject: `3-Strike Warning — ${data.userName} has cancelled ${data.cancelCount} times this month`,
+      htmlContent: `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/></head><body style="margin:0;padding:0;background:#F4F0EA;font-family:Arial,sans-serif;"><table width="100%" cellpadding="0" cellspacing="0" style="background:#F4F0EA;padding:40px 20px;"><tr><td align="center"><table width="480" cellpadding="0" cellspacing="0" style="background:#F4F0EA;border:3px solid #000;border-radius:12px;padding:32px;"><tr><td><p style="margin:0 0 4px 0;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#FF2A5F;">DateRabbit</p><h2 style="margin:0 0 16px 0;color:#cc7700;">Cancellation Warning</h2><p>User <strong>${data.userName}</strong> (ID: ${data.userId}) has cancelled <strong>${data.cancelCount} bookings</strong> in the last 30 days.</p><p>Booking that triggered this alert: #${data.bookingId}</p><p>Please review this user's account and consider reaching out if the pattern continues.</p></td></tr></table></td></tr></table></body></html>`,
+    });
+  }
+
   async sendSOSAlertToAdmin(data: {
     bookingId: string;
     companionName: string;

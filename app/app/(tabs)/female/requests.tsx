@@ -58,6 +58,9 @@ export default function RequestsScreen() {
         const result = await declineRequest(booking.id);
         if (result.success) {
           showAlert('Declined', 'Date request declined.');
+          if (result.cancellationWarning) {
+            showAlert('Cancellation Warning', result.cancellationWarning);
+          }
           fetchRequests(activeTab);
         } else {
           showAlert('Error', result.error || 'Failed to decline');
