@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import { X, Star } from 'lucide-react-native';
 import { Button } from './Button';
 import { colors, spacing, typography, borderRadius } from '../constants/theme';
 import { ActivityType } from '../types';
+import { citiesApi, City } from '../services/api';
 
 export interface FilterOptions {
   priceRange: [number, number];
@@ -21,6 +22,7 @@ export interface FilterOptions {
   ageRange: [number, number];
   sortBy: 'recommended' | 'price_low' | 'price_high' | 'rating' | 'distance' | 'new';
   activityTypes: ActivityType[];
+  city: string;
 }
 
 interface FilterModalProps {
@@ -38,6 +40,7 @@ const defaultFilters: FilterOptions = {
   ageRange: [21, 45],
   sortBy: 'recommended',
   activityTypes: [],
+  city: '',
 };
 
 const activityTypeOptions: { value: ActivityType; label: string }[] = [
@@ -76,6 +79,12 @@ export function FilterModal({
     ...defaultFilters,
     ...initialFilters,
   });
+
+  const [cities, setCities] = useState<City[]>([]);
+
+  useEffect(() => {
+    citiesApi.getActive().then(setCities).catch(() => {});
+  }, []);
 
   const handleReset = () => {
     setFilters(defaultFilters);
@@ -273,6 +282,53 @@ export function FilterModal({
               ))}
             </View>
           </View>
+
+          {/* City */}
+          {cities.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>City</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View style={styles.chipGroup}>
+                  <TouchableOpacity
+                    style={[
+                      styles.chip,
+                      filters.city === '' && styles.chipActive,
+                    ]}
+                    onPress={() => updateFilter('city', '')}
+                    accessibilityLabel="All cities"
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: filters.city === '' }}
+                  >
+                    <Text
+                      style={[
+                        styles.chipText,
+                        filters.city === '' && styles.chipTextActive,
+                      ]}
+                    >
+                      All cities
+                    </Text>
+                  </TouchableOpacity>
+                  {cities.map((c) => {
+                    const isSelected = filters.city === c.name;
+                    return (
+                      <TouchableOpacity
+                        key={c.id}
+                        style={[styles.chip, isSelected && styles.chipActive]}
+                        onPress={() => updateFilter('city', c.name)}
+                        accessibilityLabel={`${c.name}, ${c.state}`}
+                        accessibilityRole="radio"
+                        accessibilityState={{ selected: isSelected }}
+                      >
+                        <Text style={[styles.chipText, isSelected && styles.chipTextActive]}>
+                          {c.name}, {c.state}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </ScrollView>
+            </View>
+          )}
 
           {/* Activity Type */}
           <View style={styles.section}>
