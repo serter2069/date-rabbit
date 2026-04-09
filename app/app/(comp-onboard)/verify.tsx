@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
   },
   statusIcon: {
     fontFamily: typography.fonts.heading,
-    fontSize: 40,
+    fontSize: typography.sizes.display,
     color: colors.primary,
     marginBottom: spacing.sm,
   },
