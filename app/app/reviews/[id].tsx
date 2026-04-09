@@ -276,11 +276,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   backArrow: {
-    fontSize: 24,
+    fontSize: typography.sizes.xl,
     color: colors.text,
   },
   title: {
-    fontSize: 20,
+    fontSize: typography.sizes.lg,
     fontFamily: typography.fonts.heading,
     fontWeight: '700',
     color: colors.text,
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   stateTitle: {
-    fontSize: 22,
+    fontSize: typography.sizes.xl,
     fontFamily: typography.fonts.heading,
     fontWeight: '700',
     color: colors.text,
@@ -300,7 +300,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   stateBody: {
-    fontSize: 15,
+    fontSize: typography.sizes.md,
     color: colors.textMuted,
     textAlign: 'center',
   },
@@ -324,13 +324,13 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   reviewerName: {
-    fontSize: 16,
+    fontSize: typography.sizes.md,
     fontFamily: typography.fonts.heading,
     fontWeight: '700',
     color: colors.text,
   },
   dateText: {
-    fontSize: 13,
+    fontSize: typography.sizes.sm,
     color: colors.textLight,
   },
   starsRow: {
@@ -339,14 +339,14 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   star: {
-    fontSize: 22,
+    fontSize: typography.sizes.xl,
     color: colors.textLight,
   },
   starFilled: {
     color: colors.primary,
   },
   comment: {
-    fontSize: 15,
+    fontSize: typography.sizes.md,
     color: colors.textSecondary,
     lineHeight: 22,
   },
@@ -359,19 +359,19 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   replyLabel: {
-    fontSize: 13,
+    fontSize: typography.sizes.sm,
     fontFamily: 'SpaceGrotesk_700Bold',
     fontWeight: '700',
     color: colors.primary,
     marginBottom: 2,
   },
   replyDate: {
-    fontSize: 12,
+    fontSize: typography.sizes.xs,
     color: colors.textLight,
     marginBottom: 6,
   },
   replyText: {
-    fontSize: 14,
+    fontSize: typography.sizes.sm,
     color: colors.textSecondary,
     lineHeight: 20,
   },
@@ -385,7 +385,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   replyButtonText: {
-    fontSize: 14,
+    fontSize: typography.sizes.sm,
     fontFamily: 'SpaceGrotesk_700Bold',
     fontWeight: '700',
     color: colors.text,
@@ -397,7 +397,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.border,
     padding: 10,
-    fontSize: 14,
+    fontSize: typography.sizes.sm,
     color: colors.text,
     minHeight: 80,
     textAlignVertical: 'top',
@@ -417,7 +417,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   cancelButtonText: {
-    fontSize: 14,
+    fontSize: typography.sizes.sm,
     fontWeight: '600',
     color: colors.text,
   },
@@ -429,7 +429,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   submitButtonText: {
-    fontSize: 14,
+    fontSize: typography.sizes.sm,
     fontWeight: '700',
     color: colors.white,
   },
