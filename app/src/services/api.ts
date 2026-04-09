@@ -414,6 +414,32 @@ export const usersApi = {
     }
     return data;
   },
+
+  uploadProfileVideo: async (uri: string): Promise<{ url: string }> => {
+    const token = await getToken();
+    const formData = new FormData();
+    const extension = uri.split('.').pop()?.split('?')[0]?.toLowerCase() || 'mp4';
+    // Normalize mov extension to correct MIME type
+    const mimeType = extension === 'mov' ? 'video/quicktime' : `video/${extension}`;
+    formData.append('video', {
+      uri,
+      type: mimeType,
+      name: `profile-video.${extension}`,
+    } as unknown as Blob);
+    const response = await fetch(`${API_BASE_URL}/users/me/video/upload`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
+      },
+      body: formData,
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new ApiError(data.message || 'Video upload failed', response.status);
+    }
+    return data;
+  },
 };
 
 // Companions API

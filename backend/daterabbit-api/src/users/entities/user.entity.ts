@@ -106,6 +106,9 @@ export class User {
     payments: boolean;
   };
 
+  @Column({ type: 'varchar', nullable: true })
+  profileVideoUrl: string;
+
   @Column({ type: 'timestamp', nullable: true })
   lastSeen: Date;
 

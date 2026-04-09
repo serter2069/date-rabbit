@@ -8,7 +8,9 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../../src/components/Button';
@@ -40,6 +42,8 @@ export default function EditProfileScreen() {
     hourlyRate: user?.hourlyRate?.toString() || '',
   });
   const [loading, setLoading] = useState(false);
+  const [videoLoading, setVideoLoading] = useState(false);
+  const [profileVideoUrl, setProfileVideoUrl] = useState<string | null>(user?.profileVideoUrl || null);
 
   // Initialize images from user profile
   useEffect(() => {
@@ -48,6 +52,31 @@ export default function EditProfileScreen() {
       setImages(user.photos.map(p => p.url));
     }
   }, []);
+
+  const handleVideoUpload = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      showAlert('Permission Required', 'Please allow access to your media library to upload a video.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+      allowsEditing: false,
+      quality: 1,
+    });
+    if (result.canceled || !result.assets?.[0]) return;
+    const asset = result.assets[0];
+    setVideoLoading(true);
+    try {
+      const { url } = await usersApi.uploadProfileVideo(asset.uri);
+      setProfileVideoUrl(url);
+      showAlert('Success', 'Profile video uploaded successfully.');
+    } catch {
+      showAlert('Error', 'Failed to upload video. Make sure it is MP4 or MOV and under 50MB.');
+    } finally {
+      setVideoLoading(false);
+    }
+  };
 
   const handleSave = async () => {
     if (!formData.name.trim()) {
@@ -199,6 +228,43 @@ export default function EditProfileScreen() {
           )}
         </View>
 
+        {/* Profile Video — companions only, mobile only */}
+        {isFemale && Platform.OS !== 'web' && (
+          <View style={[styles.section, { backgroundColor: colors.white }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Profile Video</Text>
+            <Text style={[styles.hint, { color: colors.textSecondary, marginBottom: spacing.md }]}>
+              Upload a short intro video (MP4 or MOV, max 50MB) to help seekers get to know you.
+            </Text>
+            {profileVideoUrl ? (
+              <View style={styles.videoStatus}>
+                <Icon name="check-circle" size={20} color="#4CAF50" />
+                <Text style={[styles.videoStatusText, { color: colors.text }]}>Video uploaded</Text>
+              </View>
+            ) : (
+              <View style={styles.videoStatus}>
+                <Icon name="video" size={20} color={colors.textSecondary} />
+                <Text style={[styles.videoStatusText, { color: colors.textSecondary }]}>No video uploaded</Text>
+              </View>
+            )}
+            <TouchableOpacity
+              style={[styles.videoButton, { borderColor: colors.primary, opacity: videoLoading ? 0.6 : 1 }]}
+              onPress={handleVideoUpload}
+              disabled={videoLoading}
+              accessibilityLabel="Upload profile video"
+              accessibilityRole="button"
+            >
+              {videoLoading ? (
+                <ActivityIndicator size="small" color={colors.primary} />
+              ) : (
+                <Icon name="upload" size={18} color={colors.primary} />
+              )}
+              <Text style={[styles.videoButtonText, { color: colors.primary }]}>
+                {videoLoading ? 'Uploading...' : profileVideoUrl ? 'Replace Video' : 'Upload Video'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Account Info (Read-only) */}
         <View style={[styles.section, { backgroundColor: colors.white }]}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Account Info</Text>
@@ -320,5 +386,32 @@ const styles = StyleSheet.create({
     fontFamily: typography.fonts.bodyMedium,
     fontSize: typography.sizes.sm,
     fontWeight: '500',
+  },
+  videoStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+    gap: spacing.xs,
+  },
+  videoStatusText: {
+    fontSize: typography.sizes.sm,
+    marginLeft: spacing.xs,
+  },
+  videoButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderRadius: borderRadius.lg,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    gap: spacing.xs,
+    minHeight: 48,
+  },
+  videoButtonText: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.sm,
+    fontWeight: '600',
+    marginLeft: spacing.xs,
   },
 });
