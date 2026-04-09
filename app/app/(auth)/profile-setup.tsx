@@ -21,7 +21,7 @@ import { usersApi, referralApi, citiesApi } from '../../src/services/api';
 import type { City } from '../../src/services/api';
 import { Button } from '../../src/components/Button';
 import { Icon } from '../../src/components/Icon';
-import { useTheme, spacing, typography, borderRadius } from '../../src/constants/theme';
+import { useTheme, colors, spacing, typography, borderRadius } from '../../src/constants/theme';
 import type { UserRole } from '../../src/types';
 
 // Web-only: native <select> for city (RN Modal doesn't work well on web)
@@ -36,7 +36,7 @@ const WebCitySelect = Platform.OS === 'web'
       const selectStyle = {
         width: '100%' as const,
         height: 48,
-        border: `2px solid ${hasError ? '#FF3B30' : c.border}`,
+        border: `2px solid ${hasError ? colors.error : c.border}`,
         borderRadius: 12,
         backgroundColor: c.surface,
         paddingLeft: 16,
@@ -365,7 +365,7 @@ export default function ProfileSetupScreen() {
                   </TouchableOpacity>
                 )}
                 {citiesError && (
-                  <Text style={[styles.hint, { color: '#FF3B30' }]}>Failed to load cities</Text>
+                  <Text style={[styles.hint, { color: colors.error }]}>Failed to load cities</Text>
                 )}
               </View>
             </View>
@@ -494,7 +494,7 @@ export default function ProfileSetupScreen() {
                 </View>
               ) : citiesError ? (
                 <View style={styles.cityPickerLoading}>
-                  <Text style={{ color: '#FF3B30', fontSize: typography.sizes.sm }}>Failed to load cities. Please try again.</Text>
+                  <Text style={{ color: colors.error, fontSize: typography.sizes.sm }}>Failed to load cities. Please try again.</Text>
                 </View>
               ) : (
                 <FlatList
@@ -701,7 +701,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   cityItemSelected: {
-    backgroundColor: '#FF69B4',
+    backgroundColor: colors.primary,
   },
   cityItemText: {
     fontSize: typography.sizes.md,
