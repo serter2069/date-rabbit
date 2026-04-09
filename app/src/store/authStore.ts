@@ -100,6 +100,7 @@ function mapApiUserToUser(apiUser: ApiUser): User {
     location: apiUser.location,
     bio: apiUser.bio,
     photos: apiUser.photos,
+    profileVideoUrl: apiUser.profileVideoUrl,
     hourlyRate: apiUser.hourlyRate,
     rating: apiUser.rating,
     reviewCount: apiUser.reviewCount,
