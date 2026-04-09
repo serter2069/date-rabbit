@@ -21,7 +21,7 @@ import { ProgressBar } from '../../src/components/verification';
 import { colors, spacing, typography, borderRadius, PAGE_PADDING } from '../../src/constants/theme';
 import { usersApi } from '../../src/services/api';
 
-const MIN_PHOTOS = 3;
+const MIN_PHOTOS = 4;
 const MAX_PHOTOS = 6;
 const MAX_BIO_LENGTH = 500;
 
@@ -31,6 +31,8 @@ export default function CompStep2Screen() {
   const [bio, setBio] = useState('');
   const [errors, setErrors] = useState<{ photos?: string; bio?: string }>({});
   const [isUploading, setIsUploading] = useState(false);
+  const [videoLoading, setVideoLoading] = useState(false);
+  const [profileVideoUrl, setProfileVideoUrl] = useState<string | null>(null);
 
   const pickPhoto = async () => {
     if (photos.length >= MAX_PHOTOS) return;
@@ -56,6 +58,31 @@ export default function CompStep2Screen() {
 
   const removePhoto = (index: number) => {
     setPhotos((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleVideoUpload = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      showAlert('Permission Required', 'Please allow access to your media library to upload a video.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+      allowsEditing: false,
+      quality: 1,
+    });
+    if (result.canceled || !result.assets?.[0]) return;
+    const asset = result.assets[0];
+    setVideoLoading(true);
+    try {
+      const { url } = await usersApi.uploadProfileVideo(asset.uri);
+      setProfileVideoUrl(url);
+      showAlert('Success', 'Profile video uploaded successfully.');
+    } catch {
+      showAlert('Error', 'Failed to upload video. Make sure it is MP4 or MOV and under 50MB.');
+    } finally {
+      setVideoLoading(false);
+    }
   };
 
   const validate = () => {
@@ -236,6 +263,50 @@ export default function CompStep2Screen() {
             </Text>
           </View>
         </View>
+
+        {/* Video section — mobile only, optional */}
+        {Platform.OS !== 'web' && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionBadge}>
+                <Text style={styles.sectionBadgeText}>3</Text>
+              </View>
+              <View style={styles.sectionHeaderText}>
+                <Text style={styles.sectionTitle}>Profile Video</Text>
+                <Text style={styles.sectionHint}>Optional — short intro video (MP4/MOV, max 50MB)</Text>
+              </View>
+            </View>
+
+            {profileVideoUrl ? (
+              <View style={styles.videoStatus}>
+                <Icon name="check-circle" size={20} color="#4CAF50" />
+                <Text style={styles.videoStatusText}>Video uploaded</Text>
+              </View>
+            ) : (
+              <View style={styles.videoStatus}>
+                <Icon name="video" size={20} color={colors.textMuted} />
+                <Text style={[styles.videoStatusText, { color: colors.textMuted }]}>No video uploaded</Text>
+              </View>
+            )}
+
+            <TouchableOpacity
+              style={[styles.videoButton, { opacity: videoLoading ? 0.6 : 1 }]}
+              onPress={handleVideoUpload}
+              disabled={videoLoading}
+              accessibilityLabel="Upload profile video"
+              accessibilityRole="button"
+            >
+              {videoLoading ? (
+                <ActivityIndicator size="small" color={colors.primary} />
+              ) : (
+                <Icon name="upload" size={18} color={colors.primary} />
+              )}
+              <Text style={styles.videoButtonText}>
+                {videoLoading ? 'Uploading...' : profileVideoUrl ? 'Replace Video' : 'Upload Video'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {isUploading && (
           <View style={styles.uploadingRow}>
@@ -453,5 +524,35 @@ const styles = StyleSheet.create({
     fontFamily: typography.fonts.body,
     fontSize: typography.sizes.sm,
     color: colors.textMuted,
+  },
+  videoStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+    gap: spacing.xs,
+  },
+  videoStatusText: {
+    fontFamily: typography.fonts.body,
+    fontSize: typography.sizes.sm,
+    color: colors.text,
+    marginLeft: spacing.xs,
+  },
+  videoButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    borderRadius: borderRadius.lg,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+    gap: spacing.xs,
+    minHeight: 48,
+  },
+  videoButtonText: {
+    fontFamily: typography.fonts.bodySemiBold,
+    fontSize: typography.sizes.sm,
+    color: colors.primary,
+    marginLeft: spacing.xs,
   },
 });
