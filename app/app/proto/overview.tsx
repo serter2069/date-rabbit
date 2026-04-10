@@ -31,7 +31,7 @@ function StatusBadge({ text }: { text: string }) {
   );
 }
 
-function RoleCard({ role }: { role: typeof protoMeta.roles[0] }) {
+function RoleCard({ role }: { role: { id: string; name: string; description: string; color: string } }) {
   const icon = ROLE_ICONS[role.id] || 'user';
   return (
     <View style={[styles.roleCard, { borderLeftColor: role.color, borderLeftWidth: 5 }]}>
@@ -65,12 +65,12 @@ function TechStackCard() {
   );
 }
 
-function FlowSection({ flow }: { flow: typeof protoMeta.flows[0] }) {
+function FlowSection({ flow }: { flow: { id: string; name: string; steps: string[] } }) {
   return (
     <View style={styles.flowContainer}>
       <Text style={styles.flowTitle}>{flow.name}</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.flowScroll}>
-        {flow.steps.map((stepId, i) => {
+        {flow.steps.map((stepId: string, i: number) => {
           const page = pageRegistry.find(p => p.id === stepId);
           const label = page?.title || stepId;
           return (
@@ -182,7 +182,7 @@ export default function ProtoOverview() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Roles</Text>
         <View style={styles.rolesGrid}>
-          {protoMeta.roles.map(role => (
+          {protoMeta.roles.map((role) => (
             <RoleCard key={role.id} role={role} />
           ))}
         </View>
@@ -194,7 +194,7 @@ export default function ProtoOverview() {
       {/* Flows */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Happy Paths</Text>
-        {protoMeta.flows.map(flow => (
+        {protoMeta.flows.map((flow) => (
           <FlowSection key={flow.id} flow={flow} />
         ))}
       </View>
