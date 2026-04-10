@@ -117,6 +117,7 @@ function NavigationGuard() {
   const { isAuthenticated, hasSeenOnboarding, _hasHydrated, user } = useAuthStore();
   const router = useRouter();
   const segments = useSegments();
+  const isRedirectingRef = useRef(false);
 
   useEffect(() => {
     // Wait for AsyncStorage hydration before making any routing decisions.
@@ -138,6 +139,8 @@ function NavigationGuard() {
     if (PUBLIC_ROUTES.includes(currentSegment)) {
       // Only redirect from onboarding/auth if already authenticated
       if (currentSegment === '(auth)' && isAuthenticated) {
+        if (isRedirectingRef.current) return; // already redirecting, skip
+        isRedirectingRef.current = true;
         // Authenticated user on auth page — redirect to main app
         const isCompanion = user?.role === 'companion';
         router.replace(isCompanion ? '/(tabs)/female' : '/(tabs)/male');
@@ -145,6 +148,9 @@ function NavigationGuard() {
       // terms, privacy, landing — always accessible, never redirect
       return;
     }
+
+    // Not in auth segment — reset redirect flag
+    isRedirectingRef.current = false;
 
     // Web-only: unauthenticated users see landing page before onboarding
     if (Platform.OS === 'web' && !isAuthenticated) {
