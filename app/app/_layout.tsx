@@ -92,7 +92,7 @@ function useCleanUrl() {
 }
 
 // Public routes accessible without authentication
-const PUBLIC_ROUTES = ['terms', 'privacy', 'safety', 'onboarding', '(auth)', '(dev)', 'landing'];
+const PUBLIC_ROUTES = ['terms', 'privacy', 'safety', 'onboarding', '(auth)', '(dev)', 'landing', 'proto'];
 
 // Authenticated non-tab routes — accessible to all authenticated users (verified or not)
 const NON_TAB_AUTH_ROUTES = [
