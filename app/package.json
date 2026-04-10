@@ -78,5 +78,9 @@
     "typescript": "~5.9.2",
     "yaml": "^2.8.2"
   },
-  "private": true
+  "private": true,
+  "proto": {
+    "viewerPort": 9087,
+    "appPort": 8087
+  }
 }
