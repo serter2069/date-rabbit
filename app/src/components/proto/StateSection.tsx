@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
 
 interface Props {
@@ -8,10 +8,17 @@ interface Props {
 }
 
 export function StateSection({ title, description, children }: Props) {
-  const webProps = Platform.OS === 'web' ? { 'data-state-name': title } : {};
+  const ref = useRef<View>(null);
+
+  useEffect(() => {
+    if (Platform.OS === 'web' && ref.current) {
+      // Set data attribute directly on DOM element for text/screenshot API
+      (ref.current as unknown as HTMLElement).setAttribute('data-state-name', title);
+    }
+  }, [title]);
 
   return (
-    <View {...webProps} style={styles.container}>
+    <View ref={ref} style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>{title}</Text>
         {description && <Text style={styles.description}>{description}</Text>}
