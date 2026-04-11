@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet, Image } from 'react-native';
+import { View, Text, TextInput, Pressable, StyleSheet, Image, Platform } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { StateSection } from '../StateSection';
@@ -94,7 +94,7 @@ function DefaultState() {
           {/* 4 filled slots */}
           {(['comp-photo-1', 'comp-photo-2', 'comp-photo-3', 'comp-photo-4'] as const).map(seed => (
             <View key={seed} style={s.photoSlot}>
-              <Image source={{ uri: `https://picsum.photos/seed/${seed}/100/100` }} style={{ width: 100, height: 100, borderRadius: 8, borderWidth: 2, borderColor: '#000' }} />
+              <Image source={{ uri: `https://picsum.photos/seed/${seed}/100/100` }} style={{ width: 100, height: 100, borderRadius: 8, borderWidth: 2, borderColor: colors.border }} />
             </View>
           ))}
           {/* 2 empty add slots */}
@@ -212,7 +212,7 @@ function MissingPhotosState() {
         <View style={s.photosGrid}>
           {/* 1 filled slot only */}
           <View style={s.photoSlot}>
-            <Image source={{ uri: 'https://picsum.photos/seed/comp-photo-1/100/100' }} style={{ width: 100, height: 100, borderRadius: 8, borderWidth: 2, borderColor: '#000' }} />
+            <Image source={{ uri: 'https://picsum.photos/seed/comp-photo-1/100/100' }} style={{ width: 100, height: 100, borderRadius: 8, borderWidth: 2, borderColor: colors.border }} />
           </View>
           {/* 5 empty add slots */}
           {[1, 2, 3, 4, 5].map(i => (
@@ -272,7 +272,7 @@ function VideoPickerState() {
         <Text style={s.modalTitle}>Add Introduction Video (Optional)</Text>
 
         <View style={s.videoSlot}>
-          <Image source={{ uri: 'https://picsum.photos/seed/comp-video-preview/280/160' }} style={{ width: 280, height: 160, borderRadius: 8, borderWidth: 2, borderColor: '#000' }} />
+          <Image source={{ uri: 'https://picsum.photos/seed/comp-video-preview/280/160' }} style={{ width: 280, height: 160, borderRadius: 8, borderWidth: 2, borderColor: colors.border }} />
         </View>
 
         <Pressable style={[s.btnPrimary, shadows.button]}>
@@ -299,16 +299,37 @@ export function CompOnboardStep2States() {
   return (
     <View style={s.root}>
       <StateSection title="DEFAULT" description="Main companion setup form with bio, photos, services">
+        <View style={{ minHeight: Platform.OS === 'web' ? '100vh' : 844 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 56, paddingHorizontal: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}><Text style={{ fontSize: 18, fontWeight: '700', color: '#7C3AED' }}>DateRabbit</Text><View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Feather name="bell" size={20} color="#6B7280" /></View></View>
+          <View style={{ flex: 1 }}>
+
         <DefaultState />
-      </StateSection>
+                </View>
+          <View style={{ flexDirection: 'row', height: 56, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#E5E7EB', alignItems: 'center' }}>{[{i:'home',l:'Home'},{i:'calendar',l:'Bookings'},{i:'message-circle',l:'Messages'},{i:'user',l:'Profile'}].map(t=>(<View key={t.l} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><Feather name={t.i} size={20} color="#6B7280" /><Text style={{ fontSize: 10, color: '#6B7280' }}>{t.l}</Text></View>))}</View>
+        </View>
+</StateSection>
 
       <StateSection title="MISSING_PHOTOS" description="Photo section highlighted red, error message shown">
+        <View style={{ minHeight: Platform.OS === 'web' ? '100vh' : 844 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 56, paddingHorizontal: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}><Text style={{ fontSize: 18, fontWeight: '700', color: '#7C3AED' }}>DateRabbit</Text><View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Feather name="bell" size={20} color="#6B7280" /></View></View>
+          <View style={{ flex: 1 }}>
+
         <MissingPhotosState />
-      </StateSection>
+                </View>
+          <View style={{ flexDirection: 'row', height: 56, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#E5E7EB', alignItems: 'center' }}>{[{i:'home',l:'Home'},{i:'calendar',l:'Bookings'},{i:'message-circle',l:'Messages'},{i:'user',l:'Profile'}].map(t=>(<View key={t.l} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><Feather name={t.i} size={20} color="#6B7280" /><Text style={{ fontSize: 10, color: '#6B7280' }}>{t.l}</Text></View>))}</View>
+        </View>
+</StateSection>
 
       <StateSection title="VIDEO_PICKER" description="Modal overlay for optional video upload">
+        <View style={{ minHeight: Platform.OS === 'web' ? '100vh' : 844 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 56, paddingHorizontal: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}><Text style={{ fontSize: 18, fontWeight: '700', color: '#7C3AED' }}>DateRabbit</Text><View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Feather name="bell" size={20} color="#6B7280" /></View></View>
+          <View style={{ flex: 1 }}>
+
         <VideoPickerState />
-      </StateSection>
+                </View>
+          <View style={{ flexDirection: 'row', height: 56, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#E5E7EB', alignItems: 'center' }}>{[{i:'home',l:'Home'},{i:'calendar',l:'Bookings'},{i:'message-circle',l:'Messages'},{i:'user',l:'Profile'}].map(t=>(<View key={t.l} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><Feather name={t.i} size={20} color="#6B7280" /><Text style={{ fontSize: 10, color: '#6B7280' }}>{t.l}</Text></View>))}</View>
+        </View>
+</StateSection>
     </View>
   );
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet, Image } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Image, Platform } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { StateSection } from '../StateSection';
@@ -14,12 +14,12 @@ function DefaultState() {
   return (
     <View style={s.page}>
       {/* Cover photo */}
-      <Image source={{ uri: 'https://picsum.photos/seed/comp-profile-banner/800/200' }} style={{ width: '100%', height: 200, borderWidth: 2, borderColor: '#000' }} />
+      <Image source={{ uri: 'https://picsum.photos/seed/comp-profile-banner/800/200' }} style={{ width: '100%', height: 200, borderWidth: 2, borderColor: colors.border }} />
 
       {/* Profile section */}
       <View style={s.profileSection}>
         <View style={s.avatarWrap}>
-          <Image source={{ uri: 'https://picsum.photos/seed/jessica-profile/100/100' }} style={{ width: 100, height: 100, borderRadius: 50, borderWidth: 2, borderColor: '#000' }} />
+          <Image source={{ uri: 'https://picsum.photos/seed/jessica-profile/100/100' }} style={{ width: 100, height: 100, borderRadius: 50, borderWidth: 2, borderColor: colors.border }} />
         </View>
         <Text style={s.profileName}>Jessica Martinez</Text>
         <View style={s.metaRow}>
@@ -47,7 +47,7 @@ function DefaultState() {
         <View style={s.photosGrid}>
           {(['jessica-photo-1', 'jessica-photo-2', 'jessica-photo-3', 'jessica-photo-4'] as const).map(seed => (
             <View key={seed} style={s.photoCell}>
-              <Image source={{ uri: `https://picsum.photos/seed/${seed}/160/160` }} style={{ width: '100%', aspectRatio: 1, borderRadius: 8, borderWidth: 2, borderColor: '#000' }} />
+              <Image source={{ uri: `https://picsum.photos/seed/${seed}/160/160` }} style={{ width: '100%', aspectRatio: 1, borderRadius: 8, borderWidth: 2, borderColor: colors.border }} />
             </View>
           ))}
         </View>
@@ -116,12 +116,12 @@ function PreviewModeState() {
       </View>
 
       {/* Cover */}
-      <Image source={{ uri: 'https://picsum.photos/seed/comp-profile-banner/800/200' }} style={{ width: '100%', height: 200, borderWidth: 2, borderColor: '#000' }} />
+      <Image source={{ uri: 'https://picsum.photos/seed/comp-profile-banner/800/200' }} style={{ width: '100%', height: 200, borderWidth: 2, borderColor: colors.border }} />
 
       {/* Profile section */}
       <View style={s.profileSection}>
         <View style={s.avatarWrap}>
-          <Image source={{ uri: 'https://picsum.photos/seed/jessica-profile/100/100' }} style={{ width: 100, height: 100, borderRadius: 50, borderWidth: 2, borderColor: '#000' }} />
+          <Image source={{ uri: 'https://picsum.photos/seed/jessica-profile/100/100' }} style={{ width: 100, height: 100, borderRadius: 50, borderWidth: 2, borderColor: colors.border }} />
         </View>
         <Text style={s.profileName}>Jessica Martinez</Text>
         <View style={s.metaRow}>
@@ -179,11 +179,25 @@ export function CompProfileStates() {
   return (
     <View style={s.root}>
       <StateSection title="DEFAULT" description="Companion public profile (self view)">
+        <View style={{ minHeight: Platform.OS === 'web' ? '100vh' : 844 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 56, paddingHorizontal: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}><Text style={{ fontSize: 18, fontWeight: '700', color: '#7C3AED' }}>DateRabbit</Text><View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Feather name="bell" size={20} color="#6B7280" /></View></View>
+          <View style={{ flex: 1 }}>
+
         <DefaultState />
-      </StateSection>
+                </View>
+          <View style={{ flexDirection: 'row', height: 56, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#E5E7EB', alignItems: 'center' }}>{[{i:'home',l:'Home'},{i:'calendar',l:'Bookings'},{i:'message-circle',l:'Messages'},{i:'user',l:'Profile'}].map(t=>(<View key={t.l} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><Feather name={t.i} size={20} color="#6B7280" /><Text style={{ fontSize: 10, color: '#6B7280' }}>{t.l}</Text></View>))}</View>
+        </View>
+</StateSection>
       <StateSection title="PREVIEW_MODE" description="Viewing profile as seeker would see it">
+        <View style={{ minHeight: Platform.OS === 'web' ? '100vh' : 844 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 56, paddingHorizontal: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}><Text style={{ fontSize: 18, fontWeight: '700', color: '#7C3AED' }}>DateRabbit</Text><View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Feather name="bell" size={20} color="#6B7280" /></View></View>
+          <View style={{ flex: 1 }}>
+
         <PreviewModeState />
-      </StateSection>
+                </View>
+          <View style={{ flexDirection: 'row', height: 56, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#E5E7EB', alignItems: 'center' }}>{[{i:'home',l:'Home'},{i:'calendar',l:'Bookings'},{i:'message-circle',l:'Messages'},{i:'user',l:'Profile'}].map(t=>(<View key={t.l} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><Feather name={t.i} size={20} color="#6B7280" /><Text style={{ fontSize: 10, color: '#6B7280' }}>{t.l}</Text></View>))}</View>
+        </View>
+</StateSection>
     </View>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Image } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Image, Platform } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { StateSection } from '../StateSection';
@@ -15,7 +15,7 @@ function DefaultState() {
     <View style={s.page}>
       {/* Header */}
       <View style={s.header}>
-        <Image source={{ uri: 'https://picsum.photos/seed/jessica-avatar/40/40' }} style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 2, borderColor: '#000' }} />
+        <Image source={{ uri: 'https://picsum.photos/seed/jessica-avatar/40/40' }} style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 2, borderColor: colors.border }} />
         <View style={{ flex: 1 }}>
           <Text style={s.greeting}>Good evening, Jessica</Text>
         </View>
@@ -133,7 +133,7 @@ function BusyModeState() {
     <View style={s.page}>
       {/* Header */}
       <View style={s.header}>
-        <Image source={{ uri: 'https://picsum.photos/seed/jessica-avatar/40/40' }} style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 2, borderColor: '#000' }} />
+        <Image source={{ uri: 'https://picsum.photos/seed/jessica-avatar/40/40' }} style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 2, borderColor: colors.border }} />
         <View style={{ flex: 1 }}>
           <Text style={s.greeting}>Good evening, Jessica</Text>
         </View>
@@ -212,7 +212,7 @@ function NewRequestAlertState() {
 
       {/* Header */}
       <View style={s.header}>
-        <Image source={{ uri: 'https://picsum.photos/seed/jessica-avatar/40/40' }} style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 2, borderColor: '#000' }} />
+        <Image source={{ uri: 'https://picsum.photos/seed/jessica-avatar/40/40' }} style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 2, borderColor: colors.border }} />
         <View style={{ flex: 1 }}>
           <Text style={s.greeting}>Good evening, Jessica</Text>
         </View>
@@ -260,14 +260,35 @@ export function CompHomeStates() {
   return (
     <View style={s.root}>
       <StateSection title="DEFAULT" description="Companion Home dashboard">
+        <View style={{ minHeight: Platform.OS === 'web' ? '100vh' : 844 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 56, paddingHorizontal: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}><Text style={{ fontSize: 18, fontWeight: '700', color: '#7C3AED' }}>DateRabbit</Text><View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Feather name="bell" size={20} color="#6B7280" /></View></View>
+          <View style={{ flex: 1 }}>
+
         <DefaultState />
-      </StateSection>
+                </View>
+          <View style={{ flexDirection: 'row', height: 56, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#E5E7EB', alignItems: 'center' }}>{[{i:'home',l:'Home'},{i:'calendar',l:'Bookings'},{i:'message-circle',l:'Messages'},{i:'user',l:'Profile'}].map(t=>(<View key={t.l} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><Feather name={t.i} size={20} color="#6B7280" /><Text style={{ fontSize: 10, color: '#6B7280' }}>{t.l}</Text></View>))}</View>
+        </View>
+</StateSection>
       <StateSection title="BUSY_MODE" description="Toggle is red, not accepting requests">
+        <View style={{ minHeight: Platform.OS === 'web' ? '100vh' : 844 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 56, paddingHorizontal: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}><Text style={{ fontSize: 18, fontWeight: '700', color: '#7C3AED' }}>DateRabbit</Text><View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Feather name="bell" size={20} color="#6B7280" /></View></View>
+          <View style={{ flex: 1 }}>
+
         <BusyModeState />
-      </StateSection>
+                </View>
+          <View style={{ flexDirection: 'row', height: 56, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#E5E7EB', alignItems: 'center' }}>{[{i:'home',l:'Home'},{i:'calendar',l:'Bookings'},{i:'message-circle',l:'Messages'},{i:'user',l:'Profile'}].map(t=>(<View key={t.l} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><Feather name={t.i} size={20} color="#6B7280" /><Text style={{ fontSize: 10, color: '#6B7280' }}>{t.l}</Text></View>))}</View>
+        </View>
+</StateSection>
       <StateSection title="NEW_REQUEST_ALERT" description="Modal-like banner for new booking">
+        <View style={{ minHeight: Platform.OS === 'web' ? '100vh' : 844 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 56, paddingHorizontal: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}><Text style={{ fontSize: 18, fontWeight: '700', color: '#7C3AED' }}>DateRabbit</Text><View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Feather name="bell" size={20} color="#6B7280" /></View></View>
+          <View style={{ flex: 1 }}>
+
         <NewRequestAlertState />
-      </StateSection>
+                </View>
+          <View style={{ flexDirection: 'row', height: 56, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#E5E7EB', alignItems: 'center' }}>{[{i:'home',l:'Home'},{i:'calendar',l:'Bookings'},{i:'message-circle',l:'Messages'},{i:'user',l:'Profile'}].map(t=>(<View key={t.l} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><Feather name={t.i} size={20} color="#6B7280" /><Text style={{ fontSize: 10, color: '#6B7280' }}>{t.l}</Text></View>))}</View>
+        </View>
+</StateSection>
     </View>
   );
 }

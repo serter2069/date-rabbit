@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet, Image } from 'react-native';
+import { View, Text, TextInput, Pressable, StyleSheet, Image, Platform } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { StateSection } from '../StateSection';
@@ -15,7 +15,7 @@ function DefaultState() {
     <View style={s.page}>
       {/* Hero */}
       <View style={s.hero}>
-        <Image source={{ uri: 'https://picsum.photos/seed/luxury-dating-banner/800/200' }} style={{ width: '100%', height: 200, borderWidth: 2, borderColor: '#000' }} />
+        <Image source={{ uri: 'https://picsum.photos/seed/luxury-dating-banner/800/200' }} style={{ width: '100%', height: 200, borderWidth: 2, borderColor: colors.border }} />
         <View style={s.heroContent}>
           <Text style={s.heroHeadline}>Real dates.{'\n'}Real connection.</Text>
           <Text style={s.heroSub}>
@@ -93,7 +93,7 @@ function DefaultState() {
             { name: 'James K.', city: 'Los Angeles', rating: '4.8' },
           ].map(c => (
             <View key={c.name} style={[s.companionCard, shadows.sm]}>
-              <Image source={{ uri: `https://picsum.photos/seed/${c.name === 'Sophia M.' ? 'jessica-comp' : 'ashley-comp'}/64/64` }} style={{ width: 64, height: 64, borderRadius: 32, borderWidth: 2, borderColor: '#000' }} />
+              <Image source={{ uri: `https://picsum.photos/seed/${c.name === 'Sophia M.' ? 'jessica-comp' : 'ashley-comp'}/64/64` }} style={{ width: 64, height: 64, borderRadius: 32, borderWidth: 2, borderColor: colors.border }} />
               <Text style={s.companionName}>{c.name}</Text>
               <View style={s.companionMeta}>
                 <Text style={s.companionCity}>{c.city}</Text>
@@ -167,7 +167,7 @@ function LoggedInRedirectState() {
     <View style={s.page}>
       <View style={[s.card, shadows.md, { alignItems: 'center' as const }]}>
         <View style={s.welcomeAvatar}>
-          <Image source={{ uri: 'https://picsum.photos/seed/companion-profile/80/80' }} style={{ width: 80, height: 80, borderRadius: 40, borderWidth: 2, borderColor: '#000' }} />
+          <Image source={{ uri: 'https://picsum.photos/seed/companion-profile/80/80' }} style={{ width: 80, height: 80, borderRadius: 40, borderWidth: 2, borderColor: colors.border }} />
         </View>
         <Text style={s.welcomeTitle}>Welcome back, Alex!</Text>
         <Text style={s.welcomeSub}>You are already signed in</Text>
@@ -309,16 +309,37 @@ export function LandingStates() {
   return (
     <View style={s.root}>
       <StateSection title="DEFAULT" description="Full landing page for DateRabbit">
+        <View style={{ minHeight: Platform.OS === 'web' ? '100vh' : 844 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 56, paddingHorizontal: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}><Text style={{ fontSize: 18, fontWeight: '700', color: '#7C3AED' }}>DateRabbit</Text><View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Feather name="bell" size={20} color="#6B7280" /></View></View>
+          <View style={{ flex: 1 }}>
+
         <DefaultState />
-      </StateSection>
+                </View>
+          <View style={{ flexDirection: 'row', height: 56, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#E5E7EB', alignItems: 'center' }}>{[{i:'home',l:'Home'},{i:'calendar',l:'Bookings'},{i:'message-circle',l:'Messages'},{i:'user',l:'Profile'}].map(t=>(<View key={t.l} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><Feather name={t.i} size={20} color="#6B7280" /><Text style={{ fontSize: 10, color: '#6B7280' }}>{t.l}</Text></View>))}</View>
+        </View>
+</StateSection>
 
       <StateSection title="LOGGED_IN_REDIRECT" description="User already signed in, role-based redirect">
+        <View style={{ minHeight: Platform.OS === 'web' ? '100vh' : 844 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 56, paddingHorizontal: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}><Text style={{ fontSize: 18, fontWeight: '700', color: '#7C3AED' }}>DateRabbit</Text><View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Feather name="bell" size={20} color="#6B7280" /></View></View>
+          <View style={{ flex: 1 }}>
+
         <LoggedInRedirectState />
-      </StateSection>
+                </View>
+          <View style={{ flexDirection: 'row', height: 56, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#E5E7EB', alignItems: 'center' }}>{[{i:'home',l:'Home'},{i:'calendar',l:'Bookings'},{i:'message-circle',l:'Messages'},{i:'user',l:'Profile'}].map(t=>(<View key={t.l} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><Feather name={t.i} size={20} color="#6B7280" /><Text style={{ fontSize: 10, color: '#6B7280' }}>{t.l}</Text></View>))}</View>
+        </View>
+</StateSection>
 
       <StateSection title="MOBILE_WEB" description="Single-column compact layout (max 430px)">
+        <View style={{ minHeight: Platform.OS === 'web' ? '100vh' : 844 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 56, paddingHorizontal: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}><Text style={{ fontSize: 18, fontWeight: '700', color: '#7C3AED' }}>DateRabbit</Text><View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Feather name="bell" size={20} color="#6B7280" /></View></View>
+          <View style={{ flex: 1 }}>
+
         <MobileWebState />
-      </StateSection>
+                </View>
+          <View style={{ flexDirection: 'row', height: 56, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#E5E7EB', alignItems: 'center' }}>{[{i:'home',l:'Home'},{i:'calendar',l:'Bookings'},{i:'message-circle',l:'Messages'},{i:'user',l:'Profile'}].map(t=>(<View key={t.l} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><Feather name={t.i} size={20} color="#6B7280" /><Text style={{ fontSize: 10, color: '#6B7280' }}>{t.l}</Text></View>))}</View>
+        </View>
+</StateSection>
     </View>
   );
 }

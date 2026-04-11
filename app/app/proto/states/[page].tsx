@@ -3,7 +3,7 @@ import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator } from
 import { useLocalSearchParams, router } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
 import { pageRegistry } from '../../../src/constants/pageRegistry';
-import { colors } from '../../../src/constants/theme';
+import { colors, typography, borderRadius, borderWidth as bw } from '../../../src/constants/theme';
 import { BrandStates } from '../../../src/components/proto/states/BrandStates';
 import { LandingStates } from '../../../src/components/proto/states/LandingStates';
 import { AuthWelcomeStates } from '../../../src/components/proto/states/AuthWelcomeStates';
@@ -110,7 +110,7 @@ export default function StateShowcase() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Pressable onPress={() => router.push('/proto' as any)} style={styles.backLink}>
-          <ArrowLeft size={16} color="#000000" />
+          <ArrowLeft size={16} color={colors.text} />
           <Text style={styles.backLinkText}>Proto Index</Text>
         </Pressable>
         <View style={styles.headerInfo}>
@@ -156,63 +156,63 @@ export default function StateShowcase() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F0EA' },
+  container: { flex: 1, backgroundColor: colors.background },
   header: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderBottomWidth: 2,
-    borderBottomColor: '#000000',
+    borderBottomColor: colors.border,
     padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
   },
   backLink: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  backLinkText: { fontSize: 13, fontWeight: '700', color: '#000000' },
+  backLinkText: { ...typography.caption, fontWeight: '700', color: colors.text },
   headerInfo: { flex: 1 },
-  headerTitle: { fontSize: 18, fontWeight: '900', color: '#000000' },
-  headerRoute: { fontSize: 12, color: '#666666', fontFamily: 'monospace' },
+  headerTitle: { ...typography.h3, color: colors.text },
+  headerRoute: { ...typography.caption, color: colors.textMuted, fontFamily: 'monospace' },
   notesBar: {
-    backgroundColor: '#FEF3C7',
+    backgroundColor: colors.badge.warning.bg,
     borderBottomWidth: 2,
-    borderBottomColor: '#000000',
+    borderBottomColor: colors.border,
     padding: 12,
   },
-  notesLabel: { fontSize: 11, fontWeight: '700', color: '#666666', marginBottom: 4 },
-  noteText: { fontSize: 12, color: '#333333', marginBottom: 2 },
+  notesLabel: { ...typography.label, color: colors.textMuted, marginBottom: 4 },
+  noteText: { ...typography.caption, color: colors.textSecondary, marginBottom: 2 },
   content: { flex: 1 },
   placeholder: {
     margin: 24,
     padding: 24,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.surface,
     borderWidth: 2,
-    borderColor: '#000000',
-    borderRadius: 8,
+    borderColor: colors.border,
+    borderRadius: borderRadius.sm,
     borderStyle: 'dashed',
     alignItems: 'center',
   },
-  placeholderTitle: { fontSize: 20, fontWeight: '900', color: '#000000', marginBottom: 8 },
-  placeholderText: { fontSize: 14, color: '#666666', marginBottom: 8 },
+  placeholderTitle: { ...typography.h2, color: colors.text, marginBottom: 8 },
+  placeholderText: { ...typography.bodySmall, color: colors.textMuted, marginBottom: 8 },
   placeholderHint: {
-    fontSize: 13,
-    color: '#FF2A5F',
+    ...typography.caption,
+    color: colors.accent,
     fontFamily: 'monospace',
-    backgroundColor: '#FFF0F3',
+    backgroundColor: colors.badge.pink.bg,
     padding: 8,
-    borderRadius: 4,
+    borderRadius: borderRadius.xs,
     marginBottom: 16,
   },
   statesPreview: { width: '100%', marginTop: 16 },
-  statesLabel: { fontSize: 12, fontWeight: '700', color: '#333333', marginBottom: 4 },
-  statesNote: { fontSize: 12, color: '#999999' },
+  statesLabel: { ...typography.caption, fontWeight: '700', color: colors.textSecondary, marginBottom: 4 },
+  statesNote: { ...typography.caption, color: colors.textLight },
   errorContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
-  errorText: { fontSize: 16, color: '#FF3B30', marginBottom: 16 },
+  errorText: { ...typography.body, color: colors.error, marginBottom: 16 },
   backBtn: {
-    backgroundColor: '#FF2A5F',
+    backgroundColor: colors.accent,
     paddingHorizontal: 20,
     paddingVertical: 10,
-    borderRadius: 8,
+    borderRadius: borderRadius.sm,
     borderWidth: 2,
-    borderColor: '#000000',
+    borderColor: colors.border,
   },
-  backBtnText: { color: '#FFFFFF', fontWeight: '700' },
+  backBtnText: { ...typography.button, color: colors.textInverse },
 });

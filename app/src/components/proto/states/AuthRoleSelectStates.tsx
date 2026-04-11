@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Image } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Image, Platform } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { StateSection } from '../StateSection';
@@ -25,7 +25,7 @@ function DefaultState() {
           ]}
           onPress={() => setSelectedRole('seeker')}
         >
-          <Image source={{ uri: 'https://picsum.photos/seed/man-suit/80/80' }} style={{ width: 80, height: 80, borderRadius: 40, borderWidth: 2, borderColor: '#000' }} />
+          <Image source={{ uri: 'https://picsum.photos/seed/man-suit/80/80' }} style={{ width: 80, height: 80, borderRadius: 40, borderWidth: 2, borderColor: colors.border }} />
           <Text style={s.roleTitle}>I'm looking for a companion</Text>
           <View style={[s.roleBadge, { backgroundColor: colors.badge.pink.bg }]}>
             <Feather name="shield" size={12} color={colors.badge.pink.text} />
@@ -47,7 +47,7 @@ function DefaultState() {
           ]}
           onPress={() => setSelectedRole('companion')}
         >
-          <Image source={{ uri: 'https://picsum.photos/seed/woman-elegant/80/80' }} style={{ width: 80, height: 80, borderRadius: 40, borderWidth: 2, borderColor: '#000' }} />
+          <Image source={{ uri: 'https://picsum.photos/seed/woman-elegant/80/80' }} style={{ width: 80, height: 80, borderRadius: 40, borderWidth: 2, borderColor: colors.border }} />
           <Text style={s.roleTitle}>I'm a companion</Text>
           <View style={[s.roleBadge, { backgroundColor: colors.badge.success.bg }]}>
             <Feather name="dollar-sign" size={12} color={colors.badge.success.text} />
@@ -91,8 +91,15 @@ export function AuthRoleSelectStates() {
   return (
     <View style={s.root}>
       <StateSection title="DEFAULT" description="Role selection: seeker vs companion">
+        <View style={{ minHeight: Platform.OS === 'web' ? '100vh' : 844 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 56, paddingHorizontal: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}><Text style={{ fontSize: 18, fontWeight: '700', color: '#7C3AED' }}>DateRabbit</Text><View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Feather name="bell" size={20} color="#6B7280" /></View></View>
+          <View style={{ flex: 1 }}>
+
         <DefaultState />
-      </StateSection>
+                </View>
+          <View style={{ flexDirection: 'row', height: 56, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#E5E7EB', alignItems: 'center' }}>{[{i:'home',l:'Home'},{i:'calendar',l:'Bookings'},{i:'message-circle',l:'Messages'},{i:'user',l:'Profile'}].map(t=>(<View key={t.l} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><Feather name={t.i} size={20} color="#6B7280" /><Text style={{ fontSize: 10, color: '#6B7280' }}>{t.l}</Text></View>))}</View>
+        </View>
+</StateSection>
     </View>
   );
 }

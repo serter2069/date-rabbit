@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet, Image } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Image, Platform } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { StateSection } from '../StateSection';
@@ -26,7 +26,7 @@ function DefaultState() {
       <ProgressBar percent={66} />
 
       <View style={s.viewfinder}>
-        <Image source={{ uri: 'https://picsum.photos/seed/selfie-camera/280/340' }} style={{ width: 280, height: 340, borderRadius: 8, borderWidth: 2, borderColor: '#000' }} />
+        <Image source={{ uri: 'https://picsum.photos/seed/selfie-camera/280/340' }} style={{ width: 280, height: 340, borderRadius: 8, borderWidth: 2, borderColor: colors.border }} />
       </View>
 
       <Text style={s.instructions}>
@@ -51,7 +51,7 @@ function CapturedState() {
 
       <View style={s.viewfinder}>
         <View style={s.capturedWrapper}>
-          <Image source={{ uri: 'https://picsum.photos/seed/selfie-camera/280/340' }} style={{ width: 280, height: 340, borderRadius: 8, borderWidth: 2, borderColor: '#000' }} />
+          <Image source={{ uri: 'https://picsum.photos/seed/selfie-camera/280/340' }} style={{ width: 280, height: 340, borderRadius: 8, borderWidth: 2, borderColor: colors.border }} />
           <View style={[s.capturedBadge, shadows.sm]}>
             <Feather name="check-circle" size={14} color={colors.success} />
             <Text style={s.capturedBadgeText}>Selfie Captured</Text>
@@ -77,11 +77,25 @@ export function VerifySelfieStates() {
   return (
     <View style={s.root}>
       <StateSection title="DEFAULT" description="Camera viewfinder for selfie capture">
+        <View style={{ minHeight: Platform.OS === 'web' ? '100vh' : 844 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 56, paddingHorizontal: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}><Text style={{ fontSize: 18, fontWeight: '700', color: '#7C3AED' }}>DateRabbit</Text><View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Feather name="bell" size={20} color="#6B7280" /></View></View>
+          <View style={{ flex: 1 }}>
+
         <DefaultState />
-      </StateSection>
+                </View>
+          <View style={{ flexDirection: 'row', height: 56, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#E5E7EB', alignItems: 'center' }}>{[{i:'home',l:'Home'},{i:'calendar',l:'Bookings'},{i:'message-circle',l:'Messages'},{i:'user',l:'Profile'}].map(t=>(<View key={t.l} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><Feather name={t.i} size={20} color="#6B7280" /><Text style={{ fontSize: 10, color: '#6B7280' }}>{t.l}</Text></View>))}</View>
+        </View>
+</StateSection>
       <StateSection title="CAPTURED" description="Selfie taken successfully">
+        <View style={{ minHeight: Platform.OS === 'web' ? '100vh' : 844 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 56, paddingHorizontal: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}><Text style={{ fontSize: 18, fontWeight: '700', color: '#7C3AED' }}>DateRabbit</Text><View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Feather name="bell" size={20} color="#6B7280" /></View></View>
+          <View style={{ flex: 1 }}>
+
         <CapturedState />
-      </StateSection>
+                </View>
+          <View style={{ flexDirection: 'row', height: 56, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#E5E7EB', alignItems: 'center' }}>{[{i:'home',l:'Home'},{i:'calendar',l:'Bookings'},{i:'message-circle',l:'Messages'},{i:'user',l:'Profile'}].map(t=>(<View key={t.l} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><Feather name={t.i} size={20} color="#6B7280" /><Text style={{ fontSize: 10, color: '#6B7280' }}>{t.l}</Text></View>))}</View>
+        </View>
+</StateSection>
     </View>
   );
 }
