@@ -5,4 +5,11 @@ export class AppService {
   getHello(): string {
     return 'Hello World!';
   }
+
+  getVersion() {
+    return {
+      version: '1.0.0',
+      commit: process.env.COMMIT_SHA || null,
+    };
+  }
 }
