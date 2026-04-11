@@ -43,11 +43,13 @@ import { SettingsStates } from '../../../src/components/proto/states/SettingsSta
 import { SettingsEditProfileStates } from '../../../src/components/proto/states/SettingsEditProfileStates';
 import { SettingsNotificationsStates } from '../../../src/components/proto/states/SettingsNotificationsStates';
 import { AdminCitiesStates } from '../../../src/components/proto/states/AdminCitiesStates';
+import { ComponentsStates } from '../../../src/components/proto/states/ComponentsStates';
 
 // Dynamic component import map — populated as pages are prototyped
 const STATE_COMPONENTS: Record<string, React.ComponentType<any>> = {
   'overview': OverviewStates,
   'brand': BrandStates,
+  'components': ComponentsStates,
   'landing': LandingStates,
   'auth-welcome': AuthWelcomeStates,
   'auth-login': AuthLoginStates,
