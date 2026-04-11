@@ -4,6 +4,7 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
 import { pageRegistry } from '../../../src/constants/pageRegistry';
 import { colors, typography, borderRadius, borderWidth as bw } from '../../../src/constants/theme';
+import { OverviewStates } from '../../../src/components/proto/states/OverviewStates';
 import { BrandStates } from '../../../src/components/proto/states/BrandStates';
 import { LandingStates } from '../../../src/components/proto/states/LandingStates';
 import { AuthWelcomeStates } from '../../../src/components/proto/states/AuthWelcomeStates';
@@ -45,6 +46,7 @@ import { AdminCitiesStates } from '../../../src/components/proto/states/AdminCit
 
 // Dynamic component import map — populated as pages are prototyped
 const STATE_COMPONENTS: Record<string, React.ComponentType<any>> = {
+  'overview': OverviewStates,
   'brand': BrandStates,
   'landing': LandingStates,
   'auth-welcome': AuthWelcomeStates,

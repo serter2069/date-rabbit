@@ -1,4 +1,4 @@
-type PageGroup = 'Brand' | 'Landing' | 'Auth' | 'SeekerVerify' | 'CompanionOnboard' | 'SeekerDashboard' | 'CompanionDashboard' | 'Booking' | 'Date' | 'Chat' | 'Reviews' | 'Settings' | 'Admin';
+type PageGroup = 'Overview' | 'Brand' | 'Landing' | 'Auth' | 'SeekerVerify' | 'CompanionOnboard' | 'SeekerDashboard' | 'CompanionDashboard' | 'Booking' | 'Date' | 'Chat' | 'Reviews' | 'Settings' | 'Admin';
 type NavVariant = 'none' | 'public' | 'auth' | 'seeker' | 'companion' | 'admin';
 type ProtoStatus = 'none' | 'proto' | 'approved';
 
@@ -23,6 +23,9 @@ export interface PageEntry {
 }
 
 export const pageRegistry: PageEntry[] = [
+  // OVERVIEW
+  { id: 'overview', title: 'Project Overview', group: 'Overview', route: '/', stateCount: 1, nav: 'none', status: 'none' },
+
   // BRAND
   { id: 'brand', title: 'Brand & Styles', group: 'Brand', route: '/proto/brand', stateCount: 1, nav: 'none', status: 'none' },
 
