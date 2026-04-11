@@ -6,7 +6,6 @@ export default function ProtoLayout() {
       <Stack.Screen name="index" />
       <Stack.Screen name="states/[page]" />
       <Stack.Screen name="brand" />
-      <Stack.Screen name="overview" />
     </Stack>
   );
 }

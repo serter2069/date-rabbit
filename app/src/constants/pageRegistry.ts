@@ -25,7 +25,6 @@ export interface PageEntry {
 export const pageRegistry: PageEntry[] = [
   // BRAND
   { id: 'brand', title: 'Brand & Styles', group: 'Brand', route: '/proto/brand', stateCount: 1, nav: 'none', status: 'none' },
-  { id: 'overview', title: 'Proto Overview', group: 'Brand', route: '/proto/overview', stateCount: 1, nav: 'none', status: 'none' },
 
   // LANDING
   { id: 'landing', title: 'Landing Page', group: 'Landing', route: '/landing', stateCount: 3, nav: 'public', status: 'none', navTo: ['auth-login', 'auth-welcome'], notes: [{ date: '2026-04-09', text: 'Gender splash shown on first visit (UC-L01). Web-only.' }] },
