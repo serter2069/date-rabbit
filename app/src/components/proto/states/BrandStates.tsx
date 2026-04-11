@@ -324,6 +324,32 @@ function IconShowcase() {
 export function BrandStates() {
   return (
     <View style={s.root}>
+      <StateSection title="BACKGROUND_COLOR" description="Background color for ALL screens — use this as base">
+        <View style={{ gap: 12 }}>
+          <View style={[s.bgTokenCard, { backgroundColor: colors.background }]}>
+            <Text style={{ ...typography.h2, color: colors.text }}>background</Text>
+            <Text style={{ ...typography.body, color: colors.textSecondary }}>{colors.background}</Text>
+            <Text style={{ ...typography.caption, color: colors.textMuted }}>
+              Main background. Used on every screen as the base layer.
+            </Text>
+          </View>
+          <View style={[s.bgTokenCard, { backgroundColor: colors.backgroundWarm }]}>
+            <Text style={{ ...typography.h3, color: colors.text }}>backgroundWarm</Text>
+            <Text style={{ ...typography.body, color: colors.textSecondary }}>{colors.backgroundWarm}</Text>
+            <Text style={{ ...typography.caption, color: colors.textMuted }}>
+              Warm variant for cards and secondary sections.
+            </Text>
+          </View>
+          <View style={[s.bgTokenCard, { backgroundColor: colors.surface, borderWidth: 2, borderColor: colors.border }]}>
+            <Text style={{ ...typography.h3, color: colors.text }}>surface</Text>
+            <Text style={{ ...typography.body, color: colors.textSecondary }}>{colors.surface}</Text>
+            <Text style={{ ...typography.caption, color: colors.textMuted }}>
+              Cards, modals, elevated surfaces.
+            </Text>
+          </View>
+        </View>
+      </StateSection>
+
       <StateSection title="COLORS" description="Full color palette">
         <ColorsGrid />
       </StateSection>
@@ -372,6 +398,14 @@ export function BrandStates() {
 // ===========================================================================
 const s = StyleSheet.create({
   root: { paddingVertical: 16, width: '100%' },
+
+  // Background token card
+  bgTokenCard: {
+    padding: 24,
+    borderRadius: borderRadius.lg,
+    borderWidth: 3,
+    borderColor: colors.border,
+  },
 
   // Colors
   colorGroup: { marginBottom: 16 },

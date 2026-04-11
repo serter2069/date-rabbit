@@ -1,28 +1,87 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet, Image } from 'react-native';
+import { View, Text, TextInput, Pressable, StyleSheet, Image, ScrollView } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { StateSection } from '../StateSection';
+import { ProtoHeader } from '../NavComponents';
 import { colors, typography, spacing, borderRadius, borderWidth, shadows } from '../../../constants/theme';
 
+// Mock companion data for gallery
+const MOCK_COMPANIONS = [
+  { name: 'Sophia M.', city: 'New York', rating: '4.9', price: 120, seed: 'sophia-date' },
+  { name: 'Emma L.', city: 'Miami', rating: '5.0', price: 150, seed: 'emma-date' },
+  { name: 'Olivia R.', city: 'Los Angeles', rating: '4.8', price: 100, seed: 'olivia-date' },
+  { name: 'Isabella K.', city: 'Chicago', rating: '4.7', price: 90, seed: 'isabella-date' },
+  { name: 'Mia J.', city: 'San Francisco', rating: '4.9', price: 130, seed: 'mia-date' },
+  { name: 'Ava T.', city: 'Las Vegas', rating: '4.6', price: 110, seed: 'ava-date' },
+  { name: 'Charlotte W.', city: 'Seattle', rating: '4.8', price: 95, seed: 'charlotte-date' },
+  { name: 'Amelia P.', city: 'Boston', rating: '4.9', price: 140, seed: 'amelia-date' },
+  { name: 'Harper D.', city: 'Austin', rating: '4.7', price: 85, seed: 'harper-date' },
+  { name: 'Evelyn S.', city: 'Denver', rating: '4.8', price: 105, seed: 'evelyn-date' },
+];
+
 // ===========================================================================
-// STATE 1: DEFAULT — Full landing page
+// PageShell — wraps each state with header/footer for full-page appearance
+// ===========================================================================
+function PageShell({ children }: { children: React.ReactNode }) {
+  return (
+    <View style={{ minHeight: 844, flex: 1, backgroundColor: colors.background }}>
+      <ProtoHeader variant="guest" onLogoPress={() => {}} />
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1 }}>
+        {children}
+      </ScrollView>
+      <View style={s.footer}>
+        <Text style={s.footerBrand}>DateRabbit</Text>
+        <View style={s.footerLinks}>
+          {['Terms of Service', 'Privacy Policy', 'Safety Guidelines'].map(link => (
+            <Pressable key={link} onPress={() => {}}>
+              <Text style={s.footerLink}>{link}</Text>
+            </Pressable>
+          ))}
+        </View>
+        <Text style={s.footerCopy}>2026 DateRabbit Inc. All rights reserved.</Text>
+      </View>
+    </View>
+  );
+}
+
+// ===========================================================================
+// STATE 1: DEFAULT — Full landing page (Male/Seeker view, UC-L04)
 // ===========================================================================
 function DefaultState() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeGender, setActiveGender] = useState<'seeker' | 'companion'>('seeker');
 
   return (
     <View style={s.page}>
+      {/* Gender switcher pill (UC-L02) */}
+      <View style={s.genderSwitcherRow}>
+        <Pressable
+          style={[s.genderPill, activeGender === 'seeker' ? s.genderPillActive : s.genderPillInactive]}
+          onPress={() => setActiveGender('seeker')}
+        >
+          <Feather name="search" size={14} color={activeGender === 'seeker' ? colors.textInverse : colors.textMuted} />
+          <Text style={activeGender === 'seeker' ? s.genderPillTextActive : s.genderPillTextInactive}>Find a companion</Text>
+        </Pressable>
+        <Pressable
+          style={[s.genderPill, activeGender === 'companion' ? s.genderPillActive : s.genderPillInactive]}
+          onPress={() => setActiveGender('companion')}
+        >
+          <Feather name="dollar-sign" size={14} color={activeGender === 'companion' ? colors.textInverse : colors.textMuted} />
+          <Text style={activeGender === 'companion' ? s.genderPillTextActive : s.genderPillTextInactive}>Become a companion</Text>
+        </Pressable>
+      </View>
+
       {/* Hero */}
       <View style={s.hero}>
-        <Image source={{ uri: 'https://picsum.photos/seed/luxury-dating-banner/800/200' }} style={{ width: '100%', height: 200, borderWidth: 2, borderColor: '#000' }} />
+        <Image source={{ uri: 'https://picsum.photos/seed/luxury-dating-banner/800/200' }} style={{ width: '100%', height: 200, borderWidth: 2, borderColor: colors.border }} />
         <View style={s.heroContent}>
-          <Text style={s.heroHeadline}>Real dates.{'\n'}Real connection.</Text>
+          <Text style={s.heroHeadline}>Pick a woman.{'\n'}Book a date.{'\n'}Show up.</Text>
           <Text style={s.heroSub}>
-            Book a verified companion for an unforgettable evening
+            Real offline dates. Not virtual. Verified companions. Full refund if she doesn't show up.
           </Text>
           <View style={s.heroCtas}>
-            <Pressable style={[s.ctaPrimary, shadows.button]} onPress={() => router.push('/proto/states/auth-login')}>
+            <Pressable style={[s.ctaPrimary, shadows.button]} onPress={() => router.push('/proto/states/auth-welcome')}>
               <Text style={s.ctaPrimaryText}>FIND A COMPANION</Text>
             </Pressable>
             <Pressable style={[s.ctaSecondary, shadows.button]} onPress={() => router.push('/proto/states/auth-welcome')}>
@@ -32,26 +91,11 @@ function DefaultState() {
         </View>
       </View>
 
-      {/* Gender splash modal preview (inline) */}
-      <View style={[s.card, shadows.md]}>
-        <Text style={s.cardTitle}>Choose your preference</Text>
-        <Text style={s.cardSub}>Who are you looking for?</Text>
-        <View style={s.genderRow}>
-          {(['Female companions', 'Male companions', 'Non-binary'] as const).map(label => (
-            <Pressable key={label} style={[s.genderOption, shadows.sm]}>
-              <Feather name="users" size={20} color={colors.primary} />
-              <Text style={s.genderLabel}>{label}</Text>
-              <Feather name="chevron-right" size={16} color={colors.textMuted} />
-            </Pressable>
-          ))}
-        </View>
-      </View>
-
       {/* Stats row */}
       <View style={s.statsRow}>
         {[
           { value: '500+', label: 'Companions' },
-          { value: '21+', label: 'Verified' },
+          { value: '21+', label: 'Age Verified' },
           { value: '24/7', label: 'Safe & Discreet' },
         ].map(st => (
           <View key={st.label} style={s.statItem}>
@@ -59,6 +103,42 @@ function DefaultState() {
             <Text style={s.statLabel}>{st.label}</Text>
           </View>
         ))}
+      </View>
+
+      {/* Featured companions horizontal gallery (UC-L04: 10+ cards) */}
+      <View style={s.section}>
+        <View style={s.sectionHeader}>
+          <Text style={s.sectionTitle}>Featured companions</Text>
+          <Pressable onPress={() => router.push('/proto/states/seeker-home')}>
+            <Text style={s.viewAllLink}>View all</Text>
+          </Pressable>
+        </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.companionScroll}>
+          {MOCK_COMPANIONS.map(c => (
+            <View key={c.name} style={[s.companionCard, shadows.sm]}>
+              <Image source={{ uri: `https://picsum.photos/seed/${c.seed}/200/280` }} style={s.companionPhoto} />
+              <View style={s.companionInfo}>
+                <Text style={s.companionName}>{c.name}</Text>
+                <View style={s.companionMeta}>
+                  <Feather name="map-pin" size={10} color={colors.textMuted} />
+                  <Text style={s.companionCity}>{c.city}</Text>
+                </View>
+                <View style={s.companionBottom}>
+                  <View style={s.ratingBadge}>
+                    <Feather name="star" size={10} color={colors.primary} />
+                    <Text style={s.ratingText}>{c.rating}</Text>
+                  </View>
+                  <Text style={s.companionPrice}>${c.price}/hr</Text>
+                </View>
+              </View>
+            </View>
+          ))}
+          {/* View all card at end */}
+          <Pressable style={[s.viewAllCard, shadows.sm]} onPress={() => router.push('/proto/states/seeker-home')}>
+            <Feather name="arrow-right" size={24} color={colors.primary} />
+            <Text style={s.viewAllCardText}>View 200+{'\n'}women</Text>
+          </Pressable>
+        </ScrollView>
       </View>
 
       {/* How it works */}
@@ -84,37 +164,17 @@ function DefaultState() {
         ))}
       </View>
 
-      {/* Companion preview cards */}
-      <View style={s.section}>
-        <Text style={s.sectionTitle}>Featured companions</Text>
-        <View style={s.companionRow}>
-          {[
-            { name: 'Sophia M.', city: 'New York', rating: '4.9' },
-            { name: 'James K.', city: 'Los Angeles', rating: '4.8' },
-          ].map(c => (
-            <View key={c.name} style={[s.companionCard, shadows.sm]}>
-              <Image source={{ uri: `https://picsum.photos/seed/${c.name === 'Sophia M.' ? 'jessica-comp' : 'ashley-comp'}/64/64` }} style={{ width: 64, height: 64, borderRadius: 32, borderWidth: 2, borderColor: '#000' }} />
-              <Text style={s.companionName}>{c.name}</Text>
-              <View style={s.companionMeta}>
-                <Text style={s.companionCity}>{c.city}</Text>
-                <View style={s.ratingBadge}>
-                  <Feather name="star" size={10} color={colors.primary} />
-                  <Text style={s.ratingText}>{c.rating}</Text>
-                </View>
-              </View>
-            </View>
-          ))}
-        </View>
-      </View>
-
-      {/* Trust badges */}
+      {/* Trust / Feature badges (UC-L04) */}
       <View style={s.section}>
         <Text style={s.sectionTitle}>Why DateRabbit?</Text>
         <View style={{ gap: 10 }}>
           {[
-            { icon: 'shield', title: 'Verified IDs', desc: 'Every companion is identity-verified' },
-            { icon: 'credit-card', title: 'Stripe Payments', desc: 'Secure escrow payments, no cash' },
-            { icon: 'headphones', title: '24/7 Support', desc: 'Safety team available around the clock' },
+            { icon: 'shield', title: 'No swiping. No ghosting.', desc: 'Book directly. Real dates, not endless chats.' },
+            { icon: 'credit-card', title: 'Transparent pricing', desc: 'See the rate upfront. No surprises. Secure Stripe payments.' },
+            { icon: 'check-circle', title: 'ID-verified companions', desc: 'Every companion is age-verified via Stripe Identity.' },
+            { icon: 'refresh-cw', title: 'Full refund guarantee', desc: "If she doesn't show up, you get a full refund. No questions." },
+            { icon: 'clock', title: 'Book in minutes', desc: 'Pick a companion, choose date/time, pay. Done.' },
+            { icon: 'headphones', title: '24/7 Support', desc: 'Safety team available around the clock.' },
           ].map(t => (
             <View key={t.title} style={[s.trustRow, shadows.sm]}>
               <View style={s.trustIcon}>
@@ -142,19 +202,6 @@ function DefaultState() {
           />
         </View>
       </View>
-
-      {/* Footer */}
-      <View style={s.footer}>
-        <Text style={s.footerBrand}>DateRabbit</Text>
-        <View style={s.footerLinks}>
-          {['Terms of Service', 'Privacy Policy', 'Safety Guidelines'].map(link => (
-            <Pressable key={link}>
-              <Text style={s.footerLink}>{link}</Text>
-            </Pressable>
-          ))}
-        </View>
-        <Text style={s.footerCopy}>2026 DateRabbit Inc. All rights reserved.</Text>
-      </View>
     </View>
   );
 }
@@ -164,20 +211,20 @@ function DefaultState() {
 // ===========================================================================
 function LoggedInRedirectState() {
   return (
-    <View style={s.page}>
+    <View style={[s.page, { justifyContent: 'center', flex: 1 }]}>
       <View style={[s.card, shadows.md, { alignItems: 'center' as const }]}>
         <View style={s.welcomeAvatar}>
-          <Image source={{ uri: 'https://picsum.photos/seed/companion-profile/80/80' }} style={{ width: 80, height: 80, borderRadius: 40, borderWidth: 2, borderColor: '#000' }} />
+          <Image source={{ uri: 'https://picsum.photos/seed/alex-seeker/80/80' }} style={{ width: 80, height: 80, borderRadius: 40, borderWidth: 2, borderColor: colors.border }} />
         </View>
         <Text style={s.welcomeTitle}>Welcome back, Alex!</Text>
         <Text style={s.welcomeSub}>You are already signed in</Text>
 
         <View style={{ gap: 12, width: '100%', marginTop: 16 }}>
-          <Pressable style={[s.ctaPrimary, shadows.button]}>
+          <Pressable style={[s.ctaPrimary, shadows.button]} onPress={() => router.push('/proto/states/seeker-home')}>
             <Text style={s.ctaPrimaryText}>GO TO BROWSE</Text>
             <Feather name="arrow-right" size={16} color={colors.textInverse} />
           </Pressable>
-          <Pressable style={[s.ctaSecondary, shadows.button]}>
+          <Pressable style={[s.ctaSecondary, shadows.button]} onPress={() => router.push('/proto/states/seeker-profile')}>
             <Text style={s.ctaSecondaryText}>GO TO DASHBOARD</Text>
             <Feather name="arrow-right" size={16} color={colors.text} />
           </Pressable>
@@ -185,7 +232,7 @@ function LoggedInRedirectState() {
 
         <View style={s.roleBadgeRow}>
           <View style={[s.roleBadge, { backgroundColor: colors.badge.pink.bg }]}>
-            <Text style={[s.roleBadgeText, { color: colors.badge.pink.text }]}>CLIENT</Text>
+            <Text style={[s.roleBadgeText, { color: colors.badge.pink.text }]}>SEEKER</Text>
           </View>
           <View style={[s.roleBadge, { backgroundColor: colors.badge.success.bg }]}>
             <Feather name="check-circle" size={12} color={colors.success} />
@@ -211,7 +258,7 @@ function MobileWebState() {
         <Text style={s.mobileSub}>
           Book a verified companion for an unforgettable evening
         </Text>
-        <Pressable style={[s.ctaPrimary, shadows.button, { marginTop: 12 }]} onPress={() => router.push('/proto/states/auth-login')}>
+        <Pressable style={[s.ctaPrimary, shadows.button, { marginTop: 12 }]} onPress={() => router.push('/proto/states/auth-welcome')}>
           <Text style={s.ctaPrimaryText}>FIND A COMPANION</Text>
         </Pressable>
         <Pressable style={[s.ctaSecondary, shadows.sm, { marginTop: 8 }]} onPress={() => router.push('/proto/states/auth-welcome')}>
@@ -282,21 +329,220 @@ function MobileWebState() {
           keyboardType="email-address"
           autoCapitalize="none"
         />
-        <Pressable style={[s.ctaPrimary, shadows.button, { marginTop: 8 }]} onPress={() => router.push('/proto/states/auth-login')}>
+        <Pressable style={[s.ctaPrimary, shadows.button, { marginTop: 8 }]} onPress={() => router.push('/proto/states/auth-welcome')}>
           <Text style={s.ctaPrimaryText}>CONTINUE</Text>
         </Pressable>
       </View>
+    </View>
+  );
+}
 
-      {/* Footer compact */}
-      <View style={[s.footer, { paddingVertical: 16 }]}>
-        <Text style={s.footerBrand}>DateRabbit</Text>
-        <View style={s.footerLinks}>
-          {['Terms', 'Privacy', 'Safety'].map(link => (
-            <Pressable key={link}>
-              <Text style={s.footerLink}>{link}</Text>
+// ===========================================================================
+// STATE 4: GENDER_SPLASH — Full-screen gender selection overlay (UC-L01)
+// ===========================================================================
+function GenderSplashState() {
+  const [selectedGender, setSelectedGender] = useState<string | null>(null);
+
+  return (
+    <View style={{ minHeight: 844, flex: 1, backgroundColor: colors.background, position: 'relative' }}>
+      {/* Background content (landing visible behind) */}
+      <View style={{ padding: 20, opacity: 0.3 }}>
+        <Text style={s.heroHeadline}>Real dates.{'\n'}Real connection.</Text>
+        <Text style={s.heroSub}>Book a verified companion for an unforgettable evening</Text>
+      </View>
+
+      {/* Full-screen gender splash overlay (UC-L01) */}
+      <View style={s.splashOverlay}>
+        <View style={[s.splashCard, shadows.xl]}>
+          <Text style={s.splashTitle}>Welcome to DateRabbit</Text>
+          <Text style={s.splashSub}>Who are you looking for?</Text>
+
+          <View style={s.splashOptions}>
+            <Pressable
+              style={[s.splashOption, selectedGender === 'female' && s.splashOptionSelected, shadows.md]}
+              onPress={() => setSelectedGender('female')}
+            >
+              <View style={[s.splashIconCircle, { backgroundColor: colors.badge.pink.bg }]}>
+                <Feather name="user" size={28} color={colors.primary} />
+              </View>
+              <Text style={s.splashOptionTitle}>Female companions</Text>
+              <Text style={s.splashOptionDesc}>Browse women for real dates</Text>
+              {selectedGender === 'female' && (
+                <View style={s.splashCheck}>
+                  <Feather name="check" size={14} color={colors.textInverse} />
+                </View>
+              )}
             </Pressable>
+
+            <Pressable
+              style={[s.splashOption, selectedGender === 'male' && s.splashOptionSelected, shadows.md]}
+              onPress={() => setSelectedGender('male')}
+            >
+              <View style={[s.splashIconCircle, { backgroundColor: colors.accentLight }]}>
+                <Feather name="user" size={28} color={colors.accentDark} />
+              </View>
+              <Text style={s.splashOptionTitle}>Male companions</Text>
+              <Text style={s.splashOptionDesc}>Browse men for real dates</Text>
+              {selectedGender === 'male' && (
+                <View style={s.splashCheck}>
+                  <Feather name="check" size={14} color={colors.textInverse} />
+                </View>
+              )}
+            </Pressable>
+          </View>
+
+          <Pressable
+            style={[s.ctaPrimary, shadows.button, { marginTop: 24, opacity: selectedGender ? 1 : 0.5 }]}
+            onPress={() => selectedGender && router.push('/proto/states/auth-welcome')}
+            disabled={!selectedGender}
+          >
+            <Text style={s.ctaPrimaryText}>CONTINUE</Text>
+            <Feather name="arrow-right" size={16} color={colors.textInverse} />
+          </Pressable>
+
+          <Text style={s.splashNote}>This helps us personalize your experience</Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+// ===========================================================================
+// STATE 5: FEMALE_VARIANT — Companion-focused landing (UC-L03)
+// ===========================================================================
+function FemaleVariantState() {
+  const [hourlyRate, setHourlyRate] = useState('');
+
+  return (
+    <View style={s.page}>
+      {/* Gender switcher pill (UC-L02) */}
+      <View style={s.genderSwitcherRow}>
+        <Pressable style={[s.genderPill, s.genderPillInactive]}>
+          <Feather name="search" size={14} color={colors.textMuted} />
+          <Text style={s.genderPillTextInactive}>Find a companion</Text>
+        </Pressable>
+        <Pressable style={[s.genderPill, s.genderPillActive]}>
+          <Feather name="dollar-sign" size={14} color={colors.textInverse} />
+          <Text style={s.genderPillTextActive}>Become a companion</Text>
+        </Pressable>
+      </View>
+
+      {/* Hero - Companion focus */}
+      <View style={s.hero}>
+        <Image source={{ uri: 'https://picsum.photos/seed/companion-earn-banner/800/200' }} style={{ width: '100%', height: 200, borderWidth: 2, borderColor: colors.border }} />
+        <View style={s.heroContent}>
+          <Text style={s.heroHeadline}>Go on a date.{'\n'}Get paid.</Text>
+          <Text style={s.heroSub}>
+            Earn on your terms. Set your price, control your schedule. Same-day Stripe payouts.
+          </Text>
+          <View style={s.heroCtas}>
+            <Pressable style={[s.ctaPrimary, shadows.button]} onPress={() => router.push('/proto/states/auth-welcome')}>
+              <Text style={s.ctaPrimaryText}>START EARNING</Text>
+            </Pressable>
+            <Pressable style={[s.ctaSecondary, shadows.button]} onPress={() => router.push('/proto/states/auth-welcome')}>
+              <Text style={s.ctaSecondaryText}>FIND A COMPANION</Text>
+            </Pressable>
+          </View>
+        </View>
+      </View>
+
+      {/* Earnings calculator */}
+      <View style={[s.card, shadows.md]}>
+        <Text style={s.cardTitle}>Calculate your earnings</Text>
+        <Text style={s.cardSub}>See how much you can earn per week</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+          <Text style={{ ...typography.body, color: colors.text }}>$</Text>
+          <TextInput
+            style={[s.emailInput, { flex: 1 }]}
+            placeholder="Your hourly rate"
+            placeholderTextColor={colors.textLight}
+            value={hourlyRate}
+            onChangeText={setHourlyRate}
+            keyboardType="numeric"
+          />
+          <Text style={{ ...typography.bodySmall, color: colors.textMuted }}>/hour</Text>
+        </View>
+        {hourlyRate ? (
+          <View style={{ backgroundColor: colors.badge.pink.bg, padding: 12, borderRadius: borderRadius.sm, borderWidth: 2, borderColor: colors.border }}>
+            <Text style={{ ...typography.h3, color: colors.primary }}>
+              ~${parseInt(hourlyRate) * 20 * 4}/month
+            </Text>
+            <Text style={{ ...typography.caption, color: colors.textMuted }}>
+              Based on 20 hours/week, 4 weeks/month
+            </Text>
+          </View>
+        ) : (
+          <Text style={{ ...typography.bodySmall, color: colors.textLight }}>
+            Enter your rate to see estimated monthly earnings
+          </Text>
+        )}
+      </View>
+
+      {/* How it works for companions */}
+      <View style={s.section}>
+        <Text style={s.sectionTitle}>How it works</Text>
+        {[
+          { step: '1', icon: 'dollar-sign', title: 'Set your rate', desc: 'You decide your hourly rate. Change it anytime.' },
+          { step: '2', icon: 'calendar', title: 'Choose your schedule', desc: 'Accept or decline any date. Full control.' },
+          { step: '3', icon: 'credit-card', title: 'Get paid same day', desc: 'Stripe Connect Express. Money in your account within hours.' },
+        ].map(item => (
+          <View key={item.step} style={[s.stepCard, shadows.sm]}>
+            <View style={s.stepBadge}>
+              <Text style={s.stepBadgeText}>{item.step}</Text>
+            </View>
+            <View style={s.stepContent}>
+              <View style={s.stepHeader}>
+                <Feather name={item.icon as any} size={18} color={colors.primary} />
+                <Text style={s.stepTitle}>{item.title}</Text>
+              </View>
+              <Text style={s.stepDesc}>{item.desc}</Text>
+            </View>
+          </View>
+        ))}
+      </View>
+
+      {/* Trust badges for companions */}
+      <View style={s.section}>
+        <Text style={s.sectionTitle}>Why companions choose DateRabbit</Text>
+        <View style={{ gap: 10 }}>
+          {[
+            { icon: 'shield', title: 'Safety first', desc: 'All seekers are ID-verified and fingerprint-checked.' },
+            { icon: 'credit-card', title: 'Same-day payouts', desc: 'Stripe Connect Express. No waiting for checks.' },
+            { icon: 'lock', title: 'Full privacy control', desc: 'Hide your profile anytime. Block any user.' },
+            { icon: 'x-circle', title: 'Decline anytime', desc: 'No obligations. You choose who to meet.' },
+            { icon: 'headphones', title: '24/7 Support', desc: 'Dedicated safety team. Emergency line available.' },
+          ].map(t => (
+            <View key={t.title} style={[s.trustRow, shadows.sm]}>
+              <View style={s.trustIcon}>
+                <Feather name={t.icon as any} size={20} color={colors.primary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={s.trustTitle}>{t.title}</Text>
+                <Text style={s.trustDesc}>{t.desc}</Text>
+              </View>
+            </View>
           ))}
         </View>
+      </View>
+
+      {/* Testimonials */}
+      <View style={s.section}>
+        <Text style={s.sectionTitle}>What companions say</Text>
+        {[
+          { name: 'Sarah K.', city: 'New York', text: 'I set my own schedule and earn $3,000+ per month. Best decision I made.', seed: 'sarah-testimonial' },
+          { name: 'Mia L.', city: 'Los Angeles', text: 'The safety features give me peace of mind. Every seeker is background-checked.', seed: 'mia-testimonial' },
+        ].map(t => (
+          <View key={t.name} style={[s.card, shadows.sm]}>
+            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 8 }}>
+              <Image source={{ uri: `https://picsum.photos/seed/${t.seed}/48/48` }} style={{ width: 48, height: 48, borderRadius: 24, borderWidth: 2, borderColor: colors.border }} />
+              <View>
+                <Text style={{ ...typography.bodyMedium, color: colors.text }}>{t.name}</Text>
+                <Text style={{ ...typography.caption, color: colors.textMuted }}>{t.city}</Text>
+              </View>
+            </View>
+            <Text style={{ ...typography.body, color: colors.textSecondary, fontStyle: 'italic' }}>"{t.text}"</Text>
+          </View>
+        ))}
       </View>
     </View>
   );
@@ -308,16 +554,32 @@ function MobileWebState() {
 export function LandingStates() {
   return (
     <View style={s.root}>
-      <StateSection title="DEFAULT" description="Full landing page for DateRabbit">
-        <DefaultState />
+      <StateSection title="DEFAULT" description="Full landing page — Seeker/Male view (UC-L04)">
+        <PageShell>
+          <DefaultState />
+        </PageShell>
+      </StateSection>
+
+      <StateSection title="FEMALE_VARIANT" description="Companion-focused landing — Women view (UC-L03)">
+        <PageShell>
+          <FemaleVariantState />
+        </PageShell>
+      </StateSection>
+
+      <StateSection title="GENDER_SPLASH" description="First-visit gender selection overlay (UC-L01)">
+        <GenderSplashState />
       </StateSection>
 
       <StateSection title="LOGGED_IN_REDIRECT" description="User already signed in, role-based redirect">
-        <LoggedInRedirectState />
+        <PageShell>
+          <LoggedInRedirectState />
+        </PageShell>
       </StateSection>
 
       <StateSection title="MOBILE_WEB" description="Single-column compact layout (max 430px)">
-        <MobileWebState />
+        <PageShell>
+          <MobileWebState />
+        </PageShell>
       </StateSection>
     </View>
   );
@@ -328,7 +590,7 @@ export function LandingStates() {
 // ===========================================================================
 const s = StyleSheet.create({
   root: { paddingVertical: 16, width: '100%' },
-  page: { gap: 16 },
+  page: { gap: 16, paddingHorizontal: 16 },
 
   // Hero
   hero: { gap: 0 },
@@ -382,21 +644,6 @@ const s = StyleSheet.create({
   cardTitle: { ...typography.h3, color: colors.text, marginBottom: 4 },
   cardSub: { ...typography.bodySmall, color: colors.textMuted, marginBottom: 12 },
 
-  // Gender
-  genderRow: { gap: 8 },
-  genderOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    backgroundColor: colors.surface,
-    borderWidth: 2,
-    borderColor: colors.border,
-    borderRadius: borderRadius.sm,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-  },
-  genderLabel: { ...typography.bodyMedium, color: colors.text, flex: 1 },
-
   // Stats
   statsRow: {
     flexDirection: 'row',
@@ -410,7 +657,56 @@ const s = StyleSheet.create({
 
   // Section
   section: { gap: 12 },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   sectionTitle: { ...typography.h2, color: colors.text },
+  viewAllLink: { ...typography.bodyMedium, color: colors.primary },
+
+  // Companion scroll
+  companionScroll: { paddingHorizontal: 4, gap: 12 },
+  companionCard: {
+    width: 160,
+    backgroundColor: colors.surface,
+    borderWidth: borderWidth.normal,
+    borderColor: colors.border,
+    borderRadius: borderRadius.lg,
+    overflow: 'hidden',
+  },
+  companionPhoto: {
+    width: 160,
+    height: 200,
+    borderBottomWidth: borderWidth.normal,
+    borderBottomColor: colors.border,
+  },
+  companionInfo: { padding: 10, gap: 4 },
+  companionName: { ...typography.bodyMedium, color: colors.text },
+  companionMeta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  companionCity: { ...typography.caption, color: colors.textMuted },
+  companionBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 2 },
+  companionPrice: { ...typography.caption, color: colors.success, fontWeight: '700' },
+  ratingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    backgroundColor: colors.badge.pink.bg,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: borderRadius.xs,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  ratingText: { ...typography.caption, color: colors.primary, fontSize: 10 },
+  viewAllCard: {
+    width: 120,
+    backgroundColor: colors.backgroundWarm,
+    borderWidth: borderWidth.normal,
+    borderColor: colors.border,
+    borderRadius: borderRadius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    padding: 16,
+  },
+  viewAllCardText: { ...typography.bodyMedium, color: colors.primary, textAlign: 'center' },
 
   // Steps
   stepCard: {
@@ -438,34 +734,6 @@ const s = StyleSheet.create({
   stepHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 },
   stepTitle: { ...typography.h3, color: colors.text },
   stepDesc: { ...typography.bodySmall, color: colors.textSecondary },
-
-  // Companions
-  companionRow: { flexDirection: 'row', gap: 12 },
-  companionCard: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderWidth: 2,
-    borderColor: colors.border,
-    borderRadius: borderRadius.sm,
-    padding: 12,
-    alignItems: 'center',
-    gap: 8,
-  },
-  companionName: { ...typography.bodyMedium, color: colors.text },
-  companionMeta: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  companionCity: { ...typography.caption, color: colors.textMuted },
-  ratingBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-    backgroundColor: colors.badge.pink.bg,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: borderRadius.xs,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  ratingText: { ...typography.caption, color: colors.primary, fontSize: 10 },
 
   // Trust
   trustRow: {
@@ -512,8 +780,9 @@ const s = StyleSheet.create({
     paddingVertical: 24,
     alignItems: 'center',
     gap: 8,
+    backgroundColor: colors.surface,
   },
-  footerBrand: { ...typography.h3, color: colors.text },
+  footerBrand: { ...typography.h3, color: colors.primary },
   footerLinks: { flexDirection: 'row', gap: 16 },
   footerLink: { ...typography.caption, color: colors.textMuted, textDecorationLine: 'underline' },
   footerCopy: { ...typography.caption, color: colors.textLight, fontSize: 10 },
@@ -580,5 +849,128 @@ const s = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     color: colors.text,
+  },
+
+  // Gender splash overlay (UC-L01)
+  splashOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  splashCard: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.xl,
+    borderWidth: borderWidth.normal,
+    borderColor: colors.border,
+    padding: 32,
+    width: '100%',
+    maxWidth: 440,
+    alignItems: 'center',
+  },
+  splashTitle: {
+    ...typography.h2,
+    color: colors.text,
+    marginBottom: 4,
+  },
+  splashSub: {
+    ...typography.body,
+    color: colors.textMuted,
+    marginBottom: 24,
+  },
+  splashOptions: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  splashOption: {
+    flex: 1,
+    backgroundColor: colors.background,
+    borderWidth: borderWidth.normal,
+    borderColor: colors.border,
+    borderRadius: borderRadius.lg,
+    padding: 20,
+    alignItems: 'center',
+    gap: 8,
+  },
+  splashOptionSelected: {
+    backgroundColor: colors.badge.pink.bg,
+    borderColor: colors.primary,
+  },
+  splashIconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    borderWidth: borderWidth.thin,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  splashOptionTitle: {
+    ...typography.bodyMedium,
+    color: colors.text,
+    textAlign: 'center',
+  },
+  splashOptionDesc: {
+    ...typography.caption,
+    color: colors.textMuted,
+    textAlign: 'center',
+  },
+  splashCheck: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: colors.success,
+    borderWidth: 2,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  splashNote: {
+    ...typography.caption,
+    color: colors.textLight,
+    marginTop: 16,
+  },
+
+  // Gender switcher pills (UC-L02)
+  genderSwitcherRow: {
+    flexDirection: 'row',
+    backgroundColor: colors.backgroundWarm,
+    borderRadius: borderRadius.full,
+    borderWidth: borderWidth.thin,
+    borderColor: colors.border,
+    padding: 3,
+    marginBottom: 16,
+  },
+  genderPill: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: borderRadius.full,
+  },
+  genderPillActive: {
+    backgroundColor: colors.primary,
+    borderWidth: 2,
+    borderColor: colors.border,
+  },
+  genderPillInactive: {
+    backgroundColor: 'transparent',
+  },
+  genderPillTextActive: {
+    ...typography.caption,
+    color: colors.textInverse,
+    fontWeight: '700',
+  },
+  genderPillTextInactive: {
+    ...typography.caption,
+    color: colors.textMuted,
   },
 });

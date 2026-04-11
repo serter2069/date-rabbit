@@ -26,14 +26,14 @@ export interface PageEntry {
 
 export const pageRegistry: PageEntry[] = [
   // OVERVIEW
-  { id: 'overview', title: 'Project Overview', group: 'Overview', route: '/', stateCount: 1, nav: 'none', status: 'proto', qaScore: 9, qaCycles: 1 },
+  { id: 'overview', title: 'Project Overview', group: 'Overview', route: '/', stateCount: 1, nav: 'none', status: 'proto', qaScore: 10, qaCycles: 2, notes: [{ date: '2026-04-11', text: 'Enhanced: clickable flow links, progress bar, page list by group with status dots, tech stack section' }] },
 
   // BRAND
-  { id: 'brand', title: 'Brand & Styles', group: 'Brand', route: '/proto/brand', stateCount: 10, nav: 'none', status: 'proto', qaScore: 9, qaCycles: 1 },
+  { id: 'brand', title: 'Brand & Styles', group: 'Brand', route: '/proto/brand', stateCount: 11, nav: 'none', status: 'proto', qaScore: 10, qaCycles: 2, notes: [{ date: '2026-04-11', text: 'Added BACKGROUND_COLOR state as first block showing primary bg token prominently' }] },
   { id: 'components', title: 'UI Components', group: 'Brand', route: '/proto/states/components', stateCount: 10, nav: 'none', status: 'proto', qaScore: 9, qaCycles: 1 },
 
   // LANDING
-  { id: 'landing', title: 'Landing Page', group: 'Landing', route: '/landing', stateCount: 3, nav: 'public', status: 'proto', qaScore: 9, qaCycles: 1, navTo: ['auth-login', 'auth-welcome'], notes: [{ date: '2026-04-09', text: 'Gender splash shown on first visit (UC-L01). Web-only.' }] },
+  { id: 'landing', title: 'Landing Page', group: 'Landing', route: '/landing', stateCount: 5, nav: 'public', status: 'review', qaScore: 10, qaCycles: 5, navTo: ['auth-login', 'auth-welcome'], notes: [{ date: '2026-04-09', text: 'Gender splash shown on first visit (UC-L01). Web-only.' }, { date: '2026-04-11', text: 'Added GENDER_SPLASH state, PageShell with ProtoHeader, 10 companion cards horizontal gallery, UC-L04 features' }, { date: '2026-04-11', text: 'Added FEMALE_VARIANT state (UC-L03): earnings calculator, companion testimonials, safety badges' }, { date: '2026-04-11', text: 'Added gender switcher pill (UC-L02) to FEMALE_VARIANT. Interactive earnings calculator.' }, { date: '2026-04-11', text: 'Added interactive gender switcher to DEFAULT state. Full UC-L01 through UC-L04 coverage.' }] },
 
   // AUTH
   { id: 'auth-welcome', title: 'Welcome', group: 'Auth', route: '/(auth)/welcome', stateCount: 2, nav: 'auth', status: 'proto', qaScore: 9, qaCycles: 1, navFrom: ['landing'], navTo: ['auth-login'] },
