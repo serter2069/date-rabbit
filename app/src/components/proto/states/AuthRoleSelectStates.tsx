@@ -39,8 +39,10 @@ function DefaultState() {
 
   return (
     <View style={s.page}>
-      <Text style={s.title}>Who are you?</Text>
-      <Text style={s.subtitle}>Choose your role to get started. You can always change it later.</Text>
+      <View style={s.headerArea}>
+        <Text style={s.title}>Who are you?</Text>
+        <Text style={s.subtitle}>Choose your role to get started. You can always change it later.</Text>
+      </View>
 
       <View style={s.cardsRow}>
         {/* Seeker card */}
@@ -59,11 +61,17 @@ function DefaultState() {
             <Feather name="shield" size={12} color={colors.badge.pink.text} />
             <Text style={[s.roleBadgeText, { color: colors.badge.pink.text }]}>Verified seekers</Text>
           </View>
+          <View style={s.divider} />
           <View style={s.featureList}>
             <FeatureItem icon="search" text="Browse profiles" />
             <FeatureItem icon="zap" text="Book instantly" />
             <FeatureItem icon="shield" text="Background checked" />
           </View>
+          {selectedRole === 'seeker' && (
+            <View style={s.checkMark}>
+              <Feather name="check" size={16} color={colors.textInverse} />
+            </View>
+          )}
         </Pressable>
 
         {/* Companion card */}
@@ -82,12 +90,31 @@ function DefaultState() {
             <Feather name="dollar-sign" size={12} color={colors.badge.success.text} />
             <Text style={[s.roleBadgeText, { color: colors.badge.success.text }]}>Earn on your terms</Text>
           </View>
+          <View style={s.divider} />
           <View style={s.featureList}>
             <FeatureItem icon="dollar-sign" text="Set your price" />
             <FeatureItem icon="calendar" text="Control schedule" />
             <FeatureItem icon="zap" text="Same-day payout" />
           </View>
+          {selectedRole === 'companion' && (
+            <View style={s.checkMark}>
+              <Feather name="check" size={16} color={colors.textInverse} />
+            </View>
+          )}
         </Pressable>
+      </View>
+
+      {/* Benefits comparison */}
+      <View style={s.comparisonCard}>
+        <Text style={s.comparisonTitle}>BOTH ROLES INCLUDE</Text>
+        <View style={s.comparisonRow}>
+          {['Stripe Identity verification', 'In-app messaging', '24/7 safety support', 'Full refund guarantee'].map((item, i) => (
+            <View key={i} style={s.comparisonItem}>
+              <Feather name="check" size={12} color={colors.success} />
+              <Text style={s.comparisonText}>{item}</Text>
+            </View>
+          ))}
+        </View>
       </View>
 
       <Pressable
@@ -143,10 +170,11 @@ const s = StyleSheet.create({
     alignSelf: 'center',
     width: '100%',
   },
-  page: { gap: 20, paddingVertical: 16 },
+  page: { gap: 16, paddingVertical: 16 },
 
-  title: { ...typography.h1, color: colors.text },
-  subtitle: { ...typography.body, color: colors.textMuted, marginTop: -12, marginBottom: 4 },
+  headerArea: { alignItems: 'center', marginBottom: 8 },
+  title: { ...typography.h1, color: colors.text, textAlign: 'center' },
+  subtitle: { ...typography.body, color: colors.textMuted, textAlign: 'center', marginTop: 4 },
 
   cardsRow: {
     flexDirection: 'row',
@@ -161,7 +189,7 @@ const s = StyleSheet.create({
     borderRadius: borderRadius.lg,
     padding: 16,
     alignItems: 'center',
-    gap: 10,
+    gap: 8,
   },
   roleCardSelected: {
     borderColor: colors.primary,
@@ -203,6 +231,13 @@ const s = StyleSheet.create({
   },
   roleBadgeText: { ...typography.caption, fontSize: 10 },
 
+  divider: {
+    width: '100%',
+    height: 1,
+    backgroundColor: colors.borderLight,
+    marginVertical: 4,
+  },
+
   featureList: { gap: 6, alignSelf: 'stretch' },
   featureItem: {
     flexDirection: 'row',
@@ -210,6 +245,47 @@ const s = StyleSheet.create({
     gap: 6,
   },
   featureText: { ...typography.bodySmall, color: colors.textSecondary },
+
+  checkMark: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: borderWidth.thin,
+    borderColor: colors.border,
+  },
+
+  comparisonCard: {
+    backgroundColor: colors.surface,
+    borderWidth: borderWidth.thin,
+    borderColor: colors.border,
+    borderRadius: borderRadius.md,
+    padding: 14,
+  },
+  comparisonTitle: { ...typography.label, color: colors.textMuted, marginBottom: 8, textAlign: 'center' },
+  comparisonRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    justifyContent: 'center',
+  },
+  comparisonItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.successLight,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: borderRadius.xs,
+    borderWidth: 1,
+    borderColor: colors.success,
+  },
+  comparisonText: { ...typography.caption, color: colors.textSecondary },
 
   ctaPrimary: {
     backgroundColor: colors.primary,
