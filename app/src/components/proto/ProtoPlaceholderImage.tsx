@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, DimensionValue } from 'react-native';
-import { User, Image as ImageIcon, FileText, Star, Maximize2 } from 'lucide-react-native';
+import { Feather } from '@expo/vector-icons';
+import { colors, borderRadius } from '../../constants/theme';
 
 type ImageType = 'avatar' | 'photo' | 'document' | 'illustration' | 'banner';
 
@@ -11,20 +12,19 @@ interface Props {
   label?: string;
 }
 
-const TYPE_CONFIG = {
-  avatar: { icon: User, color: '#FF2A5F', bg: '#FFF0F3', label: 'Avatar' },
-  photo: { icon: ImageIcon, color: '#4DF0FF', bg: '#E8FFFE', label: 'Photo' },
-  document: { icon: FileText, color: '#F9A825', bg: '#FEF3C7', label: 'Document' },
-  illustration: { icon: Star, color: '#7B61FF', bg: '#F0EEFF', label: 'Illustration' },
-  banner: { icon: Maximize2, color: '#4CAF50', bg: '#D1FAE5', label: 'Banner' },
+const TYPE_CONFIG: { icon: keyof typeof Feather.glyphMap; color: string; bg: string; label: string }[] = {
+  avatar: { icon: 'user', color: colors.primary, bg: colors.badge.pink.bg, label: 'Avatar' },
+  photo: { icon: 'image', color: colors.accent, bg: colors.infoLight, label: 'Photo' },
+  document: { icon: 'file-text', color: colors.warning, bg: colors.warningLight, label: 'Document' },
+  illustration: { icon: 'star', color: '#7B61FF', bg: '#F0EEFF', label: 'Illustration' },
+  banner: { icon: 'maximize', color: colors.success, bg: colors.successLight, label: 'Banner' },
 };
 
 export function ProtoPlaceholderImage({ type = 'photo', width = 80, height = 80, label }: Props) {
   const config = TYPE_CONFIG[type];
-  const Icon = config.icon;
   return (
     <View style={[styles.container, { width, height, backgroundColor: config.bg }]}>
-      <Icon size={24} color={config.color} />
+      <Feather name={config.icon} size={24} color={config.color} />
       <Text style={[styles.label, { color: config.color }]}>{label || config.label}</Text>
     </View>
   );
@@ -33,9 +33,9 @@ export function ProtoPlaceholderImage({ type = 'photo', width = 80, height = 80,
 const styles = StyleSheet.create({
   container: {
     borderWidth: 2,
-    borderColor: '#000000',
+    borderColor: colors.border,
     borderStyle: 'dashed',
-    borderRadius: 8,
+    borderRadius: borderRadius.sm,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 4,

@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
+import { colors } from '../../constants/theme';
 
 interface Props {
   title: string;
@@ -12,7 +13,6 @@ export function StateSection({ title, description, children }: Props) {
 
   useEffect(() => {
     if (Platform.OS === 'web' && ref.current) {
-      // Set data attribute directly on DOM element for text/screenshot API
       (ref.current as unknown as HTMLElement).setAttribute('data-state-name', title);
     }
   }, [title]);
@@ -31,9 +31,9 @@ export function StateSection({ title, description, children }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { marginBottom: 32 },
+  container: { marginBottom: 80 },
   header: {
-    backgroundColor: '#000000',
+    backgroundColor: colors.black,
     paddingHorizontal: 16,
     paddingVertical: 8,
     marginBottom: 16,
@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
-  title: { fontSize: 12, fontWeight: '700', color: '#4DF0FF', textTransform: 'uppercase', letterSpacing: 1 },
-  description: { fontSize: 12, color: '#999999', flex: 1 },
+  title: { fontSize: 12, fontWeight: '700', color: colors.accent, textTransform: 'uppercase', letterSpacing: 1 },
+  description: { fontSize: 12, color: colors.textLight, flex: 1 },
   content: { paddingHorizontal: 16 },
 });

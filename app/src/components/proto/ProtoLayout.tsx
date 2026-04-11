@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, ScrollView } from 'react-native';
+import { colors } from '../../constants/theme';
 
 interface Props {
   title: string;
@@ -16,6 +17,6 @@ export function ProtoLayout({ children }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F0EA' },
+  container: { flex: 1, backgroundColor: colors.background },
   content: { paddingBottom: 60 },
 });
