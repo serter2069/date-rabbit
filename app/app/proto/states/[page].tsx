@@ -1,9 +1,8 @@
 import React, { Suspense, useEffect } from 'react';
-import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator, Platform } from 'react-native';
-import { useLocalSearchParams, router } from 'expo-router';
-import { ArrowLeft } from 'lucide-react-native';
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator, Platform } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
 import { pageRegistry } from '../../../src/constants/pageRegistry';
-import { colors, typography, borderRadius, borderWidth as bw } from '../../../src/constants/theme';
+import { colors, typography, borderRadius } from '../../../src/constants/theme';
 import { OverviewStates } from '../../../src/components/proto/states/OverviewStates';
 import { BrandStates } from '../../../src/components/proto/states/BrandStates';
 import { LandingStates } from '../../../src/components/proto/states/LandingStates';
@@ -116,9 +115,6 @@ export default function StateShowcase() {
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>Page &quot;{page}&quot; not found in registry.</Text>
-        <Pressable onPress={() => router.back()} style={styles.backBtn}>
-          <Text style={styles.backBtnText}>Back to Index</Text>
-        </Pressable>
       </View>
     );
   }
@@ -127,28 +123,6 @@ export default function StateShowcase() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Pressable onPress={() => router.push('/proto' as any)} style={styles.backLink}>
-          <ArrowLeft size={16} color={colors.text} />
-          <Text style={styles.backLinkText}>Proto Index</Text>
-        </Pressable>
-        <View style={styles.headerInfo}>
-          <Text style={styles.headerTitle}>{entry.title}</Text>
-          <Text style={styles.headerRoute}>{entry.route}</Text>
-        </View>
-      </View>
-
-      {entry.notes && entry.notes.length > 0 && (
-        <View style={styles.notesBar}>
-          <Text style={styles.notesLabel}>NOTES:</Text>
-          {entry.notes.map((note, i) => (
-            <Text key={i} style={styles.noteText}>
-              [{note.date}] {note.state ? `(${note.state}) ` : ''}{note.text}
-            </Text>
-          ))}
-        </View>
-      )}
-
       <ScrollView style={styles.content}>
         {Component ? (
           <Suspense fallback={<ActivityIndicator color={colors.primary} />}>
@@ -157,16 +131,8 @@ export default function StateShowcase() {
         ) : (
           <View style={styles.placeholder}>
             <Text style={styles.placeholderTitle}>{entry.title}</Text>
-            <Text style={styles.placeholderText}>
-              States prototype not yet created.
-            </Text>
-            <Text style={styles.placeholderHint}>
-              Run: /proto daterabbit {entry.id}
-            </Text>
-            <View style={styles.statesPreview}>
-              <Text style={styles.statesLabel}>Expected states ({entry.stateCount}):</Text>
-              <Text style={styles.statesNote}>Will be listed once prototype is created.</Text>
-            </View>
+            <Text style={styles.placeholderText}>States prototype not yet created.</Text>
+            <Text style={styles.placeholderHint}>Run: /proto daterabbit {entry.id}</Text>
           </View>
         )}
       </ScrollView>
@@ -176,28 +142,6 @@ export default function StateShowcase() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  header: {
-    backgroundColor: colors.surface,
-    borderBottomWidth: 2,
-    borderBottomColor: colors.border,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
-  backLink: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  backLinkText: { ...typography.caption, fontWeight: '700', color: colors.text },
-  headerInfo: { flex: 1 },
-  headerTitle: { ...typography.h3, color: colors.text },
-  headerRoute: { ...typography.caption, color: colors.textMuted, fontFamily: 'monospace' },
-  notesBar: {
-    backgroundColor: colors.badge.warning.bg,
-    borderBottomWidth: 2,
-    borderBottomColor: colors.border,
-    padding: 12,
-  },
-  notesLabel: { ...typography.label, color: colors.textMuted, marginBottom: 4 },
-  noteText: { ...typography.caption, color: colors.textSecondary, marginBottom: 2 },
   content: { flex: 1 },
   placeholder: {
     margin: 24,
@@ -218,20 +162,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.badge.pink.bg,
     padding: 8,
     borderRadius: borderRadius.xs,
-    marginBottom: 16,
   },
-  statesPreview: { width: '100%', marginTop: 16 },
-  statesLabel: { ...typography.caption, fontWeight: '700', color: colors.textSecondary, marginBottom: 4 },
-  statesNote: { ...typography.caption, color: colors.textLight },
   errorContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
-  errorText: { ...typography.body, color: colors.error, marginBottom: 16 },
-  backBtn: {
-    backgroundColor: colors.accent,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: borderRadius.sm,
-    borderWidth: 2,
-    borderColor: colors.border,
-  },
-  backBtnText: { ...typography.button, color: colors.textInverse },
+  errorText: { ...typography.body, color: colors.error },
 });
