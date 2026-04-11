@@ -29,6 +29,7 @@ jobs:
         run: |
           cd app
           npm ci --legacy-peer-deps
+          sudo rm -rf /tmp/metro-cache || true
           npx expo export --platform web --clear
           python3 scripts/inject-og.py dist/index.html
           cat > dist/version.json << VEOF
@@ -264,6 +265,7 @@ jobs:
         run: |
           cd app
           npm ci --legacy-peer-deps
+          sudo rm -rf /tmp/metro-cache || true
           npx expo export --platform web --clear
           python3 scripts/inject-og.py dist/index.html
           cat > dist/version.json << VEOF
