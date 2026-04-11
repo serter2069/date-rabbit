@@ -117,6 +117,9 @@ jobs:
           sudo pm2 restart daterabbit || sudo pm2 start dist/main.js --name daterabbit
           sudo chown -R www-data:www-data /var/www/daterabbit/
 
+      - name: Update proto-viewer
+        run: sudo npm i -g proto-viewer@latest && pm2 restart proto-date-rabbit || true
+
       - name: Deploy nginx config
         run: |
           CONF="/etc/nginx/sites-available/daterabbit"
