@@ -1,5 +1,5 @@
-import React, { Suspense } from 'react';
-import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
+import React, { Suspense, useEffect } from 'react';
+import { View, Text, ScrollView, Pressable, StyleSheet, ActivityIndicator, Platform } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
 import { pageRegistry } from '../../../src/constants/pageRegistry';
@@ -93,6 +93,21 @@ function loadStatesComponent(pageId: string) {
 
 export default function StateShowcase() {
   const { page } = useLocalSearchParams<{ page: string }>();
+
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const handler = (e: MessageEvent) => {
+      if (e.data?.type !== 'GET_STATES') return;
+      const elements = document.querySelectorAll('[data-state-name]');
+      const states = Array.from(elements).map(el => ({
+        name: el.getAttribute('data-state-name'),
+        y: (el as HTMLElement).getBoundingClientRect().top + window.scrollY
+      }));
+      (e.source as Window)?.postMessage({ type: 'STATES_LIST', states }, '*');
+    };
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, []);
   const entry = pageRegistry.find(p => p.id === page);
 
   if (!entry) {
