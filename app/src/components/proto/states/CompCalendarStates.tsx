@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet , ScrollView, useWindowDimensions} from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { StateSection } from '../StateSection';
+import { ProtoHeader, ProtoTabBar } from '../NavComponents';
 import { colors, typography, borderRadius, shadows } from '../../../constants/theme';
 
 const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -17,6 +18,27 @@ function generateCalendar(): (number | null)[] {
   for (let d = 1; d <= totalDays; d++) cells.push(d);
   while (cells.length % 7 !== 0) cells.push(null);
   return cells;
+}
+
+
+// ===========================================================================
+// PageShell
+// ===========================================================================
+function PageShell({ children }: { children: React.ReactNode }) {
+  const { width: screenWidth } = useWindowDimensions();
+  const isMobile = screenWidth < 768;
+  return (
+    <View style={{ minHeight: 844, flex: 1, backgroundColor: colors.background }}>
+      <ProtoHeader variant="companion" />
+      <ScrollView style={{ flex: 1 }}>
+        <View style={{ flex: 1, maxWidth: 960, width: '100%', alignSelf: 'center', paddingHorizontal: isMobile ? 16 : 48 }}>
+          {children}
+        </View>
+      </ScrollView>
+      {isMobile && <ProtoTabBar role='companion' activeTab="calendar" />}
+
+    </View>
+  );
 }
 
 // ===========================================================================
@@ -182,10 +204,10 @@ export function CompCalendarStates() {
   return (
     <View style={s.root}>
       <StateSection title="DEFAULT" description="Availability calendar with date selection">
-        <DefaultState />
+        <PageShell><DefaultState /></PageShell>
       </StateSection>
       <StateSection title="EDIT_HOURS" description="Availability edit modal">
-        <EditHoursState />
+        <PageShell><EditHoursState /></PageShell>
       </StateSection>
     </View>
   );

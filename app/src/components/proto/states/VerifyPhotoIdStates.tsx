@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet, Image } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Image , ScrollView, useWindowDimensions} from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { StateSection } from '../StateSection';
+import { ProtoHeader, ProtoTabBar } from '../NavComponents';
 import { colors, typography, borderRadius, borderWidth, shadows } from '../../../constants/theme';
 
 // ===========================================================================
@@ -24,6 +25,26 @@ function IdChip({ label }: { label: string }) {
     <View style={[s.chip, shadows.sm]}>
       <Feather name="credit-card" size={14} color={colors.primary} />
       <Text style={s.chipText}>{label}</Text>
+    </View>
+  );
+}
+
+
+// ===========================================================================
+// PageShell
+// ===========================================================================
+function PageShell({ children }: { children: React.ReactNode }) {
+  const { width: screenWidth } = useWindowDimensions();
+  const isMobile = screenWidth < 768;
+  return (
+    <View style={{ minHeight: 844, flex: 1, backgroundColor: colors.background }}>
+      <ProtoHeader variant="auth" />
+      <ScrollView style={{ flex: 1 }}>
+        <View style={{ flex: 1, maxWidth: 960, width: '100%', alignSelf: 'center', paddingHorizontal: isMobile ? 16 : 48 }}>
+          {children}
+        </View>
+      </ScrollView>
+      
     </View>
   );
 }
@@ -127,13 +148,13 @@ export function VerifyPhotoIdStates() {
   return (
     <View style={s.root}>
       <StateSection title="DEFAULT" description="Ready to capture government ID">
-        <DefaultState />
+        <PageShell><DefaultState /></PageShell>
       </StateSection>
       <StateSection title="CAPTURED" description="ID photo taken successfully">
-        <CapturedState />
+        <PageShell><CapturedState /></PageShell>
       </StateSection>
       <StateSection title="ERROR" description="Could not read ID, retry prompt">
-        <ErrorState />
+        <PageShell><ErrorState /></PageShell>
       </StateSection>
     </View>
   );

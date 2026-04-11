@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet , useWindowDimensions} from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { StateSection } from '../StateSection';
+import { ProtoHeader, ProtoTabBar } from '../NavComponents';
 import { colors, typography, borderRadius, borderWidth, shadows } from '../../../constants/theme';
 
 // ===========================================================================
@@ -35,6 +36,26 @@ function Checkbox({
       </View>
       <Text style={s.checkboxLabel}>{label}</Text>
     </Pressable>
+  );
+}
+
+
+// ===========================================================================
+// PageShell
+// ===========================================================================
+function PageShell({ children }: { children: React.ReactNode }) {
+  const { width: screenWidth } = useWindowDimensions();
+  const isMobile = screenWidth < 768;
+  return (
+    <View style={{ minHeight: 844, flex: 1, backgroundColor: colors.background }}>
+      <ProtoHeader variant="auth" />
+      <ScrollView style={{ flex: 1 }}>
+        <View style={{ flex: 1, maxWidth: 960, width: '100%', alignSelf: 'center', paddingHorizontal: isMobile ? 16 : 48 }}>
+          {children}
+        </View>
+      </ScrollView>
+      
+    </View>
   );
 }
 
@@ -112,7 +133,7 @@ export function VerifyConsentStates() {
   return (
     <View style={s.root}>
       <StateSection title="DEFAULT" description="Consent form with interactive checkboxes">
-        <DefaultState />
+        <PageShell><DefaultState /></PageShell>
       </StateSection>
     </View>
   );

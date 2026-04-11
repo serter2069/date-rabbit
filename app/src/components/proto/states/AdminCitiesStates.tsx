@@ -1,8 +1,28 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, TextInput, Switch, StyleSheet } from 'react-native';
+import { View, Text, Pressable, TextInput, Switch, StyleSheet , ScrollView, useWindowDimensions} from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { StateSection } from '../StateSection';
+import { ProtoHeader, ProtoTabBar } from '../NavComponents';
 import { colors, typography, borderRadius, shadows } from '../../../constants/theme';
+
+
+// ---------------------------------------------------------------------------
+// PageShell
+// ---------------------------------------------------------------------------
+function PageShell({ children }: { children: React.ReactNode }) {
+  const { width: screenWidth } = useWindowDimensions();
+  const isMobile = screenWidth < 768;
+  return (
+    <View style={{ minHeight: 844, flex: 1, backgroundColor: colors.background }}>
+      <ProtoHeader variant="admin" />
+      <ScrollView style={{ flex: 1 }}>
+        <View style={{ flex: 1, maxWidth: 960, width: '100%', alignSelf: 'center', paddingHorizontal: isMobile ? 16 : 48 }}>
+          {children}
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Data
@@ -156,10 +176,10 @@ export function AdminCitiesStates() {
   return (
     <View style={s.root}>
       <StateSection title="DEFAULT" description="City management list">
-        <DefaultState />
+        <PageShell><DefaultState /></PageShell>
       </StateSection>
       <StateSection title="ADD_CITY_MODAL" description="Add new city form">
-        <AddCityModalState />
+        <PageShell><AddCityModalState /></PageShell>
       </StateSection>
     </View>
   );

@@ -1,9 +1,29 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Image } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Image , ScrollView, useWindowDimensions} from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StateSection } from '../StateSection';
+import { ProtoHeader, ProtoTabBar } from '../NavComponents';
 import { colors, typography, spacing, borderRadius, borderWidth, shadows } from '../../../constants/theme';
+
+
+// ---------------------------------------------------------------------------
+// PageShell
+// ---------------------------------------------------------------------------
+function PageShell({ children }: { children: React.ReactNode }) {
+  const { width: screenWidth } = useWindowDimensions();
+  const isMobile = screenWidth < 768;
+  return (
+    <View style={{ minHeight: 844, flex: 1, backgroundColor: colors.background }}>
+      <ProtoHeader variant="seeker" />
+      <ScrollView style={{ flex: 1 }}>
+        <View style={{ flex: 1, maxWidth: 960, width: '100%', alignSelf: 'center', paddingHorizontal: isMobile ? 16 : 48 }}>
+          {children}
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Bottom tab bar (shared navigation)
@@ -195,13 +215,13 @@ export function SeekerBookingsStates() {
   return (
     <View style={s.root}>
       <StateSection title="DEFAULT" description="Upcoming booking with confirmed status">
-        <DefaultState />
+        <PageShell><DefaultState /></PageShell>
       </StateSection>
       <StateSection title="PENDING" description="Booking awaiting companion confirmation">
-        <PendingState />
+        <PageShell><PendingState /></PageShell>
       </StateSection>
       <StateSection title="EMPTY" description="No bookings yet">
-        <EmptyState />
+        <PageShell><EmptyState /></PageShell>
       </StateSection>
     </View>
   );
