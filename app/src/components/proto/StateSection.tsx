@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 
 interface Props {
   title: string;
@@ -8,8 +8,10 @@ interface Props {
 }
 
 export function StateSection({ title, description, children }: Props) {
+  const webProps = Platform.OS === 'web' ? { 'data-state-name': title } : {};
+
   return (
-    <View style={styles.container}>
+    <View {...webProps} style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>{title}</Text>
         {description && <Text style={styles.description}>{description}</Text>}
