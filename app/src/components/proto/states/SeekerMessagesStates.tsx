@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet, Image, Platform } from 'react-native';
+import { View, Text, TextInput, Pressable, StyleSheet, Image } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StateSection } from '../StateSection';
@@ -55,7 +55,7 @@ function DefaultState() {
       <View style={s.chatList}>
         {CONVERSATIONS.map(c => (
           <Pressable key={c.name} style={[s.chatItem, shadows.sm]}>
-            <Image source={{ uri: `https://picsum.photos/seed/${c.seed}/48/48` }} style={{ width: 48, height: 48, borderRadius: 24, borderWidth: 2, borderColor: colors.border }} />
+            <Image source={{ uri: `https://picsum.photos/seed/${c.seed}/48/48` }} style={{ width: 48, height: 48, borderRadius: 24, borderWidth: 2, borderColor: '#000' }} />
             <View style={s.chatInfo}>
               <View style={s.chatTop}>
                 <Text style={s.chatName}>{c.name}</Text>
@@ -93,7 +93,7 @@ function OpenChatState() {
         <Pressable style={s.backBtn}>
           <Feather name={"arrow-left" as any} size={20} color={colors.text} />
         </Pressable>
-        <Image source={{ uri: 'https://picsum.photos/seed/jessica-chat/36/36' }} style={{ width: 36, height: 36, borderRadius: 18, borderWidth: 2, borderColor: colors.border }} />
+        <Image source={{ uri: 'https://picsum.photos/seed/jessica-chat/36/36' }} style={{ width: 36, height: 36, borderRadius: 18, borderWidth: 2, borderColor: '#000' }} />
         <View style={s.chatHeaderInfo}>
           <Text style={s.chatHeaderName}>Jessica M.</Text>
           <View style={s.onlineRow}>
@@ -144,25 +144,11 @@ export function SeekerMessagesStates() {
   return (
     <View style={s.root}>
       <StateSection title="DEFAULT" description="Messages list with conversations">
-        <View style={{ minHeight: Platform.OS === 'web' ? '100vh' : 844 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 56, paddingHorizontal: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}><Text style={{ fontSize: 18, fontWeight: '700', color: '#7C3AED' }}>DateRabbit</Text><View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Feather name="bell" size={20} color="#6B7280" /></View></View>
-          <View style={{ flex: 1 }}>
-
         <DefaultState />
-                </View>
-          <View style={{ flexDirection: 'row', height: 56, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#E5E7EB', alignItems: 'center' }}>{[{i:'home',l:'Home'},{i:'calendar',l:'Bookings'},{i:'message-circle',l:'Messages'},{i:'user',l:'Profile'}].map(t=>(<View key={t.l} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><Feather name={t.i} size={20} color="#6B7280" /><Text style={{ fontSize: 10, color: '#6B7280' }}>{t.l}</Text></View>))}</View>
-        </View>
-</StateSection>
+      </StateSection>
       <StateSection title="OPEN_CHAT" description="Chat thread with companion">
-        <View style={{ minHeight: Platform.OS === 'web' ? '100vh' : 844 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 56, paddingHorizontal: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}><Text style={{ fontSize: 18, fontWeight: '700', color: '#7C3AED' }}>DateRabbit</Text><View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Feather name="bell" size={20} color="#6B7280" /></View></View>
-          <View style={{ flex: 1 }}>
-
         <OpenChatState />
-                </View>
-          <View style={{ flexDirection: 'row', height: 56, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#E5E7EB', alignItems: 'center' }}>{[{i:'home',l:'Home'},{i:'calendar',l:'Bookings'},{i:'message-circle',l:'Messages'},{i:'user',l:'Profile'}].map(t=>(<View key={t.l} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><Feather name={t.i} size={20} color="#6B7280" /><Text style={{ fontSize: 10, color: '#6B7280' }}>{t.l}</Text></View>))}</View>
-        </View>
-</StateSection>
+      </StateSection>
     </View>
   );
 }

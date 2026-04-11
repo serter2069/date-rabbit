@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet, Image, Platform } from 'react-native';
+import { View, Text, TextInput, Pressable, StyleSheet, Image } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StateSection } from '../StateSection';
@@ -37,7 +37,7 @@ function DefaultState() {
     <View style={s.page}>
       {/* Profile header */}
       <View style={[s.profileHeader, shadows.sm]}>
-        <Image source={{ uri: 'https://picsum.photos/seed/james-seeker/100/100' }} style={{ width: 100, height: 100, borderRadius: 50, borderWidth: 2, borderColor: colors.border }} />
+        <Image source={{ uri: 'https://picsum.photos/seed/james-seeker/100/100' }} style={{ width: 100, height: 100, borderRadius: 50, borderWidth: 2, borderColor: '#000' }} />
         <Text style={s.profileName}>James Wilson</Text>
         <View style={s.verifiedRow}>
           <Feather name={"check-circle" as any} size={14} color={colors.success} />
@@ -124,7 +124,7 @@ function EditModeState() {
 
       {/* Photo */}
       <View style={s.photoSection}>
-        <Image source={{ uri: 'https://picsum.photos/seed/james-seeker/100/100' }} style={{ width: 100, height: 100, borderRadius: 50, borderWidth: 2, borderColor: colors.border }} />
+        <Image source={{ uri: 'https://picsum.photos/seed/james-seeker/100/100' }} style={{ width: 100, height: 100, borderRadius: 50, borderWidth: 2, borderColor: '#000' }} />
         <Pressable style={[s.changePhotoBtn, shadows.sm]}>
           <Feather name={"camera" as any} size={14} color={colors.primary} />
           <Text style={s.changePhotoText}>Change</Text>
@@ -194,25 +194,11 @@ export function SeekerProfileStates() {
   return (
     <View style={s.root}>
       <StateSection title="DEFAULT" description="Seeker profile view with stats and menu">
-        <View style={{ minHeight: Platform.OS === 'web' ? '100vh' : 844 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 56, paddingHorizontal: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}><Text style={{ fontSize: 18, fontWeight: '700', color: '#7C3AED' }}>DateRabbit</Text><View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Feather name="bell" size={20} color="#6B7280" /></View></View>
-          <View style={{ flex: 1 }}>
-
         <DefaultState />
-                </View>
-          <View style={{ flexDirection: 'row', height: 56, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#E5E7EB', alignItems: 'center' }}>{[{i:'home',l:'Home'},{i:'calendar',l:'Bookings'},{i:'message-circle',l:'Messages'},{i:'user',l:'Profile'}].map(t=>(<View key={t.l} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><Feather name={t.i} size={20} color="#6B7280" /><Text style={{ fontSize: 10, color: '#6B7280' }}>{t.l}</Text></View>))}</View>
-        </View>
-</StateSection>
+      </StateSection>
       <StateSection title="EDIT_MODE" description="Edit profile form with interactive inputs">
-        <View style={{ minHeight: Platform.OS === 'web' ? '100vh' : 844 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', height: 56, paddingHorizontal: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E7EB' }}><Text style={{ fontSize: 18, fontWeight: '700', color: '#7C3AED' }}>DateRabbit</Text><View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Feather name="bell" size={20} color="#6B7280" /></View></View>
-          <View style={{ flex: 1 }}>
-
         <EditModeState />
-                </View>
-          <View style={{ flexDirection: 'row', height: 56, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#E5E7EB', alignItems: 'center' }}>{[{i:'home',l:'Home'},{i:'calendar',l:'Bookings'},{i:'message-circle',l:'Messages'},{i:'user',l:'Profile'}].map(t=>(<View key={t.l} style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><Feather name={t.i} size={20} color="#6B7280" /><Text style={{ fontSize: 10, color: '#6B7280' }}>{t.l}</Text></View>))}</View>
-        </View>
-</StateSection>
+      </StateSection>
     </View>
   );
 }
