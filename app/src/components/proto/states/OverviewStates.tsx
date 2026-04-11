@@ -1,19 +1,48 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet, Platform } from 'react-native';
+import { colors, typography, spacing, borderRadius } from '../../../constants/theme';
+import { StateSection } from '../StateSection';
 
 export function OverviewStates() {
   return (
-    <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title}>DateRabbit</Text>
-        <Text style={styles.subtitle}>Premium companion dating platform (21+)</Text>
+    <StateSection title="PROJECT_OVERVIEW" description="DateRabbit — Project overview, roles and flows">
+      <View style={styles.container}>
+        <ScrollView contentContainerStyle={styles.content}>
+          <Text style={styles.title}>DateRabbit</Text>
+        <Text style={styles.tagline}>Real dates. Real connection.</Text>
+        <Text style={styles.subtitle}>Premium companion dating platform. Companions set their price, Seekers book and pay. USA, 21+ only.</Text>
 
         <Text style={styles.sectionTitle}>Roles</Text>
-        <Text style={styles.item}>Seeker (male) -- browse companions, book dates, pay, leave reviews</Text>
-        <Text style={styles.item}>Companion (female) -- manage profile, accept/decline requests, earn money</Text>
-        <Text style={styles.item}>Admin -- manage cities, moderation</Text>
+        <View style={styles.roleCard}>
+          <View style={[styles.roleBadge, { backgroundColor: colors.accent }]}> 
+            <Text style={styles.roleBadgeText}>SEEKER</Text>
+          </View>
+          <Text style={styles.roleDesc}>Man looking for a companion date. Pays, books, verified via Stripe Identity.</Text>
+        </View>
+        <View style={styles.roleCard}>
+          <View style={[styles.roleBadge, { backgroundColor: colors.primary }]}> 
+            <Text style={styles.roleBadgeText}>COMPANION</Text>
+          </View>
+          <Text style={styles.roleDesc}>Woman offering paid dates. Sets price, controls schedule, receives same-day Stripe payouts.</Text>
+        </View>
+        <View style={styles.roleCard}>
+          <View style={[styles.roleBadge, { backgroundColor: colors.warning }]}> 
+            <Text style={styles.roleBadgeText}>ADMIN</Text>
+          </View>
+          <Text style={styles.roleDesc}>Platform moderator. Manages users, cities, verifications, disputes.</Text>
+        </View>
 
-        <Text style={styles.sectionTitle}>Pages</Text>
+        <Text style={styles.sectionTitle}>Flows</Text>
+        <View style={styles.flowCard}>
+          <Text style={styles.flowTitle}>Seeker Happy Path</Text>
+          <Text style={styles.flowSteps}>Landing → Auth → OTP → Role Select → Profile → Verify → Browse → Book → Pay → Date</Text>
+        </View>
+        <View style={styles.flowCard}>
+          <Text style={styles.flowTitle}>Companion Happy Path</Text>
+          <Text style={styles.flowSteps}>Landing → Auth → OTP → Role Select → Profile → Photos → Verify → Approved → Stripe Connect → Home</Text>
+        </View>
+
+        <Text style={styles.sectionTitle}>Pages (40 total)</Text>
         <Text style={styles.groupTitle}>Landing</Text>
         <Text style={styles.item}>Landing Page (gender splash on first visit)</Text>
 
@@ -45,15 +74,44 @@ export function OverviewStates() {
         <Text style={styles.item}>Cities Management</Text>
       </ScrollView>
     </View>
+    </StateSection>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { minHeight: Platform.OS === 'web' ? ('100vh' as any) : 844, backgroundColor: '#fff' },
-  content: { padding: 32, maxWidth: 600 },
-  title: { fontSize: 28, fontWeight: '700', marginBottom: 8 },
-  subtitle: { fontSize: 16, color: '#666', marginBottom: 32 },
-  sectionTitle: { fontSize: 18, fontWeight: '600', marginBottom: 12, marginTop: 24 },
-  groupTitle: { fontSize: 14, fontWeight: '600', color: '#444', marginTop: 12, marginBottom: 4 },
-  item: { fontSize: 14, color: '#555', marginBottom: 4, paddingLeft: 12 },
+  container: { minHeight: Platform.OS === 'web' ? ('100vh' as any) : 844, backgroundColor: colors.background },
+  content: { padding: spacing.lg, maxWidth: 600 },
+  title: { ...typography.h1, color: colors.text, marginBottom: spacing.xs },
+  tagline: { ...typography.h3, color: colors.primary, marginBottom: spacing.sm },
+  subtitle: { ...typography.body, color: colors.textSecondary, marginBottom: spacing.xl },
+  sectionTitle: { ...typography.h3, color: colors.text, marginBottom: spacing.sm, marginTop: spacing.lg },
+  groupTitle: { ...typography.bodyMedium, color: colors.textSecondary, marginTop: spacing.sm, marginBottom: spacing.xs },
+  item: { ...typography.bodySmall, color: colors.textMuted, marginBottom: spacing.xs, paddingLeft: spacing.md },
+  roleCard: {
+    backgroundColor: colors.surface,
+    borderWidth: 2,
+    borderColor: colors.border,
+    borderRadius: borderRadius.sm,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  roleBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: borderRadius.xs,
+    marginBottom: 4,
+  },
+  roleBadgeText: { ...typography.label, color: colors.textInverse },
+  roleDesc: { ...typography.bodySmall, color: colors.textSecondary },
+  flowCard: {
+    backgroundColor: colors.surface,
+    borderWidth: 2,
+    borderColor: colors.border,
+    borderRadius: borderRadius.sm,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  flowTitle: { ...typography.bodyMedium, color: colors.text, marginBottom: 4 },
+  flowSteps: { ...typography.caption, color: colors.textMuted },
 });

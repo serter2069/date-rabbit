@@ -25,17 +25,19 @@ const GROUP_LABELS: Record<PageGroup, string> = {
   Admin: 'Admin',
 };
 
-type ProtoStatus = 'none' | 'proto' | 'approved';
+type ProtoStatus = 'none' | 'proto' | 'review' | 'approved';
 
 const STATUS_COLORS: Record<ProtoStatus, string> = {
   none: '#999999',
   proto: '#F9A825',
+  review: '#4DF0FF',
   approved: '#4CAF50',
 };
 
 const STATUS_LABELS: Record<ProtoStatus, string> = {
   none: '[ ]',
   proto: '[proto]',
+  review: '[review]',
   approved: '[approved]',
 };
 
