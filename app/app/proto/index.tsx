@@ -7,7 +7,7 @@ import { colors } from '../../src/constants/theme';
 
 type PageGroup = 'Brand' | 'Landing' | 'Auth' | 'SeekerVerify' | 'CompanionOnboard' | 'SeekerDashboard' | 'CompanionDashboard' | 'Booking' | 'Date' | 'Chat' | 'Reviews' | 'Settings' | 'Admin';
 
-const GROUPS: PageGroup[] = ['Brand', 'Landing', 'Auth', 'SeekerVerify', 'CompanionOnboard', 'SeekerDashboard', 'CompanionDashboard', 'Booking', 'Reviews', 'Settings', 'Admin'];
+const GROUPS: PageGroup[] = ['Brand', 'Landing', 'Auth', 'SeekerVerify', 'CompanionOnboard', 'SeekerDashboard', 'CompanionDashboard', 'Booking', 'Date', 'Reviews', 'Settings', 'Admin'];
 
 const GROUP_LABELS: Record<PageGroup, string> = {
   Brand: 'Brand & Styles',
