@@ -77,6 +77,9 @@ export const pageRegistry: PageEntry[] = [
   { id: 'booking-request-sent', title: 'Request Sent', group: 'Booking', route: '/booking/request-sent/[id]', stateCount: 1, nav: 'seeker', status: 'proto', qaScore: 10, qaCycles: 4, navFrom: ['booking-payment'], navTo: ['seeker-bookings'] },
   { id: 'booking-declined', title: 'Request Declined', group: 'Booking', route: '/booking/declined/[id]', stateCount: 1, nav: 'seeker', status: 'proto', qaScore: 10, qaCycles: 4, navFrom: ['comp-requests'], navTo: ['seeker-bookings'] },
 
+  // DATE
+  { id: 'date-active', title: 'Active Date', group: 'Date', route: '/date/active/[bookingId]', stateCount: 4, nav: 'seeker', status: 'proto', qaScore: 10, qaCycles: 1, navFrom: ['booking-detail'], navTo: ['date-plan', 'date-photos', 'date-sos', 'date-summary'], notes: [{ date: '2026-04-13', text: 'Active date with countdown timer, action grid (Extend, End Early, Plan, Photos, Report, SOS), safety check-in modal every 30 min, chat FAB' }] },
+
   // REVIEWS
   { id: 'reviews-view', title: 'Reviews', group: 'Reviews', route: '/reviews/[id]', stateCount: 2, nav: 'seeker', status: 'proto', qaScore: 10, qaCycles: 4, navFrom: ['booking-detail'] },
   { id: 'reviews-write', title: 'Write Review', group: 'Reviews', route: '/reviews/write/[bookingId]', stateCount: 2, nav: 'seeker', status: 'proto', qaScore: 10, qaCycles: 4, navFrom: ['seeker-bookings'], navTo: ['seeker-bookings'] },
