@@ -42,6 +42,7 @@ import { SettingsStates } from '../../../src/components/proto/states/SettingsSta
 import { SettingsEditProfileStates } from '../../../src/components/proto/states/SettingsEditProfileStates';
 import { SettingsNotificationsStates } from '../../../src/components/proto/states/SettingsNotificationsStates';
 import { AdminCitiesStates } from '../../../src/components/proto/states/AdminCitiesStates';
+import { DateActiveStates } from '../../../src/components/proto/states/DateActiveStates';
 import { ComponentsStates } from '../../../src/components/proto/states/ComponentsStates';
 
 // Dynamic component import map — populated as pages are prototyped
@@ -80,6 +81,7 @@ const STATE_COMPONENTS: Record<string, React.ComponentType<any>> = {
   'booking-payment': BookingPaymentStates,
   'booking-request-sent': BookingRequestSentStates,
   'booking-declined': BookingDeclinedStates,
+  'date-active': DateActiveStates,
   'reviews-view': ReviewsViewStates,
   'reviews-write': ReviewsWriteStates,
   'settings': SettingsStates,
