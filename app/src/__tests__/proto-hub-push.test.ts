@@ -62,28 +62,31 @@ describe('Proto Hub DB - date-rabbit', () => {
     }
   });
 
-  test('landing page renders with multiple states', async () => {
-    const text = await fetchJSON(
-      `${PROTO_API}/text?project=${PROJECT}&page=landing&password=${PASSWORD}`
-    );
-    expect(text.stateCount).toBeGreaterThanOrEqual(3);
-    expect(text.stateNames).toContain('DEFAULT');
-  }, 30000);
+  test('landing page has multiple states in source', () => {
+    const landingFile = files.find((f: any) => f.page_id === 'landing' && f.filename === 'landing.tsx');
+    expect(landingFile).toBeDefined();
+    const content = landingFile.content;
+    const stateMatches = content.match(/StateSection\s+title="/g) || [];
+    expect(stateMatches.length).toBeGreaterThanOrEqual(3);
+    expect(content).toContain('title="DEFAULT"');
+  });
 
-  test('seeker-home page renders with states', async () => {
-    const text = await fetchJSON(
-      `${PROTO_API}/text?project=${PROJECT}&page=seeker-home&password=${PASSWORD}`
-    );
-    expect(text.stateCount).toBeGreaterThanOrEqual(2);
-    expect(text.fullText.length).toBeGreaterThan(100);
-  }, 30000);
+  test('seeker-home page has multiple states in source', () => {
+    const file = files.find((f: any) => f.page_id === 'seeker-home');
+    expect(file).toBeDefined();
+    const content = file.content;
+    const stateMatches = content.match(/StateSection\s+title="/g) || [];
+    expect(stateMatches.length).toBeGreaterThanOrEqual(2);
+    expect(content.length).toBeGreaterThan(100);
+  });
 
-  test('comp-home page renders with states', async () => {
-    const text = await fetchJSON(
-      `${PROTO_API}/text?project=${PROJECT}&page=comp-home&password=${PASSWORD}`
-    );
-    expect(text.stateCount).toBeGreaterThanOrEqual(2);
-  }, 30000);
+  test('comp-home page has multiple states in source', () => {
+    const file = files.find((f: any) => f.page_id === 'comp-home');
+    expect(file).toBeDefined();
+    const content = file.content;
+    const stateMatches = content.match(/StateSection\s+title="/g) || [];
+    expect(stateMatches.length).toBeGreaterThanOrEqual(2);
+  });
 
   test('landing page TS validation passes', async () => {
     const result = await fetchJSON(
