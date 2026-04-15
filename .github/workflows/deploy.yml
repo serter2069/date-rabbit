@@ -125,7 +125,7 @@ jobs:
       - name: Verify staging
         id: verify
         run: |
-          sleep 5
+          sleep 8
           echo "=== Version ==="
           curl -sf https://daterabbit.smartlaunchhub.com/version.json
           echo ""
@@ -133,12 +133,9 @@ jobs:
           HTTP=$(curl -s -o /dev/null -w "%{http_code}" https://daterabbit.smartlaunchhub.com/)
           echo "Frontend HTTP: $HTTP"
           [ "$HTTP" = "200" ] || exit 1
-          echo "=== Backend ==="
-          API=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3004/api/)
-          echo "API HTTP: $API"
-          echo "=== Admin ==="
-          ADMIN=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3005/)
-          echo "Admin HTTP: $ADMIN"
+          echo "=== PM2 status ==="
+          pm2 show daterabbit | grep -E "(status|restarts|uptime)" || true
+          pm2 show daterabbit-admin | grep -E "(status|restarts|uptime)" || true
 
       - name: Auto-rollback on failure
         if: failure() && steps.verify.outcome == 'failure'
