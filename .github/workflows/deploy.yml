@@ -1,20 +1,14 @@
-name: Deploy
+name: Deploy DateRabbit Staging
 
 on:
   push:
-    branches: [main, development]
-  workflow_dispatch:
-    inputs:
-      seed:
-        description: 'Run seed script after deploy? Type "yes"'
-        required: false
-        default: ''
+    branches: [development]
+  pull_request:
+    branches: [development]
 
 jobs:
-  deploy-staging:
-    name: Deploy → Staging
-    if: github.ref == 'refs/heads/development'
-    runs-on: self-hosted
+  validate:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -23,234 +17,16 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Build frontend (Expo web)
-        env:
-          EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_PUBLISHABLE_KEY }}
-        run: |
-          cd app
-          npm ci --legacy-peer-deps
-          sudo rm -rf /tmp/metro-cache || true
-          npx expo export --platform web --clear
-          python3 scripts/inject-og.py dist/index.html
-          cat > dist/version.json << VEOF
-          {
-            "version": "$(git rev-parse --short HEAD)",
-            "commit": "$(git rev-parse HEAD)",
-            "branch": "${{ github.ref_name }}",
-            "deployed": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-            "message": "$(git log -1 --pretty=%s | head -c 100)"
-          }
-          VEOF
+      - name: Install backend dependencies
+        working-directory: ./backend/daterabbit-api
+        run: npm ci
 
-      - name: Build backend (NestJS)
-        run: |
-          cd backend/daterabbit-api
-          npm ci
-          npm run build
+      - name: Build backend (type check)
+        working-directory: ./backend/daterabbit-api
+        run: npm run build
 
-      - name: Build admin panel (Next.js)
-        run: |
-          cd admin
-          npm ci
-          NEXT_PUBLIC_API_URL=https://daterabbit.smartlaunchhub.com/api npm run build
-
-      - name: Deploy frontend
-        run: |
-          rsync -rlD --delete \
-            --exclude 'api' \
-            --exclude 'uploads' \
-            --exclude 'admin-panel' \
-            app/dist/ /var/www/daterabbit/
-
-      - name: Deploy admin panel
-        run: |
-          # Deploy admin into subdirectory of existing /var/www/daterabbit (runner already owns it)
-          mkdir -p /var/www/daterabbit/admin-panel
-          sudo chown -R $(whoami):www-data /var/www/daterabbit/admin-panel/
-          rsync -rlD --delete \
-            --exclude 'node_modules' \
-            --exclude '.env.local' \
-            --exclude '.git' \
-            admin/ /var/www/daterabbit/admin-panel/
-          cd /var/www/daterabbit/admin-panel
-          npm ci --production
-          if [ ! -f /var/www/daterabbit/admin-panel/.env.local ]; then
-            echo "NEXT_PUBLIC_API_URL=https://daterabbit.smartlaunchhub.com/api" > /var/www/daterabbit/admin-panel/.env.local
-          fi
-          sudo pm2 restart daterabbit-admin || sudo pm2 start npm --name daterabbit-admin -- start -- -p 3005
-          sudo chown -R www-data:www-data /var/www/daterabbit/ 2>/dev/null || true
-
-      - name: Create backend .env if missing
-        run: |
-          mkdir -p /var/www/daterabbit/api
-          if [ ! -f /var/www/daterabbit/api/.env ]; then
-            cat > /var/www/daterabbit/api/.env << 'ENVEOF'
-          PORT=3004
-          NODE_ENV=staging
-          DEV_AUTH=true
-          DB_HOST=localhost
-          DB_PORT=5432
-          DB_USERNAME=daterabbit
-          DB_PASSWORD=daterabbit
-          DB_NAME=daterabbit
-          JWT_SECRET=placeholder
-          STRIPE_SECRET_KEY=
-          STRIPE_WEBHOOK_SECRET=
-          BREVO_API_KEY=
-          APP_URL=https://daterabbit.smartlaunchhub.com
-          ENVEOF
-            echo ".env created with defaults"
-          else
-            echo ".env already exists"
-          fi
-
-      - name: Deploy backend
-        run: |
-          rsync -rlD --delete \
-            --exclude 'node_modules' \
-            --exclude '.env' \
-            --exclude 'dist' \
-            --exclude 'uploads' \
-            backend/daterabbit-api/ /var/www/daterabbit/api/
-          rsync -rlD backend/daterabbit-api/dist/ /var/www/daterabbit/api/dist/
-          cd /var/www/daterabbit/api
-          npm ci --production
-
-      - name: Update Stripe env vars
-        env:
-          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
-          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
-        run: |
-          ENV_FILE="/var/www/daterabbit/api/.env"
-          if [ -f "$ENV_FILE" ]; then
-            # Update STRIPE_SECRET_KEY
-            if grep -q "^STRIPE_SECRET_KEY=" "$ENV_FILE"; then
-              sed -i "s|^STRIPE_SECRET_KEY=.*|STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}|" "$ENV_FILE"
-            else
-              echo "STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}" >> "$ENV_FILE"
-            fi
-            # Update STRIPE_WEBHOOK_SECRET
-            if grep -q "^STRIPE_WEBHOOK_SECRET=" "$ENV_FILE"; then
-              sed -i "s|^STRIPE_WEBHOOK_SECRET=.*|STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}|" "$ENV_FILE"
-            else
-              echo "STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}" >> "$ENV_FILE"
-            fi
-            echo "Stripe env vars updated"
-          else
-            echo "ERROR: .env not found at $ENV_FILE"
-            exit 1
-          fi
-
-      - name: Update env vars from secrets
-        env:
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
-        run: |
-          ENV_FILE="/var/www/daterabbit/api/.env"
-          # Update JWT_SECRET
-          if [ -n "$JWT_SECRET" ]; then
-            if grep -q "^JWT_SECRET=" "$ENV_FILE"; then
-              sed -i "s|^JWT_SECRET=.*|JWT_SECRET=${JWT_SECRET}|" "$ENV_FILE"
-            else
-              echo "JWT_SECRET=${JWT_SECRET}" >> "$ENV_FILE"
-            fi
-          fi
-          # Update BREVO_API_KEY
-          if [ -n "$BREVO_API_KEY" ]; then
-            if grep -q "^BREVO_API_KEY=" "$ENV_FILE"; then
-              sed -i "s|^BREVO_API_KEY=.*|BREVO_API_KEY=${BREVO_API_KEY}|" "$ENV_FILE"
-            else
-              echo "BREVO_API_KEY=${BREVO_API_KEY}" >> "$ENV_FILE"
-            fi
-          fi
-          # Enable DEV_AUTH on staging for E2E testing (OTP bypass 000000)
-          if grep -q "^DEV_AUTH=" "$ENV_FILE"; then
-            sed -i "s|^DEV_AUTH=.*|DEV_AUTH=true|" "$ENV_FILE"
-          else
-            echo "DEV_AUTH=true" >> "$ENV_FILE"
-          fi
-          # Set sender email for Brevo
-          if grep -q "^BREVO_SENDER_EMAIL=" "$ENV_FILE"; then
-            sed -i "s|^BREVO_SENDER_EMAIL=.*|BREVO_SENDER_EMAIL=noreply@daterabbit.com|" "$ENV_FILE"
-          else
-            echo "BREVO_SENDER_EMAIL=noreply@daterabbit.com" >> "$ENV_FILE"
-          fi
-          echo "Env vars updated from secrets"
-
-      - name: Restart backend
-        run: |
-          cd /var/www/daterabbit/api
-          sudo pm2 restart daterabbit || sudo pm2 start dist/main.js --name daterabbit --cwd /var/www/daterabbit/api -i 2
-          sudo chown -R www-data:www-data /var/www/daterabbit/ 2>/dev/null || true
-
-      - name: Update proto-viewer
-        run: sudo npm i -g proto-viewer@latest && pm2 restart proto-date-rabbit || true
-      - name: Deploy nginx config
-        run: |
-          CONF="/etc/nginx/sites-available/daterabbit"
-
-          echo "=== Before ==="
-          head -5 "$CONF" 2>/dev/null || echo "No existing config"
-
-          # Replace config entirely from repo
-          sudo cp server/nginx-daterabbit.conf "$CONF"
-          sudo chmod 644 "$CONF"
-
-          # Ensure symlink exists in sites-enabled
-          if [ ! -L /etc/nginx/sites-enabled/daterabbit ]; then
-            sudo ln -sf "$CONF" /etc/nginx/sites-enabled/daterabbit
-          fi
-
-          echo "=== After ==="
-          cat "$CONF"
-
-          sudo nginx -t 2>&1
-          sudo systemctl reload nginx && echo "Nginx config deployed and reloaded"
-
-          sleep 2
-          echo ""
-          echo "=== Verification ==="
-          curl -s -o /dev/null -w "Backend direct (3004): %{http_code}\n" http://localhost:3004/api/payments/earnings || true
-          curl -s -o /dev/null -w "Admin direct (3005):   %{http_code}\n" http://localhost:3005/ || true
-          curl -s -o /dev/null -w "Nginx HTTPS (443):     %{http_code}\n" --resolve "daterabbit.smartlaunchhub.com:443:127.0.0.1" -k https://daterabbit.smartlaunchhub.com/api/payments/earnings || true
-
-      - name: Verify deployment
-        if: always()
-        run: |
-          sleep 5
-          echo "=== version.json ==="
-          cat /var/www/daterabbit/version.json 2>&1 || echo "no version.json"
-          echo "=== PM2 status ==="
-          sudo pm2 show daterabbit 2>&1 | grep -E "(status|restarts|uptime)" || true
-          sudo pm2 show daterabbit-admin 2>&1 | grep -E "(status|restarts|uptime)" || true
-          echo "=== PM2 error logs (last 5) ==="
-          sudo pm2 logs daterabbit --nostream --lines 5 --err 2>&1 || true
-          sudo pm2 logs daterabbit-admin --nostream --lines 5 --err 2>&1 || true
-          echo "=== API smoke test (direct backend) ==="
-          curl -s -o /dev/null -w "GET /api/payments/earnings: %{http_code}\n" http://localhost:3004/api/payments/earnings || true
-          curl -s -o /dev/null -w "GET /admin (Next.js):       %{http_code}\n" http://localhost:3005/ || true
-          echo "=== Nginx config files ==="
-          ls -la /etc/nginx/sites-enabled/ 2>/dev/null | grep -i date || echo "No daterabbit in sites-enabled"
-
-      - name: Run seed script
-        if: github.event.inputs.seed == 'yes'
-        run: |
-          cp /var/www/daterabbit/api/.env backend/daterabbit-api/.env
-          cd backend/daterabbit-api
-          npx ts-node src/seed/seed.ts 2>&1
-
-
-      - name: Cleanup node_modules
-        if: always()
-        run: |
-          find . -type d -name "node_modules" -exec rm -rf {} + 2>/dev/null || true
-          echo "Cleanup done — runner disk freed"
-
-  deploy-production:
-    name: Deploy → Production
-    if: github.ref == 'refs/heads/main'
-    runs-on: self-hosted
-    environment: production
+  build:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -259,204 +35,147 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Install frontend dependencies
+        working-directory: ./app
+        run: npm ci --legacy-peer-deps
+
       - name: Build frontend (Expo web)
+        working-directory: ./app
+        run: npx expo export --platform web
+
+      - name: Install admin dependencies
+        working-directory: ./admin
+        run: npm ci
+
+      - name: Build admin panel (Next.js)
+        working-directory: ./admin
         env:
-          EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.STRIPE_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_API_URL: https://daterabbit.smartlaunchhub.com/api
+        run: npm run build
+
+  deploy:
+    needs: [validate, build]
+    if: github.event_name == 'push'
+    runs-on: self-hosted
+    env:
+      DEPLOY_DIR: /var/www/daterabbit
+    steps:
+      - name: Save previous commit for rollback
         run: |
-          cd app
+          cd $DEPLOY_DIR
+          git rev-parse HEAD > /tmp/daterabbit-prev-commit
+
+      - name: Pull latest code
+        run: |
+          cd $DEPLOY_DIR
+          git fetch origin development
+          git reset --hard origin/development
+
+      - name: Install and build frontend
+        run: |
+          cd $DEPLOY_DIR/app
           npm ci --legacy-peer-deps
-          sudo rm -rf /tmp/metro-cache || true
           npx expo export --platform web --clear
           python3 scripts/inject-og.py dist/index.html
-          cat > dist/version.json << VEOF
-          {
-            "version": "$(git rev-parse --short HEAD)",
-            "commit": "$(git rev-parse HEAD)",
-            "branch": "${{ github.ref_name }}",
-            "deployed": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-            "message": "$(git log -1 --pretty=%s | head -c 100)"
-          }
-          VEOF
+          cp -r dist/* $DEPLOY_DIR/ 2>/dev/null || true
 
-      - name: Build backend (NestJS)
+      - name: Install and build backend
         run: |
-          cd backend/daterabbit-api
+          cd $DEPLOY_DIR/backend/daterabbit-api
           npm ci
           npm run build
 
-      - name: Build admin panel (Next.js)
+      - name: Install and build admin
         run: |
-          cd admin
+          cd $DEPLOY_DIR/admin
           npm ci
           NEXT_PUBLIC_API_URL=https://daterabbit.smartlaunchhub.com/api npm run build
 
-      - name: Deploy frontend
+      - name: Write version.json
         run: |
-          rsync -rlD --delete \
-            --exclude 'api' \
-            --exclude 'uploads' \
-            --exclude 'admin-panel' \
-            app/dist/ /var/www/daterabbit/
+          cd $DEPLOY_DIR
+          echo "{\"version\":\"$(git rev-parse --short HEAD)\",\"date\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" > version.json
 
-      - name: Deploy admin panel
+      - name: Fix permissions
         run: |
-          # Deploy admin into subdirectory of existing /var/www/daterabbit (runner already owns it)
-          mkdir -p /var/www/daterabbit/admin-panel
-          sudo chown -R $(whoami):www-data /var/www/daterabbit/admin-panel/
-          rsync -rlD --delete \
-            --exclude 'node_modules' \
-            --exclude '.env.local' \
-            --exclude '.git' \
-            admin/ /var/www/daterabbit/admin-panel/
-          cd /var/www/daterabbit/admin-panel
-          npm ci --production
-          if [ ! -f /var/www/daterabbit/admin-panel/.env.local ]; then
-            echo "NEXT_PUBLIC_API_URL=https://daterabbit.smartlaunchhub.com/api" > /var/www/daterabbit/admin-panel/.env.local
-          fi
-          sudo pm2 restart daterabbit-admin || sudo pm2 start npm --name daterabbit-admin -- start -- -p 3005
-          sudo chown -R www-data:www-data /var/www/daterabbit/ 2>/dev/null || true
-
-      - name: Verify backend .env exists
-        run: |
-          if [ ! -f /var/www/daterabbit/api/.env ]; then
-            cat > /var/www/daterabbit/api/.env << 'ENVEOF'
-          PORT=3004
-          NODE_ENV=production
-          DEV_AUTH=false
-          DB_HOST=localhost
-          DB_PORT=5432
-          DB_USERNAME=daterabbit
-          DB_PASSWORD=daterabbit
-          DB_NAME=daterabbit
-          JWT_SECRET=placeholder
-          STRIPE_SECRET_KEY=
-          STRIPE_WEBHOOK_SECRET=
-          BREVO_API_KEY=
-          APP_URL=https://daterabbit.smartlaunchhub.com
-          ENVEOF
-            echo ".env created — secrets will be injected next"
-          else
-            echo ".env already exists"
-          fi
-
-      - name: Deploy backend
-        run: |
-          rsync -rlD --delete \
-            --exclude 'node_modules' \
-            --exclude '.env' \
-            --exclude 'dist' \
-            --exclude 'uploads' \
-            backend/daterabbit-api/ /var/www/daterabbit/api/
-          rsync -rlD backend/daterabbit-api/dist/ /var/www/daterabbit/api/dist/
-          cd /var/www/daterabbit/api
-          npm ci --production
-
-      - name: Update Stripe env vars
-        env:
-          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
-          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
-        run: |
-          ENV_FILE="/var/www/daterabbit/api/.env"
-          if [ -f "$ENV_FILE" ]; then
-            if grep -q "^STRIPE_SECRET_KEY=" "$ENV_FILE"; then
-              sed -i "s|^STRIPE_SECRET_KEY=.*|STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}|" "$ENV_FILE"
-            else
-              echo "STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}" >> "$ENV_FILE"
-            fi
-            if grep -q "^STRIPE_WEBHOOK_SECRET=" "$ENV_FILE"; then
-              sed -i "s|^STRIPE_WEBHOOK_SECRET=.*|STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}|" "$ENV_FILE"
-            else
-              echo "STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}" >> "$ENV_FILE"
-            fi
-            echo "Stripe env vars updated"
-          else
-            echo "ERROR: .env not found at $ENV_FILE"
-            exit 1
-          fi
-
-      - name: Update env vars from secrets
-        env:
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
-        run: |
-          ENV_FILE="/var/www/daterabbit/api/.env"
-          # Force production settings
-          sed -i "s|^NODE_ENV=.*|NODE_ENV=production|" "$ENV_FILE"
-          sed -i "s|^DEV_AUTH=.*|DEV_AUTH=false|" "$ENV_FILE"
-          # Update JWT_SECRET
-          if [ -n "$JWT_SECRET" ]; then
-            if grep -q "^JWT_SECRET=" "$ENV_FILE"; then
-              sed -i "s|^JWT_SECRET=.*|JWT_SECRET=${JWT_SECRET}|" "$ENV_FILE"
-            else
-              echo "JWT_SECRET=${JWT_SECRET}" >> "$ENV_FILE"
-            fi
-          fi
-          # Update BREVO_API_KEY
-          if [ -n "$BREVO_API_KEY" ]; then
-            if grep -q "^BREVO_API_KEY=" "$ENV_FILE"; then
-              sed -i "s|^BREVO_API_KEY=.*|BREVO_API_KEY=${BREVO_API_KEY}|" "$ENV_FILE"
-            else
-              echo "BREVO_API_KEY=${BREVO_API_KEY}" >> "$ENV_FILE"
-            fi
-          fi
-          echo "Production env vars updated"
-
-      - name: Restart backend
-        run: |
-          cd /var/www/daterabbit/api
-          sudo pm2 restart daterabbit || sudo pm2 start dist/main.js --name daterabbit --cwd /var/www/daterabbit/api -i 2
-          sudo chown -R www-data:www-data /var/www/daterabbit/ 2>/dev/null || true
+          chown -R deployer:www-data $DEPLOY_DIR
+          find $DEPLOY_DIR -type d -exec chmod 750 {} \;
+          find $DEPLOY_DIR -type f -exec chmod 640 {} \;
+          chmod 750 $DEPLOY_DIR/backend/daterabbit-api/start.sh
+          chmod 750 $DEPLOY_DIR/admin/start.sh
 
       - name: Deploy nginx config
         run: |
           CONF="/etc/nginx/sites-available/daterabbit"
-
-          echo "=== Before ==="
-          head -5 "$CONF" 2>/dev/null || echo "No existing config"
-
-          # Replace config entirely from repo
-          sudo cp server/nginx-daterabbit.conf "$CONF"
-          sudo chmod 644 "$CONF"
-
-          # Ensure symlink exists in sites-enabled
+          cp $DEPLOY_DIR/server/nginx-daterabbit.conf "$CONF"
+          chmod 644 "$CONF"
           if [ ! -L /etc/nginx/sites-enabled/daterabbit ]; then
-            sudo ln -sf "$CONF" /etc/nginx/sites-enabled/daterabbit
+            ln -sf "$CONF" /etc/nginx/sites-enabled/daterabbit
           fi
+          nginx -t 2>&1
+          systemctl reload nginx
 
-          echo "=== After ==="
-          cat "$CONF"
+      - name: Restart services
+        run: |
+          pm2 restart daterabbit
+          pm2 restart daterabbit-admin
+          pm2 save
 
-          sudo nginx -t 2>&1
-          sudo systemctl reload nginx && echo "Nginx config deployed and reloaded"
-
-          sleep 2
-          echo ""
-          echo "=== Verification ==="
-          curl -s -o /dev/null -w "Backend direct (3004): %{http_code}\n" http://localhost:3004/api/payments/earnings || true
-          curl -s -o /dev/null -w "Admin direct (3005):   %{http_code}\n" http://localhost:3005/ || true
-          curl -s -o /dev/null -w "Nginx HTTPS (443):     %{http_code}\n" --resolve "daterabbit.smartlaunchhub.com:443:127.0.0.1" -k https://daterabbit.smartlaunchhub.com/api/payments/earnings || true
-
-      - name: Verify deployment
-        if: always()
+      - name: Verify staging
+        id: verify
         run: |
           sleep 5
-          echo "=== version.json ==="
-          cat /var/www/daterabbit/version.json 2>&1 || echo "no version.json"
-          echo "=== PM2 status ==="
-          sudo pm2 show daterabbit 2>&1 | grep -E "(status|restarts|uptime)" || true
-          sudo pm2 show daterabbit-admin 2>&1 | grep -E "(status|restarts|uptime)" || true
-          echo "=== PM2 error logs (last 5) ==="
-          sudo pm2 logs daterabbit --nostream --lines 5 --err 2>&1 || true
-          sudo pm2 logs daterabbit-admin --nostream --lines 5 --err 2>&1 || true
-          echo "=== API smoke test ==="
-          curl -s -o /dev/null -w "GET /api/payments/earnings: %{http_code}\n" http://localhost:3004/api/payments/earnings || true
-          curl -s -o /dev/null -w "GET /admin (Next.js):       %{http_code}\n" http://localhost:3005/ || true
-          echo "=== Nginx config files ==="
-          ls -la /etc/nginx/sites-enabled/ 2>/dev/null | grep -i date || echo "No daterabbit in sites-enabled"
+          echo "=== Version ==="
+          curl -sf https://daterabbit.smartlaunchhub.com/version.json
+          echo ""
+          echo "=== Frontend ==="
+          HTTP=$(curl -s -o /dev/null -w "%{http_code}" https://daterabbit.smartlaunchhub.com/)
+          echo "Frontend HTTP: $HTTP"
+          [ "$HTTP" = "200" ] || exit 1
+          echo "=== Backend ==="
+          API=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3004/api/)
+          echo "API HTTP: $API"
+          echo "=== Admin ==="
+          ADMIN=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3005/)
+          echo "Admin HTTP: $ADMIN"
 
-
-      - name: Cleanup node_modules
-        if: always()
+      - name: Auto-rollback on failure
+        if: failure() && steps.verify.outcome == 'failure'
         run: |
-          find . -type d -name "node_modules" -exec rm -rf {} + 2>/dev/null || true
-          echo "Cleanup done — runner disk freed"
+          echo "!!! DEPLOY FAILED — ROLLING BACK !!!"
+          PREV=$(cat /tmp/daterabbit-prev-commit)
+          echo "Rolling back to $PREV"
+
+          cd $DEPLOY_DIR
+          git reset --hard $PREV
+
+          cd $DEPLOY_DIR/app
+          npm ci --legacy-peer-deps
+          npx expo export --platform web --clear
+          python3 scripts/inject-og.py dist/index.html
+          cp -r dist/* $DEPLOY_DIR/ 2>/dev/null || true
+
+          cd $DEPLOY_DIR/backend/daterabbit-api
+          npm ci
+          npm run build
+
+          cd $DEPLOY_DIR/admin
+          npm ci
+          NEXT_PUBLIC_API_URL=https://daterabbit.smartlaunchhub.com/api npm run build
+
+          cd $DEPLOY_DIR
+          echo "{\"version\":\"$(git rev-parse --short HEAD)\",\"date\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"rollback\":true}" > version.json
+
+          chown -R deployer:www-data $DEPLOY_DIR
+          find $DEPLOY_DIR -type d -exec chmod 750 {} \;
+          find $DEPLOY_DIR -type f -exec chmod 640 {} \;
+          chmod 750 $DEPLOY_DIR/backend/daterabbit-api/start.sh
+          chmod 750 $DEPLOY_DIR/admin/start.sh
+
+          pm2 restart daterabbit
+          pm2 restart daterabbit-admin
+          pm2 save
+
+          sleep 5
+          echo "=== Rollback verification ==="
+          curl -sf https://daterabbit.smartlaunchhub.com/version.json
