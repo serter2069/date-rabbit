@@ -59,6 +59,7 @@ jobs:
     runs-on: self-hosted
     env:
       DEPLOY_DIR: /var/www/daterabbit
+      HOME: /root
     steps:
       - name: Save previous commit for rollback
         run: |
