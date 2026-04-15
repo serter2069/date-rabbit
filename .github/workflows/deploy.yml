@@ -104,6 +104,8 @@ jobs:
           find $DEPLOY_DIR -type f -exec chmod 640 {} \;
           chmod 750 $DEPLOY_DIR/backend/daterabbit-api/start.sh
           chmod 750 $DEPLOY_DIR/admin/start.sh
+          find $DEPLOY_DIR -path '*/node_modules/.bin/*' -exec chmod 750 {} \;
+          find $DEPLOY_DIR -path '*/node_modules/*/bin/*' -exec chmod 750 {} \;
 
       - name: Deploy nginx config
         run: |
@@ -169,6 +171,8 @@ jobs:
           find $DEPLOY_DIR -type f -exec chmod 640 {} \;
           chmod 750 $DEPLOY_DIR/backend/daterabbit-api/start.sh
           chmod 750 $DEPLOY_DIR/admin/start.sh
+          find $DEPLOY_DIR -path '*/node_modules/.bin/*' -exec chmod 750 {} \;
+          find $DEPLOY_DIR -path '*/node_modules/*/bin/*' -exec chmod 750 {} \;
 
           pm2 restart daterabbit
           pm2 restart daterabbit-admin
