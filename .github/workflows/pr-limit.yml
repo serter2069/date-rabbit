@@ -1,0 +1,42 @@
+name: PR limit check
+
+on:
+  pull_request:
+    types: [opened, reopened]
+
+concurrency:
+  group: pr-limit-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Count open PRs
+        uses: actions/github-script@v7
+        env:
+          PR_LIMIT: '5'
+        with:
+          script: |
+            const limit = parseInt(process.env.PR_LIMIT, 10);
+            const { data: prs } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100
+            });
+            const openCount = prs.filter(p => p.number !== context.payload.pull_request.number).length;
+            core.info(`Open PRs (excluding current): ${openCount} / limit ${limit}`);
+            if (openCount >= limit) {
+              const msg = `PR limit reached: ${openCount} open PRs on this repo (limit: ${limit}). Merge or close some before adding new work.`;
+              await github.rest.issues.createComment({
+                issue_number: context.payload.pull_request.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: msg
+              });
+              core.setFailed(msg);
+            }
