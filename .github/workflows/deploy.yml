@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [development]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -16,6 +20,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/daterabbit-api/package-lock.json
 
       - name: Install backend dependencies
         working-directory: ./backend/daterabbit-api
@@ -34,6 +40,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: |
+            app/package-lock.json
+            admin/package-lock.json
 
       - name: Install frontend dependencies
         working-directory: ./app
@@ -100,8 +110,7 @@ jobs:
       - name: Fix permissions
         run: |
           chown -R deployer:www-data $DEPLOY_DIR
-          find $DEPLOY_DIR -type d -exec chmod 750 {} \;
-          find $DEPLOY_DIR -type f -exec chmod 640 {} \;
+          chmod -R u=rwX,g=rX,o= $DEPLOY_DIR
           chmod 750 $DEPLOY_DIR/backend/daterabbit-api/start.sh
           chmod 750 $DEPLOY_DIR/admin/start.sh
           find $DEPLOY_DIR -path '*/node_modules/.bin/*' -exec chmod 750 {} \;
@@ -167,8 +176,7 @@ jobs:
           echo "{\"version\":\"$(git rev-parse --short HEAD)\",\"date\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"rollback\":true}" > version.json
 
           chown -R deployer:www-data $DEPLOY_DIR
-          find $DEPLOY_DIR -type d -exec chmod 750 {} \;
-          find $DEPLOY_DIR -type f -exec chmod 640 {} \;
+          chmod -R u=rwX,g=rX,o= $DEPLOY_DIR
           chmod 750 $DEPLOY_DIR/backend/daterabbit-api/start.sh
           chmod 750 $DEPLOY_DIR/admin/start.sh
           find $DEPLOY_DIR -path '*/node_modules/.bin/*' -exec chmod 750 {} \;
