@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [development]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: |
+            backend/daterabbit-api/package-lock.json
+            app/package-lock.json
+            admin/package-lock.json
+
+      # --- Backend ---
+      - name: Install backend deps
+        working-directory: ./backend/daterabbit-api
+        run: npm ci
+
+      - name: Backend type check
+        working-directory: ./backend/daterabbit-api
+        run: npm run build
+
+      - name: Backend lint
+        working-directory: ./backend/daterabbit-api
+        run: npx eslint "{src,apps,libs,test}/**/*.ts"
+
+      # --- App (Expo) ---
+      - name: Install app deps
+        working-directory: ./app
+        run: npm ci --legacy-peer-deps
+
+      - name: App type check
+        working-directory: ./app
+        run: npx tsc --noEmit
+
+      # --- Admin (Next.js) ---
+      - name: Install admin deps
+        working-directory: ./admin
+        run: npm ci
+
+      - name: Admin type check
+        working-directory: ./admin
+        run: npx tsc --noEmit
