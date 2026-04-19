@@ -9,8 +9,8 @@ doppler login      # один раз на машину
 daterabbit-dev     # запускает backend + expo + SSH туннель к DB
 ```
 
-- **Backend:** http://localhost:3004
-- **Web app:** http://localhost:8083
+- **Backend:** http://localhost:3500
+- **Web app:** http://localhost:8087
 - **DB:** staging via SSH туннель (localhost:5435 → 91.98.205.156:5432/daterabbit)
 - **Auth:** `DEV_AUTH=true` → OTP всегда `000000`
 
@@ -32,7 +32,7 @@ doppler secrets set KEY=value --project date-rabbit --config dev
 **URLs:**
 - Staging: `https://daterabbit.smartlaunchhub.com`
 - API: `https://daterabbit-api.smartlaunchhub.com/api`
-- Local: `http://localhost:8081` (app), `http://localhost:3004/api` (API)
+- Local: `http://localhost:8087` (app), `http://localhost:3500/api` (API)
 
 ---
 
