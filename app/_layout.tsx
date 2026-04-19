@@ -1,8 +1,26 @@
 import "../global.css";
 import { Stack } from "expo-router";
+import { useFonts } from "expo-font";
+import {
+  PlusJakartaSans_400Regular,
+  PlusJakartaSans_500Medium,
+  PlusJakartaSans_600SemiBold,
+  PlusJakartaSans_700Bold,
+  PlusJakartaSans_800ExtraBold,
+} from "@expo-google-fonts/plus-jakarta-sans";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 export default function RootLayout() {
+  const [fontsLoaded] = useFonts({
+    "PlusJakartaSans-Regular": PlusJakartaSans_400Regular,
+    "PlusJakartaSans-Medium": PlusJakartaSans_500Medium,
+    "PlusJakartaSans-SemiBold": PlusJakartaSans_600SemiBold,
+    "PlusJakartaSans-Bold": PlusJakartaSans_700Bold,
+    "PlusJakartaSans-ExtraBold": PlusJakartaSans_800ExtraBold,
+  });
+
+  if (!fontsLoaded) return null;
+
   return (
     <AuthProvider>
       <Stack screenOptions={{ headerShown: false }}>
