@@ -1,312 +1,268 @@
-import { View, Text, ScrollView, Pressable, TextInput } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { ScrollView, Text, View } from 'react-native'
+import { useState } from 'react'
+import { Stack } from 'expo-router'
+import {
+  Avatar,
+  Badge,
+  Button,
+  Card,
+  EmptyState,
+  ErrorState,
+  Input,
+  LoadingState,
+} from '@/components/ui'
+import { colors, spacing } from '@/lib/theme'
 
-const COLORS = [
-  { name: "primary", value: "#2563EB", tw: "bg-blue-600", usage: "Buttons, links, active tabs" },
-  { name: "primary-dark", value: "#1D4ED8", tw: "bg-blue-700", usage: "Button pressed state" },
-  { name: "secondary", value: "#F3F4F6", tw: "bg-gray-100", usage: "Secondary buttons, card bg" },
-  { name: "background", value: "#FFFFFF", tw: "bg-white", usage: "Page background" },
-  { name: "surface", value: "#F9FAFB", tw: "bg-gray-50", usage: "Card bg, input bg" },
-  { name: "text-primary", value: "#111827", tw: "text-gray-900", usage: "Headlines, body" },
-  { name: "text-secondary", value: "#6B7280", tw: "text-gray-500", usage: "Captions, hints" },
-  { name: "text-inverse", value: "#FFFFFF", tw: "text-white", usage: "Text on primary" },
-  { name: "border", value: "#E5E7EB", tw: "border-gray-200", usage: "Inputs, dividers" },
-  { name: "error", value: "#EF4444", tw: "bg-red-500", usage: "Errors, destructive" },
-  { name: "success", value: "#10B981", tw: "bg-emerald-500", usage: "Success messages" },
-  { name: "warning", value: "#F59E0B", tw: "bg-amber-500", usage: "Warnings, badges" },
-];
+type Swatch = {
+  name: string
+  hex: string
+  hsl: string
+  meta: string
+  textColor?: string
+}
 
-const TYPOGRAPHY = [
-  { name: "h1", size: "text-3xl", weight: "font-bold", px: "28px / 700", example: "Page Title" },
-  { name: "h2", size: "text-xl", weight: "font-semibold", px: "22px / 600", example: "Section Header" },
-  { name: "h3", size: "text-lg", weight: "font-semibold", px: "18px / 600", example: "Card Title" },
-  { name: "body", size: "text-base", weight: "font-normal", px: "16px / 400", example: "Regular body text for descriptions and content" },
-  { name: "caption", size: "text-sm", weight: "font-normal", px: "14px / 400", example: "Secondary info, timestamps" },
-  { name: "small", size: "text-xs", weight: "font-normal", px: "12px / 400", example: "Badges, hints" },
-];
+const brandSwatches: Swatch[] = [
+  {
+    name: 'primary',
+    hex: colors.primary,
+    hsl: 'hsl(338, 68%, 46%)',
+    meta: 'Deep rose — warmth + premium. White contrast 5.47:1',
+    textColor: '#FFFFFF',
+  },
+  {
+    name: 'accent',
+    hex: colors.accent,
+    hsl: 'hsl(18, 82%, 52%)',
+    meta: 'Warm coral — CTAs/highlights. Analogous +40° from primary',
+    textColor: '#FFFFFF',
+  },
+  {
+    name: 'background',
+    hex: colors.background,
+    hsl: 'hsl(340, 20%, 98%)',
+    meta: 'Near-white with rose tint',
+  },
+  {
+    name: 'surface',
+    hex: colors.surface,
+    hsl: 'hsl(0, 0%, 100%)',
+    meta: 'Pure white — cards/modals',
+  },
+  {
+    name: 'text',
+    hex: colors.text,
+    hsl: 'hsl(340, 25%, 10%)',
+    meta: 'Near-black with rose tint. 16:1 on background',
+    textColor: '#FFFFFF',
+  },
+  {
+    name: 'textSecondary',
+    hex: colors.textSecondary,
+    hsl: 'hsl(340, 12%, 45%)',
+    meta: 'Muted rose-gray. 4.72:1 on background',
+    textColor: '#FFFFFF',
+  },
+]
 
-const SPACING = [
-  { name: "xs", value: "4px", tw: "p-1", visual: 4 },
-  { name: "sm", value: "8px", tw: "p-2", visual: 8 },
-  { name: "md", value: "16px", tw: "p-4", visual: 16 },
-  { name: "lg", value: "24px", tw: "p-6", visual: 24 },
-  { name: "xl", value: "32px", tw: "p-8", visual: 32 },
-];
+const semanticSwatches: Swatch[] = [
+  { name: 'error', hex: colors.error, hsl: 'hsl(0, 74%, 51%)', meta: 'Red 600', textColor: '#FFFFFF' },
+  { name: 'success', hex: colors.success, hsl: 'hsl(160, 93%, 30%)', meta: 'Emerald 600', textColor: '#FFFFFF' },
+  { name: 'warning', hex: colors.warning, hsl: 'hsl(30, 94%, 44%)', meta: 'Amber 600', textColor: '#FFFFFF' },
+]
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <View className="mb-10">
-      <Text className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">{title}</Text>
+      <Text className="text-2xl font-bold text-[#201317] mb-4">{title}</Text>
       {children}
     </View>
-  );
+  )
 }
 
-export default function BrandScreen() {
+function ColorSwatch({ swatch }: { swatch: Swatch }) {
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <ScrollView className="flex-1" contentContainerClassName="px-4 py-6 pb-20">
-        <Text className="text-3xl font-bold text-gray-900 mb-1">Brand & Design System</Text>
-        <Text className="text-base text-gray-500 mb-8">Visual reference for all design tokens</Text>
+    <View className="mb-3" style={{ width: '100%' }}>
+      <View
+        style={{
+          backgroundColor: swatch.hex,
+          borderRadius: 12,
+          padding: 16,
+          borderWidth: swatch.hex === '#FFFFFF' || swatch.hex === '#FBF9FA' ? 1 : 0,
+          borderColor: '#F0E6EA',
+        }}
+      >
+        <Text style={{ color: swatch.textColor ?? colors.text, fontSize: 14, fontWeight: '700' }}>
+          {swatch.name}
+        </Text>
+        <Text style={{ color: swatch.textColor ?? colors.text, fontSize: 12, marginTop: 2 }}>
+          {swatch.hex} · {swatch.hsl}
+        </Text>
+      </View>
+      <Text className="text-xs text-[#81656E] mt-1.5">{swatch.meta}</Text>
+    </View>
+  )
+}
 
-        {/* COLORS */}
-        <Section title="Colors">
-          <View className="flex-row flex-wrap gap-3">
-            {COLORS.map((c) => (
-              <View key={c.name} className="w-[48%] mb-4">
-                <View
-                  className="h-20 rounded-xl mb-2 border border-gray-200"
-                  style={{ backgroundColor: c.value }}
-                />
-                <Text className="text-sm font-semibold text-gray-900">{c.name}</Text>
-                <Text className="text-xs text-gray-500">{c.value}</Text>
-                <Text className="text-xs text-blue-600">{c.tw}</Text>
-                <Text className="text-xs text-gray-400 mt-0.5">{c.usage}</Text>
+export default function BrandPage() {
+  const [inputValue, setInputValue] = useState('')
+
+  return (
+    <>
+      <Stack.Screen options={{ title: 'Brand' }} />
+      <ScrollView
+        style={{ flex: 1, backgroundColor: colors.background }}
+        contentContainerStyle={{ padding: 24, paddingBottom: 80, maxWidth: 720, alignSelf: 'center', width: '100%' }}
+      >
+        <View className="mb-8">
+          <Text className="text-4xl font-extrabold text-[#201317] leading-[48px]">
+            DateRabbit Brand
+          </Text>
+          <Text className="text-base text-[#81656E] mt-2">
+            Warm. Premium. Trustworthy. · Analogous rose + coral harmony
+          </Text>
+        </View>
+
+        <Section title="Palette — Brand">
+          {brandSwatches.map((s) => (
+            <ColorSwatch key={s.name} swatch={s} />
+          ))}
+        </Section>
+
+        <Section title="Palette — Semantic">
+          {semanticSwatches.map((s) => (
+            <ColorSwatch key={s.name} swatch={s} />
+          ))}
+        </Section>
+
+        <Section title="Typography — Plus Jakarta Sans">
+          <View className="gap-3">
+            <Text className="text-4xl font-extrabold text-[#201317] leading-[48px]">Display 40/48</Text>
+            <Text className="text-3xl font-bold text-[#201317] leading-10">Title 30/40</Text>
+            <Text className="text-2xl font-bold text-[#201317] leading-8">Heading 24/32</Text>
+            <Text className="text-lg font-semibold text-[#201317] leading-7">Subtitle 18/28</Text>
+            <Text className="text-base text-[#201317] leading-6">
+              Body 16/24 — главный размер текста в приложении. Минимум для читаемости на mobile.
+            </Text>
+            <Text className="text-sm text-[#81656E] leading-5">Body small 14/20 — secondary info</Text>
+            <Text className="text-xs text-[#81656E] leading-4">CAPTION 12/16 — METADATA</Text>
+          </View>
+        </Section>
+
+        <Section title="Spacing">
+          <View className="gap-2">
+            {(['xs', 'sm', 'md', 'lg', 'xl'] as const).map((key) => (
+              <View key={key} className="flex-row items-center">
+                <Text className="text-sm font-semibold text-[#201317] w-10">{key}</Text>
+                <View style={{ width: spacing[key], height: 16, backgroundColor: colors.primary, borderRadius: 4 }} />
+                <Text className="text-xs text-[#81656E] ml-3">{spacing[key]}px</Text>
               </View>
             ))}
           </View>
         </Section>
 
-        {/* TYPOGRAPHY */}
-        <Section title="Typography">
-          {TYPOGRAPHY.map((t) => (
-            <View key={t.name} className="mb-5 pb-4 border-b border-gray-100">
-              <View className="flex-row items-baseline justify-between mb-1">
-                <Text className="text-sm font-bold text-blue-600">{t.name}</Text>
-                <Text className="text-xs text-gray-400">{t.px} | {t.size} {t.weight}</Text>
-              </View>
-              <Text className={`${t.size} ${t.weight} text-gray-900`}>{t.example}</Text>
-            </View>
-          ))}
-        </Section>
-
-        {/* SPACING */}
-        <Section title="Spacing">
-          {SPACING.map((s) => (
-            <View key={s.name} className="flex-row items-center mb-3">
-              <View className="w-16">
-                <Text className="text-sm font-semibold text-gray-900">{s.name}</Text>
-                <Text className="text-xs text-gray-400">{s.value}</Text>
-              </View>
-              <View
-                className="bg-blue-200 rounded"
-                style={{ width: s.visual * 4, height: 24 }}
-              />
-              <Text className="text-xs text-blue-600 ml-2">{s.tw}</Text>
-            </View>
-          ))}
-        </Section>
-
-        {/* BUTTONS */}
         <Section title="Buttons">
           <View className="gap-3">
-            <Pressable className="h-12 rounded-xl bg-blue-600 items-center justify-center active:bg-blue-700">
-              <Text className="text-white text-base font-semibold">Primary Button</Text>
-            </Pressable>
-
-            <Pressable className="h-12 rounded-xl bg-blue-600 items-center justify-center opacity-50">
-              <Text className="text-white text-base font-semibold">Primary Disabled</Text>
-            </Pressable>
-
-            <Pressable className="h-12 rounded-xl bg-gray-100 items-center justify-center active:bg-gray-200">
-              <Text className="text-gray-900 text-base font-semibold">Secondary Button</Text>
-            </Pressable>
-
-            <Pressable className="h-12 rounded-xl border border-red-200 items-center justify-center active:bg-red-50">
-              <Text className="text-red-500 text-base font-semibold">Destructive Button</Text>
-            </Pressable>
-
-            <Pressable className="h-12 rounded-xl border border-gray-200 items-center justify-center active:bg-gray-50">
-              <Text className="text-gray-700 text-base font-semibold">Outline Button</Text>
-            </Pressable>
+            <Button label="Primary" onPress={() => {}} variant="primary" />
+            <Button label="Secondary" onPress={() => {}} variant="secondary" />
+            <Button label="Ghost" onPress={() => {}} variant="ghost" />
+            <Button label="Loading..." onPress={() => {}} loading />
+            <Button label="Disabled" onPress={() => {}} disabled />
+            <View className="flex-row gap-3">
+              <Button label="Small" onPress={() => {}} size="sm" />
+              <Button label="Medium" onPress={() => {}} size="md" />
+              <Button label="Large" onPress={() => {}} size="lg" />
+            </View>
           </View>
         </Section>
 
-        {/* INPUTS */}
         <Section title="Inputs">
           <View className="gap-3">
-            <View>
-              <Text className="text-sm font-medium text-gray-700 mb-1">Default</Text>
-              <TextInput
-                className="h-12 rounded-xl bg-gray-50 border border-gray-200 px-4 text-base text-gray-900"
-                placeholder="Placeholder text"
-                placeholderTextColor="#9ca3af"
-              />
-            </View>
-
-            <View>
-              <Text className="text-sm font-medium text-gray-700 mb-1">Focused</Text>
-              <TextInput
-                className="h-12 rounded-xl bg-gray-50 border-2 border-blue-600 px-4 text-base text-gray-900"
-                value="Typed value"
-              />
-            </View>
-
-            <View>
-              <Text className="text-sm font-medium text-gray-700 mb-1">Error</Text>
-              <TextInput
-                className="h-12 rounded-xl bg-red-50 border border-red-400 px-4 text-base text-gray-900"
-                value="Invalid input"
-              />
-              <Text className="text-xs text-red-500 mt-1">This field is required</Text>
-            </View>
-
-            <View>
-              <Text className="text-sm font-medium text-gray-700 mb-1">With icon</Text>
-              <View className="flex-row items-center h-12 rounded-xl bg-gray-50 border border-gray-200 px-4">
-                <FontAwesome name="search" size={16} color="#9ca3af" />
-                <TextInput
-                  className="flex-1 ml-3 text-base text-gray-900"
-                  placeholder="Search..."
-                  placeholderTextColor="#9ca3af"
-                />
-              </View>
-            </View>
+            <Input
+              label="Email"
+              placeholder="you@daterabbit.com"
+              value={inputValue}
+              onChangeText={setInputValue}
+              keyboardType="email-address"
+            />
+            <Input
+              label="Password"
+              placeholder="••••••••"
+              secureTextEntry
+            />
+            <Input
+              label="Error state"
+              placeholder="Invalid input"
+              error="Это поле обязательно"
+            />
+            <Input
+              label="Disabled"
+              placeholder="Cannot edit"
+              disabled
+              value="read-only"
+            />
           </View>
         </Section>
 
-        {/* CARDS */}
         <Section title="Cards">
-          <View className="rounded-xl border border-gray-200 p-4 mb-3" style={{ shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 3, elevation: 2 }}>
-            <Text className="text-lg font-semibold text-gray-900">Card Title</Text>
-            <Text className="text-base text-gray-500 mt-1">Card description text goes here with some details about the content.</Text>
-          </View>
-
-          <View className="flex-row gap-3">
-            <View className="flex-1 rounded-xl overflow-hidden border border-gray-200">
-              <View className="h-28 bg-blue-100 items-center justify-center">
-                <FontAwesome name="image" size={28} color="#93c5fd" />
-              </View>
-              <View className="p-3">
-                <Text className="text-sm font-semibold text-gray-900">Listing Card</Text>
-                <Text className="text-base font-bold text-blue-600 mt-0.5">$299</Text>
-                <View className="flex-row items-center mt-1">
-                  <FontAwesome name="map-marker" size={10} color="#9ca3af" />
-                  <Text className="text-xs text-gray-400 ml-1">Tbilisi</Text>
-                </View>
-              </View>
-            </View>
-            <View className="flex-1 rounded-xl overflow-hidden border border-gray-200">
-              <View className="h-28 bg-pink-100 items-center justify-center">
-                <FontAwesome name="image" size={28} color="#f9a8d4" />
-              </View>
-              <View className="p-3">
-                <Text className="text-sm font-semibold text-gray-900">Another Card</Text>
-                <Text className="text-base font-bold text-blue-600 mt-0.5">$1,450</Text>
-                <View className="flex-row items-center mt-1">
-                  <FontAwesome name="map-marker" size={10} color="#9ca3af" />
-                  <Text className="text-xs text-gray-400 ml-1">Batumi</Text>
-                </View>
-              </View>
-            </View>
+          <View className="gap-3">
+            <Card variant="default">
+              <Text className="font-semibold text-[#201317]">Default card</Text>
+              <Text className="text-sm text-[#81656E] mt-1">White surface, no border</Text>
+            </Card>
+            <Card variant="outlined">
+              <Text className="font-semibold text-[#201317]">Outlined card</Text>
+              <Text className="text-sm text-[#81656E] mt-1">With border — good for lists</Text>
+            </Card>
+            <Card variant="elevated">
+              <Text className="font-semibold text-[#201317]">Elevated card</Text>
+              <Text className="text-sm text-[#81656E] mt-1">Shadow — modal/sheet context</Text>
+            </Card>
           </View>
         </Section>
 
-        {/* AVATARS */}
         <Section title="Avatars">
-          <View className="flex-row items-end gap-4">
-            <View className="items-center">
-              <View className="w-8 h-8 rounded-full bg-blue-100 items-center justify-center">
-                <Text className="text-xs font-bold text-blue-600">S</Text>
-              </View>
-              <Text className="text-xs text-gray-400 mt-1">sm 32px</Text>
-            </View>
-            <View className="items-center">
-              <View className="w-12 h-12 rounded-full bg-blue-100 items-center justify-center">
-                <Text className="text-base font-bold text-blue-600">M</Text>
-              </View>
-              <Text className="text-xs text-gray-400 mt-1">md 48px</Text>
-            </View>
-            <View className="items-center">
-              <View className="w-[72px] h-[72px] rounded-full bg-blue-100 items-center justify-center">
-                <Text className="text-2xl font-bold text-blue-600">L</Text>
-              </View>
-              <Text className="text-xs text-gray-400 mt-1">lg 72px</Text>
-            </View>
+          <View className="flex-row items-end gap-3">
+            <Avatar name="Sergei Demo" size="sm" />
+            <Avatar name="Anna Companion" size="md" />
+            <Avatar name="Mike Seeker" size="lg" />
+            <Avatar name="Admin User" size="xl" />
+          </View>
+          <View className="flex-row items-end gap-3 mt-4">
+            <Avatar uri="https://i.pravatar.cc/100?img=5" size="md" />
+            <Avatar uri="https://i.pravatar.cc/100?img=12" size="lg" />
+            <Avatar uri="https://i.pravatar.cc/100?img=32" size="xl" />
           </View>
         </Section>
 
-        {/* BADGES */}
         <Section title="Badges">
-          <View className="flex-row items-center gap-4">
-            <View className="flex-row items-center gap-2">
-              <View className="min-w-[20px] h-5 rounded-full bg-red-500 px-1.5 items-center justify-center">
-                <Text className="text-xs font-bold text-white">3</Text>
-              </View>
-              <Text className="text-sm text-gray-500">Error / unread</Text>
-            </View>
-            <View className="flex-row items-center gap-2">
-              <View className="min-w-[20px] h-5 rounded-full bg-blue-600 px-1.5 items-center justify-center">
-                <Text className="text-xs font-bold text-white">12</Text>
-              </View>
-              <Text className="text-sm text-gray-500">Info</Text>
-            </View>
-            <View className="flex-row items-center gap-2">
-              <View className="min-w-[20px] h-5 rounded-full bg-amber-500 px-1.5 items-center justify-center">
-                <Text className="text-xs font-bold text-white">!</Text>
-              </View>
-              <Text className="text-sm text-gray-500">Warning</Text>
-            </View>
+          <View className="flex-row flex-wrap gap-2">
+            <Badge label="Neutral" variant="neutral" />
+            <Badge label="Primary" variant="primary" />
+            <Badge label="Verified" variant="success" />
+            <Badge label="Pending" variant="warning" />
+            <Badge label="Rejected" variant="error" />
           </View>
         </Section>
 
-        {/* STATES */}
         <Section title="States">
-          {/* Empty */}
-          <View className="items-center py-10 mb-4 rounded-xl bg-gray-50">
-            <FontAwesome name="inbox" size={48} color="#d1d5db" />
-            <Text className="text-lg font-semibold text-gray-400 mt-3">Empty State</Text>
-            <Text className="text-sm text-gray-400 mt-1">Nothing to show here yet</Text>
-          </View>
-
-          {/* Error */}
-          <View className="items-center py-10 mb-4 rounded-xl bg-red-50">
-            <FontAwesome name="exclamation-triangle" size={48} color="#fca5a5" />
-            <Text className="text-lg font-semibold text-red-400 mt-3">Error State</Text>
-            <Text className="text-sm text-red-400 mt-1">Something went wrong</Text>
-            <Pressable className="mt-3 px-6 h-10 rounded-lg bg-red-500 items-center justify-center">
-              <Text className="text-sm font-semibold text-white">Retry</Text>
-            </Pressable>
-          </View>
-
-          {/* Loading skeleton */}
-          <View className="rounded-xl border border-gray-100 p-4">
-            <Text className="text-sm font-medium text-gray-500 mb-3">Loading Skeleton</Text>
-            <View className="h-4 w-3/4 rounded bg-gray-200 mb-2" />
-            <View className="h-4 w-1/2 rounded bg-gray-200 mb-2" />
-            <View className="h-4 w-5/6 rounded bg-gray-200" />
-          </View>
+          <Card variant="outlined">
+            <EmptyState
+              title="No bookings yet"
+              message="Найди companion и забронируй первое свидание."
+              actionLabel="Начать поиск"
+              onAction={() => {}}
+            />
+          </Card>
+          <View className="h-3" />
+          <Card variant="outlined">
+            <ErrorState onRetry={() => {}} />
+          </Card>
+          <View className="h-3" />
+          <Card variant="outlined">
+            <LoadingState message="Загружаем профили..." />
+          </Card>
         </Section>
-
-        {/* HEADER PATTERNS */}
-        <Section title="Header Patterns">
-          {/* Back header */}
-          <View className="flex-row items-center h-14 bg-white border border-gray-200 rounded-xl px-4 mb-3">
-            <FontAwesome name="arrow-left" size={18} color="#374151" />
-            <Text className="flex-1 text-center text-lg font-semibold text-gray-900">Header-Back</Text>
-            <View className="w-5" />
-          </View>
-
-          {/* Home header */}
-          <View className="flex-row items-center justify-between h-14 bg-white border border-gray-200 rounded-xl px-4 mb-3">
-            <Text className="text-lg font-bold text-blue-600">Etalon</Text>
-            <View className="flex-row items-center gap-3">
-              <FontAwesome name="bell-o" size={18} color="#374151" />
-              <View className="w-8 h-8 rounded-full bg-blue-100 items-center justify-center">
-                <Text className="text-xs font-bold text-blue-600">U</Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Search header */}
-          <View className="flex-row items-center h-14 bg-white border border-gray-200 rounded-xl px-4">
-            <FontAwesome name="search" size={16} color="#9ca3af" />
-            <Text className="flex-1 ml-3 text-base text-gray-400">Header-Search</Text>
-          </View>
-        </Section>
-
       </ScrollView>
-    </SafeAreaView>
-  );
+    </>
+  )
 }
