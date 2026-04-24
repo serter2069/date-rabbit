@@ -17,4 +17,4 @@ jobs:
       - run: npm ci
       - run: npx tsc --noEmit
       - name: API TypeScript check
-        run: cd api && npm ci && npx tsc --noEmit
+        run: cd api && npm install && npx tsc --noEmit
