@@ -12,6 +12,7 @@ import bookingsRoutes from "./routes/bookings";
 import favoritesRoutes from "./routes/favorites";
 import reviewsRoutes from "./routes/reviews";
 import companionProfileRoutes from "./routes/companion-profile";
+import verificationRoutes, { companionStatusRouter } from "./routes/verification";
 
 const app = express();
 const PORT = process.env.PORT || 3500;
@@ -34,6 +35,8 @@ app.use("/api/bookings", bookingsRoutes);
 app.use("/api/favorites", favoritesRoutes);
 app.use("/api/reviews", reviewsRoutes);
 app.use("/api/companion", companionProfileRoutes);
+app.use("/api/companion", companionStatusRouter);
+app.use("/api/verification", verificationRoutes);
 
 app.listen(PORT, () => {
   console.log(`API server running on http://localhost:${PORT}`);

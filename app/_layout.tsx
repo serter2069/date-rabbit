@@ -32,6 +32,8 @@ export default function RootLayout() {
         <Stack.Screen name="legal/privacy" />
         <Stack.Screen name="legal/terms" />
         <Stack.Screen name="brand" />
+        <Stack.Screen name="(seeker-verify)" />
+        <Stack.Screen name="(comp-onboard)" />
       </Stack>
     </AuthProvider>
   );
