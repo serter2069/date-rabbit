@@ -1,15 +1,41 @@
 import { Tabs } from "expo-router";
 import { useWindowDimensions } from "react-native";
+import { useEffect } from "react";
+import { useRouter } from "expo-router";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import Header from "@/components/Header";
+import { useAuth } from "@/contexts/AuthContext";
 
-function TabIcon({ name, color }: { name: React.ComponentProps<typeof FontAwesome>["name"]; color: string }) {
+function TabIcon({
+  name,
+  color,
+}: {
+  name: React.ComponentProps<typeof FontAwesome>["name"];
+  color: string;
+}) {
   return <FontAwesome size={22} name={name} color={color} />;
 }
 
 export default function TabLayout() {
   const { width } = useWindowDimensions();
   const isMobile = width < 640;
+  const router = useRouter();
+  const { user, isAuthenticated, isLoading } = useAuth();
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    if (!isAuthenticated) {
+      router.replace("/(auth)/welcome");
+      return;
+    }
+
+    if (user?.role === "seeker") {
+      router.replace("/(tabs)/male/browse");
+    } else if (user?.role === "companion") {
+      router.replace("/(tabs)/female/index");
+    }
+  }, [isAuthenticated, isLoading, user, router]);
 
   return (
     <>
@@ -60,6 +86,14 @@ export default function TabLayout() {
             title: "Profile",
             tabBarIcon: ({ color }) => <TabIcon name="user" color={color} />,
           }}
+        />
+        <Tabs.Screen
+          name="male"
+          options={{ href: null }}
+        />
+        <Tabs.Screen
+          name="female"
+          options={{ href: null }}
         />
       </Tabs>
     </>
