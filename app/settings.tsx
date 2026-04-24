@@ -1,105 +1,200 @@
-import { View, Text, Pressable, ScrollView, Switch } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from 'react'
+import { Alert, Pressable, ScrollView, Switch, Text, View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { useRouter } from 'expo-router'
+import FontAwesome from '@expo/vector-icons/FontAwesome'
+import { colors } from '@/lib/theme'
+import { useAuth } from '@/contexts/AuthContext'
+
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000'
+
+interface UserMe {
+  id: string
+  email: string
+  name: string | null
+  role: string
+}
 
 function SettingRow({
   icon,
   label,
   rightElement,
   onPress,
+  destructive,
 }: {
-  icon: React.ComponentProps<typeof FontAwesome>["name"];
-  label: string;
-  rightElement?: React.ReactNode;
-  onPress?: () => void;
+  icon: React.ComponentProps<typeof FontAwesome>['name']
+  label: string
+  rightElement?: React.ReactNode
+  onPress?: () => void
+  destructive?: boolean
 }) {
   return (
     <Pressable
       onPress={onPress}
-      className="flex-row items-center px-4 py-4 border-b border-gray-50 active:bg-gray-50"
+      accessibilityLabel={label}
+      className="flex-row items-center px-4 py-4 border-b border-[#F0E6EA] active:bg-[#F5DDE5]"
     >
-      <View className="w-9 h-9 rounded-lg bg-gray-100 items-center justify-center">
-        <FontAwesome name={icon} size={16} color="#6b7280" />
+      <View className="w-9 h-9 rounded-lg bg-[#F5DDE5] items-center justify-center">
+        <FontAwesome name={icon} size={15} color={destructive ? colors.error : colors.primary} />
       </View>
-      <Text className="flex-1 ml-3 text-base text-gray-900">{label}</Text>
-      {rightElement || <FontAwesome name="chevron-right" size={12} color="#d1d5db" />}
+      <Text
+        className={`flex-1 ml-3 text-base ${destructive ? 'text-[#DC2626]' : 'text-[#201317]'}`}
+      >
+        {label}
+      </Text>
+      {rightElement !== undefined
+        ? rightElement
+        : <FontAwesome name="chevron-right" size={12} color="#D1C0C8" />
+      }
     </Pressable>
-  );
+  )
 }
 
 function SectionTitle({ title }: { title: string }) {
   return (
-    <Text className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-4 pt-6 pb-2">
+    <Text className="text-xs font-semibold text-[#81656E] uppercase tracking-wide px-4 pt-6 pb-2">
       {title}
     </Text>
-  );
+  )
 }
 
 export default function SettingsScreen() {
-  const router = useRouter();
-  const [pushEnabled, setPushEnabled] = useState(true);
-  const [emailEnabled, setEmailEnabled] = useState(true);
-  const [messageEnabled, setMessageEnabled] = useState(true);
+  const router = useRouter()
+  const { signOut, token } = useAuth()
+  const [pushEnabled, setPushEnabled] = useState(true)
+  const [user, setUser] = useState<UserMe | null>(null)
+  const [deletingAccount, setDeletingAccount] = useState(false)
+
+  const fetchMe = useCallback(async () => {
+    if (!token) return
+    try {
+      const res = await fetch(`${API_URL}/api/users/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (res.ok) {
+        const data: UserMe = await res.json()
+        setUser(data)
+      }
+    } catch {
+      // non-critical, ignore
+    }
+  }, [token])
+
+  useEffect(() => { fetchMe() }, [fetchMe])
+
+  const handleLogOut = useCallback(async () => {
+    await signOut()
+    router.replace('/(auth)/welcome')
+  }, [signOut, router])
+
+  const handleDeleteAccount = useCallback(() => {
+    Alert.alert(
+      'Delete Account',
+      'This will permanently delete your account and all data. This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            if (!token) return
+            setDeletingAccount(true)
+            try {
+              const res = await fetch(`${API_URL}/api/users/me`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` },
+              })
+              if (res.ok) {
+                await signOut()
+                router.replace('/(auth)/welcome')
+              } else {
+                Alert.alert('Error', 'Failed to delete account. Please try again.')
+              }
+            } catch {
+              Alert.alert('Error', 'Something went wrong. Please try again.')
+            } finally {
+              setDeletingAccount(false)
+            }
+          },
+        },
+      ]
+    )
+  }, [token, signOut, router])
+
+  const isCompanion = user?.role === 'COMPANION'
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <ScrollView className="flex-1" contentContainerClassName="pb-8">
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 32 }}>
         {/* Header */}
-        <View className="flex-row items-center px-4 pt-2 pb-3 border-b border-gray-100">
-          <Pressable onPress={() => router.back()} className="mr-3">
-            <FontAwesome name="arrow-left" size={18} color="#374151" />
+        <View className="flex-row items-center px-4 pt-2 pb-4 border-b border-[#F0E6EA] bg-white">
+          <Pressable onPress={() => router.back()} className="mr-3" accessibilityLabel="Go back">
+            <FontAwesome name="arrow-left" size={18} color={colors.text} />
           </Pressable>
-          <Text className="text-2xl font-bold text-gray-900">Settings</Text>
+          <Text className="text-2xl font-bold text-[#201317]">Settings</Text>
         </View>
 
-        <SectionTitle title="Notifications" />
+        {/* Profile section */}
+        <SectionTitle title="Profile" />
+        <SettingRow
+          icon="user"
+          label="Edit Profile"
+          onPress={() => router.push('/profile/edit' as never)}
+        />
         <SettingRow
           icon="bell"
           label="Push Notifications"
           rightElement={
-            <Switch value={pushEnabled} onValueChange={setPushEnabled} />
+            <Switch
+              value={pushEnabled}
+              onValueChange={setPushEnabled}
+              trackColor={{ true: colors.primary }}
+            />
           }
+        />
+
+        {/* Account section */}
+        <SectionTitle title="Account" />
+        <SettingRow
+          icon="ban"
+          label="Blocked Users"
+          onPress={() => router.push('/blocked' as never)}
         />
         <SettingRow
           icon="envelope"
-          label="Email Notifications"
-          rightElement={
-            <Switch value={emailEnabled} onValueChange={setEmailEnabled} />
-          }
-        />
-        <SettingRow
-          icon="comments"
-          label="Message Notifications"
-          rightElement={
-            <Switch value={messageEnabled} onValueChange={setMessageEnabled} />
-          }
+          label="Change Email"
+          onPress={() => router.push('/profile/change-email' as never)}
         />
 
-        <SectionTitle title="Preferences" />
-        <SettingRow icon="language" label="Language" />
-        <SettingRow icon="moon-o" label="Theme" />
+        {/* Companion-only section */}
+        {isCompanion && (
+          <>
+            <SectionTitle title="Earnings" />
+            <SettingRow
+              icon="credit-card"
+              label="Connect Bank Account"
+              onPress={() => router.push('/stripe-connect' as never)}
+            />
+          </>
+        )}
 
-        <SectionTitle title="Account" />
-        <SettingRow icon="envelope-o" label="Change Email" />
-        <SettingRow icon="trash-o" label="Delete Account" />
-
-        <SectionTitle title="About" />
+        {/* Danger zone */}
+        <SectionTitle title="Danger Zone" />
         <SettingRow
-          icon="file-text-o"
-          label="Privacy Policy"
-          onPress={() => router.push("/legal/privacy" as never)}
+          icon="sign-out"
+          label="Log Out"
+          onPress={handleLogOut}
+          destructive
+          rightElement={null}
         />
         <SettingRow
-          icon="file-text-o"
-          label="Terms of Service"
-          onPress={() => router.push("/legal/terms" as never)}
+          icon="trash"
+          label={deletingAccount ? 'Deleting…' : 'Delete Account'}
+          onPress={deletingAccount ? undefined : handleDeleteAccount}
+          destructive
+          rightElement={null}
         />
-        <SettingRow icon="info-circle" label="App Version" rightElement={
-          <Text className="text-sm text-gray-400">1.0.0</Text>
-        } />
       </ScrollView>
     </SafeAreaView>
-  );
+  )
 }

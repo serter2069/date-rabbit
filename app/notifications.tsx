@@ -1,161 +1,200 @@
-import { View, Text, Pressable, FlatList } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from 'react'
+import { FlatList, Pressable, Text, View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { useRouter } from 'expo-router'
+import FontAwesome from '@expo/vector-icons/FontAwesome'
+import { colors } from '@/lib/theme'
+import { useAuth } from '@/contexts/AuthContext'
+import { LoadingState } from '@/components/ui'
 
-interface Notification {
-  id: string;
-  icon: React.ComponentProps<typeof FontAwesome>["name"];
-  iconColor: string;
-  iconBg: string;
-  title: string;
-  message: string;
-  time: string;
-  read: boolean;
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000'
+
+type NotificationType =
+  | 'booking_request'
+  | 'booking_accepted'
+  | 'booking_declined'
+  | 'payment_captured'
+  | 'review_received'
+
+interface ApiNotification {
+  id: string
+  type: NotificationType
+  title: string
+  description: string
+  createdAt: string
+  readAt: string | null
 }
 
-const MOCK_NOTIFICATIONS: Notification[] = [
-  {
-    id: "1",
-    icon: "comments",
-    iconColor: "#3b82f6",
-    iconBg: "#eff6ff",
-    title: "New message",
-    message: "Alex K. sent you a message about iPhone 15 Pro",
-    time: "2 min ago",
-    read: false,
-  },
-  {
-    id: "2",
-    icon: "heart",
-    iconColor: "#ec4899",
-    iconBg: "#fce7f3",
-    title: "Listing favorited",
-    message: "Someone saved your MacBook Air listing",
-    time: "1 hour ago",
-    read: false,
-  },
-  {
-    id: "3",
-    icon: "tag",
-    iconColor: "#10b981",
-    iconBg: "#d1fae5",
-    title: "Price drop",
-    message: 'Toyota Camry 2020 price dropped to $17,000',
-    time: "3 hours ago",
-    read: true,
-  },
-  {
-    id: "4",
-    icon: "check-circle",
-    iconColor: "#8b5cf6",
-    iconBg: "#ede9fe",
-    title: "Listing approved",
-    message: "Your listing for Vintage Leather Jacket is now live",
-    time: "Yesterday",
-    read: true,
-  },
-  {
-    id: "5",
-    icon: "star",
-    iconColor: "#f59e0b",
-    iconBg: "#fef3c7",
-    title: "New review",
-    message: "Maria S. left a 5-star review",
-    time: "Yesterday",
-    read: true,
-  },
-  {
-    id: "6",
-    icon: "bell",
-    iconColor: "#6b7280",
-    iconBg: "#f3f4f6",
-    title: "Reminder",
-    message: "Complete your profile to get more responses",
-    time: "2 days ago",
-    read: true,
-  },
-];
+function iconForType(type: NotificationType): {
+  name: React.ComponentProps<typeof FontAwesome>['name']
+  color: string
+  bg: string
+} {
+  switch (type) {
+    case 'booking_request':
+      return { name: 'calendar', color: '#C52660', bg: '#F5DDE5' }
+    case 'booking_accepted':
+      return { name: 'check-circle', color: colors.success, bg: '#D1FAE5' }
+    case 'booking_declined':
+      return { name: 'times-circle', color: colors.error, bg: '#FEE2E2' }
+    case 'payment_captured':
+      return { name: 'credit-card', color: '#059669', bg: '#D1FAE5' }
+    case 'review_received':
+      return { name: 'star', color: colors.warning, bg: '#FEF3C7' }
+    default:
+      return { name: 'bell', color: colors.textSecondary, bg: '#F3F4F6' }
+  }
+}
 
-function NotificationItem({
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return 'now'
+  if (mins < 60) return `${mins}m ago`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  if (days === 1) return 'Yesterday'
+  return `${days}d ago`
+}
+
+function NotificationCard({
   item,
-  onToggleRead,
+  onMarkRead,
 }: {
-  item: Notification;
-  onToggleRead: (id: string) => void;
+  item: ApiNotification
+  onMarkRead: (id: string) => void
 }) {
+  const { name, color, bg } = iconForType(item.type)
+  const isUnread = !item.readAt
+
   return (
     <Pressable
-      onPress={() => onToggleRead(item.id)}
-      className={`flex-row items-start px-4 py-3.5 border-b border-gray-50 active:bg-gray-50 ${
-        !item.read ? "bg-blue-50/50" : ""
-      }`}
+      onPress={() => onMarkRead(item.id)}
+      accessibilityLabel={item.title}
+      style={{ backgroundColor: isUnread ? '#FDF2F6' : colors.surface }}
+      className="flex-row items-start px-4 py-3.5 border-b border-[#F0E6EA] active:bg-[#F5DDE5]"
     >
       <View
         className="w-10 h-10 rounded-full items-center justify-center mt-0.5"
-        style={{ backgroundColor: item.iconBg }}
+        style={{ backgroundColor: bg }}
       >
-        <FontAwesome name={item.icon} size={16} color={item.iconColor} />
+        <FontAwesome name={name} size={16} color={color} />
       </View>
       <View className="flex-1 ml-3">
-        <View className="flex-row items-center justify-between">
-          <Text className={`text-sm ${!item.read ? "font-bold text-gray-900" : "font-medium text-gray-700"}`}>
+        <View className="flex-row items-center justify-between mb-0.5">
+          <Text
+            className={`text-sm flex-1 mr-2 ${isUnread ? 'font-bold text-[#201317]' : 'font-medium text-[#81656E]'}`}
+            numberOfLines={1}
+          >
             {item.title}
           </Text>
-          <Text className="text-xs text-gray-400">{item.time}</Text>
+          <Text className="text-xs text-[#81656E] flex-shrink-0">{timeAgo(item.createdAt)}</Text>
         </View>
-        <Text className={`text-sm mt-0.5 ${!item.read ? "text-gray-700" : "text-gray-500"}`} numberOfLines={2}>
-          {item.message}
+        <Text className={`text-sm ${isUnread ? 'text-[#201317]' : 'text-[#81656E]'}`} numberOfLines={2}>
+          {item.description}
         </Text>
       </View>
-      {!item.read && <View className="w-2 h-2 rounded-full bg-blue-600 mt-2 ml-2" />}
+      {isUnread && (
+        <View className="w-2 h-2 rounded-full bg-[#C52660] mt-2 ml-2 flex-shrink-0" />
+      )}
     </Pressable>
-  );
+  )
 }
 
 export default function NotificationsScreen() {
-  const router = useRouter();
-  const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
+  const router = useRouter()
+  const { token } = useAuth()
+  const [notifications, setNotifications] = useState<ApiNotification[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const toggleRead = (id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: !n.read } : n))
-    );
-  };
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/notifications`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      })
+      if (res.ok) {
+        const data: ApiNotification[] = await res.json()
+        setNotifications(data)
+      } else if (res.status === 404) {
+        // Endpoint not yet implemented — treat as empty
+        setNotifications([])
+      }
+    } catch {
+      // Network error — show empty state
+      setNotifications([])
+    } finally {
+      setLoading(false)
+    }
+  }, [token])
 
-  const markAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-  };
+  useEffect(() => { fetchNotifications() }, [fetchNotifications])
+
+  const markRead = useCallback(async (id: string) => {
+    // Optimistic update
+    setNotifications(prev =>
+      prev.map(n => n.id === id ? { ...n, readAt: new Date().toISOString() } : n)
+    )
+    try {
+      await fetch(`${API_URL}/api/notifications/${id}/read`, {
+        method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      })
+    } catch {
+      // ignore — optimistic is fine
+    }
+  }, [token])
+
+  const markAllRead = useCallback(async () => {
+    setNotifications(prev =>
+      prev.map(n => ({ ...n, readAt: n.readAt ?? new Date().toISOString() }))
+    )
+    try {
+      await fetch(`${API_URL}/api/notifications/read-all`, {
+        method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      })
+    } catch {
+      // ignore
+    }
+  }, [token])
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Header */}
-      <View className="flex-row items-center justify-between px-4 pt-2 pb-3 border-b border-gray-100">
+      <View className="flex-row items-center justify-between px-4 pt-2 pb-4 border-b border-[#F0E6EA] bg-white">
         <View className="flex-row items-center">
-          <Pressable onPress={() => router.back()} className="mr-3">
-            <FontAwesome name="arrow-left" size={18} color="#374151" />
+          <Pressable onPress={() => router.back()} className="mr-3" accessibilityLabel="Go back">
+            <FontAwesome name="arrow-left" size={18} color={colors.text} />
           </Pressable>
-          <Text className="text-2xl font-bold text-gray-900">Notifications</Text>
+          <Text className="text-2xl font-bold text-[#201317]">Notifications</Text>
         </View>
-        <Pressable onPress={markAllRead}>
-          <Text className="text-sm text-blue-600 font-medium">Mark all read</Text>
-        </Pressable>
+        {notifications.some(n => !n.readAt) && (
+          <Pressable onPress={markAllRead} accessibilityLabel="Mark all as read">
+            <Text className="text-sm text-[#C52660] font-medium">Mark all read</Text>
+          </Pressable>
+        )}
       </View>
 
-      <FlatList
-        data={notifications}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <NotificationItem item={item} onToggleRead={toggleRead} />
-        )}
-        ListEmptyComponent={
-          <View className="flex-1 items-center justify-center py-20">
-            <FontAwesome name="bell-slash-o" size={48} color="#d1d5db" />
-            <Text className="text-base text-gray-400 mt-4">No notifications</Text>
-          </View>
-        }
-      />
+      {loading ? (
+        <LoadingState message="Loading notifications..." />
+      ) : (
+        <FlatList
+          data={notifications}
+          keyExtractor={item => item.id}
+          contentContainerStyle={{ maxWidth: 768, alignSelf: 'center', width: '100%' }}
+          renderItem={({ item }) => (
+            <NotificationCard item={item} onMarkRead={markRead} />
+          )}
+          ListEmptyComponent={
+            <View className="items-center justify-center py-20">
+              <FontAwesome name="bell-slash-o" size={48} color="#D1C0C8" />
+              <Text className="text-base text-[#81656E] mt-4 font-medium">No notifications yet</Text>
+              <Text className="text-sm text-[#81656E] mt-1">We'll notify you about bookings and messages.</Text>
+            </View>
+          }
+        />
+      )}
     </SafeAreaView>
-  );
+  )
 }
