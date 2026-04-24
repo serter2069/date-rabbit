@@ -7,23 +7,38 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String?
-  avatar    String?
-  role      Role     @default(USER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  refreshTokens  RefreshToken[]
-  conversations  ConversationParticipant[]
-  sentMessages   Message[]
-}
-
 enum Role {
   USER
+  SEEKER
+  COMPANION
   ADMIN
+}
+
+model User {
+  id               String    @id @default(uuid())
+  email            String    @unique
+  name             String?
+  avatar           String?
+  bio              String?
+  age              Int?
+  city             String?
+  role             Role      @default(USER)
+  isVerified       Boolean   @default(false)
+  isOnline         Boolean   @default(false)
+  lastSeen         DateTime?
+  stripeAccountId  String?
+  stripeCustomerId String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  refreshTokens           RefreshToken[]
+  conversations           ConversationParticipant[]
+  sentMessages            Message[]
+  companionProfile        CompanionProfile?
+  seekerBookings          Booking[]                 @relation("SeekerBookings")
+  seekerReviews           Review[]                  @relation("SeekerReviews")
+  favorites               Favorite[]
+  verificationRequests    VerificationRequest[]
 }
 
 model OtpCode {
@@ -74,4 +89,132 @@ model Message {
 
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+}
+
+model CompanionProfile {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  hourlyRate     Float
+  isApproved     Boolean  @default(false)
+  isPublic       Boolean  @default(true)
+  photos         String[]
+  availability   Json?
+  totalEarnings  Float    @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookingsAsCompanion Booking[] @relation("CompanionBookings")
+  reviews             Review[]
+  favorites           Favorite[]
+}
+
+enum BookingStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  PAID
+  COMPLETED
+  CANCELLED
+  DISPUTED
+}
+
+model Booking {
+  id              String        @id @default(uuid())
+  seekerId        String
+  companionId     String
+  date            DateTime
+  durationHours   Float
+  activity        String
+  location        String
+  notes           String?
+  status          BookingStatus @default(PENDING)
+  totalAmount     Float
+  platformFee     Float
+  stripeFee       Float
+  paymentIntentId String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  seeker    User             @relation("SeekerBookings", fields: [seekerId], references: [id])
+  companion CompanionProfile @relation("CompanionBookings", fields: [companionId], references: [id])
+  payment   Payment?
+  review    Review?
+}
+
+enum PaymentStatus {
+  PENDING
+  AUTHORIZED
+  CAPTURED
+  REFUNDED
+  FAILED
+}
+
+model Payment {
+  id              String        @id @default(uuid())
+  bookingId       String        @unique
+  amount          Float
+  stripePaymentId String?
+  status          PaymentStatus @default(PENDING)
+  capturedAt      DateTime?
+  createdAt       DateTime      @default(now())
+
+  booking Booking @relation(fields: [bookingId], references: [id])
+}
+
+model Review {
+  id          String   @id @default(uuid())
+  bookingId   String   @unique
+  seekerId    String
+  companionId String
+  rating      Int
+  comment     String?
+  createdAt   DateTime @default(now())
+
+  booking   Booking          @relation(fields: [bookingId], references: [id])
+  seeker    User             @relation("SeekerReviews", fields: [seekerId], references: [id])
+  companion CompanionProfile @relation(fields: [companionId], references: [id])
+}
+
+model Favorite {
+  id          String   @id @default(uuid())
+  seekerId    String
+  companionId String
+  createdAt   DateTime @default(now())
+
+  seeker    User             @relation(fields: [seekerId], references: [id])
+  companion CompanionProfile @relation(fields: [companionId], references: [id])
+
+  @@unique([seekerId, companionId])
+}
+
+model City {
+  id       String  @id @default(uuid())
+  name     String  @unique
+  country  String  @default("US")
+  isActive Boolean @default(true)
+}
+
+enum VerificationType {
+  SEEKER
+  COMPANION
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model VerificationRequest {
+  id        String             @id @default(uuid())
+  userId    String
+  type      VerificationType
+  status    VerificationStatus @default(PENDING)
+  documents Json?
+  notes     String?
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
 }
