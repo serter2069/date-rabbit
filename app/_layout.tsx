@@ -48,6 +48,7 @@ export default function RootLayout() {
         <Stack.Screen name="booking/[bookingId]/complete" options={{ headerShown: true, headerTitle: "Complete Date" }} />
         <Stack.Screen name="payment/[bookingId]" options={{ headerShown: true, headerTitle: "Payment" }} />
         <Stack.Screen name="reviews/new" options={{ headerShown: true, headerTitle: "Write a Review" }} />
+        <Stack.Screen name="admin" />
       </Stack>
     </AuthProvider>
   );
