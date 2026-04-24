@@ -99,8 +99,9 @@ router.get("/users", async (req: Request, res: Response) => {
 router.post("/users/:id/ban", async (req: Request, res: Response) => {
   try {
     // Stub: field not in schema yet
+    const id = req.params["id"] as string;
     const user = await prisma.user.findUnique({
-      where: { id: req.params.id },
+      where: { id },
       select: { id: true },
     });
     if (!user) {
@@ -117,8 +118,9 @@ router.post("/users/:id/ban", async (req: Request, res: Response) => {
 // POST /api/admin/users/:id/unban — stub
 router.post("/users/:id/unban", async (req: Request, res: Response) => {
   try {
+    const id = req.params["id"] as string;
     const user = await prisma.user.findUnique({
-      where: { id: req.params.id },
+      where: { id },
       select: { id: true },
     });
     if (!user) {
@@ -155,8 +157,9 @@ router.get("/verifications", async (req: Request, res: Response) => {
 // PUT /api/admin/verifications/:id/approve
 router.put("/verifications/:id/approve", async (req: Request, res: Response) => {
   try {
+    const id = req.params["id"] as string;
     await prisma.verificationRequest.update({
-      where: { id: req.params.id },
+      where: { id },
       data: { status: "APPROVED" },
     });
     res.json({ success: true });
@@ -169,9 +172,10 @@ router.put("/verifications/:id/approve", async (req: Request, res: Response) => 
 // PUT /api/admin/verifications/:id/reject
 router.put("/verifications/:id/reject", async (req: Request, res: Response) => {
   try {
+    const id = req.params["id"] as string;
     const { reason } = req.body as { reason?: string };
     await prisma.verificationRequest.update({
-      where: { id: req.params.id },
+      where: { id },
       data: { status: "REJECTED", notes: reason || null },
     });
     res.json({ success: true });
@@ -222,8 +226,9 @@ router.get("/bookings", async (req: Request, res: Response) => {
 // POST /api/admin/bookings/:id/cancel
 router.post("/bookings/:id/cancel", async (req: Request, res: Response) => {
   try {
+    const id = req.params["id"] as string;
     await prisma.booking.update({
-      where: { id: req.params.id },
+      where: { id },
       data: { status: "CANCELLED" },
     });
     res.json({ success: true });
@@ -273,6 +278,7 @@ router.post("/cities", async (req: Request, res: Response) => {
 // PATCH /api/admin/cities/:id
 router.patch("/cities/:id", async (req: Request, res: Response) => {
   try {
+    const id = req.params["id"] as string;
     const { isActive, name, country } = req.body as {
       isActive?: boolean;
       name?: string;
@@ -284,7 +290,7 @@ router.patch("/cities/:id", async (req: Request, res: Response) => {
     if (country !== undefined) data.country = country;
 
     const city = await prisma.city.update({
-      where: { id: req.params.id },
+      where: { id },
       data,
     });
     res.json({ city });
