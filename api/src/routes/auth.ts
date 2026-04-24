@@ -185,4 +185,46 @@ router.get("/me", authMiddleware, async (req: Request, res: Response) => {
   }
 });
 
+// PATCH /api/auth/me
+// Accepts name/avatar today; role/age/city/bio await schema migration (Phase B).
+router.patch("/me", authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { name, avatar } = req.body ?? {};
+    const data: { name?: string; avatar?: string } = {};
+
+    if (name !== undefined) {
+      if (typeof name !== "string" || name.trim().length < 1 || name.trim().length > 80) {
+        res.status(400).json({ error: "Invalid name" });
+        return;
+      }
+      data.name = name.trim();
+    }
+    if (avatar !== undefined) {
+      if (typeof avatar !== "string" || avatar.length > 2048) {
+        res.status(400).json({ error: "Invalid avatar" });
+        return;
+      }
+      data.avatar = avatar;
+    }
+
+    const user = await prisma.user.update({
+      where: { id: req.user!.userId },
+      data,
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        avatar: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+
+    res.json({ user });
+  } catch (error) {
+    console.error("patch-me error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 export default router;

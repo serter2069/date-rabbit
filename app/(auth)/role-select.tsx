@@ -58,18 +58,10 @@ export default function RoleSelectScreen() {
         return;
       }
 
-      if (selected === "seeker") {
-        router.replace("/(seeker-verify)/intro" as never);
-      } else {
-        router.replace("/(comp-onboard)/step2" as never);
-      }
+      router.replace("/(tabs)");
     } catch {
       if (__DEV__) {
-        if (selected === "seeker") {
-          router.replace("/(seeker-verify)/intro" as never);
-        } else {
-          router.replace("/(comp-onboard)/step2" as never);
-        }
+        router.replace("/(tabs)");
       } else {
         setError("Could not connect to server. Please try again.");
       }
