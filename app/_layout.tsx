@@ -43,6 +43,11 @@ export default function RootLayout() {
         <Stack.Screen name="brand" />
         <Stack.Screen name="(seeker-verify)" />
         <Stack.Screen name="(comp-onboard)" />
+        <Stack.Screen name="booking/[id]" options={{ headerShown: true, headerTitle: "Book a Date" }} />
+        <Stack.Screen name="booking/[bookingId]/sent" options={{ headerShown: false, gestureEnabled: false }} />
+        <Stack.Screen name="booking/[bookingId]/complete" options={{ headerShown: true, headerTitle: "Complete Date" }} />
+        <Stack.Screen name="payment/[bookingId]" options={{ headerShown: true, headerTitle: "Payment" }} />
+        <Stack.Screen name="reviews/new" options={{ headerShown: true, headerTitle: "Write a Review" }} />
       </Stack>
     </AuthProvider>
   );
