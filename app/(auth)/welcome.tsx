@@ -37,6 +37,10 @@ export default function WelcomeScreen() {
 
         {/* Legal links */}
         <View className="flex-row justify-center gap-1 mt-2">
+          <Pressable onPress={() => router.push("/landing")}>
+            <Text className="text-sm text-[#81656E] underline">About</Text>
+          </Pressable>
+          <Text className="text-sm text-[#81656E]">·</Text>
           <Pressable onPress={() => router.push("/legal/terms")}>
             <Text className="text-sm text-[#81656E] underline">Terms</Text>
           </Pressable>

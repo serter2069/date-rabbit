@@ -17,7 +17,8 @@ export default function PrivacyPolicyScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <ScrollView className="flex-1" contentContainerClassName="px-4 pb-12" contentContainerStyle={{ maxWidth: 720, alignSelf: 'center', width: '100%' }}>
+      <ScrollView className="flex-1">
+        <View style={{ maxWidth: 720, alignSelf: 'center', width: '100%', paddingHorizontal: 16, paddingBottom: 48 }}>
         {/* Header */}
         <View className="flex-row items-center pt-2 pb-3 border-b border-gray-100 mb-4">
           <Pressable onPress={() => router.back()} className="mr-3">
@@ -80,6 +81,7 @@ export default function PrivacyPolicyScreen() {
           If you have any questions about this Privacy Policy, please contact us at
           privacy@etalon.app.
         </Paragraph>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

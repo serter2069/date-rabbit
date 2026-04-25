@@ -1,6 +1,6 @@
-import { ScrollView, Text, View } from 'react-native'
+import { ScrollView, Text, View, Pressable } from 'react-native'
 import { useState } from 'react'
-import { Stack } from 'expo-router'
+import { Stack, useRouter } from 'expo-router'
 import {
   Avatar,
   Badge,
@@ -105,10 +105,15 @@ function ColorSwatch({ swatch }: { swatch: Swatch }) {
 
 export default function BrandPage() {
   const [inputValue, setInputValue] = useState('')
+  const router = useRouter()
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Brand' }} />
+      <Stack.Screen options={{ title: 'Brand', headerLeft: () => (
+        <Pressable onPress={() => router.back()} style={{ padding: 8 }}>
+          <Text style={{ color: '#C52660', fontWeight: '600' }}>← Back</Text>
+        </Pressable>
+      )}} />
       <ScrollView
         style={{ flex: 1, backgroundColor: colors.background }}
         contentContainerStyle={{ padding: 24, paddingBottom: 80, maxWidth: 720, alignSelf: 'center', width: '100%' }}

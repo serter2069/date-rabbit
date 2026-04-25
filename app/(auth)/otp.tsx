@@ -81,17 +81,26 @@ export default function OtpScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      className="flex-1 bg-white"
+      className="flex-1 bg-[#FBF9FA]"
     >
       <View className="flex-1 justify-center px-6">
+        <View style={{
+          maxWidth: 480,
+          alignSelf: 'center',
+          width: '100%',
+          backgroundColor: '#FFFFFF',
+          borderRadius: 24,
+          padding: 32,
+          boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
+        } as object}>
         <Pressable onPress={() => router.back()} className="mb-8">
-          <Text className="text-blue-600 text-base">Back</Text>
+          <Text className="text-[#C52660] text-base font-medium">← Back</Text>
         </Pressable>
 
-        <Text className="text-3xl font-bold text-gray-900 mb-2">
+        <Text className="text-3xl font-bold text-[#201317] mb-2">
           Enter code
         </Text>
-        <Text className="text-base text-gray-500 mb-8">
+        <Text className="text-base text-[#81656E] mb-8">
           We sent a 6-digit code to {email}
         </Text>
 
@@ -103,10 +112,10 @@ export default function OtpScreen() {
                 key={i}
                 className={`w-12 h-14 rounded-xl items-center justify-center ${
                   code.length === i
-                    ? "border-2 border-blue-600 bg-blue-50"
+                    ? "border-2 border-[#C52660] bg-[#FFF0F5]"
                     : error
-                    ? "bg-red-50 border border-red-200"
-                    : "bg-gray-100"
+                    ? "bg-[#FEF2F2] border border-[#FECACA]"
+                    : "bg-[#FBF9FA]"
                 }`}
               >
                 <Text className="text-2xl font-bold text-gray-900">
@@ -135,26 +144,22 @@ export default function OtpScreen() {
         <Pressable
           onPress={() => handleVerify()}
           disabled={code.length !== 6 || loading}
-          className={`h-14 rounded-xl items-center justify-center ${
-            code.length === 6 && !loading ? "bg-blue-600 active:bg-blue-700" : "bg-gray-200"
-          }`}
+          className="h-14 rounded-xl items-center justify-center active:opacity-90"
+          style={{ backgroundColor: code.length === 6 && !loading ? '#C52660' : '#E6D5DC' }}
         >
           {loading ? (
             <ActivityIndicator color="#ffffff" />
           ) : (
-            <Text
-              className={`text-base font-semibold ${
-                code.length === 6 ? "text-white" : "text-gray-400"
-              }`}
-            >
+            <Text className="text-base font-semibold text-white">
               Verify
             </Text>
           )}
         </Pressable>
 
         <Pressable className="mt-4 items-center" onPress={handleResend}>
-          <Text className="text-blue-600 text-sm">Resend code</Text>
+          <Text className="text-[#C52660] text-sm font-medium">Resend code</Text>
         </Pressable>
+        </View>
       </View>
     </KeyboardAvoidingView>
   );
