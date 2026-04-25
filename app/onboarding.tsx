@@ -112,6 +112,7 @@ export default function OnboardingPage() {
               marginBottom: 32,
             }}
           >
+            {/* static list — no empty state */}
             {slides.map((_, i) => (
               <View
                 key={i}

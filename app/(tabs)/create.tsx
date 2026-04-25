@@ -35,7 +35,7 @@ export default function CreateScreen() {
               <Text className="text-xs text-blue-600 mt-1 font-medium">Add photo</Text>
             </Pressable>
 
-            {/* Placeholder slots */}
+            {/* Placeholder slots — static list, no empty state */}
             {[1, 2, 3, 4, 5].map((i) => (
               <View
                 key={i}

@@ -123,6 +123,7 @@ export default function StripeConnectPage() {
               { icon: '🔒', title: 'Bank-grade security', desc: 'Stripe is PCI DSS Level 1 certified.' },
               { icon: '⚡', title: 'Fast payouts', desc: 'Earnings deposited within 2–3 business days.' },
               { icon: '🌍', title: '30+ currencies', desc: 'Receive payouts in your local currency.' },
+              // static list — no empty state
             ].map((item) => (
               <View
                 key={item.title}

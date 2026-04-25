@@ -27,6 +27,7 @@ function StarPicker({
 }) {
   return (
     <View className="flex-row gap-2">
+      {/* static list — no empty state */}
       {[1, 2, 3, 4, 5].map((star) => (
         <Pressable
           key={star}

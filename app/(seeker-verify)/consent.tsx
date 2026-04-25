@@ -61,6 +61,7 @@ export default function ConsentScreen() {
         </Text>
 
         <View className="bg-white rounded-2xl p-5 mb-8 gap-4">
+          {/* static list — no empty state */}
           {CONSENTS.map((item, idx) => (
             <Pressable
               key={item.id}

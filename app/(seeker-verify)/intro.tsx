@@ -56,7 +56,7 @@ export default function SeekerVerifyIntroScreen() {
           </View>
         )}
 
-        {/* Steps list */}
+        {/* Steps list — static, no empty state */}
         <View className="w-full bg-white rounded-2xl p-5 mb-8">
           {STEPS.map((step, idx) => (
             <View

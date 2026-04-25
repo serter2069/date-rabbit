@@ -128,6 +128,11 @@ export default function CompOnboardStep2Screen() {
         </View>
 
         {/* Photo grid */}
+        {photos.length === 0 && (
+          <View className="items-center justify-center py-8 mb-4 rounded-xl border-2 border-dashed border-[#E6D5DC]">
+            <Text className="text-[#81656E] text-sm">No photos yet — tap + to add</Text>
+          </View>
+        )}
         <View className="flex-row flex-wrap gap-3 mb-6">
           {photos.map((photo, idx) => (
             <View key={idx} className="w-[calc(50%-6px)] aspect-[3/4] relative">

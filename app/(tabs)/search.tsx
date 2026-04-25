@@ -51,6 +51,7 @@ export default function SearchScreen() {
               <Text className="text-sm text-blue-600">Clear</Text>
             </Pressable>
           </View>
+          {/* static list — no empty state */}
           {RECENT_SEARCHES.map((search, index) => (
             <Pressable
               key={index}

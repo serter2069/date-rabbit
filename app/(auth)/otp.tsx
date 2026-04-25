@@ -97,6 +97,7 @@ export default function OtpScreen() {
 
         <Pressable onPress={() => inputRef.current?.focus()}>
           <View className="flex-row justify-between mb-6" pointerEvents="none">
+            {/* static list — no empty state */}
             {[0, 1, 2, 3, 4, 5].map((i) => (
               <View
                 key={i}

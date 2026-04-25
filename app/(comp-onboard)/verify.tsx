@@ -55,6 +55,7 @@ export default function CompOnboardVerifyScreen() {
             "Upload a government-issued ID",
             "Quick automated document check",
             "Your data is encrypted and secure",
+            // static list — no empty state
           ].map((point, idx) => (
             <View key={idx} className="flex-row items-start">
               <Text className="text-[#059669] font-bold mr-3 mt-0.5">✓</Text>

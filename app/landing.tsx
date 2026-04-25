@@ -161,6 +161,7 @@ export default function LandingPage() {
                 { step: '1', icon: '👤', title: 'Create Profile', desc: 'Sign up and build your profile. Seekers describe what they are looking for, companions showcase their personality.' },
                 { step: '2', icon: '🔍', title: 'Browse Companions', desc: 'Explore verified companion profiles. Filter by city, interests, and availability to find your match.' },
                 { step: '3', icon: '📅', title: 'Book a Date', desc: 'Send a booking request with your preferred time and place. Confirm, pay securely, and enjoy your date.' },
+                // static list — no empty state
               ].map((item) => (
                 <View
                   key={item.step}

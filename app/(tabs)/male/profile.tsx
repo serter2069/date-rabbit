@@ -165,7 +165,7 @@ export default function MaleProfileScreen() {
         </View>
       </Card>
 
-      {/* Quick links */}
+      {/* Quick links — static list, no empty state */}
       <Card variant="outlined" padding="sm">
         {quickLinks.map((link, i) => (
           <View key={link.label}>

@@ -111,6 +111,11 @@ export default function HomeScreen() {
             color={item.color}
           />
         )}
+        ListEmptyComponent={
+          <View className="flex-1 items-center justify-center py-20">
+            <Text className="text-[#81656E] text-base">No listings found</Text>
+          </View>
+        }
       />
     </SafeAreaView>
   );
