@@ -39,7 +39,7 @@ export default function StripeIdentityScreen() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-[#FBF9FA]" contentContainerStyle={{ flexGrow: 1 }}>
+    <ScrollView className="flex-1 bg-[#FBF9FA]" contentContainerStyle={{ flexGrow: 1, maxWidth: 1200, alignSelf: 'center', width: '100%' }}>
       <View className="flex-1 px-6 py-10 max-w-lg w-full self-center items-center">
         <Text className="text-sm text-[#81656E] font-medium mb-2 self-start">Step 3 of 4</Text>
         <Text className="text-2xl font-bold text-[#201317] mb-3 self-start">Identity Check</Text>

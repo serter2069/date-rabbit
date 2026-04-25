@@ -101,6 +101,7 @@ function ConversationItem({
 }
 
 export default function MessagesScreen() {
+  const { width } = useWindowDimensions();
   return (
     <SafeAreaView className="flex-1 bg-white">
       {/* Header */}

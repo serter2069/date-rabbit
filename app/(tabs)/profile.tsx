@@ -12,6 +12,7 @@ const MENU_ITEMS = [
 ];
 
 export default function ProfileScreen() {
+  const { width } = useWindowDimensions();
   const { signOut } = useAuth();
 
   return (

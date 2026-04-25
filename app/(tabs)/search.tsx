@@ -19,6 +19,7 @@ const POPULAR_CATEGORIES = [
 ];
 
 export default function SearchScreen() {
+  const { width } = useWindowDimensions();
   return (
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView className="flex-1" contentContainerClassName="pb-8">

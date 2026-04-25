@@ -56,6 +56,7 @@ function ListingCard({ title, price, location, color }: { title: string; price: 
 }
 
 export default function HomeScreen() {
+  const { width } = useWindowDimensions();
   return (
     <SafeAreaView className="flex-1 bg-white">
       <FlatList

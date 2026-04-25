@@ -13,6 +13,7 @@ export default function SeekerVerifyPendingScreen() {
   const { width } = useWindowDimensions();
   const [status, setStatus] = useState<Status>("pending");
   const [reason, setReason] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const poll = async () => {
@@ -31,6 +32,8 @@ export default function SeekerVerifyPendingScreen() {
       }
     } catch {
       // silent — will retry on next tick
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -41,6 +44,14 @@ export default function SeekerVerifyPendingScreen() {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, []);
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: "#FBF9FA", alignItems: "center", justifyContent: "center" }}>
+        <ActivityIndicator size="large" color="#C52660" />
+      </View>
+    );
+  }
 
   const openSupport = () => {
     Linking.openURL(`mailto:${SUPPORT_EMAIL}`);
