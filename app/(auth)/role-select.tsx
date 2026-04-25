@@ -58,10 +58,18 @@ export default function RoleSelectScreen() {
         return;
       }
 
-      router.replace("/(tabs)");
+      if (selected === "companion") {
+        router.replace("/(comp-onboard)/step2");
+      } else {
+        router.replace("/(tabs)");
+      }
     } catch {
       if (__DEV__) {
-        router.replace("/(tabs)");
+        if (selected === "companion") {
+          router.replace("/(comp-onboard)/step2");
+        } else {
+          router.replace("/(tabs)");
+        }
       } else {
         setError("Could not connect to server. Please try again.");
       }

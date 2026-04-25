@@ -35,14 +35,18 @@ export default function OtpScreen() {
       }
 
       await signIn(data.accessToken, data.refreshToken, data.user);
-      router.replace("/(tabs)");
+      if (!data.user?.name) {
+        router.replace("/(auth)/register");
+      } else {
+        router.replace("/(tabs)");
+      }
     } catch {
       // Backend unavailable — in dev mode, allow login with 000000
       if (__DEV__ && codeToVerify === "000000") {
         console.warn("[DEV] Backend unavailable, mock login with 000000");
         const mockUser = { id: "dev-user", email: email || "dev@test.com", name: null, avatar: null, role: "USER" };
         await signIn("dev-mock-token", "dev-mock-refresh", mockUser);
-        router.replace("/(tabs)");
+        router.replace("/(auth)/register");
       } else {
         setError("Could not connect to server. Please try again later.");
       }

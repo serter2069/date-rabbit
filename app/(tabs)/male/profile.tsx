@@ -117,6 +117,11 @@ export default function MaleProfileScreen() {
       icon: 'question-circle',
       onPress: () => {},
     },
+    ...(user?.role === 'ADMIN' ? [{
+      label: 'Admin Panel',
+      icon: 'shield' as React.ComponentProps<typeof FontAwesome>['name'],
+      onPress: () => router.push('/admin' as never),
+    }] : []),
   ]
 
   const containerStyle = isDesktop

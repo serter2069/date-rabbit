@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { ScrollView, Text, View, Pressable, ActivityIndicator } from 'react-native'
-import { useRouter } from 'expo-router'
+import { router, useRouter } from 'expo-router'
 import { useAuth } from '@/contexts/AuthContext'
 import { colors } from '@/lib/theme'
 
@@ -34,11 +34,10 @@ function StatCard({
   )
 }
 
-function QuickLink({ label, route }: { label: string; route: string }) {
-  const router = useRouter()
+function QuickLink({ label, onPress }: { label: string; onPress: () => void }) {
   return (
     <Pressable
-      onPress={() => router.push(route as never)}
+      onPress={onPress}
       className="flex-row items-center justify-between bg-white rounded-xl px-4 py-3 border border-[#F0E6EA] active:opacity-70"
     >
       <Text className="text-base text-[#201317] font-medium">{label}</Text>
@@ -107,11 +106,11 @@ export default function AdminDashboard() {
 
       <Text className="text-lg font-semibold text-[#201317] mb-3">Quick Actions</Text>
       <View className="gap-2">
-        <QuickLink label="View Users" route="/admin/users" />
-        <QuickLink label="View Verifications" route="/admin/verifications" />
-        <QuickLink label="View Bookings" route="/admin/bookings" />
-        <QuickLink label="View Disputes" route="/admin/disputes" />
-        <QuickLink label="Manage Cities" route="/admin/cities" />
+        <QuickLink label="View Users" onPress={() => router.push('/admin/users' as never)} />
+        <QuickLink label="View Verifications" onPress={() => router.push('/admin/verifications' as never)} />
+        <QuickLink label="View Bookings" onPress={() => router.push('/admin/bookings' as never)} />
+        <QuickLink label="View Disputes" onPress={() => router.push('/admin/disputes' as never)} />
+        <QuickLink label="Manage Cities" onPress={() => router.push('/admin/cities' as never)} />
       </View>
     </ScrollView>
   )
