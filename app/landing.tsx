@@ -79,7 +79,7 @@ export default function LandingPage() {
                   </Text>
                 </Pressable>
                 <Pressable
-                  onPress={() => router.push('/(auth)/welcome')}
+                  onPress={() => router.push('/onboarding')}
                   style={({ pressed }) => ({
                     backgroundColor: pressed ? 'rgba(255,255,255,0.15)' : 'transparent',
                     paddingHorizontal: 28,

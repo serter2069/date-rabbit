@@ -181,6 +181,18 @@ export default function SettingsScreen() {
           </>
         )}
 
+        {__DEV__ && (
+          <>
+            <SectionTitle title="Developer" />
+            <SettingRow
+              icon="paint-brush"
+              label="Design System"
+              onPress={() => router.push('/brand' as never)}
+              rightElement={null}
+            />
+          </>
+        )}
+
         {/* Danger zone */}
         <SectionTitle title="Danger Zone" />
         <SettingRow
