@@ -7,6 +7,7 @@ import {
   Pressable,
   KeyboardAvoidingView,
   Platform,
+  useWindowDimensions,
 } from 'react-native'
 import { useLocalSearchParams, router } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -53,6 +54,7 @@ export default function WriteReviewScreen() {
   const { bookingId } = useLocalSearchParams<{ bookingId?: string }>()
   const { token } = useAuth()
   const insets = useSafeAreaInsets()
+  const { width } = useWindowDimensions()
 
   const [rating, setRating] = useState(0)
   const [comment, setComment] = useState('')
@@ -103,7 +105,7 @@ export default function WriteReviewScreen() {
     >
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ padding: 16, paddingBottom: 120 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 120, maxWidth: 720, alignSelf: 'center', width: '100%' }}
         keyboardShouldPersistTaps="handled"
       >
         <Text className="text-2xl font-bold text-[#201317] mb-2">Write a Review</Text>
@@ -168,16 +170,15 @@ export default function WriteReviewScreen() {
       {/* Sticky CTA */}
       <View
         style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
           paddingBottom: insets.bottom + 16,
           paddingTop: 12,
           paddingHorizontal: 16,
           backgroundColor: '#FFFFFF',
           borderTopWidth: 1,
           borderTopColor: '#F0E6EA',
+          maxWidth: 720,
+          alignSelf: 'center',
+          width: '100%',
         }}
       >
         <Button
