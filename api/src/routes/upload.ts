@@ -72,4 +72,17 @@ router.get("/files/:key", async (req: Request, res: Response) => {
   }
 });
 
+// POST /api/upload/photo — alias for photo uploads (same handler)
+router.post("/photo", authMiddleware, upload.single("file"), async (req: Request, res: Response) => {
+  if (!req.file) { res.status(400).json({ error: "No file provided" }); return; }
+  const client = getMinioClient();
+  const exists = await client.bucketExists(BUCKET).catch(() => false);
+  if (!exists) await client.makeBucket(BUCKET).catch(() => {});
+  const ext = path.extname(req.file.originalname) || '.jpg';
+  const filename = `${crypto.randomUUID()}${ext}`;
+  await client.putObject(BUCKET, filename, req.file.buffer, req.file.size, { 'Content-Type': req.file.mimetype });
+  const url = `/api/upload/files/${filename}`;
+  res.json({ url, filename });
+});
+
 export default router;

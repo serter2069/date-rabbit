@@ -52,6 +52,25 @@ router.get("/dashboard", authMiddleware, async (req: Request, res: Response) => 
   }
 });
 
+// GET /api/companion/profile
+router.get("/profile", authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+    const profile = await prisma.companionProfile.findUnique({
+      where: { userId },
+      include: { user: { select: { name: true, email: true, avatar: true, bio: true, age: true, city: true } } },
+    });
+    if (!profile) {
+      res.status(404).json({ error: "Profile not found" });
+      return;
+    }
+    res.json({ profile });
+  } catch (error) {
+    console.error("companion profile get error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // PATCH /api/companion/profile
 router.patch("/profile", authMiddleware, async (req: Request, res: Response) => {
   try {
