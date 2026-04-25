@@ -83,4 +83,15 @@ router.patch("/me", authMiddleware, async (req: Request, res: Response) => {
   }
 });
 
+// DELETE /api/users/me
+router.delete("/me", authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+    await prisma.user.delete({ where: { id: userId } });
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: "Failed to delete account" });
+  }
+});
+
 export default router;

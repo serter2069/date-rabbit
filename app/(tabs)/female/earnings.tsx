@@ -146,7 +146,7 @@ export default function EarningsScreen() {
           {/* Stripe warning */}
           {!data.stripeAccountId && (
             <Pressable
-              onPress={() => router.push('/stripe/connect')}
+              onPress={() => router.push('/stripe-connect' as never)}
               accessibilityLabel="Connect bank account"
             >
               <Card variant="outlined" padding="md">

@@ -100,7 +100,7 @@ export default function BookingCompleteScreen() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to submit duration')
-      router.replace('/(tabs)/female/bookings' as never)
+      router.replace('/(tabs)/female/requests' as never)
     } catch (e: unknown) {
       setDurationSubmitError(e instanceof Error ? e.message : 'Something went wrong')
     } finally {
