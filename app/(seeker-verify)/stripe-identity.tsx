@@ -26,10 +26,8 @@ export default function StripeIdentityScreen() {
         throw new Error(data.error || "Failed to start identity check");
       }
 
-      const data = await res.json();
       // In production: open Stripe Identity SDK with data.clientSecret
-      // Here: simulate success
-      console.log("[StripeIdentity] clientSecret:", data.clientSecret);
+      await res.json();
 
       router.push("/(seeker-verify)/consent");
     } catch (err) {

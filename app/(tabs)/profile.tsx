@@ -17,7 +17,7 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <ScrollView className="flex-1" contentContainerClassName="pb-8">
+      <ScrollView className="flex-1" contentContainerClassName="pb-8" contentContainerStyle={{ maxWidth: 1200, alignSelf: 'center', width: '100%' }}>
         {/* Profile Header */}
         <View className="items-center pt-6 pb-8 border-b border-gray-100">
           <View className="w-20 h-20 rounded-full bg-blue-100 items-center justify-center mb-3">

@@ -71,6 +71,7 @@ function CityRow({
 }
 
 export default function AdminCities() {
+  const { width } = useWindowDimensions()
   const { token } = useAuth()
   const [cities, setCities] = useState<City[]>([])
   const [loading, setLoading] = useState(true)

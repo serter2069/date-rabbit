@@ -72,6 +72,7 @@ function BookingRow({ booking }: { booking: UpcomingBooking }) {
 }
 
 export default function CompanionDashboard() {
+  const { width } = useWindowDimensions()
   const insets = useSafeAreaInsets()
   const router = useRouter()
   const [data, setData] = useState<DashboardData | null>(null)

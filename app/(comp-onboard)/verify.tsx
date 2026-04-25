@@ -26,9 +26,8 @@ export default function CompOnboardVerifyScreen() {
         throw new Error(data.error || "Failed to start identity check");
       }
 
-      const data = await res.json();
       // In production: open Stripe Identity SDK with data.clientSecret
-      console.log("[CompVerify] clientSecret:", data.clientSecret);
+      await res.json();
 
       router.replace("/(comp-onboard)/pending");
     } catch (err) {

@@ -128,6 +128,7 @@ function DisputeCard({
 }
 
 export default function AdminDisputes() {
+  const { width } = useWindowDimensions()
   const { token } = useAuth()
   const [disputes, setDisputes] = useState<Dispute[]>([])
   const [loading, setLoading] = useState(true)

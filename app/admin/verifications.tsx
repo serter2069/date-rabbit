@@ -153,6 +153,7 @@ function VerificationCard({
 }
 
 export default function AdminVerifications() {
+  const { width } = useWindowDimensions()
   const { token } = useAuth()
   const [tab, setTab] = useState<StatusTab>('PENDING')
   const [verifications, setVerifications] = useState<Verification[]>([])

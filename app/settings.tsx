@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Alert, Pressable, ScrollView, Switch, Text, useWindowDimensions, View } from 'react-native'
+import { ActivityIndicator, Alert, Pressable, ScrollView, Switch, Text, useWindowDimensions, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import FontAwesome from '@expo/vector-icons/FontAwesome'
@@ -59,14 +59,16 @@ function SectionTitle({ title }: { title: string }) {
 }
 
 export default function SettingsScreen() {
+  const { width } = useWindowDimensions()
   const router = useRouter()
   const { signOut, token } = useAuth()
   const [pushEnabled, setPushEnabled] = useState(true)
   const [user, setUser] = useState<UserMe | null>(null)
   const [deletingAccount, setDeletingAccount] = useState(false)
+  const [loadingProfile, setLoadingProfile] = useState(true)
 
   const fetchMe = useCallback(async () => {
-    if (!token) return
+    if (!token) { setLoadingProfile(false); return }
     try {
       const res = await fetch(`${API_URL}/api/users/me`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -77,6 +79,8 @@ export default function SettingsScreen() {
       }
     } catch {
       // non-critical, ignore
+    } finally {
+      setLoadingProfile(false)
     }
   }, [token])
 
@@ -123,9 +127,17 @@ export default function SettingsScreen() {
 
   const isCompanion = user?.role === 'COMPANION'
 
+  if (loadingProfile) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator size="large" color="#C52660" />
+      </SafeAreaView>
+    )
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 32 }}>
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 32, maxWidth: 1200, alignSelf: 'center', width: '100%' }}>
         {/* Header */}
         <View className="flex-row items-center px-4 pt-2 pb-4 border-b border-[#F0E6EA] bg-white">
           <Pressable onPress={() => router.back()} className="mr-3" accessibilityLabel="Go back">

@@ -103,6 +103,7 @@ function UserRow({ user, token, onAction }: { user: AdminUser; token: string | n
 }
 
 export default function AdminUsers() {
+  const { width } = useWindowDimensions()
   const { token } = useAuth()
   const [search, setSearch] = useState('')
   const [roleTab, setRoleTab] = useState<Role>('ALL')

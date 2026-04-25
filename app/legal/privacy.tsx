@@ -12,11 +12,12 @@ function Paragraph({ children }: { children: string }) {
 }
 
 export default function PrivacyPolicyScreen() {
+  const { width } = useWindowDimensions();
   const router = useRouter();
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <ScrollView className="flex-1" contentContainerClassName="px-4 pb-12">
+      <ScrollView className="flex-1" contentContainerClassName="px-4 pb-12" contentContainerStyle={{ maxWidth: 1200, alignSelf: 'center', width: '100%' }}>
         {/* Header */}
         <View className="flex-row items-center pt-2 pb-3 border-b border-gray-100 mb-4">
           <Pressable onPress={() => router.back()} className="mr-3">

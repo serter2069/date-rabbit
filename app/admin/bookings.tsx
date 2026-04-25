@@ -110,6 +110,7 @@ function BookingRow({
 }
 
 export default function AdminBookings() {
+  const { width } = useWindowDimensions()
   const { token } = useAuth()
   const [filter, setFilter] = useState<StatusFilter>('ALL')
   const [bookings, setBookings] = useState<AdminBooking[]>([])

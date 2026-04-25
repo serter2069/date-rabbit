@@ -62,6 +62,7 @@ function getFirstDayOfWeek(year: number, month: number): number {
 }
 
 export default function CalendarScreen() {
+  const { width } = useWindowDimensions()
   const insets = useSafeAreaInsets()
   const now = new Date()
   const [year, setYear] = useState(now.getFullYear())

@@ -22,7 +22,7 @@ export default function SearchScreen() {
   const { width } = useWindowDimensions();
   return (
     <SafeAreaView className="flex-1 bg-white">
-      <ScrollView className="flex-1" contentContainerClassName="pb-8">
+      <ScrollView className="flex-1" contentContainerClassName="pb-8" contentContainerStyle={{ maxWidth: 1200, alignSelf: 'center', width: '100%' }}>
         {/* Header */}
         <View className="px-4 pt-2 pb-3">
           <Text className="text-2xl font-bold text-gray-900">Search</Text>
