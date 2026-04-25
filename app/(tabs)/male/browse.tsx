@@ -43,7 +43,7 @@ function StarRating({ rating }: { rating: number }) {
           key={s}
           name={s <= Math.round(rating) ? 'star' : 'star-o'}
           size={11}
-          color={s <= Math.round(rating) ? '#D97706' : '#E6D5DC'}
+          color={s <= Math.round(rating) ? colors.warning : '#E6D5DC'}
         />
       ))}
     </View>
@@ -69,29 +69,29 @@ function CompanionCard({ item, onPress }: { item: Companion; onPress: () => void
                 width: 12,
                 height: 12,
                 borderRadius: 6,
-                backgroundColor: '#059669',
+                backgroundColor: colors.success,
                 borderWidth: 2,
-                borderColor: '#FFFFFF',
+                borderColor: colors.surface,
               }}
             />
           )}
         </View>
         <View style={{ marginTop: 8 }}>
           <Text
-            style={{ fontSize: 13, fontWeight: '600', color: '#201317' }}
+            style={{ fontSize: 13, fontWeight: '600', color: colors.text }}
             numberOfLines={1}
           >
             {item.name}, {item.age}
           </Text>
-          <Text style={{ fontSize: 12, color: '#81656E', marginTop: 2 }} numberOfLines={1}>
+          <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2 }} numberOfLines={1}>
             {item.city}
           </Text>
-          <Text style={{ fontSize: 12, fontWeight: '700', color: '#C52660', marginTop: 4 }}>
+          <Text style={{ fontSize: 12, fontWeight: '700', color: colors.primary, marginTop: 4 }}>
             ${item.hourlyRate}/hr
           </Text>
           <View style={{ marginTop: 4, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
             <StarRating rating={item.rating} />
-            <Text style={{ fontSize: 11, color: '#81656E' }}>({item.reviewCount})</Text>
+            <Text style={{ fontSize: 11, color: colors.textSecondary }}>({item.reviewCount})</Text>
           </View>
           {item.isOnline && (
             <View style={{ marginTop: 6 }}>
@@ -127,7 +127,7 @@ function FiltersPanel({
   return (
     <View
       style={{
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.surface,
         borderRadius: 16,
         padding: 16,
         marginHorizontal: 16,
@@ -140,7 +140,7 @@ function FiltersPanel({
         borderColor: '#F0E6EA',
       }}
     >
-      <Text style={{ fontSize: 15, fontWeight: '700', color: '#201317', marginBottom: 12 }}>
+      <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text, marginBottom: 12 }}>
         Filters
       </Text>
       <View style={{ gap: 10 }}>
@@ -148,10 +148,10 @@ function FiltersPanel({
           style={{
             height: 44,
             borderRadius: 12,
-            backgroundColor: '#FBF9FA',
+            backgroundColor: colors.background,
             paddingHorizontal: 12,
             fontSize: 14,
-            color: '#201317',
+            color: colors.text,
             borderWidth: 1,
             borderColor: '#E6D5DC',
           }}
@@ -166,10 +166,10 @@ function FiltersPanel({
               flex: 1,
               height: 44,
               borderRadius: 12,
-              backgroundColor: '#FBF9FA',
+              backgroundColor: colors.background,
               paddingHorizontal: 12,
               fontSize: 14,
-              color: '#201317',
+              color: colors.text,
               borderWidth: 1,
               borderColor: '#E6D5DC',
             }}
@@ -184,10 +184,10 @@ function FiltersPanel({
               flex: 1,
               height: 44,
               borderRadius: 12,
-              backgroundColor: '#FBF9FA',
+              backgroundColor: colors.background,
               paddingHorizontal: 12,
               fontSize: 14,
-              color: '#201317',
+              color: colors.text,
               borderWidth: 1,
               borderColor: '#E6D5DC',
             }}
@@ -199,7 +199,7 @@ function FiltersPanel({
           />
         </View>
         <View>
-          <Text style={{ fontSize: 12, fontWeight: '600', color: '#81656E', marginBottom: 8 }}>
+          <Text style={{ fontSize: 12, fontWeight: '600', color: colors.textSecondary, marginBottom: 8 }}>
             Min Rating
           </Text>
           <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -212,15 +212,15 @@ function FiltersPanel({
                   paddingVertical: 4,
                   borderRadius: 999,
                   borderWidth: 1,
-                  backgroundColor: local.rating === n ? '#C52660' : '#FFFFFF',
-                  borderColor: local.rating === n ? '#C52660' : '#E6D5DC',
+                  backgroundColor: local.rating === n ? colors.primary : colors.surface,
+                  borderColor: local.rating === n ? colors.primary : '#E6D5DC',
                 }}
               >
                 <Text
                   style={{
                     fontSize: 12,
                     fontWeight: '600',
-                    color: local.rating === n ? '#FFFFFF' : '#81656E',
+                    color: local.rating === n ? colors.surface : colors.textSecondary,
                   }}
                 >
                   {n === 0 ? 'Any' : `${n}+`}
@@ -330,7 +330,7 @@ export default function BrowseScreen() {
     : {}
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#FBF9FA' }}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Search bar */}
       <View style={[{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 }, containerStyle]}>
         <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
@@ -339,7 +339,7 @@ export default function BrowseScreen() {
               flex: 1,
               flexDirection: 'row',
               alignItems: 'center',
-              backgroundColor: '#FFFFFF',
+              backgroundColor: colors.surface,
               borderRadius: 12,
               borderWidth: 1,
               borderColor: '#E6D5DC',
@@ -349,7 +349,7 @@ export default function BrowseScreen() {
           >
             <FontAwesome name="search" size={14} color={colors.textSecondary} />
             <TextInput
-              style={{ flex: 1, marginLeft: 8, fontSize: 14, color: '#201317' }}
+              style={{ flex: 1, marginLeft: 8, fontSize: 14, color: colors.text }}
               placeholder="Search companions..."
               placeholderTextColor={colors.textSecondary}
               value={search}
@@ -367,8 +367,8 @@ export default function BrowseScreen() {
               alignItems: 'center',
               justifyContent: 'center',
               borderWidth: 1,
-              backgroundColor: hasActiveFilters ? '#C52660' : '#FFFFFF',
-              borderColor: hasActiveFilters ? '#C52660' : '#E6D5DC',
+              backgroundColor: hasActiveFilters ? colors.primary : colors.surface,
+              borderColor: hasActiveFilters ? colors.primary : '#E6D5DC',
             }}
           >
             <FontAwesome

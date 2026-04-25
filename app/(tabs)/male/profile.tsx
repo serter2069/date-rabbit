@@ -138,7 +138,7 @@ export default function MaleProfileScreen() {
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: '#FBF9FA' }}
+      style={{ flex: 1, backgroundColor: colors.background }}
       contentContainerStyle={[{ padding: 16, gap: 16 }, containerStyle]}
     >
       {/* Profile card */}
@@ -146,12 +146,12 @@ export default function MaleProfileScreen() {
         <View style={{ alignItems: 'center', gap: 12 }}>
           <Avatar uri={user.avatarUrl} name={user.name} size="xl" />
           <View style={{ alignItems: 'center', gap: 6 }}>
-            <Text style={{ fontSize: 20, fontWeight: '700', color: '#201317' }}>
+            <Text style={{ fontSize: 20, fontWeight: '700', color: colors.text }}>
               {user.name}
             </Text>
-            <Text style={{ fontSize: 14, color: '#81656E' }}>{user.email}</Text>
+            <Text style={{ fontSize: 14, color: colors.textSecondary }}>{user.email}</Text>
             {user.city && (
-              <Text style={{ fontSize: 14, color: '#81656E' }}>{user.city}</Text>
+              <Text style={{ fontSize: 14, color: colors.textSecondary }}>{user.city}</Text>
             )}
             {user.isVerified && (
               <Badge label="Verified" variant="success" />
@@ -189,7 +189,7 @@ export default function MaleProfileScreen() {
               >
                 <FontAwesome name={link.icon} size={16} color={colors.primary} />
               </View>
-              <Text style={{ flex: 1, fontSize: 15, fontWeight: '500', color: '#201317' }}>
+              <Text style={{ flex: 1, fontSize: 15, fontWeight: '500', color: colors.text }}>
                 {link.label}
               </Text>
               <FontAwesome name="chevron-right" size={12} color={colors.textSecondary} />
@@ -209,7 +209,7 @@ export default function MaleProfileScreen() {
 
       {/* Danger zone */}
       <View style={{ marginTop: 8 }}>
-        <Text style={{ fontSize: 12, fontWeight: '600', color: '#81656E', marginBottom: 8, textAlign: 'center' }}>
+        <Text style={{ fontSize: 12, fontWeight: '600', color: colors.textSecondary, marginBottom: 8, textAlign: 'center' }}>
           DANGER ZONE
         </Text>
         <Pressable
@@ -223,7 +223,7 @@ export default function MaleProfileScreen() {
             backgroundColor: '#FEF2F2',
           }}
         >
-          <Text style={{ fontSize: 15, fontWeight: '600', color: '#DC2626' }}>
+          <Text style={{ fontSize: 15, fontWeight: '600', color: colors.error }}>
             Delete Account
           </Text>
         </Pressable>

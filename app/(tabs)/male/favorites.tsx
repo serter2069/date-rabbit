@@ -40,7 +40,7 @@ function StarRating({ rating }: { rating: number }) {
           key={s}
           name={s <= Math.round(rating) ? 'star' : 'star-o'}
           size={11}
-          color={s <= Math.round(rating) ? '#D97706' : '#E6D5DC'}
+          color={s <= Math.round(rating) ? colors.warning : '#E6D5DC'}
         />
       ))}
     </View>
@@ -70,9 +70,9 @@ function FavoriteCard({
                 width: 12,
                 height: 12,
                 borderRadius: 6,
-                backgroundColor: '#059669',
+                backgroundColor: colors.success,
                 borderWidth: 2,
-                borderColor: '#FFFFFF',
+                borderColor: colors.surface,
               }}
             />
           )}
@@ -99,25 +99,25 @@ function FavoriteCard({
               elevation: 2,
             }}
           >
-            <FontAwesome name="heart" size={13} color="#C52660" />
+            <FontAwesome name="heart" size={13} color={colors.primary} />
           </Pressable>
         </View>
         <View style={{ marginTop: 8 }}>
           <Text
-            style={{ fontSize: 13, fontWeight: '600', color: '#201317' }}
+            style={{ fontSize: 13, fontWeight: '600', color: colors.text }}
             numberOfLines={1}
           >
             {item.name}, {item.age}
           </Text>
-          <Text style={{ fontSize: 12, color: '#81656E', marginTop: 2 }} numberOfLines={1}>
+          <Text style={{ fontSize: 12, color: colors.textSecondary, marginTop: 2 }} numberOfLines={1}>
             {item.city}
           </Text>
-          <Text style={{ fontSize: 12, fontWeight: '700', color: '#C52660', marginTop: 4 }}>
+          <Text style={{ fontSize: 12, fontWeight: '700', color: colors.primary, marginTop: 4 }}>
             ${item.hourlyRate}/hr
           </Text>
           <View style={{ marginTop: 4, flexDirection: 'row', alignItems: 'center', gap: 4 }}>
             <StarRating rating={item.rating} />
-            <Text style={{ fontSize: 11, color: '#81656E' }}>({item.reviewCount})</Text>
+            <Text style={{ fontSize: 11, color: colors.textSecondary }}>({item.reviewCount})</Text>
           </View>
           {item.isOnline && (
             <View style={{ marginTop: 6 }}>
@@ -188,7 +188,7 @@ export default function FavoritesScreen() {
   )
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#FBF9FA' }}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       {loading ? (
         <LoadingState message="Loading favorites..." />
       ) : error ? (

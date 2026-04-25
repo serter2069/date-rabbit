@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { colors } from '@/lib/theme'
 import {
   ActivityIndicator,
   FlatList,
@@ -7,7 +8,7 @@ import {
   View,
 } from 'react-native'
 import { useAuth } from '@/contexts/AuthContext'
-import { Badge } from '@/components/ui'
+import { Badge, EmptyState } from '@/components/ui'
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3500'
 
@@ -191,12 +192,13 @@ export default function AdminBookings() {
 
       {loading ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color="#C52660" />
+          <ActivityIndicator color={colors.primary} />
         </View>
       ) : bookings.length === 0 ? (
-        <View className="flex-1 items-center justify-center">
-          <Text className="text-[#81656E]">No bookings found</Text>
-        </View>
+        <EmptyState
+          title="No bookings found"
+          message="Bookings matching the selected filter will appear here."
+        />
       ) : (
         <FlatList
           data={bookings}
@@ -211,7 +213,7 @@ export default function AdminBookings() {
           ListFooterComponent={
             loadingMore ? (
               <View className="py-4 items-center">
-                <ActivityIndicator color="#C52660" />
+                <ActivityIndicator color={colors.primary} />
               </View>
             ) : null
           }

@@ -62,13 +62,13 @@ function BookingCard({ booking }: { booking: Booking }) {
         </Pressable>
         <View style={{ flex: 1, gap: 4 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text style={{ fontSize: 15, fontWeight: '600', color: '#201317' }}>
+            <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text }}>
               {booking.companionName}
             </Text>
             <Badge label={booking.status} variant={STATUS_VARIANT[booking.status]} />
           </View>
-          <Text style={{ fontSize: 13, color: '#81656E' }}>{formatDate(booking.date)}</Text>
-          <Text style={{ fontSize: 13, color: '#81656E' }}>
+          <Text style={{ fontSize: 13, color: colors.textSecondary }}>{formatDate(booking.date)}</Text>
+          <Text style={{ fontSize: 13, color: colors.textSecondary }}>
             {booking.duration}h • {booking.location}
           </Text>
           {booking.status === 'completed' && !booking.hasReview && (
@@ -125,9 +125,9 @@ export default function BookingsScreen() {
     : {}
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#FBF9FA' }}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Filter tabs */}
-      <View style={[{ backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#F0E6EA' }, containerStyle]}>
+      <View style={[{ backgroundColor: colors.surface, borderBottomWidth: 1, borderBottomColor: '#F0E6EA' }, containerStyle]}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -143,14 +143,14 @@ export default function BookingsScreen() {
                   paddingHorizontal: 16,
                   paddingVertical: 12,
                   borderBottomWidth: 2,
-                  borderBottomColor: active ? '#C52660' : 'transparent',
+                  borderBottomColor: active ? colors.primary : 'transparent',
                 }}
               >
                 <Text
                   style={{
                     fontSize: 14,
                     fontWeight: active ? '700' : '500',
-                    color: active ? '#C52660' : '#81656E',
+                    color: active ? colors.primary : colors.textSecondary,
                   }}
                 >
                   {tab.label}
