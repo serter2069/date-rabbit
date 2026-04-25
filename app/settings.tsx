@@ -139,7 +139,8 @@ export default function SettingsScreen() {
         <SettingRow
           icon="user"
           label="Edit Profile"
-          onPress={() => router.push('/profile/edit' as never)}
+          // TODO: navigate to /profile/edit when screen is built
+          onPress={() => Alert.alert('Coming Soon', 'This feature is coming soon')}
         />
         <SettingRow
           icon="bell"
@@ -158,12 +159,14 @@ export default function SettingsScreen() {
         <SettingRow
           icon="ban"
           label="Blocked Users"
-          onPress={() => router.push('/blocked' as never)}
+          // TODO: navigate to /blocked when screen is built
+          onPress={() => Alert.alert('Coming Soon', 'This feature is coming soon')}
         />
         <SettingRow
           icon="envelope"
           label="Change Email"
-          onPress={() => router.push('/profile/change-email' as never)}
+          // TODO: navigate to /profile/change-email when screen is built
+          onPress={() => Alert.alert('Coming Soon', 'This feature is coming soon')}
         />
 
         {/* Companion-only section */}

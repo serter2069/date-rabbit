@@ -158,6 +158,17 @@ router.post("/refresh", async (req: Request, res: Response) => {
   }
 });
 
+// POST /api/auth/logout
+router.post("/logout", authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const token = req.headers.authorization?.replace("Bearer ", "");
+    if (token) await prisma.refreshToken.deleteMany({ where: { token } });
+    res.json({ success: true });
+  } catch (e) {
+    res.json({ success: true }); // always succeed
+  }
+});
+
 // GET /api/auth/me
 router.get("/me", authMiddleware, async (req: Request, res: Response) => {
   try {

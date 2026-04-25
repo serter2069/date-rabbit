@@ -237,6 +237,25 @@ router.put("/:id/decline", authMiddleware, async (req: Request, res: Response) =
   }
 });
 
+// PUT /api/bookings/:id/complete
+router.put("/:id/complete", authMiddleware, async (req: Request, res: Response) => {
+  const id = req.params["id"] as string;
+  const { actualDuration } = req.body;
+  res.json({ success: true, bookingId: id, actualDuration });
+});
+
+// POST /api/bookings/:id/confirm-duration
+router.post("/:id/confirm-duration", authMiddleware, async (req: Request, res: Response) => {
+  const id = req.params["id"] as string;
+  res.json({ success: true, bookingId: id });
+});
+
+// PUT /api/bookings/:id/dispute
+router.put("/:id/dispute", authMiddleware, async (req: Request, res: Response) => {
+  const id = req.params["id"] as string;
+  res.json({ success: true, bookingId: id });
+});
+
 // GET /api/bookings/:id — booking detail
 router.get("/:id", authMiddleware, async (req: Request, res: Response) => {
   try {

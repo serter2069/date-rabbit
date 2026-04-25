@@ -22,7 +22,7 @@ export default function CompOnboardPendingScreen() {
       if (data.status === "approved") {
         setStatus("approved");
         clearInterval(intervalRef.current!);
-        router.replace("/(tabs)/female/index");
+        router.replace("/(tabs)/female");
       } else if (data.status === "rejected") {
         setStatus("rejected");
         setReason(data.reason || null);
