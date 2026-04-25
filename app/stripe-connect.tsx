@@ -72,8 +72,8 @@ export default function StripeConnectPage() {
       <Stack.Screen options={{ title: 'Connect Bank Account', headerShown: true }} />
       <ScrollView
         style={{ flex: 1, backgroundColor: '#FBF9FA' }}
-        contentContainerStyle={{ padding: 24, maxWidth: 560, alignSelf: 'center', width: '100%' }}
       >
+        <View style={{ maxWidth: 560, alignSelf: 'center', width: '100%', padding: 24 }}>
         {/* Header icon */}
         <View
           style={{
@@ -245,6 +245,7 @@ export default function StripeConnectPage() {
         >
           Payments powered by Stripe. DateRabbit does not store your bank details.
         </Text>
+        </View>
       </ScrollView>
     </>
   )
