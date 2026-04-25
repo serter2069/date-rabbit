@@ -10,6 +10,7 @@ import {
 } from "@expo-google-fonts/plus-jakarta-sans";
 import { AuthProvider } from "@/contexts/AuthContext";
 
+import MetroBridge from "@/components/MetroBridge";
 // Public routes accessible without authentication: /landing, /onboarding
 // Auth-gated routes handle their own redirects via useAuth() inside the screen.
 
@@ -26,6 +27,7 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
+      <MetroBridge />
       <Stack screenOptions={{ headerShown: false }}>
         {/* Public — no auth required */}
         <Stack.Screen name="landing" />
@@ -49,6 +51,8 @@ export default function RootLayout() {
         <Stack.Screen name="payment/[bookingId]" options={{ headerShown: true, headerTitle: "Payment" }} />
         <Stack.Screen name="reviews/new" options={{ headerShown: true, headerTitle: "Write a Review" }} />
         <Stack.Screen name="admin" />
+            <Stack.Screen name="chat/[id]" />
+            <Stack.Screen name="profile/[id]" />
       </Stack>
     </AuthProvider>
   );
