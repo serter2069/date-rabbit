@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { View, Text, ScrollView, Pressable, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, Pressable, ActivityIndicator, useWindowDimensions } from "react-native";
 import { router } from "expo-router";
 import { Button } from "@/components/ui";
 
@@ -13,6 +13,7 @@ const STEPS = [
 ];
 
 export default function SeekerVerifyIntroScreen() {
+  const { width } = useWindowDimensions();
   const [loading, setLoading] = useState(true);
   const [alreadyStarted, setAlreadyStarted] = useState(false);
 
@@ -37,7 +38,7 @@ export default function SeekerVerifyIntroScreen() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-[#FBF9FA]" contentContainerStyle={{ flexGrow: 1 }}>
+    <ScrollView className="flex-1 bg-[#FBF9FA]" contentContainerStyle={{ flexGrow: 1, maxWidth: 1200, alignSelf: 'center', width: '100%' }}>
       <View className="flex-1 items-center px-6 py-12 max-w-lg w-full self-center">
         {/* Header */}
         <Text className="text-3xl font-bold text-[#201317] text-center mb-3">

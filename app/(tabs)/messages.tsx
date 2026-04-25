@@ -1,4 +1,4 @@
-import { View, Text, Pressable, FlatList } from "react-native";
+import { View, Text, Pressable, FlatList, useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 

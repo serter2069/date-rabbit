@@ -5,6 +5,7 @@ import {
   ScrollView,
   Switch,
   Text,
+  useWindowDimensions,
   View,
 } from 'react-native'
 import { useRouter } from 'expo-router'

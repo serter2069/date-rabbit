@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Alert, Pressable, ScrollView, Switch, Text, View } from 'react-native'
+import { Alert, Pressable, ScrollView, Switch, Text, useWindowDimensions, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import FontAwesome from '@expo/vector-icons/FontAwesome'

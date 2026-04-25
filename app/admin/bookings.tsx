@@ -5,6 +5,7 @@ import {
   FlatList,
   Pressable,
   Text,
+  useWindowDimensions,
   View,
 } from 'react-native'
 import { useAuth } from '@/contexts/AuthContext'

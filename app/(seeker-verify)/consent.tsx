@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, ScrollView, Pressable } from "react-native";
+import { View, Text, ScrollView, Pressable, useWindowDimensions } from "react-native";
 import { router } from "expo-router";
 import { Button } from "@/components/ui";
 
@@ -12,6 +12,7 @@ const CONSENTS = [
 ];
 
 export default function ConsentScreen() {
+  const { width } = useWindowDimensions();
   const [checked, setChecked] = useState<Record<string, boolean>>({
     genuine: false,
     terms: false,
@@ -51,7 +52,7 @@ export default function ConsentScreen() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-[#FBF9FA]" contentContainerStyle={{ flexGrow: 1 }}>
+    <ScrollView className="flex-1 bg-[#FBF9FA]" contentContainerStyle={{ flexGrow: 1, maxWidth: 1200, alignSelf: 'center', width: '100%' }}>
       <View className="flex-1 px-6 py-10 max-w-lg w-full self-center">
         <Text className="text-sm text-[#81656E] font-medium mb-2">Step 4 of 4</Text>
         <Text className="text-2xl font-bold text-[#201317] mb-3">Consent</Text>

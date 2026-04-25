@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { View, Text, ScrollView, Pressable, Linking } from "react-native";
+import { View, Text, ScrollView, Pressable, Linking, useWindowDimensions, ActivityIndicator } from "react-native";
 import { router } from "expo-router";
 import { EmptyState, Button } from "@/components/ui";
 
@@ -10,8 +10,10 @@ const SUPPORT_EMAIL = "support@daterabbit.app";
 type Status = "pending" | "approved" | "rejected";
 
 export default function CompOnboardPendingScreen() {
+  const { width } = useWindowDimensions();
   const [status, setStatus] = useState<Status>("pending");
   const [reason, setReason] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const poll = async () => {
@@ -30,6 +32,8 @@ export default function CompOnboardPendingScreen() {
       }
     } catch {
       // silent
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -41,13 +45,21 @@ export default function CompOnboardPendingScreen() {
     };
   }, []);
 
+  if (loading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: "#FBF9FA", alignItems: "center", justifyContent: "center" }}>
+        <ActivityIndicator size="large" color="#C52660" />
+      </View>
+    );
+  }
+
   const openSupport = () => {
     Linking.openURL(`mailto:${SUPPORT_EMAIL}`);
   };
 
   if (status === "rejected") {
     return (
-      <ScrollView className="flex-1 bg-[#FBF9FA]" contentContainerStyle={{ flexGrow: 1 }}>
+      <ScrollView className="flex-1 bg-[#FBF9FA]" contentContainerStyle={{ flexGrow: 1, maxWidth: 1200, alignSelf: 'center', width: '100%', paddingBottom: 40 }}>
         <View className="flex-1 items-center justify-center px-6 py-12 max-w-lg w-full self-center">
           <EmptyState
             title="Application Not Approved"
@@ -71,7 +83,7 @@ export default function CompOnboardPendingScreen() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-[#FBF9FA]" contentContainerStyle={{ flexGrow: 1 }}>
+    <ScrollView className="flex-1 bg-[#FBF9FA]" contentContainerStyle={{ flexGrow: 1, maxWidth: 1200, alignSelf: 'center', width: '100%', paddingBottom: 40 }}>
       <View className="flex-1 items-center justify-center px-6 py-12 max-w-lg w-full self-center">
         <View className="w-24 h-24 rounded-full bg-amber-100 items-center justify-center mb-6">
           <Text className="text-5xl">📋</Text>

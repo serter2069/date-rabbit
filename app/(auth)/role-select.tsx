@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, Pressable, ActivityIndicator } from "react-native";
+import { View, Text, Pressable, ActivityIndicator, useWindowDimensions } from "react-native";
 import { router } from "expo-router";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -32,6 +32,7 @@ function RoleCard({ title, description, selected, onPress }: RoleCardProps) {
 }
 
 export default function RoleSelectScreen() {
+  const { width } = useWindowDimensions();
   const { token } = useAuth();
   const [selected, setSelected] = useState<Role | null>(null);
   const [submitting, setSubmitting] = useState(false);

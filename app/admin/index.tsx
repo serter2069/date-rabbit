@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ScrollView, Text, View, Pressable, ActivityIndicator } from 'react-native'
+import { ScrollView, Text, View, Pressable, ActivityIndicator, useWindowDimensions } from 'react-native'
 import { router, useRouter } from 'expo-router'
 import { useAuth } from '@/contexts/AuthContext'
 import { colors } from '@/lib/theme'
@@ -47,6 +47,7 @@ function QuickLink({ label, onPress }: { label: string; onPress: () => void }) {
 }
 
 export default function AdminDashboard() {
+  const { width } = useWindowDimensions()
   const { token } = useAuth()
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
@@ -75,7 +76,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-[#FBF9FA]" contentContainerClassName="p-4 max-w-5xl w-full self-center">
+    <ScrollView className="flex-1 bg-[#FBF9FA]" contentContainerClassName="p-4 max-w-5xl w-full self-center" contentContainerStyle={{ maxWidth: 1200, alignSelf: 'center', width: '100%', paddingBottom: 40 }}>
       <Text className="text-2xl font-bold text-[#201317] mb-4">Overview</Text>
 
       {error && (

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { View, Text, ScrollView, Pressable, Linking } from "react-native";
+import { View, Text, ScrollView, Pressable, Linking, useWindowDimensions, ActivityIndicator } from "react-native";
 import { router } from "expo-router";
 import { EmptyState, Button } from "@/components/ui";
 
@@ -10,6 +10,7 @@ const SUPPORT_EMAIL = "support@daterabbit.app";
 type Status = "pending" | "approved" | "rejected";
 
 export default function SeekerVerifyPendingScreen() {
+  const { width } = useWindowDimensions();
   const [status, setStatus] = useState<Status>("pending");
   const [reason, setReason] = useState<string | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -47,7 +48,7 @@ export default function SeekerVerifyPendingScreen() {
 
   if (status === "rejected") {
     return (
-      <ScrollView className="flex-1 bg-[#FBF9FA]" contentContainerStyle={{ flexGrow: 1 }}>
+      <ScrollView className="flex-1 bg-[#FBF9FA]" contentContainerStyle={{ flexGrow: 1, maxWidth: 1200, alignSelf: 'center', width: '100%' }}>
         <View className="flex-1 items-center justify-center px-6 py-12 max-w-lg w-full self-center">
           <EmptyState
             title="Verification Not Approved"
@@ -76,7 +77,7 @@ export default function SeekerVerifyPendingScreen() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-[#FBF9FA]" contentContainerStyle={{ flexGrow: 1 }}>
+    <ScrollView className="flex-1 bg-[#FBF9FA]" contentContainerStyle={{ flexGrow: 1, maxWidth: 1200, alignSelf: 'center', width: '100%' }}>
       <View className="flex-1 items-center justify-center px-6 py-12 max-w-lg w-full self-center">
         <View className="w-24 h-24 rounded-full bg-amber-100 items-center justify-center mb-6">
           <Text className="text-5xl">⏳</Text>

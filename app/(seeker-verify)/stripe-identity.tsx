@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, useWindowDimensions } from "react-native";
 import { router } from "expo-router";
 import { Button } from "@/components/ui";
 
@@ -8,6 +8,7 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3500";
 type State = "idle" | "processing" | "error";
 
 export default function StripeIdentityScreen() {
+  const { width } = useWindowDimensions();
   const [state, setState] = useState<State>("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 

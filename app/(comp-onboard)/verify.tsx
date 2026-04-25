@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, useWindowDimensions } from "react-native";
 import { router } from "expo-router";
 import { Button } from "@/components/ui";
 
@@ -8,6 +8,7 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3500";
 type State = "idle" | "processing" | "error";
 
 export default function CompOnboardVerifyScreen() {
+  const { width } = useWindowDimensions();
   const [state, setState] = useState<State>("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -37,7 +38,7 @@ export default function CompOnboardVerifyScreen() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-[#FBF9FA]" contentContainerStyle={{ flexGrow: 1 }}>
+    <ScrollView className="flex-1 bg-[#FBF9FA]" contentContainerStyle={{ flexGrow: 1, maxWidth: 1200, alignSelf: 'center', width: '100%', paddingBottom: 40 }}>
       <View className="flex-1 px-6 py-10 max-w-lg w-full self-center items-center">
         <Text className="text-2xl font-bold text-[#201317] mb-3 self-start">
           Identity Verification

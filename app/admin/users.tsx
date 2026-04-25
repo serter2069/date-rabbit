@@ -6,6 +6,7 @@ import {
   Pressable,
   Text,
   TextInput,
+  useWindowDimensions,
   View,
 } from 'react-native'
 import { useAuth } from '@/contexts/AuthContext'

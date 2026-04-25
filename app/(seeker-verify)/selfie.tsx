@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, ScrollView, Pressable, Image, Alert } from "react-native";
+import { View, Text, ScrollView, Pressable, Image, Alert, useWindowDimensions } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { Button } from "@/components/ui";
@@ -9,6 +9,7 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:3500";
 type State = "idle" | "picking" | "uploading" | "error";
 
 export default function SelfieScreen() {
+  const { width } = useWindowDimensions();
   const [state, setState] = useState<State>("idle");
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -97,7 +98,7 @@ export default function SelfieScreen() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-[#FBF9FA]" contentContainerStyle={{ flexGrow: 1 }}>
+    <ScrollView className="flex-1 bg-[#FBF9FA]" contentContainerStyle={{ flexGrow: 1, maxWidth: 1200, alignSelf: 'center', width: '100%' }}>
       <View className="flex-1 px-6 py-10 max-w-lg w-full self-center">
         <Text className="text-sm text-[#81656E] font-medium mb-2">Step 2 of 4</Text>
         <Text className="text-2xl font-bold text-[#201317] mb-3">Selfie</Text>
