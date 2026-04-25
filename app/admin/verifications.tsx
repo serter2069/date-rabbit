@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { colors } from '@/lib/theme'
 import {
   ActivityIndicator,
   Alert,
@@ -10,7 +11,7 @@ import {
   View,
 } from 'react-native'
 import { useAuth } from '@/contexts/AuthContext'
-import { Badge } from '@/components/ui'
+import { Badge, EmptyState } from '@/components/ui'
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3500'
 
@@ -217,12 +218,13 @@ export default function AdminVerifications() {
 
       {loading ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color="#C52660" />
+          <ActivityIndicator color={colors.primary} />
         </View>
       ) : verifications.length === 0 ? (
-        <View className="flex-1 items-center justify-center">
-          <Text className="text-[#81656E]">No {tab.toLowerCase()} verifications</Text>
-        </View>
+        <EmptyState
+          title={`No ${tab.toLowerCase()} verifications`}
+          message="Verification submissions will appear here."
+        />
       ) : (
         <FlatList
           data={verifications}

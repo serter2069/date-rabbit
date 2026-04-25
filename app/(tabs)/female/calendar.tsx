@@ -254,7 +254,7 @@ export default function CalendarScreen() {
                       ...prev,
                       [day]: { ...prev[day], enabled: v },
                     }))}
-                    trackColor={{ false: '#D1C4CA', true: colors.primary }}
+                    trackColor={{ false: colors.textSecondary, true: colors.primary }}
                     thumbColor="#fff"
                     accessibilityLabel={`${day} availability toggle`}
                   />

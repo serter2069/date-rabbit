@@ -248,7 +248,7 @@ export default function PaymentScreen() {
           paddingBottom: insets.bottom + 16,
           paddingTop: 12,
           paddingHorizontal: 16,
-          backgroundColor: '#FFFFFF',
+          backgroundColor: colors.surface,
           borderTopWidth: 1,
           borderTopColor: '#F0E6EA',
         }}
@@ -307,7 +307,7 @@ function CardInput({
           borderColor: error ? colors.error : focused ? colors.primary : '#E6D5DC',
           borderWidth: 1,
           borderRadius: 12,
-          backgroundColor: '#FFFFFF',
+          backgroundColor: colors.surface,
           paddingHorizontal: 14,
           height: 48,
           justifyContent: 'center',

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { colors } from '@/lib/theme'
 import {
   ActivityIndicator,
   FlatList,
@@ -8,7 +9,7 @@ import {
   View,
 } from 'react-native'
 import { useAuth } from '@/contexts/AuthContext'
-import { Badge } from '@/components/ui'
+import { Badge, EmptyState } from '@/components/ui'
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3500'
 
@@ -162,7 +163,7 @@ export default function AdminUsers() {
           value={search}
           onChangeText={setSearch}
           placeholder="Search name or email…"
-          placeholderTextColor="#81656E"
+          placeholderTextColor={colors.textSecondary}
           className="bg-white border border-[#F0E6EA] rounded-xl px-4 py-2.5 text-sm text-[#201317]"
           returnKeyType="search"
           onSubmitEditing={() => fetchUsers(1)}
@@ -200,12 +201,13 @@ export default function AdminUsers() {
 
       {loading ? (
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color="#C52660" />
+          <ActivityIndicator color={colors.primary} />
         </View>
       ) : users.length === 0 ? (
-        <View className="flex-1 items-center justify-center">
-          <Text className="text-[#81656E]">No users found</Text>
-        </View>
+        <EmptyState
+          title="No users found"
+          message="Try adjusting your search or role filter."
+        />
       ) : (
         <FlatList
           data={users}
@@ -218,7 +220,7 @@ export default function AdminUsers() {
           ListFooterComponent={
             loadingMore ? (
               <View className="py-4 items-center">
-                <ActivityIndicator color="#C52660" />
+                <ActivityIndicator color={colors.primary} />
               </View>
             ) : null
           }

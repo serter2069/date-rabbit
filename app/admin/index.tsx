@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { ScrollView, Text, View, Pressable, ActivityIndicator } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useAuth } from '@/contexts/AuthContext'
+import { colors } from '@/lib/theme'
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3500'
 
@@ -24,7 +25,7 @@ function StatCard({
   return (
     <View className="flex-1 bg-white rounded-2xl p-4 border border-[#F0E6EA]">
       {loading ? (
-        <ActivityIndicator color="#C52660" />
+        <ActivityIndicator color={colors.primary} />
       ) : (
         <Text className="text-2xl font-bold text-[#201317]">{value}</Text>
       )}

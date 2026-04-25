@@ -181,7 +181,7 @@ export default function CompanionDashboard() {
             <Switch
               value={stats.isOnline}
               onValueChange={toggleOnline}
-              trackColor={{ false: '#D1C4CA', true: colors.primary }}
+              trackColor={{ false: colors.textSecondary, true: colors.primary }}
               thumbColor="#fff"
               disabled={togglingOnline}
               accessibilityLabel="Toggle online status"
