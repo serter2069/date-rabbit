@@ -169,7 +169,7 @@ export default function CompanionDashboard() {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={{ paddingTop: insets.top, paddingBottom: insets.bottom + 80 }}
+      contentContainerStyle={{ paddingTop: insets.top, paddingBottom: insets.bottom + 80, maxWidth: 1200, alignSelf: 'center', width: '100%' }}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
     >
       <View className="max-w-4xl w-full mx-auto px-4">

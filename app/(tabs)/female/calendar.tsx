@@ -181,7 +181,7 @@ export default function CalendarScreen() {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: colors.background }}
-      contentContainerStyle={{ paddingTop: insets.top, paddingBottom: insets.bottom + 80 }}
+      contentContainerStyle={{ paddingTop: insets.top, paddingBottom: insets.bottom + 80, maxWidth: 1200, alignSelf: 'center', width: '100%' }}
     >
       <View className="max-w-4xl w-full mx-auto px-4">
         <Text className="text-2xl font-bold text-[#201317] py-4">Calendar</Text>
